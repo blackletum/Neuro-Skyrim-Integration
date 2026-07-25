@@ -3767,7 +3767,8 @@ namespace MiscThings {
                     {
                     {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1aa62), 2, "Tavern [Provides bed, jobs and food/booze]", 1}, //tavern
                     {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1aa61), 3, "Alchemist [Provides potions and ingredients. Probably has alchemist table]", 2}, //alchemist
-                    {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1aa66), 5, "Jarl", 3} //jarl
+                    {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1aa66), 5, "Jarl", 3}, //jarl
+                    {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1aa5e), 6, "Wizard [Sells spells]", 4 } //wizard
                     }
 
                 }

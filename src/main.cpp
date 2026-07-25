@@ -56,7 +56,7 @@
 // 
 //TODO potema part2
 //TODO white phial part 2 (windhelm alchemist quest)
-//TODO riften mead quest, dwemer cube quest
+//TODO riften dwemer cube quest
 //TODO solstheim ash captain shit
 //TODO whiterun save the guy from thalmor quest
 //TODO falkreath help the hunter spriggan cave
