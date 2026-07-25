@@ -29,7 +29,7 @@
 //combat-only commands? that appear instead of map/wait? (they should be super compact, maybe even no description)
 //candidate commands:
 //tactical retreat (run away from enemies for a little)/full retreat (plain runaway action)
-//adjust dodge intensity (something like "prefer dodging attacks/prefer dealing more damage but not dodge so much") - probably needs proper melee-type dodging since current version is completely useless for pure melee combat
+//adjust dodge intensity (something like "prefer dodging attacks/prefer dealing more damage but not dodge so much")
 //change focus - attack lowest hp enemy/attack nearest enemy/attack highest hp enemy/attack farthest enemy
 
 //about dodging - maybe add jumps/crouch too
@@ -55,10 +55,17 @@
 //  RANDOM QUESTS TODO
 // 
 //TODO potema part2
+//TODO white phial part 2 (windhelm alchemist quest)
 //TODO riften mead quest, dwemer cube quest
 //TODO solstheim ash captain shit
-//TODO whiterun save the guy from talmor quest
+//TODO whiterun save the guy from thalmor quest
 //TODO falkreath help the hunter spriggan cave
+//TODO riften mzinchaleft sword quest
+//TODO mage sidequests
+//TODO dlc etherium book quest
+//TODO soltsheim riekling quests
+//TODO soltsheim blacksmith quests
+//TODO dawnguard sidequests
 
 //TODO dwemer shield daedra
 //TODO black armor daedra
@@ -66,6 +73,10 @@
 //TODO check hermaeus book-blood quest
 
 
+//TODO upgrade-house helper interesting place
+//TODO winterhold quest with claw
+//TODO that fire nordic sword quest triggered by some book
+//TODO cure vampirism quest
 
 
 //////////////////////////////////////////////////////

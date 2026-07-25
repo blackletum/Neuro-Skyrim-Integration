@@ -11528,6 +11528,24 @@ namespace MiscThings {
                 }
 
 
+                //white phial quest
+                case (0x8db07):
+                {
+                    auto handle = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xc4f2d); //bowl
+
+                    if (handle)
+                    {
+                        if (!MiscThings::is_object_in_the_list(handle))
+                        {
+                            auto temp_result = MiscThings::insert_object_into_list_and_get_info(handle);
+
+                            if (temp_result != "")
+                                send_random_context("You see: " + temp_result, false);
+                        }
+                    }
+                    break;
+                }
+
             }
             
 
