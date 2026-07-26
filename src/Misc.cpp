@@ -19805,6 +19805,100 @@ namespace MiscThings {
 
 
 
+    int amount_of_bows_in_the_inventory()
+    {
+        auto player = RE::PlayerCharacter::GetSingleton();
+
+        if (!player)
+            return -1;
+
+        if (!inventory_valid)
+            auto temp = GetInventory();
+
+        if (!inventory_valid)
+            return -1;
+
+        auto p_inventory = get_p_inventory_items_list();
+
+        int amount_of_bows = 0;
+
+        for (auto inventory_entry : *p_inventory)
+        {
+            if (inventory_entry.second.amount > 0 && inventory_entry.second.object)
+            {
+                if (inventory_entry.second.object->IsWeapon())
+                {
+                    auto weapon = (RE::TESObjectWEAP*)inventory_entry.second.object;
+
+                    if (weapon->IsBow())
+                    {
+                        amount_of_bows++;
+                    }
+                }
+            }
+        }
+
+        return amount_of_bows;
+    }
+
+
+
+    int amount_of_melee_weapons_in_the_inventory()
+    {
+        //bows dont count
+        auto player = RE::PlayerCharacter::GetSingleton();
+
+        if (!player)
+            return -1;
+
+        if (!inventory_valid)
+            auto temp = GetInventory();
+
+        if (!inventory_valid)
+            return -1;
+
+        auto p_inventory = get_p_inventory_items_list();
+
+        int amount_of_melee_weapons = 0;
+
+
+        for (auto inventory_entry : *p_inventory)
+        {
+            if (inventory_entry.second.amount > 0 && inventory_entry.second.object)
+            {
+                if (inventory_entry.second.object->IsWeapon())
+                {
+                    auto weapon = (RE::TESObjectWEAP*)inventory_entry.second.object;
+
+                    float damage = armor_damage_difference(inventory_entry.second.object, true);
+
+                    if (weapon->IsTwoHandedAxe() || weapon->IsTwoHandedSword())
+                    {
+                        amount_of_melee_weapons++;
+                    }
+                    else
+                    {
+                        if (weapon->IsBow() || weapon->IsCrossbow())
+                        {
+                            continue;
+                        }
+                        else
+                        {
+                            //onehanded
+                            amount_of_melee_weapons++;
+                        }
+                    }
+                }
+            }
+        }
+
+        return amount_of_melee_weapons;
+    }
+
+
+
+
+
     int find_good_weapon_in_inventory()
     {
         //returns index to equip with use_inventory item
@@ -22244,6 +22338,8 @@ namespace MiscThings {
 
                 case 2:
                 {
+                    //throw away
+
                     auto player_actor = (RE::Actor*)player_ref;
 
 
@@ -22291,6 +22387,44 @@ namespace MiscThings {
                     }
                     else
                     {
+                        if (object->IsWeapon())
+                        {
+                            auto weapon = (RE::TESObjectWEAP*)object;
+
+                            if (weapon->IsTwoHandedAxe() || weapon->IsTwoHandedSword())
+                            {
+                                if (amount_of_melee_weapons_in_the_inventory() < 2)
+                                {
+                                    result.first = false;
+                                    result.second = "[You cannot drop your last melee weapon, you will need it in certain situations]";
+                                    return result;
+                                }
+                            }
+                            else
+                            {
+                                if (weapon->IsBow() || weapon->IsCrossbow())
+                                {
+                                    if (amount_of_bows_in_the_inventory() < 2)
+                                    {
+                                        result.first = false;
+                                        result.second = "[You cannot drop your last bow, you will need it in certain situations]";
+                                        return result;
+                                    }
+                                }
+                                else
+                                {
+                                    //onehanded
+                                    if (amount_of_melee_weapons_in_the_inventory() < 2)
+                                    {
+                                        result.first = false;
+                                        result.second = "[You cannot drop your last melee weapon, you will need it in certain situations]";
+                                        return result;
+                                    }
+                                }
+                            }
+                        }
+
+
                         player_actor->DropObject(object, nullptr, 1);
                         result.first = true;
                         result.second = "[Dropping [id " + std::to_string(item_id) + "] " + object_name + "...]";
