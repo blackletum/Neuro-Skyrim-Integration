@@ -22158,7 +22158,24 @@ namespace MiscThings {
                                 {
                                     if (book_book->TeachesSpell())
                                     {
+                                        auto spell = book_book->GetSpell();
+
+                                        bool eat_the_book = false;
+
+                                        if (!player_has_spell(spell))
+                                            eat_the_book = true;
+
                                         book_book->Read(player_ref);
+
+                                        if (eat_the_book)
+                                        {
+                                            auto object_ptr = inventory.find((RE::TESBoundObject*)object);
+                                            if (object_ptr != inventory.end())
+                                                if (object_ptr->first)
+                                                    player->RemoveItem(object_ptr->first, 1, RE::ITEM_REMOVE_REASON::kRemove, nullptr, nullptr);
+                                        }
+
+
                                     }
                                     else
                                     {
