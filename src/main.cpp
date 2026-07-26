@@ -66,6 +66,7 @@
 //TODO soltsheim riekling quests
 //TODO soltsheim blacksmith quests
 //TODO dawnguard sidequests
+//TODO 3 amulet pieces quest (that starts with saartal boss in the magnus eye room)
 
 //TODO dwemer shield daedra
 //TODO black armor daedra
@@ -88,6 +89,20 @@
 
 //TODO whirlwind sprint triggers walk_again if cast midwalk (CAREFUL TO NOT RUIN SCRIPTED USAGES, THEY STILL HAVE WALKER ACTIVE)
 //TODO fix pathfinding through portal doors (for runaway and interesting_places coming through locations. Maybe fix walker resetting after location switch when it shouldnt)
+
+
+
+//TODO go-to-location creates phantom quest that leads through the location?
+//      need to make a fake target for each location, work through them for pathfinding to work
+//      maybe replace existing dungeon redirects with more generic ones that can support any quest (using player's position instead of just target + blocking object states)
+//      (do this after all other quests are finished)
+//      probably end chest is best target. can also check if location is cleared, or if the chest is empty. give confirmation choice when trying to explore already cleared location
+//      may lead to problems with path being blocked because the dungeon requires a quest, need to give advice that it is probably unavailable
+
+
+
+//TODO fit quest long descriptions somewhere. maybe give it for both quests when player changes quests, and first time whenever new quest is followed.
+
 
 //////////////////////////////////////////////////////
 // for later random stuff
