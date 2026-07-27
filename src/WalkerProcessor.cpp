@@ -14,6 +14,8 @@
 namespace WalkerProcessor {
 
 
+    int longer_range_advices_ignored = 0;
+
     bool blind_walk_rotates_camera = false;
     bool blind_walk_rotates_camera_direction_right = false;
 
@@ -1972,7 +1974,31 @@ namespace WalkerProcessor {
 
                                             std::string ranged_weapon_advice = "";
                                             if (interaction_after_walk == 3 && get_weapon_range(get_current_active_hand()) < 4000.0f)
-                                                ranged_weapon_advice = "Or equip some weapons/magic with longer range";
+                                            {
+                                                if (longer_range_advices_ignored > 2)
+                                                {
+                                                    if (MiscThings::has_ammo_in_inventory(false))
+                                                    {
+                                                        int best_bow = MiscThings::find_best_bow();
+
+                                                        if (best_bow >= 0)
+                                                        {
+                                                            auto temp = MiscThings::activate_inventory_object_by_index(best_bow, 1);
+
+                                                            if (temp.first)
+                                                                ranged_weapon_advice = temp.second;
+                                                        }
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    ranged_weapon_advice = "Or equip some weapons/magic with longer range";
+                                                    longer_range_advices_ignored++;
+                                                }
+                                            }
+                                            else
+                                                longer_range_advices_ignored = 0;
+                                                
 
                                             if (!check_special_too_high_message())
                                                 send_random_context(MiscThings::insert_object_into_list_and_get_info(target_ref) + " is too high! Looking at it instead. " + ranged_weapon_advice, false);
@@ -5516,6 +5542,8 @@ namespace WalkerProcessor {
 
     void reset_walker()
     {
+        longer_range_advices_ignored = 0;
+
         blind_walk_rotates_camera = false;
         blind_walk_rotates_camera_direction_right = false;
 
@@ -19940,8 +19968,36 @@ namespace WalkerProcessor {
                                                         {
                                                             std::string ranged_weapon_advice = "";
                                                             if (interaction_after_walk == 3 && get_weapon_range(get_current_active_hand()) < 4000.0f)
-                                                                ranged_weapon_advice = "Or equip some weapons/magic with longer range";
+                                                            {
+                                                                if (longer_range_advices_ignored > 2)
+                                                                {
+                                                                    if (MiscThings::has_ammo_in_inventory(false))
+                                                                    {
+                                                                        int best_bow = MiscThings::find_best_bow();
+
+                                                                        if (best_bow >= 0)
+                                                                        {
+                                                                            auto temp = MiscThings::activate_inventory_object_by_index(best_bow, 1);
+
+                                                                            if (temp.first)
+                                                                                ranged_weapon_advice = temp.second;
+                                                                        }
+                                                                    }
+                                                                }
+                                                                else
+                                                                {
+                                                                    ranged_weapon_advice = "Or equip some weapons/magic with longer range";
+                                                                    longer_range_advices_ignored++;
+                                                                }
+
+                                                            }
+                                                            else
+                                                                longer_range_advices_ignored = 0;
+
                                                             send_random_context(MiscThings::insert_object_into_list_and_get_info(target_ref) + " is too high! Looking at it instead. " + ranged_weapon_advice, false);
+                                                        
+                                                            
+                                                        
                                                         }
                                                             
                                                     }
