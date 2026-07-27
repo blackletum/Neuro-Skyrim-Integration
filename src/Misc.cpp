@@ -13,6 +13,9 @@
 namespace MiscThings {
 
 
+    int dropped_amount_of_melee_weapons = 0;
+    int dropped_amount_of_bows = 0;
+
     bool player_has_deseases_flag = false;
 
     bool bridge_after_reached = false;
@@ -19842,7 +19845,7 @@ namespace MiscThings {
             }
         }
 
-        return amount_of_bows;
+        return amount_of_bows - dropped_amount_of_bows;
     }
 
 
@@ -19896,7 +19899,7 @@ namespace MiscThings {
             }
         }
 
-        return amount_of_melee_weapons;
+        return amount_of_melee_weapons - dropped_amount_of_melee_weapons;
     }
 
 
@@ -21481,13 +21484,18 @@ namespace MiscThings {
     {
         std::pair<bool, std::string> result{};
 
+        dropped_amount_of_melee_weapons = 0;
+        dropped_amount_of_bows = 0;
+
 
         int success = 0;
         int fail = 0;
 
+        std::pair<bool, std::string> temp_result{};
+
         for (auto id : ids)
         {
-            auto temp_result = activate_inventory_object_by_index(id, 2);
+            temp_result = activate_inventory_object_by_index(id, 2);
 
             if (temp_result.first)
                 success++;
@@ -21500,12 +21508,18 @@ namespace MiscThings {
         if (success > 0)
         {
             result.first = true;
-            result.second = "[Successsfully dropped " + std::to_string(success) + "/" + std::to_string(success + fail) + " items]";
+            if (std::size(ids) == 1)
+                result.second = temp_result.second;
+            else
+                result.second = "[Successsfully dropped " + std::to_string(success) + "/" + std::to_string(success + fail) + " items]";
         }
         else
         {
             result.first = false;
-            result.second = "Couldnt drop any of selected items";
+            if (std::size(ids) == 1)
+                result.second = temp_result.second;
+            else
+                result.second = "Couldnt drop any of selected items";
         }
             
         return result;
@@ -21751,6 +21765,8 @@ namespace MiscThings {
             auto get_inventory_result = GetInventory();
             send_random_context("You inventory contents: " + get_inventory_result.second);
         }
+        //else
+        //    auto temp = GetInventory(); //refresh
 
 
         if (inventory_items_list.find(item_id) != inventory_items_list.end())
@@ -22431,6 +22447,8 @@ namespace MiscThings {
                                         result.second = "[You cannot drop your last bow, you will need it in certain situations]";
                                         return result;
                                     }
+                                    else
+                                        dropped_amount_of_bows++;
                                 }
                                 else
                                 {
@@ -22441,6 +22459,8 @@ namespace MiscThings {
                                         result.second = "[You cannot drop your last melee weapon, you will need it in certain situations]";
                                         return result;
                                     }
+                                    else
+                                        dropped_amount_of_melee_weapons++;
                                 }
                             }
                         }
