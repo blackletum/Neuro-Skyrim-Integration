@@ -22121,6 +22121,14 @@ namespace MiscThings {
                             }
 
 
+                            if (test_av == RE::ActorValue::kResistMagic || test_av == RE::ActorValue::kResistFrost || test_av == RE::ActorValue::kResistFire || test_av == RE::ActorValue::kResistShock)
+                            {
+                                if (!MiscThings::have_any_enemies_nearby(8000.0f) && !WalkerProcessor::is_fighting())
+                                {
+                                    return "Better to save this potion for a fight with mages";
+                                }
+                            }
+
                         }
                     }
                 }
