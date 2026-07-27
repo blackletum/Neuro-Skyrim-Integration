@@ -22108,30 +22108,32 @@ namespace MiscThings {
                                 if (stamina_percent > 80.0f)
                                     return "You have almost full stamina";
                             }
-
-
-                            auto test_av = what_does_potion_restore(alchemy_item);
-
-                            if (test_av != RE::ActorValue::kNone)
-                            {
-                                if (player_has_potion_effect(test_av))
-                                {
-                                    return "You already have this potion's effect active";
-                                }
-                            }
-
-
-                            if (test_av == RE::ActorValue::kResistMagic || test_av == RE::ActorValue::kResistFrost || test_av == RE::ActorValue::kResistFire || test_av == RE::ActorValue::kResistShock)
-                            {
-                                if (!MiscThings::have_any_enemies_nearby(8000.0f) && !WalkerProcessor::is_fighting())
-                                {
-                                    return "Better to save this potion for a fight with mages";
-                                }
-                            }
-
                         }
                     }
                 }
+
+
+                auto test_av = what_does_potion_restore(alchemy_item);
+
+                if (test_av != RE::ActorValue::kNone)
+                {
+                    if (player_has_potion_effect(test_av))
+                    {
+                        return "You already have this potion's effect active";
+                    }
+                }
+
+
+                if (test_av == RE::ActorValue::kResistMagic || test_av == RE::ActorValue::kResistFrost || test_av == RE::ActorValue::kResistFire || test_av == RE::ActorValue::kResistShock)
+                {
+                    if (!MiscThings::have_any_enemies_nearby(8000.0f) && !WalkerProcessor::is_fighting())
+                    {
+                        return "Better to save this potion for a fight with mages";
+                    }
+                }
+
+
+
             }
         }
 

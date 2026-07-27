@@ -1992,6 +1992,11 @@ namespace WalkerProcessor {
                                                 }
                                                 else
                                                 {
+                                                    if (longer_range_advices_ignored > 0)
+                                                    {
+                                                        //try to find landing spot for dragon
+                                                    }
+
                                                     ranged_weapon_advice = "Or equip some weapons/magic with longer range";
                                                     longer_range_advices_ignored++;
                                                 }
@@ -19986,6 +19991,12 @@ namespace WalkerProcessor {
                                                                 }
                                                                 else
                                                                 {
+                                                                    if (longer_range_advices_ignored > 0)
+                                                                    {
+                                                                        //try to find landing spot for dragon
+                                                                    }
+
+
                                                                     ranged_weapon_advice = "Or equip some weapons/magic with longer range";
                                                                     longer_range_advices_ignored++;
                                                                 }
