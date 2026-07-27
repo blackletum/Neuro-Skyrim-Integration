@@ -1226,8 +1226,9 @@ bool neuro::NeuroSocket::Tick(float dtime) //const neurosdk_message_action_t& aC
             delayed_poke_time = 0.0f;
             make_delayed_poke = false;
         }
-        
     }
+
+
 
     if (time_no_commands > time_threshold && (RaceProcessor::race_menu_wants_to_poke() || (time_walker_inactive > time_threshold && time_no_menus > time_threshold)))
     {

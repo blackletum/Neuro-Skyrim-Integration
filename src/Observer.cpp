@@ -12,6 +12,9 @@
 namespace Observer {
 
 
+	long long halt_potion_autouse_timestamp = 0; //dont reset this ever
+
+
 	bool first_inventory_scan_post_death = false; //flag that is read in inventory monitor which restores weapons before death 
 
 	RE::NiPoint3 last_death_pos{};
@@ -87,6 +90,11 @@ namespace Observer {
 	int last_health_value = 0;
 	int last_stamina_value = 0;
 	int last_mana_value = 0;
+
+	int actual_last_health_value = 0;
+	int actual_last_stamina_value = 0;
+	int actual_last_mana_value = 0;
+
 
 	int old_unbound_quest_stage = 0;
 	bool first_cycle = true;
@@ -194,6 +202,22 @@ namespace Observer {
 	{
 		player_was_hit = true;
 	}
+
+
+	bool check_health_decrease_after_hit = false;
+	RE::TESForm* check_health_decrease_hit_weapon = nullptr;
+
+	std::map<RE::ActorValue, std::pair<float, long long>> magic_damage_map{};
+	std::map<RE::ActorValue, long long> magic_resist_potions_to_use{};
+
+
+	void notify_player_hit_by_weapon(RE::TESForm* weapon)
+	{
+		check_health_decrease_after_hit = true;
+		check_health_decrease_hit_weapon = weapon;
+	}
+
+
 
 
 	void reset_quest_puzzles()
@@ -981,6 +1005,11 @@ namespace Observer {
 
 	void reset_observer()
 	{
+
+		check_health_decrease_after_hit = false;
+		check_health_decrease_hit_weapon = nullptr;
+
+
 		old_vampire_melee = false;
 
 		old_blackbook_warp = false;
@@ -1040,6 +1069,10 @@ namespace Observer {
 		last_health_value = 0.0f;
 		last_stamina_value = 0.0f;
 		last_mana_value = 0.0f;
+
+		actual_last_health_value = 0.0f;
+		actual_last_stamina_value = 0.0f;
+		actual_last_mana_value = 0.0f;
 
 		last_weather = "";
 		old_time_text = "";
@@ -6031,13 +6064,120 @@ namespace Observer {
 					send_random_context("[Black tentacles come out of the book and wrap around you!]", false);
 
 
-
 				old_blackbook_warp = blackbook_warp;
+
+
+				//magic damage calculation, used for dealing with deaths caused by overpowered enemy magic
+
+				int actual_health_dif = (actual_last_health_value - health);
+				int actual_stamina_dif = (actual_last_stamina_value - stamina);
+				int actual_mana_dif = (actual_last_mana_value - mana);
+
+
+				if (check_health_decrease_after_hit)
+				{
+					if (actual_health_dif > 0.0f)
+					{
+						if (check_health_decrease_hit_weapon)
+						{
+							if (check_health_decrease_hit_weapon->formType == RE::FormType::Spell)
+							{
+								auto hit_spell = (RE::SpellItem*)check_health_decrease_hit_weapon;
+
+								for (auto effect : hit_spell->effects)
+								{
+									if (effect->baseEffect && (effect->baseEffect->GetArchetype() == RE::EffectArchetypes::ArchetypeID::kValueModifier || effect->baseEffect->GetArchetype() == RE::EffectArchetypes::ArchetypeID::kDualValueModifier) && effect->baseEffect->data.primaryAV == RE::ActorValue::kHealth)
+									{
+										auto magnitude = effect->GetMagnitude();
+
+										if (magnitude > 0.0f)
+										{
+											auto resist_var = effect->baseEffect->data.resistVariable;
+
+											if (resist_var != RE::ActorValue::kNone)
+											{
+												auto now = std::chrono::steady_clock::now().time_since_epoch().count();
+
+												auto magic_damage_entry = magic_damage_map.find(resist_var);
+
+												if (magic_damage_entry != magic_damage_map.end())
+												{
+													float delta_damage = (double)(now - magic_damage_entry->second.second) / 1000000000.0;
+
+													if (delta_damage < 120.0f)
+														magic_damage_entry->second.first += actual_health_dif;
+													else
+														magic_damage_entry->second.first = actual_health_dif;
+
+													magic_damage_entry->second.second = now;
+												}
+												else
+												{
+													magic_damage_map.insert({ resist_var, { actual_health_dif, now } });
+												}
+											}
+										}
+									}
+								}
+
+							}
+						}
+
+						check_health_decrease_after_hit = false;
+						check_health_decrease_hit_weapon = nullptr;
+					}
+				}
+
+
+				actual_last_health_value = health;
+				actual_last_mana_value = mana;
+				actual_last_stamina_value = stamina;
+
+
+
+
 
 				if (player_dead)
 				{
 					if (!player_dead_sent)
 					{
+						long long actual_death_timestamp = std::chrono::steady_clock::now().time_since_epoch().count();;
+
+						std::vector<RE::ActorValue> force_magic_resistance_advice{};
+
+						for (auto magic_damage_entry : magic_damage_map)
+						{
+							float delta_damage = (double)(actual_death_timestamp - magic_damage_entry.second.second) / 1000000000.0;
+
+							if (delta_damage < 30.0f) //fresh damage
+							{
+								if (magic_damage_entry.second.first > 0.5f * MiscThings::get_player_max_health()) //damage is huge
+								{
+									//player died due to massive magic damage. remember it, try to deal with it by drinking potions after respawn, give advice if no way to deal with it
+									//if dealing with it doesnt help, give advice anyway, suggesting to find some magic resistance equipment
+
+									auto potion_to_use = magic_resist_potions_to_use.find(magic_damage_entry.first);
+
+									if (potion_to_use != magic_resist_potions_to_use.end())
+									{
+										//already in use.
+										force_magic_resistance_advice.push_back(potion_to_use->first);
+										potion_to_use->second = actual_death_timestamp;
+									}
+									else
+									{
+										magic_resist_potions_to_use.insert({ magic_damage_entry.first, actual_death_timestamp });
+									}
+
+								}
+								else
+									;//low damage not interesting
+							}
+							else
+								;//old damage not interesting
+						}
+
+
 
 						first_inventory_scan_post_death = true;
 
@@ -6047,7 +6187,7 @@ namespace Observer {
 						player_dead_sent = true;
 						send_random_context("[YOU DIED. The game will resume from last save soon]", false);
 
-						MiscThings::set_time_of_death(std::chrono::steady_clock::now().time_since_epoch().count());
+						MiscThings::set_time_of_death(actual_death_timestamp);
 
 						MapProcessor::clear_map_adhd();
 
@@ -6077,7 +6217,7 @@ namespace Observer {
 						RE::NiPoint3 death_pos = player->GetPosition();
 						RE::TESWorldSpace* death_worldspace = player->GetWorldspace();
 						RE::TESObjectCELL* death_cell = player->GetParentCell();
-						long long actual_death_timestamp = std::chrono::steady_clock::now().time_since_epoch().count();;
+						
 						float death_delta = (double)(actual_death_timestamp - last_actual_death_timestamp) / 1000000000.0;
 
 						if (((death_worldspace && death_worldspace == last_death_worldspace) || (death_cell && death_cell == last_death_cell)) && (last_death_pos.GetDistance(death_pos) < 5000.0f) && death_delta < 600.0f)
@@ -6127,6 +6267,52 @@ namespace Observer {
 				}
 				else
 				{
+					//magic resistance potions in fight
+					//also check if we are not too far from last death point
+
+					RE::NiPoint3 death_pos = player->GetPosition();
+					RE::TESWorldSpace* death_worldspace = player->GetWorldspace();
+					RE::TESObjectCELL* death_cell = player->GetParentCell();
+					auto now = std::chrono::steady_clock::now().time_since_epoch().count();
+
+					float death_delta = (double)(now - last_actual_death_timestamp) / 1000000000.0;
+
+					if (WalkerProcessor::is_fighting() && ((death_worldspace && death_worldspace == last_death_worldspace) || (death_cell && death_cell == last_death_cell)) && (last_death_pos.GetDistance(death_pos) < 5000.0f) && death_delta < 600.0f)
+					{
+						if ((now - halt_potion_autouse_timestamp) > 60.0f) //check if halted
+						{
+							for (auto potion_to_use : magic_resist_potions_to_use)
+							{
+								float delta_damage = (double)(now - potion_to_use.second) / 1000000000.0;
+
+								if (delta_damage < 120.0f) //check when queried
+								{
+									if (!MiscThings::player_has_magic_resist_effect(potion_to_use.first)) //no magic res effect present
+									{
+										int potion_id = MiscThings::find_antimagic_potion_in_the_inventory(potion_to_use.first);
+
+										if (potion_id >= 0) //found a potion
+										{
+											auto temp = MiscThings::activate_inventory_object_by_index(potion_id, 1);
+
+											if (temp.first)
+												send_random_context(temp.second);
+											else
+											{
+												//cant use potion for some reason. halt the system for a while
+												halt_potion_autouse_timestamp = now;
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+
+
+
+
+
 					int health_dif = (last_health_value - health);
 					int stamina_dif = (last_stamina_value - stamina);
 					int mana_dif = (last_mana_value - mana);

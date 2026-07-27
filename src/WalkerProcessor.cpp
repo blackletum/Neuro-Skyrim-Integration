@@ -12552,7 +12552,7 @@ namespace WalkerProcessor {
 
                         if (!goto_attack_used && MiscThings::has_spell_equipped(true) && is_concentration_spell(true) && is_casting_walker3(true))
                         {
-                            if (player->GetDistance(target_ref, true) < get_weapon_range(false) * target_ref->GetScale())
+                            if (player->GetDistance(target_ref, true) < get_weapon_range(false) * target_ref->GetScale() && !left_is_useless)
                             {
                                 goto_attack_used = true;
                                 goto attack_action_1; //add left while we doing this concentration spell
@@ -13070,7 +13070,7 @@ namespace WalkerProcessor {
 
                             if (!goto_attack_used && MiscThings::has_spell_equipped(false) && is_concentration_spell(false) && is_casting_walker3(false) && !MiscThings::is_summon_spell(true) && !MiscThings::is_summon_spell(false))
                             {
-                                if (player->GetDistance(target_ref, true) < get_weapon_range(true) * target_ref->GetScale())
+                                if (player->GetDistance(target_ref, true) < get_weapon_range(true) * target_ref->GetScale() && !right_is_useless)
                                 {
                                     goto_attack_used = true;
                                     goto attack_action_0; //add right while we doing this concentration spell
@@ -16474,7 +16474,7 @@ namespace WalkerProcessor {
                                             advice = "eat corpses to progress werewolf powers";
                                         else
                                             if (!MiscThings::is_vampirelord()) //vampire lord has no interaction with corpses (apart from resurrect.. but its tricky)
-                                                advice = "loot dead enemies";
+                                                advice = "loot dead enemies (they can have useful items)";
 
                                     Observer::add_quicksave_timer(40.0f);
                                 }

@@ -21777,6 +21777,168 @@ namespace MiscThings {
 
 
 
+    bool player_has_magic_resist_effect(RE::ActorValue magic_type)
+    {
+        auto player = RE::PlayerCharacter::GetSingleton();
+
+        if (!player)
+            return -1;
+
+        bool found = false;
+
+        //player->HasMagicEffect()
+        auto effect_list = player->GetActiveEffectList();
+
+        for (auto effect_entry : *effect_list)
+        {
+            auto effect = effect_entry->effect;
+
+            if (effect->baseEffect && (effect->baseEffect->GetArchetype() == RE::EffectArchetypes::ArchetypeID::kValueModifier || effect->baseEffect->GetArchetype() == RE::EffectArchetypes::ArchetypeID::kPeakValueModifier))
+            {
+                float magnitude = effect->GetMagnitude();
+
+                if (magnitude > 0.0f)
+                {
+                    if ((magic_type != RE::ActorValue::kNone && effect->baseEffect->data.primaryAV == magic_type) || effect->baseEffect->data.primaryAV == RE::ActorValue::kResistMagic)
+                    {
+                        if (!effect->baseEffect->data.flags.any(RE::EffectSetting::EffectSettingData::Flag::kDetrimental) && !effect->baseEffect->data.flags.any(RE::EffectSetting::EffectSettingData::Flag::kNoDuration))
+                        {
+                            return true;
+                        }
+
+                    }
+                }
+            }
+        }
+
+
+
+        /*
+        class MyVisitor : public RE::Actor::ForEachSpellVisitor
+        {
+        public:
+
+            RE::ActorValue resist_to_check;
+
+            RE::PlayerCharacter* player = RE::PlayerCharacter::GetSingleton();
+
+            bool found = false;
+
+            RE::BSContainer::ForEachResult Visit(RE::SpellItem* a_spell) override {
+                //if (active_spells && passive_effects && shouts && player)// && player->HasSpell(a_spell))
+                if (resist_to_check != RE::ActorValue::kNone && player)
+                {
+                    auto effect = a_spell->GetAVEffect();
+
+                    if (a_spell->menuDispObject || MiscThings::is_vampirelord() || MiscThings::is_werewolf())
+                    {
+                        if (a_spell->GetCastingType() == RE::MagicSystem::CastingType::kConstantEffect)
+                        {
+                            //find temporary effects that are of chosen type or general magic resistance
+                            for (auto effect : a_spell->effects)
+                            {
+                                if (effect->baseEffect && effect->baseEffect->GetArchetype() == RE::EffectArchetypes::ArchetypeID::kValueModifier)
+                                {
+                                    float magnitude = effect->GetMagnitude();
+
+                                    if (magnitude > 0.0f)
+                                    {
+                                        if ((resist_to_check != RE::ActorValue::kNone && effect->baseEffect->data.primaryAV == resist_to_check) || effect->baseEffect->data.primaryAV == RE::ActorValue::kResistMagic)
+                                        {
+                                            if (!effect->baseEffect->data.flags.any(RE::EffectSetting::EffectSettingData::Flag::kDetrimental))
+                                            {
+                                                found = true;
+                                                //return RE::BSContainer::ForEachResult::kStop;
+                                            }
+
+                                        }
+                                    }
+                                }
+                            }
+
+
+                        }
+                    }
+                }
+                return RE::BSContainer::ForEachResult::kContinue;
+            }
+        };
+
+        MyVisitor visitor{};
+
+        visitor.resist_to_check = magic_type;
+
+        RE::Actor::ForEachSpellVisitor* test_visitor = &visitor;
+
+
+        player->VisitSpells(visitor);
+        */
+
+
+        return found;
+    }
+
+
+
+    int find_antimagic_potion_in_the_inventory(RE::ActorValue magic_type)
+    {
+        auto player = RE::PlayerCharacter::GetSingleton();
+
+        if (!player)
+            return -1;
+
+        if (MiscThings::is_werewolf() || MiscThings::is_vampirelord())
+            return -1;
+
+
+        if (!inventory_valid)
+            auto temp = GetInventory();
+
+        if (!inventory_valid)
+            return -1;
+
+        auto p_inventory = get_p_inventory_items_list();
+
+        int best_potion = -1;
+        float best_potion_magnitude = 0.0f;
+
+        for (auto inventory_entry : *p_inventory)
+        {
+            if (inventory_entry.second.amount > 0 && inventory_entry.second.object)
+            {
+                if (inventory_entry.second.object->formType == RE::FormType::AlchemyItem)
+                {
+                    auto alchemy_item = (RE::AlchemyItem*)inventory_entry.second.object;
+
+                    if (alchemy_item->IsPoison())
+                        continue;
+
+                    for (auto effect : alchemy_item->effects)
+                    {
+                        if (effect->baseEffect && effect->baseEffect->GetArchetype() == RE::EffectArchetypes::ArchetypeID::kValueModifier)
+                        {
+                            float magnitude = effect->GetMagnitude();
+
+                            if (magnitude > best_potion_magnitude)
+                            {
+                                if ((magic_type != RE::ActorValue::kNone && effect->baseEffect->data.primaryAV == magic_type) || effect->baseEffect->data.primaryAV == RE::ActorValue::kResistMagic)
+                                {
+                                    best_potion_magnitude = magnitude;
+                                    best_potion = inventory_entry.first;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return best_potion;
+    }
+
+
+
+
     std::string ban_item_use_reason(RE::TESBoundObject* object)
     {
         if (object)
@@ -21784,6 +21946,10 @@ namespace MiscThings {
             if (object->formType == RE::FormType::AlchemyItem)
             {
                 auto alchemy_item = (RE::AlchemyItem*)object;
+
+                if (alchemy_item->IsPoison())
+                    return "";
+
 
                 for (auto effect : alchemy_item->effects)
                 {

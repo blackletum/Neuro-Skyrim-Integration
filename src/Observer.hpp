@@ -54,6 +54,11 @@ namespace Observer {
 
 	bool threat_response_choice_pending();
 
+
+	void notify_player_hit_by_weapon(RE::TESForm* weapon);
+
+
+
 	class EventSink :
 		public REX::TSingleton<EventSink>,
 		public RE::BSTEventSink<RE::TESHitEvent>
@@ -87,7 +92,7 @@ namespace Observer {
 				RE::TESObjectREFRPtr agressor = a_event->cause;
 				RE::FormID weapon_formid = a_event->source;
 
-				if (target && agressor)
+				if (target && agressor && !player->IsDead())
 				{
 					auto target_ref = target.get();
 					auto agressor_ref = agressor.get();
@@ -97,7 +102,6 @@ namespace Observer {
 						//player_hit_info.insert_or_assign({ agressor_ref, {} })
 
 						Observer::notify_threat_detector_player_hit();
-
 
 						if (player_hit_info && hitmap_lock && !*hitmap_lock && send_random_context)
 						{
@@ -119,6 +123,7 @@ namespace Observer {
 										if (weapon_form)
 										{
 											weapon_name = weapon_form->GetName();
+											Observer::notify_player_hit_by_weapon(weapon_form);
 										}
 									}
 
