@@ -14284,7 +14284,7 @@ namespace MiscThings {
         auto xp_needed = player->skills->data->levelThreshold;
         auto current_xp = player->skills->data->xp;
 
-        if (player && !player->IsDead())
+        if (player && !player->IsDead() && !MiscThings::have_force_only_menu_open())
         {
             if (MiscThings::is_werewolf())
             {
@@ -14457,7 +14457,11 @@ namespace MiscThings {
 
     void pause_game()
     {
-        RE::UIMessageQueue::GetSingleton()->AddMessage(RE::TweenMenu::MENU_NAME, RE::UI_MESSAGE_TYPE::kShow, nullptr);
+        auto player = RE::PlayerCharacter::GetSingleton();
+        if (player && !player->IsDead())
+        {
+            RE::UIMessageQueue::GetSingleton()->AddMessage(RE::TweenMenu::MENU_NAME, RE::UI_MESSAGE_TYPE::kShow, nullptr);
+        }
     }
 
     void unpause_game()

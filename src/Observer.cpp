@@ -1157,6 +1157,9 @@ namespace Observer {
 	{
 		auto player = RE::PlayerCharacter::GetSingleton();
 
+		if (!player)
+			return;
+
 		bool backup_register = false;
 
 		if (threats_response_request_sent && threats_response_choice_valid)
@@ -1190,6 +1193,12 @@ namespace Observer {
 			}
 		}
 
+
+		if (player->IsDead())
+		{
+			reset_threats();
+			return;
+		}
 
 
 		if (observers_green_light)
@@ -6037,6 +6046,7 @@ namespace Observer {
 
 						player_dead_sent = true;
 						send_random_context("[YOU DIED. The game will resume from last save soon]", false);
+
 						MiscThings::set_time_of_death(std::chrono::steady_clock::now().time_since_epoch().count());
 
 						MapProcessor::clear_map_adhd();
