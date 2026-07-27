@@ -976,8 +976,35 @@ void walk_forward()
 }
 
 
+bool quicksave_is_banned()
+{
+    auto player = RE::PlayerCharacter::GetSingleton();
+    if (player)
+    {
+        auto parent_cell = player->GetParentCell();
+        if (parent_cell && parent_cell->formID == 0x27d1c)
+        {
+            auto player_pos = player->GetPosition();
+            if (player_pos.y < 3487.0f && player_pos.x > 8681.0f)
+            {
+                RE::TESQuest* meridia_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("DA09");
+
+                if (meridia_quest && meridia_quest->currentStage < 400)
+                    return true;
+            }
+        }
+    }
+    else
+        return true;
+
+    return false;
+}
+
 void quicksave()
 {
+    if (quicksave_is_banned())
+        return;
+
     int32_t my_key = RE::ControlMap::GetSingleton()->GetMappedKey(RE::UserEvents::GetSingleton()->quicksave, RE::INPUT_DEVICES::kKeyboard);
     RE::BSInputEventQueue::GetSingleton()->AddButtonEvent(RE::INPUT_DEVICES::kKeyboard, my_key, 1.0, 0.0);
     RE::BSInputEventQueue::GetSingleton()->AddButtonEvent(RE::INPUT_DEVICES::kKeyboard, my_key, 0.0, 0.0);
