@@ -15,6 +15,10 @@ namespace MiscThings {
 
     int dropped_amount_of_melee_weapons = 0;
     int dropped_amount_of_bows = 0;
+    float restored_health = 0.0f;
+    float restored_magicka = 0.0f;
+    float restored_stamina = 0.0f;
+
 
     bool player_has_deseases_flag = false;
 
@@ -21534,6 +21538,11 @@ namespace MiscThings {
     {
         std::pair<bool, std::string> result{};
 
+        restored_health = 0.0f;
+        restored_magicka = 0.0f;
+        restored_stamina = 0.0f;
+
+
 
         int success = 0;
         int fail = 0;
@@ -21726,6 +21735,101 @@ namespace MiscThings {
 
         return random_num;
     }
+
+
+
+    void remember_restored_values(RE::TESBoundObject* object)
+    {
+        if (object)
+        {
+            if (object->formType == RE::FormType::AlchemyItem)
+            {
+                auto alchemy_item = (RE::AlchemyItem*)object;
+
+                for (auto effect : alchemy_item->effects)
+                {
+                    if (effect->baseEffect && effect->baseEffect->GetArchetype() == RE::EffectArchetypes::ArchetypeID::kValueModifier)
+                    {
+                        float magnitude = effect->GetMagnitude();
+                        if (magnitude > 0)
+                        {
+                            if (effect->baseEffect->data.primaryAV == RE::ActorValue::kHealth)
+                            {
+                                restored_health += magnitude;
+                            }
+
+                            if (effect->baseEffect->data.primaryAV == RE::ActorValue::kMagicka)
+                            {
+                                restored_magicka += magnitude;
+                            }
+
+                            if (effect->baseEffect->data.primaryAV == RE::ActorValue::kStamina)
+                            {
+                                restored_stamina += magnitude;
+                            }
+
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+
+
+    std::string ban_item_use_reason(RE::TESBoundObject* object)
+    {
+        if (object)
+        {
+            if (object->formType == RE::FormType::AlchemyItem)
+            {
+                auto alchemy_item = (RE::AlchemyItem*)object;
+
+                for (auto effect : alchemy_item->effects)
+                {
+                    if (effect->baseEffect && effect->baseEffect->GetArchetype() == RE::EffectArchetypes::ArchetypeID::kValueModifier)
+                    {
+                        if (effect->GetMagnitude() > 0)
+                        {
+                            if (effect->baseEffect->data.primaryAV == RE::ActorValue::kHealth)
+                            {
+                                //restore health. check if player is high on health, ban if he is
+                                float health_percent = (MiscThings::get_player_health() + restored_health) / MiscThings::get_player_max_health() * 100.0f;
+
+                                if (health_percent > 80.0f)
+                                    return "You have almost full health";
+                            }
+
+                            if (effect->baseEffect->data.primaryAV == RE::ActorValue::kMagicka)
+                            {
+                                //restore health. check if player is high on health, ban if he is
+                                float mana_percent = (MiscThings::get_player_mana() + restored_magicka) / MiscThings::get_player_max_mana() * 100.0f;
+
+                                if (mana_percent > 80.0f)
+                                    return "You have almost full magicka";
+                            }
+
+                            if (effect->baseEffect->data.primaryAV == RE::ActorValue::kStamina)
+                            {
+                                //restore health. check if player is high on health, ban if he is
+                                float stamina_percent = (MiscThings::get_player_stamina() + restored_stamina) / MiscThings::get_player_max_stamina() * 100.0f;
+
+                                if (stamina_percent > 80.0f)
+                                    return "You have almost full stamina";
+                            }
+
+                        }
+                    }
+                }
+            }
+        }
+
+
+        return "";
+    }
+
+
+
 
 
 
@@ -21962,14 +22066,28 @@ namespace MiscThings {
                     {
                         if (is_consumable(object))
                         {
+                            std::string ban_reason = ban_item_use_reason(object);
+                            if (ban_reason != "")
+                            {
+                                result.first = false;
+                                result.second = ban_reason;
+                                return result;
+                            }
+                            else
+                            {
+                                remember_restored_values(object);
 
-                            auto actor_equip = RE::ActorEquipManager::GetSingleton();
-                            //result = object->Activate(player_ref, player_ref, 0, nullptr, 1);
-                            actor_equip->EquipObject((RE::Actor*)player_ref, object);
 
-                            result.first = true;
-                            result.second = "[Consuming [id " + std::to_string(item_id) + "] " + object_name + "...]";
-                            return result;
+                                auto actor_equip = RE::ActorEquipManager::GetSingleton();
+                                //result = object->Activate(player_ref, player_ref, 0, nullptr, 1);
+                                actor_equip->EquipObject((RE::Actor*)player_ref, object);
+
+                                result.first = true;
+                                result.second = "[Consuming [id " + std::to_string(item_id) + "] " + object_name + "...]";
+                                return result;
+                            }
+
+
                         }
                         else
                         {
