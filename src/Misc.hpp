@@ -443,6 +443,7 @@ namespace MiscThings {
 
     bool eat_corpse_check(RE::TESObjectREFR* target);
 
+    RE::ActorValue what_does_potion_restore(RE::AlchemyItem* potion);
 
     int find_antimagic_potion_in_the_inventory(RE::ActorValue magic_type = RE::ActorValue::kNone);
     bool player_has_magic_resist_effect(RE::ActorValue magic_type = RE::ActorValue::kNone);
@@ -504,6 +505,8 @@ namespace MiscThings {
     int random_int_from_range(int min, int max);
 
 
+    int find_best_melee_weapon();
+    int find_best_bow();
     int find_good_weapon_in_inventory();
 
 

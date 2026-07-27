@@ -19910,6 +19910,128 @@ namespace MiscThings {
 
 
 
+    int find_best_bow()
+    {
+        //returns index to equip with use_inventory item
+
+        auto player = RE::PlayerCharacter::GetSingleton();
+
+        if (!player)
+            return -1;
+
+        if (MiscThings::is_werewolf() || MiscThings::is_vampirelord())
+            return -1;
+
+
+        if (!inventory_valid)
+            auto temp = GetInventory();
+
+        if (!inventory_valid)
+            return -1;
+
+        auto p_inventory = get_p_inventory_items_list();
+
+
+
+        int best_bow = -1;
+        float best_bow_damage = 0.0f;
+
+        for (auto inventory_entry : *p_inventory)
+        {
+            if (inventory_entry.second.amount > 0 && inventory_entry.second.object)
+            {
+                if (inventory_entry.second.object->IsWeapon())
+                {
+                    auto weapon = (RE::TESObjectWEAP*)inventory_entry.second.object;
+
+                    float damage = armor_damage_difference(inventory_entry.second.object, true);
+
+                    if (weapon->IsBow())
+                    {
+                        if (damage > best_bow_damage)
+                        {
+                            best_bow_damage = damage;
+                            best_bow = inventory_entry.first;
+                        }
+                    }
+                }
+            }
+        }
+
+        return best_bow;
+    }
+
+
+
+
+    int find_best_melee_weapon()
+    {
+        //returns index to equip with use_inventory item
+
+        auto player = RE::PlayerCharacter::GetSingleton();
+
+        if (!player)
+            return -1;
+
+        if (MiscThings::is_werewolf() || MiscThings::is_vampirelord())
+            return -1;
+
+
+        if (!inventory_valid)
+            auto temp = GetInventory();
+
+        if (!inventory_valid)
+            return -1;
+
+        auto p_inventory = get_p_inventory_items_list();
+
+
+        int best_weapon = -1;
+        float best_weapon_damage = 0.0f;
+
+        for (auto inventory_entry : *p_inventory)
+        {
+            if (inventory_entry.second.amount > 0 && inventory_entry.second.object)
+            {
+                if (inventory_entry.second.object->IsWeapon())
+                {
+                    auto weapon = (RE::TESObjectWEAP*)inventory_entry.second.object;
+
+                    float damage = armor_damage_difference(inventory_entry.second.object, true);
+
+                    if (weapon->IsTwoHandedAxe() || weapon->IsTwoHandedSword())
+                    {
+                        //twohanded
+
+                        damage /= 2.0f;
+
+                        if (damage > best_weapon_damage)
+                        {
+                            best_weapon_damage = damage;
+                            best_weapon = inventory_entry.first;
+                        }
+                    }
+                    else
+                    {
+                        //onehanded
+                        if (damage > best_weapon_damage)
+                        {
+                            best_weapon_damage = damage;
+                            best_weapon = inventory_entry.first;
+                        }
+                    }
+                }
+            }
+        }
+
+
+        return best_weapon;
+    }
+
+
+
+
+
     int find_good_weapon_in_inventory()
     {
         //returns index to equip with use_inventory item
@@ -21777,6 +21899,33 @@ namespace MiscThings {
 
 
 
+    RE::ActorValue what_does_potion_restore(RE::AlchemyItem* potion)
+    {
+        if (potion && potion->formType == RE::FormType::AlchemyItem)
+        {
+            if (!potion->IsPoison())
+            {
+                for (auto effect : potion->effects)
+                {
+                    if (effect->baseEffect && (effect->baseEffect->GetArchetype() == RE::EffectArchetypes::ArchetypeID::kValueModifier || effect->baseEffect->GetArchetype() == RE::EffectArchetypes::ArchetypeID::kPeakValueModifier))
+                    {
+                        float magnitude = effect->GetMagnitude();
+
+                        if (magnitude > 0.0f)
+                        {
+                            return effect->baseEffect->data.primaryAV;
+                        }
+                    }
+                }
+            }
+
+        }
+
+        return RE::ActorValue::kNone;
+    }
+
+
+
     bool player_has_magic_resist_effect(RE::ActorValue magic_type)
     {
         auto player = RE::PlayerCharacter::GetSingleton();
@@ -21811,69 +21960,45 @@ namespace MiscThings {
             }
         }
 
+        return found;
+    }
 
 
-        /*
-        class MyVisitor : public RE::Actor::ForEachSpellVisitor
+
+    bool player_has_potion_effect(RE::ActorValue magic_type)
+    {
+        if (magic_type == RE::ActorValue::kNone)
+            return false;
+
+        auto player = RE::PlayerCharacter::GetSingleton();
+
+        if (!player)
+            return -1;
+
+        bool found = false;
+
+        auto effect_list = player->GetActiveEffectList();
+
+        for (auto effect_entry : *effect_list)
         {
-        public:
+            auto effect = effect_entry->effect;
 
-            RE::ActorValue resist_to_check;
+            if (effect->baseEffect && (effect->baseEffect->GetArchetype() == RE::EffectArchetypes::ArchetypeID::kValueModifier || effect->baseEffect->GetArchetype() == RE::EffectArchetypes::ArchetypeID::kPeakValueModifier))
+            {
+                float magnitude = effect->GetMagnitude();
 
-            RE::PlayerCharacter* player = RE::PlayerCharacter::GetSingleton();
-
-            bool found = false;
-
-            RE::BSContainer::ForEachResult Visit(RE::SpellItem* a_spell) override {
-                //if (active_spells && passive_effects && shouts && player)// && player->HasSpell(a_spell))
-                if (resist_to_check != RE::ActorValue::kNone && player)
+                if (magnitude > 0.0f)
                 {
-                    auto effect = a_spell->GetAVEffect();
-
-                    if (a_spell->menuDispObject || MiscThings::is_vampirelord() || MiscThings::is_werewolf())
+                    if (effect->baseEffect->data.primaryAV == magic_type)
                     {
-                        if (a_spell->GetCastingType() == RE::MagicSystem::CastingType::kConstantEffect)
+                        if (!effect->baseEffect->data.flags.any(RE::EffectSetting::EffectSettingData::Flag::kDetrimental) && !effect->baseEffect->data.flags.any(RE::EffectSetting::EffectSettingData::Flag::kNoDuration))
                         {
-                            //find temporary effects that are of chosen type or general magic resistance
-                            for (auto effect : a_spell->effects)
-                            {
-                                if (effect->baseEffect && effect->baseEffect->GetArchetype() == RE::EffectArchetypes::ArchetypeID::kValueModifier)
-                                {
-                                    float magnitude = effect->GetMagnitude();
-
-                                    if (magnitude > 0.0f)
-                                    {
-                                        if ((resist_to_check != RE::ActorValue::kNone && effect->baseEffect->data.primaryAV == resist_to_check) || effect->baseEffect->data.primaryAV == RE::ActorValue::kResistMagic)
-                                        {
-                                            if (!effect->baseEffect->data.flags.any(RE::EffectSetting::EffectSettingData::Flag::kDetrimental))
-                                            {
-                                                found = true;
-                                                //return RE::BSContainer::ForEachResult::kStop;
-                                            }
-
-                                        }
-                                    }
-                                }
-                            }
-
-
+                            return true;
                         }
                     }
                 }
-                return RE::BSContainer::ForEachResult::kContinue;
             }
-        };
-
-        MyVisitor visitor{};
-
-        visitor.resist_to_check = magic_type;
-
-        RE::Actor::ForEachSpellVisitor* test_visitor = &visitor;
-
-
-        player->VisitSpells(visitor);
-        */
-
+        }
 
         return found;
     }
@@ -21915,7 +22040,7 @@ namespace MiscThings {
 
                     for (auto effect : alchemy_item->effects)
                     {
-                        if (effect->baseEffect && effect->baseEffect->GetArchetype() == RE::EffectArchetypes::ArchetypeID::kValueModifier)
+                        if (effect->baseEffect && (effect->baseEffect->GetArchetype() == RE::EffectArchetypes::ArchetypeID::kValueModifier || effect->baseEffect->GetArchetype() == RE::EffectArchetypes::ArchetypeID::kPeakValueModifier))
                         {
                             float magnitude = effect->GetMagnitude();
 
@@ -21983,6 +22108,18 @@ namespace MiscThings {
                                 if (stamina_percent > 80.0f)
                                     return "You have almost full stamina";
                             }
+
+
+                            auto test_av = what_does_potion_restore(alchemy_item);
+
+                            if (test_av != RE::ActorValue::kNone)
+                            {
+                                if (player_has_potion_effect(test_av))
+                                {
+                                    return "You already have this potion's effect active";
+                                }
+                            }
+
 
                         }
                     }
@@ -22714,10 +22851,10 @@ namespace MiscThings {
 
                             if (weapon->IsTwoHandedAxe() || weapon->IsTwoHandedSword())
                             {
-                                if (amount_of_melee_weapons_in_the_inventory() < 2)
+                                if (find_best_melee_weapon() == item_id)
                                 {
                                     result.first = false;
-                                    result.second = "[You cannot drop your last melee weapon, you will need it in certain situations]";
+                                    result.second = "[You cannot drop your best melee weapon, you will need it in certain situations]";
                                     return result;
                                 }
                             }
@@ -22725,10 +22862,10 @@ namespace MiscThings {
                             {
                                 if (weapon->IsBow() || weapon->IsCrossbow())
                                 {
-                                    if (amount_of_bows_in_the_inventory() < 2)
+                                    if (find_best_bow() == item_id)
                                     {
                                         result.first = false;
-                                        result.second = "[You cannot drop your last bow, you will need it in certain situations]";
+                                        result.second = "[You cannot drop your best bow, you will need it in certain situations]";
                                         return result;
                                     }
                                     else
@@ -22737,7 +22874,7 @@ namespace MiscThings {
                                 else
                                 {
                                     //onehanded
-                                    if (amount_of_melee_weapons_in_the_inventory() < 2)
+                                    if (find_best_melee_weapon() == item_id)
                                     {
                                         result.first = false;
                                         result.second = "[You cannot drop your last melee weapon, you will need it in certain situations]";
