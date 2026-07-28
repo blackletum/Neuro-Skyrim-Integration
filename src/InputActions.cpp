@@ -17,6 +17,7 @@
 
 bool need_look_down = false;
 
+bool use_ult_prestart_done = false;
 
 bool launch_sprint = false;
 float launch_sprint_time = 0.0f;
@@ -53,6 +54,7 @@ bool input_wants_to_cast()
 
 void reset_input_processor()
 {
+    use_ult_prestart_done = false;
     were_casting_something_left = false;
     were_casting_something_right = false;
     long_cast_ult = false;
@@ -352,6 +354,15 @@ void jump()
     set_allowed_events(2);
 
     Hooks::add_debug_line("Input: jump");
+}
+
+
+void prestart_use_ult()
+{
+    int32_t my_key = RE::ControlMap::GetSingleton()->GetMappedKey(RE::UserEvents::GetSingleton()->shout, RE::INPUT_DEVICES::kKeyboard);
+    RE::BSInputEventQueue::GetSingleton()->AddButtonEvent(RE::INPUT_DEVICES::kKeyboard, my_key, 1.0, 0.0);
+
+    Hooks::add_debug_line("Input: use ult start");
 }
 
 void start_use_ult()
@@ -1391,8 +1402,13 @@ void make_launch_sprint()
 
 void make_long_ult_cast()
 {
-    long_cast_ult = true;
-    use_ult_time = 0.0f;
+    if (!long_cast_ult)
+    {
+        long_cast_ult = true;
+        use_ult_time = 0.0f;
+        use_ult_prestart_done = false;
+        stop_use_ult();
+    }
 }
 
 
@@ -1535,17 +1551,27 @@ void input_processor(float dtime)
 
             if (WalkerProcessor::pause_attacking(dtime))
             {
-                if (use_ult_time < 2.5f)
+                if (use_ult_prestart_done)
                 {
-                    use_ult_time += dtime;
-                    start_use_ult();
+                    if (use_ult_time < 2.5f)
+                    {
+                        use_ult_time += dtime;
+                        start_use_ult();
+                    }
+                    else
+                    {
+                        WalkerProcessor::unpause_attacking();
+                        stop_use_ult();
+                        reset_input_processor();
+                    }
                 }
                 else
                 {
-                    WalkerProcessor::unpause_attacking();
-                    stop_use_ult();
-                    reset_input_processor();
+                    use_ult_prestart_done = true;
+                    prestart_use_ult();
                 }
+                    
+
             }
             else
             {

@@ -2220,8 +2220,8 @@ namespace Observer {
 										return RE::BSContainer::ForEachResult::kContinue;
 
 
-
-									if (name[0] != '\0' && std::size(name) > 1 && name != player_name && name != "Sit")
+																					//player
+									if (name[0] != '\0' && std::size(name) > 1 && a_ref->formID != 0x14 && name != "Sit")
 									{
 
 										if (MiscThings::has_digits(name))
@@ -6302,6 +6302,11 @@ namespace Observer {
 												//cant use potion for some reason. halt the system for a while
 												halt_potion_autouse_timestamp = now;
 											}
+										}
+										else
+										{
+											//cant use potion for some reason. halt the system for a while
+											halt_potion_autouse_timestamp = now;
 										}
 									}
 								}

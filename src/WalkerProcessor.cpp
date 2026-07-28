@@ -13,6 +13,8 @@
 
 namespace WalkerProcessor {
 
+    bool attack_target_needs_to_come_closer = false;
+
     long long dragon_landing_spot_placed_timestamp = 0;
 
     std::vector<RE::NiPoint3> dragon_landing_banned_spots{};
@@ -1229,6 +1231,14 @@ namespace WalkerProcessor {
         }
         else
         {
+            auto player = RE::PlayerCharacter::GetSingleton();
+            if (!player)
+                return true;
+
+            if (player->actorState1.meleeAttackState == RE::ATTACK_STATE_ENUM::kNone)
+                return true;
+
+
             if (attack_pause_time < 0.5f)
             {
                 attack_pause_time += dtime;
@@ -1239,7 +1249,7 @@ namespace WalkerProcessor {
 
                 if (!attack_was_not_banned)
                 {
-                    auto player = RE::PlayerCharacter::GetSingleton();
+                    
                     if (player)
                     {
                         auto player_actor = (RE::Actor*)player->AsReference();
@@ -1255,7 +1265,7 @@ namespace WalkerProcessor {
 
                 
 
-                if ((!weapon_state_ban && attack_postpause_time > 0.5f) || attack_pause_time > 5.0f)
+                //if ((!weapon_state_ban && attack_postpause_time > 0.5f) || attack_pause_time > 5.0f)
                     return true;
 
 
@@ -5672,6 +5682,7 @@ namespace WalkerProcessor {
 
     void reset_walker()
     {
+        attack_target_needs_to_come_closer = false;
         dragon_landing_banned_spots.clear();
         too_high_notified_timestamp = 0;
 
@@ -6151,7 +6162,7 @@ namespace WalkerProcessor {
         //if (!using_custom_path)
         {
 
-
+            attack_target_needs_to_come_closer = false;
             tried_to_step_forward_a_little = false;
 
             //the idea is to quickload on next walk_again or on reset_walker, hoping that reset_walker can never happen too soon after quicksave (because commands are not registered for couple of seconds)
@@ -12682,7 +12693,12 @@ namespace WalkerProcessor {
                                         attacking_weapon = "bare fist. You might want to equip some weapon or magic (use get_inventory and use_inventory_item to equip gear). ";
                                         if (!(dodge_melee_mode && do_dodge_projectile))
                                             if (player->GetDistance(target_ref, true) > 80.0f * target_ref->GetScale())
+                                            {
                                                 cursor_up();
+                                                attack_target_needs_to_come_closer = true;
+                                            }
+                                            else
+                                                attack_target_needs_to_come_closer = false;
                                     }
                                     else
                                     {
@@ -12699,7 +12715,12 @@ namespace WalkerProcessor {
 
                                         if (!(dodge_melee_mode && do_dodge_projectile))
                                             if (is_melee_weapon(true) && player->GetDistance(target_ref, true) > 100.0f * target_ref->GetScale() && (!is_stealthwalking(sneak_probe_sneak_checked) || sneak_failed))
+                                            {
                                                 cursor_up();
+                                                attack_target_needs_to_come_closer = true;
+                                            }
+                                            else
+                                                attack_target_needs_to_come_closer = false;
                                     }
                                 }
 
@@ -12870,8 +12891,14 @@ namespace WalkerProcessor {
                                 try_power_attack = true;
 
                             float dual_attack_chance = (float)std::rand() / RAND_MAX;
+
+                            if (attack_target_needs_to_come_closer && target_ref->IsActor() && target_ref->IsHumanoid())
+                                dual_attack_chance = 0.0f;
+
                             if (dualhanding_two_weapons && dual_attack_chance > 0.4)
                                 try_dual_attack = true;
+
+                            attack_target_needs_to_come_closer = false;
 
 
                             float chance = 0.2f;
@@ -13183,7 +13210,12 @@ namespace WalkerProcessor {
                                         attacking_info = "[You are blocking";
                                         if (!(dodge_melee_mode && do_dodge_projectile))
                                             if (player->GetDistance(target_ref, true) > 100.0f)
+                                            {
                                                 cursor_up();
+                                                attack_target_needs_to_come_closer = true;
+                                            }
+                                            else
+                                                attack_target_needs_to_come_closer = false;
                                     }
                                     else
                                     {
@@ -13199,7 +13231,12 @@ namespace WalkerProcessor {
                                                 attacking_weapon = "bare fist. You might want to equip some weapon or magic (use get_inventory and use_inventory_item to equip gear). ";
                                                 if (!(dodge_melee_mode && do_dodge_projectile))
                                                     if (player->GetDistance(target_ref, true) > 80.0f * target_ref->GetScale())
+                                                    {
                                                         cursor_up();
+                                                        attack_target_needs_to_come_closer = true;
+                                                    }
+                                                    else
+                                                        attack_target_needs_to_come_closer = false;
                                             }
                                             else
                                             {
@@ -13213,7 +13250,12 @@ namespace WalkerProcessor {
 
                                                 if (!(dodge_melee_mode && do_dodge_projectile))
                                                     if (is_melee_weapon(false) && player->GetDistance(target_ref, true) > 100.0f * target_ref->GetScale() && (!is_stealthwalking(sneak_probe_sneak_checked) || sneak_failed))
+                                                    {
                                                         cursor_up();
+                                                        attack_target_needs_to_come_closer = true;
+                                                    }
+                                                    else
+                                                        attack_target_needs_to_come_closer = false;
                                             }
                                         }
                                     }
@@ -13387,8 +13429,14 @@ namespace WalkerProcessor {
                                 try_power_attack = true;
 
                             float dual_attack_chance = (float)std::rand() / RAND_MAX;
+
+                            if (attack_target_needs_to_come_closer && target_ref->IsActor() && target_ref->IsHumanoid())
+                                dual_attack_chance = 0.0f;
+
                             if (dualhanding_two_weapons && dual_attack_chance > 0.4)
                                 try_dual_attack = true;
+
+                            attack_target_needs_to_come_closer = false;
 
                             float chance = 0.2f;
 

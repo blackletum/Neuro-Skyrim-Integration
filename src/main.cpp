@@ -49,10 +49,7 @@
 
 
 
-
-//check bound weapons - filter ENTIRELY even from "new item in the inventory" and check what happpens if you try to unequip/drop it
-
-
+//TODO improve dodging for super dangerous spells
 
 
 //  RANDOM QUESTS TODO
