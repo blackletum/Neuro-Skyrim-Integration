@@ -16591,6 +16591,61 @@ namespace MiscThings {
 
         std::map<RE::TESQuest*, int> quests_and_objectives{};
 
+
+
+        //////////////////////////////////
+        // FAKE QUESTS
+
+        if (my_quest)
+        {
+            if (MiscThings::get_picks_amount_int() <= 0)
+            {
+
+                quest this_quest{};
+
+                this_quest.id = id;
+                this_quest.quest = my_quest;
+                this_quest.name = "Find lockpicks";
+                this_quest.target = nullptr;
+
+                std::string displaytext = "";
+
+                std::string target_name = "";
+
+                this_quest.displaytext += "(they are usually sold by traders in big cities)";
+
+                this_quest.target_name = target_name;
+
+                this_quest.objective = MiscThings::get_quest_objective_by_index(my_quest, 10);
+                this_quest.description = "";
+                this_quest.category = 0;
+
+                this_quest.estimate_distance = 0.0f;
+
+                this_quest.phantom_objective = true;
+
+                this_quest.phantom_target = player;
+
+                this_quest.estimate_distance = 0.0f;
+
+                sortable_quests.push_back(this_quest);
+
+
+                id++;
+                got_any_quests = true;
+
+            }
+        }
+        
+
+
+
+
+
+
+
+
+
         //for (auto player_objective : player_objectives)
         for (auto quest_target : player_quest_targets)
         {

@@ -9500,9 +9500,22 @@ namespace WalkerProcessor {
                 return result;
             }
 
+
+            auto my_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("myscPath");
+
+
             if (actual_id < std::size(*quest_list) && actual_id >= 0 && player_ref)
             {
                 auto quest_entry = quest_list->at(actual_id);
+
+
+                if (quest_entry.quest == my_quest && my_quest)
+                {
+                    result.first = false;
+                    result.second = "Cannot define where to walk to complete quest: " + quest_entry.name + ". " + quest_entry.displaytext + ". You need to figure it our yourself";
+                    return result;
+                }
+
 
                 auto objective = quest_entry.objective;
 
