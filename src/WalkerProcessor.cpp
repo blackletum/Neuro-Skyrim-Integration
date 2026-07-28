@@ -14,6 +14,8 @@
 namespace WalkerProcessor {
 
     bool attack_target_needs_to_come_closer = false;
+    bool fight_versus_dangerous_mage_power_attack_if_possible = false;
+
 
     long long dragon_landing_spot_placed_timestamp = 0;
 
@@ -359,6 +361,8 @@ namespace WalkerProcessor {
     int dodge_projectile_allowed_dirs = 0;
     bool dodge_melee_mode = false;
     bool dodge_melee_mode_enemy_long_reach = false;
+    bool dodge_projectile_extra_dangerous = false;
+    RE::TESObjectREFR* dodge_projectile_blast_target = nullptr;
 
     float attack_spell_cast_timeout = 0.0f;
 
@@ -2499,7 +2503,7 @@ namespace WalkerProcessor {
             auto player_pos = RE::PlayerCharacter::GetSingleton()->GetPosition();
 
 
-            if (MiscThings::is_on_horse() || MiscThings::is_werewolf() || MiscThings::is_vampirelord())
+            if (MiscThings::is_on_horse() || MiscThings::is_werewolf() || MiscThings::is_vampirelord() || is_fighting())
                 return false;
 
             if (path_valid && !use_last_point_of_last_path)
@@ -2598,7 +2602,7 @@ namespace WalkerProcessor {
 
     bool may_sprint()
     {
-        if (runaway_mode)
+        if (runaway_mode || fight_versus_dangerous_mage_power_attack_if_possible)
             return true;
 
         if (do_jumps)
@@ -5212,7 +5216,7 @@ namespace WalkerProcessor {
     float vampirelord_coef_attack = 1.8f;
     float vampirelord_coef_normal = 0.0f;
 
-    float dodge_coef_pathpoint = 2.5f;
+    float dodge_coef_pathpoint = 3.5f;
 
 
 
@@ -5688,7 +5692,9 @@ namespace WalkerProcessor {
 
     void reset_walker()
     {
-        
+        dodge_projectile_blast_target = nullptr;
+        fight_versus_dangerous_mage_power_attack_if_possible = false;
+
         attack_target_needs_to_come_closer = false;
         dragon_landing_banned_spots.clear();
         too_high_notified_timestamp = 0;
@@ -6374,6 +6380,8 @@ namespace WalkerProcessor {
 
 
     int dodge_direction = -1;
+    int dodge_projectile_extra_dangerous_last_direction = -1;
+
 
     bool dodge_projectile(float dtime)
     {
@@ -6384,6 +6392,9 @@ namespace WalkerProcessor {
 
         if (dodge_melee_mode)
             threshold = 0.4f;
+
+        if (dodge_projectile_extra_dangerous)
+            threshold = 0.6f;
 
         if (dodge_projectile_time < threshold && player)
         {
@@ -6532,6 +6543,37 @@ namespace WalkerProcessor {
             }
                 
 
+            if (dodge_projectile_extra_dangerous && dodge_projectile_extra_dangerous_last_direction != dodge_direction)
+            {
+                if (dodge_projectile_extra_dangerous_last_direction >= 0 && dodge_projectile_extra_dangerous_last_direction <= 7)
+                    if (MiscThings::getbit(dodge_projectile_allowed_dirs, dodge_projectile_extra_dangerous_last_direction))
+                        dodge_direction = dodge_projectile_extra_dangerous_last_direction;
+                    else
+                        dodge_projectile_extra_dangerous_last_direction = dodge_direction; //remember current direction so it tries to do same direction on next try
+                else
+                    dodge_projectile_extra_dangerous_last_direction = dodge_direction; //remember current direction so it tries to do same direction on next try
+            }
+            else
+                if (!dodge_projectile_extra_dangerous)
+                    dodge_projectile_extra_dangerous_last_direction = -1;
+
+
+            if (dodge_projectile_extra_dangerous)
+                if (dodge_projectile_blast_target)
+                {
+                    if (MiscThings::is_enemy_to_actor(dodge_projectile_blast_target))
+                    {
+                        auto shout = (RE::TESShout*)RE::TESForm::LookupByID(0x13e07); //fus ro da
+
+                        if (shout && MiscThings::player_has_spell((RE::SpellItem*)shout) && MiscThings::get_shout_cooldown() <= 0.0f && !MiscThings::actor_has_ward_equipped(dodge_projectile_blast_target))
+                            if (MiscThings::raycastable(dodge_projectile_blast_target, 3000.0f, false))
+                                shout_at_target(dodge_projectile_blast_target, shout);
+
+                        fight_versus_dangerous_mage_power_attack_if_possible = true;
+                    }
+
+                }
+
 
             switch (dodge_direction)
             {
@@ -6592,7 +6634,7 @@ namespace WalkerProcessor {
             //    dodge_direction = 1;
             //else
             //    dodge_direction = 0;
-
+            dodge_projectile_extra_dangerous = false;
             dodge_melee_mode = false; //so it doesnt block attack_target's attempt to come closer
             dodge_melee_mode_enemy_long_reach = false;
             result = true;
@@ -6941,6 +6983,13 @@ namespace WalkerProcessor {
                     }
                         
 
+
+                    
+
+
+                    //bool pretend_its_left = false;
+
+
                     //if (has_ranged_weapon_equipped(get_current_active_hand()) || shout_mode)
                     {
                         if (gate_shout)
@@ -6982,6 +7031,29 @@ namespace WalkerProcessor {
                         DebugAPI_IMPL::DebugAPI::GetSingleton()->Update();
                         */
 
+
+
+                        
+                        /*
+                        if (fight_versus_dangerous_mage_power_attack_if_possible)
+                        {
+                            //flames spell
+                            auto flames = (RE::SpellItem*)RE::TESForm::LookupByID(0x12FCD);
+
+                            if (MiscThings::get_hand_contents(false) != flames && !MiscThings::is_werewolf() && !MiscThings::is_vampirelord() && !MiscThings::is_intro() && !MiscThings::is_intro2())
+                            {
+                                MiscThings::equip_spell_by_refr(flames);
+                                return false;
+                            }
+
+
+                            if (MiscThings::is_offensive_spell(false) && is_concentration_spell(MiscThings::get_hand_contents(false)) && MiscThings::raycastable(target_ref, get_weapon_range(false) + 200.0f, false))
+                            {
+                                attack_action = 1;
+                                pretend_its_left = true;
+                            }
+                        }
+                        */
 
                         float range = get_weapon_range(get_current_active_hand());
 
@@ -7050,6 +7122,7 @@ namespace WalkerProcessor {
                                                             dragon_landing_spot_mode = true;
                                                             send_random_context("You try to find a spot where dragon will land...");
                                                             longer_range_advices_ignored++;
+
                                                             return false;
                                                         }
 
@@ -12134,6 +12207,40 @@ namespace WalkerProcessor {
         bool speed_correction = is_casting_ult() && target_ref && MiscThings::is_dragon(target_ref);
 
 
+        /* //this is garbage
+        bool left_hand_reserved_for_mage_fuckup = false;
+
+        if (fight_versus_dangerous_mage_power_attack_if_possible)
+        {
+            //flames spell
+            auto flames = (RE::SpellItem*)RE::TESForm::LookupByID(0x12FCD);
+
+            if (MiscThings::get_hand_contents(false) != flames && !MiscThings::is_werewolf() && !MiscThings::is_vampirelord() && !MiscThings::is_intro() && !MiscThings::is_intro2())
+            {
+                MiscThings::equip_spell_by_refr(flames);
+                return false;
+            }
+
+
+            if (MiscThings::is_offensive_spell(false) && is_concentration_spell(MiscThings::get_hand_contents(false)) && MiscThings::raycastable(target_ref, get_weapon_range(false) + 200.0f, false))
+            {
+                left_hand_reserved_for_mage_fuckup = true;
+
+
+                    if (attack_action_time1 < 0.5f)
+                        left_attack_spell();
+                    else
+                        if (attack_action_time1 > 2.5f)
+                            attack_action_time1 = 0.0f;
+
+                attack_action_time1 += dtime;
+
+                attack_action = 0;
+            }
+        }
+        */
+
+
         if (attack_lock_camera_condition())
         {
             //Hooks::add_debug_line("ATTACK_TARGET lock_camera", true);
@@ -12272,7 +12379,7 @@ namespace WalkerProcessor {
 
             dont_use_right |= (right_is_useless || ((has_ranged_weapon_equipped(true) && no_ammo()) || (MiscThings::has_something_equipped(false) && !MiscThings::has_something_equipped(true) && !left_is_useless)));
 
-
+            //dont_use_left |= left_hand_reserved_for_mage_fuckup;
 
             bool staff_of_magnus_in_left = false;
             auto magnus_eye = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x25224);
@@ -12898,6 +13005,11 @@ namespace WalkerProcessor {
                             if (power_attack_chance > 0.5)
                                 try_power_attack = true;
 
+
+                            if (fight_versus_dangerous_mage_power_attack_if_possible)
+                                try_power_attack = true;
+
+
                             float dual_attack_chance = (float)std::rand() / RAND_MAX;
 
                             if (attack_target_needs_to_come_closer && target_ref->IsActor() && target_ref->IsHumanoid())
@@ -13434,6 +13546,9 @@ namespace WalkerProcessor {
 
                             float power_attack_chance = (float)std::rand() / RAND_MAX;
                             if (power_attack_chance > 0.5)
+                                try_power_attack = true;
+
+                            if (fight_versus_dangerous_mage_power_attack_if_possible)
                                 try_power_attack = true;
 
                             float dual_attack_chance = (float)std::rand() / RAND_MAX;
@@ -14459,6 +14574,9 @@ namespace WalkerProcessor {
 
                 if (still_alive && !ignore_alive)
                     attacking_done = false; //cleanup from walk_again.
+
+                if (attacking_done)
+                    fight_versus_dangerous_mage_power_attack_if_possible = false;
             }
 
             //else
@@ -16190,6 +16308,9 @@ namespace WalkerProcessor {
         //Hooks::add_debug_line("walker_processor called", true);
 
 
+        if (target_ref)
+            bool test = MiscThings::actor_has_ward_equipped(target_ref);
+
 
 
         if (emergency_swim_up)
@@ -16624,7 +16745,9 @@ namespace WalkerProcessor {
 
             //copy this for melee, change function so it dodges alongside attack vector. this is good
 
-                auto projectile_dir = MiscThings::projectile_flying_into_player_face();
+                auto projectile_test = MiscThings::projectile_flying_into_player_face();
+
+                auto projectile_dir = projectile_test.first;
 
                 if (projectile_dir == RE::NiPoint3::Zero())
                 {
@@ -16639,6 +16762,7 @@ namespace WalkerProcessor {
                     else
                         if (!do_dodge_projectile)
                         {
+                            dodge_projectile_extra_dangerous = false;
                             dodge_melee_mode = false;
                             dodge_melee_mode_enemy_long_reach = false;
                         }
@@ -16646,11 +16770,21 @@ namespace WalkerProcessor {
 
                 }
                 else
+                {
+                    if (projectile_test.second)
+                    {
+                        dodge_projectile_extra_dangerous = true;
+                        dodge_projectile_blast_target = projectile_test.second;
+                    }
+
+
                     if (!do_dodge_projectile)
                     {
                         dodge_melee_mode = false;
                         dodge_melee_mode_enemy_long_reach = false;
                     }
+                }
+
                         
 
 

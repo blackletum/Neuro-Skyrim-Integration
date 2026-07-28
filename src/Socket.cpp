@@ -1881,7 +1881,13 @@ bool neuro::NeuroSocket::Tick(float dtime) //const neurosdk_message_action_t& aC
 
                             if (name == Capabilities::CallWaitMenu::Name)
                             {
-                                command_result = SleepWaitProcessor::call_wait_menu();
+                                if (MiscThings::quicksave_is_banned())
+                                {
+                                    command_result.first = false;
+                                    command_result.second = "Cannot wait right now";
+                                }
+                                else
+                                    command_result = SleepWaitProcessor::call_wait_menu();
                             }
 
 

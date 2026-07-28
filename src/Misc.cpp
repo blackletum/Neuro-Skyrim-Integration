@@ -55,6 +55,34 @@ namespace MiscThings {
     long long settlement_advice_timestamp = 0;
     
 
+
+
+
+    bool quicksave_is_banned()
+    {
+        auto player = RE::PlayerCharacter::GetSingleton();
+        if (player)
+        {
+            auto parent_cell = player->GetParentCell();
+            if (parent_cell && parent_cell->formID == 0x27d1c)
+            {
+                auto player_pos = player->GetPosition();
+                if (player_pos.y < 3487.0f && player_pos.x > 8681.0f)
+                {
+                    RE::TESQuest* meridia_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("DA09");
+
+                    if (meridia_quest && meridia_quest->currentStage < 400)
+                        return true;
+                }
+            }
+        }
+        else
+            return true;
+
+        return false;
+    }
+
+
     bool player_has_deseases()
     {
         return player_has_deseases_flag;
@@ -67,6 +95,50 @@ namespace MiscThings {
     }
 
 
+
+
+    bool is_ward(RE::TESForm* form)
+    {
+        if (form)
+        {
+            switch (form->formID)
+            {
+            case (0x13018):
+            case (0x211F1):
+            case (0x211F0):
+            case (0x7231a):
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    bool actor_has_ward_equipped(RE::TESObjectREFR* object)
+    {
+        if (object && object->IsActor())
+        {
+            auto actor = (RE::Actor*)object;
+
+            if (actor->currentProcess)
+            {
+                auto actor_process = actor->currentProcess;
+                auto equipped_list = actor_process->equippedObjects;
+
+                if (equipped_list)
+                {
+                    auto equipped_right = equipped_list[1];
+                    auto equipped_left = equipped_list[0];
+
+                    if (is_ward(equipped_left) || is_ward(equipped_left))
+                        return true;
+                }
+
+            }
+        }
+
+        return false;
+    }
 
 
 
@@ -275,10 +347,10 @@ namespace MiscThings {
 
 
 
-    RE::NiPoint3 projectile_flying_into_player_face()
+    std::pair<RE::NiPoint3, RE::TESObjectREFR*> projectile_flying_into_player_face()
     {
         auto player = RE::PlayerCharacter::GetSingleton();
-        RE::NiPoint3 result{};
+        std::pair<RE::NiPoint3, RE::TESObjectREFR*> result{};
 
         if (player)
         {
@@ -297,9 +369,15 @@ namespace MiscThings {
                             if (std::size(projectile_ref->impacts) <= 0)
                             {
                                 RE::NiPoint3 projectile_fly_vector{};
+                                RE::NiPoint3 projectile_orth1_vector{};
+                                RE::NiPoint3 projectile_orth2_vector{};
 
                                 if (a_ref->Get3D())
+                                {
                                     projectile_fly_vector = a_ref->Get3D()->world.rotate.GetVectorY();
+                                    projectile_orth1_vector = a_ref->Get3D()->world.rotate.GetVectorX();
+                                    projectile_orth2_vector = a_ref->Get3D()->world.rotate.GetVectorZ();
+                                }
                                 else
                                     return RE::BSContainer::ForEachResult::kContinue;
                                     ;// projectile_fly_vector = a_ref->data.angle;
@@ -312,6 +390,28 @@ namespace MiscThings {
                                 {
                                     auto col_layer = projectile->data.collisionLayer;
 
+                                    float aoe_radius = projectile->data.collisionRadius;
+
+                                    bool extra_dangerous = false;
+                                    bool check_more_points = false;
+                                    auto spell = projectile_ref->spell;
+
+                                    if (spell)
+                                    {
+                                        switch (spell->formID)
+                                        {
+                                        case (0xbb96a): //ice storm
+                                        {
+                                            aoe_radius += aoe_radius * 1.4 * projectile_ref->distanceMoved / 1000.0f;
+                                            check_more_points = true;
+                                            extra_dangerous = true;
+                                        }
+                                            
+                                        }
+                                    }
+
+                                    
+
 
                                     auto raycast_ref = MiscThings::GetRaycastRef(projectile_pos, projectile_fly_vector, 3000.0f, nullptr, 0b00001000000000000000000000000110);
 
@@ -319,12 +419,72 @@ namespace MiscThings {
                                     //DebugAPI_IMPL::DrawDebug::draw_line(projectile_pos, projectile_pos + projectile_fly_vector * 500.0f);
                                     //DebugAPI_IMPL::DebugAPI::GetSingleton()->Update();
 
-
                                     if (raycast_ref == player)
                                     {
-                                        result = projectile_fly_vector;
+                                        result.first = projectile_fly_vector;
+                                        if (extra_dangerous)
+                                            if (projectile_ref->shooter && projectile_ref->shooter.get() && projectile_ref->shooter.get().get())
+                                                result.second = projectile_ref->shooter.get().get();
+
                                         return RE::BSContainer::ForEachResult::kStop;
                                     }
+                                    else
+                                    {
+                                        //test 4 more positions
+                                        auto pos1 = projectile_pos + projectile_orth1_vector * aoe_radius;
+                                        auto pos2 = projectile_pos - projectile_orth1_vector * aoe_radius;
+                                        auto pos3 = projectile_pos + projectile_orth2_vector * aoe_radius;
+                                        auto pos4 = projectile_pos - projectile_orth2_vector * aoe_radius;
+
+
+                                        if (MiscThings::GetRaycastRef(pos1, projectile_fly_vector, 3000.0f, nullptr, 0b00001000000000000000000000000110) == player ||
+                                            MiscThings::GetRaycastRef(pos2, projectile_fly_vector, 3000.0f, nullptr, 0b00001000000000000000000000000110) == player ||
+                                            MiscThings::GetRaycastRef(pos3, projectile_fly_vector, 3000.0f, nullptr, 0b00001000000000000000000000000110) == player ||
+                                            MiscThings::GetRaycastRef(pos4, projectile_fly_vector, 3000.0f, nullptr, 0b00001000000000000000000000000110) == player
+                                            )
+                                        {
+                                            result.first = projectile_fly_vector;
+                                            if (extra_dangerous)
+                                                if (projectile_ref->shooter && projectile_ref->shooter.get() && projectile_ref->shooter.get().get())
+                                                    result.second = projectile_ref->shooter.get().get();
+                                            return RE::BSContainer::ForEachResult::kStop;
+                                        }
+                                        else
+                                            if (check_more_points)
+                                            {
+                                                auto pos5 = projectile_pos + projectile_orth1_vector * aoe_radius * 0.5f;
+                                                auto pos6 = projectile_pos - projectile_orth1_vector * aoe_radius * 0.5f;
+                                                auto pos7 = projectile_pos + projectile_orth2_vector * aoe_radius * 0.5f;
+                                                auto pos8 = projectile_pos - projectile_orth2_vector * aoe_radius * 0.5f;
+
+                                                /*
+                                                DebugAPI_IMPL::DebugAPI::GetSingleton()->LinesToDraw.clear();
+                                                DebugAPI_IMPL::DrawDebug::draw_line(pos1, pos1 + projectile_fly_vector * 500.0f);
+                                                DebugAPI_IMPL::DrawDebug::draw_line(pos2, pos2 + projectile_fly_vector * 500.0f);
+                                                DebugAPI_IMPL::DrawDebug::draw_line(pos3, pos3 + projectile_fly_vector * 500.0f);
+                                                DebugAPI_IMPL::DrawDebug::draw_line(pos4, pos4 + projectile_fly_vector * 500.0f);
+                                                DebugAPI_IMPL::DrawDebug::draw_line(pos5, pos5 + projectile_fly_vector * 500.0f);
+                                                DebugAPI_IMPL::DrawDebug::draw_line(pos6, pos6 + projectile_fly_vector * 500.0f);
+                                                DebugAPI_IMPL::DrawDebug::draw_line(pos7, pos7 + projectile_fly_vector * 500.0f);
+                                                DebugAPI_IMPL::DrawDebug::draw_line(pos8, pos8 + projectile_fly_vector * 500.0f);
+                                                DebugAPI_IMPL::DebugAPI::GetSingleton()->Update();
+                                                */
+
+                                                if (MiscThings::GetRaycastRef(pos5, projectile_fly_vector, 3000.0f, nullptr, 0b00001000000000000000000000000110) == player ||
+                                                    MiscThings::GetRaycastRef(pos6, projectile_fly_vector, 3000.0f, nullptr, 0b00001000000000000000000000000110) == player ||
+                                                    MiscThings::GetRaycastRef(pos7, projectile_fly_vector, 3000.0f, nullptr, 0b00001000000000000000000000000110) == player ||
+                                                    MiscThings::GetRaycastRef(pos8, projectile_fly_vector, 3000.0f, nullptr, 0b00001000000000000000000000000110) == player
+                                                    )
+                                                {
+                                                    result.first = projectile_fly_vector;
+                                                    if (extra_dangerous)
+                                                        if (projectile_ref->shooter && projectile_ref->shooter.get() && projectile_ref->shooter.get().get())
+                                                            result.second = projectile_ref->shooter.get().get();
+                                                    return RE::BSContainer::ForEachResult::kStop;
+                                                }
+                                            }
+                                    }
+
                                 }
 
 

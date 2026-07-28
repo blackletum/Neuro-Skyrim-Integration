@@ -1,5 +1,8 @@
 #pragma once
 
+
+
+
 void call_journal_menu();
 
 void local_map_toggle();
