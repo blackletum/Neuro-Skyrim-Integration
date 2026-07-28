@@ -512,6 +512,9 @@ namespace MiscThings {
     RE::NiPoint3 find_dragon_landing_spot(std::vector<RE::NiPoint3> banned_spots);
     RE::TESObjectREFR* get_mysc_quest_teleport_ref();
 
+    void reset_dragon_landing_vars();
+
+
     RE::TESForm* get_hand_contents(bool right);
     bool is_self_healing_spell(bool right);
     bool is_summon_spell(bool right);

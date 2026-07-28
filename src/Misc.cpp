@@ -2920,6 +2920,22 @@ namespace MiscThings {
     }
 
 
+    int landing_last_grid_x = -1;
+    int landing_last_grid_y = -1;
+
+    RE::NiPoint3 current_best_vertex{};
+    float current_best_distance = FLT_MAX;
+
+
+    void reset_dragon_landing_vars()
+    {
+        landing_last_grid_x = -1;
+        landing_last_grid_y = -1;
+
+        current_best_vertex = RE::NiPoint3::Zero();
+        current_best_distance = FLT_MAX;
+    }
+
 
     RE::NiPoint3 find_dragon_landing_spot(std::vector<RE::NiPoint3> banned_spots)
     {
@@ -2958,13 +2974,47 @@ namespace MiscThings {
 
                     RE::NiPoint2 parent_cell_coords = { parent_cell_coords_raw->worldX, parent_cell_coords_raw->worldY };
 
-                    float min_distance_to_player = FLT_MAX;
+                    //float min_distance_to_player = FLT_MAX;
 
                     RE::NiPoint3 best_vertex_pos{};
 
 
-                    for (int x = 0; x < gridCells->length; x++)
-                        for (int y = 0; y < gridCells->length; y++)
+                    if (gridCells->length == 0)
+                        return RE::NiPoint3::Zero();
+
+                    if (landing_last_grid_x >= 0 && landing_last_grid_y >= 0)
+                    {
+                        if (landing_last_grid_x >= (gridCells->length - 1) && landing_last_grid_y >= (gridCells->length - 1))
+                        {
+
+                            auto result = current_best_vertex;
+                            landing_last_grid_x = -1;
+                            landing_last_grid_y = -1;
+
+                            current_best_vertex = RE::NiPoint3::Zero();
+                            current_best_distance = FLT_MAX;
+
+
+                            return result;
+                        }
+                    }
+
+
+
+
+                    if (landing_last_grid_x < 0 || landing_last_grid_x >= gridCells->length)
+                        landing_last_grid_x = 0;
+
+                    if (landing_last_grid_y < 0 || landing_last_grid_y >= gridCells->length)
+                        landing_last_grid_y = 0;
+
+
+                    //for (int x = landing_last_grid_x; x < gridCells->length; x++)
+                    //    for (int y = landing_last_grid_y; y < gridCells->length; y++)
+
+                    int x = landing_last_grid_x;
+                    int y = landing_last_grid_y;
+
                         {
                             auto adjacent_cell = gridCells->GetCell(x, y);
 
@@ -2992,7 +3042,7 @@ namespace MiscThings {
 
                                                 float distance = vertex_pos.GetDistance(player_pos);
 
-                                                if (distance > min_distance_to_player)
+                                                if (distance > current_best_distance)
                                                     continue;
 
 
@@ -3040,8 +3090,8 @@ namespace MiscThings {
 
                                                 if (point_is_good)
                                                 {
-                                                    min_distance_to_player = distance;
-                                                    best_vertex_pos = vertex_pos;
+                                                    current_best_distance = distance;
+                                                    current_best_vertex = vertex_pos;
                                                 }
 
 
@@ -3053,8 +3103,15 @@ namespace MiscThings {
                         }
 
 
+                        if (landing_last_grid_x > landing_last_grid_y)
+                            landing_last_grid_y++;
+                        else
+                            landing_last_grid_x++;
 
-                    return best_vertex_pos;
+
+
+                        //waiting for it to check all
+                        return { 0.0f, 0.0f, 0.1f };
                 }
             }
         }

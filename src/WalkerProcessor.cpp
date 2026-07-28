@@ -1739,6 +1739,12 @@ namespace WalkerProcessor {
 
                                             auto landing_point = MiscThings::find_dragon_landing_spot(dragon_landing_banned_spots);
 
+                                            RE::NiPoint3 wait_val = { 0.0f, 0.0f, 0.1f };
+
+                                            if (landing_point == wait_val)
+                                                return;
+
+
                                             if (landing_point != RE::NiPoint3::Zero())
                                             {
                                                 dragon_landing_marker->MoveTo(player);
@@ -5682,6 +5688,7 @@ namespace WalkerProcessor {
 
     void reset_walker()
     {
+        
         attack_target_needs_to_come_closer = false;
         dragon_landing_banned_spots.clear();
         too_high_notified_timestamp = 0;
@@ -5690,6 +5697,7 @@ namespace WalkerProcessor {
         dragon_landing_spot_placed = false;
         dragon_landing_spot_nowhere_to_land = false;
         dragon_landing_spot_arrived = false;
+        MiscThings::reset_dragon_landing_vars();
 
         longer_range_advices_ignored = 0;
 
