@@ -855,6 +855,7 @@ namespace MiscThings {
     bool double_confirm_request_sent = false;
     bool double_confirm_choice_valid = false;
     bool double_confirm_choice = false;
+    std::string double_confirm_custom_message = "";
 
 
     bool make_double_confirm() //returns true if choice valid
@@ -868,7 +869,12 @@ namespace MiscThings {
 
             unregister_all_actions();
 
-            if (force_choice(options, "Are you absolutely sure?", force_type::double_confirm))
+            std::string message = "Are you absolutely sure?";
+
+            if (double_confirm_custom_message != "")
+                message = double_confirm_custom_message;
+
+            if (force_choice(options, message, force_type::double_confirm))
             {
                 double_confirm_request_sent = true;
             }
@@ -4196,7 +4202,7 @@ namespace MiscThings {
                 {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1a67e), 6, "Wizard [Sells spells]", 7}, //wizard
                 {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1a700), 7, "Church [Has shrines]", 8}, //church
                 {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1a6f9), 8, "Breezehome (your house)", 9 }, //house
-                {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xA2C94), 9, "Lydia (friend)", 10 } //house
+                {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xA2C94), 9, "Lydia (friend)", 10 } //lydia
                 
             }
 
@@ -14218,6 +14224,10 @@ namespace MiscThings {
     }
 
 
+
+    std::string paarthurnax_different_message = "";
+
+
     void notifications()
     {
 
@@ -14231,7 +14241,13 @@ namespace MiscThings {
 
                 unregister_all_actions();
 
-                if (force_choice(options, "You are trying to cast a dangerous spell, but there is Paarthurnax nearby... if you accidentely hit him, he might get mad at you. Are you sure you want to cast it? (If he asks you to use fire shout - make sure you are using the shout and not common fire spell!)", force_type::confirm_cast_parthurnax))
+
+                std::string message = "You are trying to cast a dangerous spell, but there is Paarthurnax nearby... if you accidentely hit him, he might get mad at you. Are you sure you want to cast it? (If he asks you to use fire shout - make sure you are using the shout and not common fire spell!)";
+
+                if (paarthurnax_different_message != "")
+                    message = paarthurnax_different_message;
+
+                if (force_choice(options, message, force_type::confirm_cast_parthurnax))
                 {
                     parthurnax_friendly_fire_request_sent = true;
                 }
@@ -25367,6 +25383,24 @@ namespace MiscThings {
                 {
                     if (slot_id == 0x00025BEE) //voice
                     {
+
+                        if (player_issued && MiscThings::player_brawling())
+                        {
+                            paarthurnax_different_message = "You are in a brawl, using this spell may count as cheating and guards might attack you for it! Are you sure?";
+
+                            if (!parthurnax_friendly_fire_confirmed)
+                            {
+                                parthurnax_friendly_fire_confirm = true;
+                                parthurnax_friendly_fire_spell_id = id;
+                                parthurnax_friendly_fire_target_id = target_index;
+                                result.first = true;
+                                result.second = "Processing...";
+                                return result;
+                            }
+                        }
+
+
+
                         equip_manager->EquipSpell(player_actor, spell, equip_slot);
                         right_attack_cancel();
                         left_attack_cancel();
@@ -25385,8 +25419,13 @@ namespace MiscThings {
 
                             bool right_hand = false;
   
-                            if (player_issued && is_offensive_spell(spell) && MiscThings::parthurnax_friendly_fire_check())
+                            if (player_issued && ((is_offensive_spell(spell) && MiscThings::parthurnax_friendly_fire_check()) || MiscThings::player_brawling()))
                             {
+                                if (MiscThings::player_brawling())
+                                    paarthurnax_different_message = "You are in a brawl, casting spells will count as cheating and guards might attack you for it! Are you sure?";
+                                else
+                                    paarthurnax_different_message = "";
+
                                 if (!parthurnax_friendly_fire_confirmed)
                                 {
                                     parthurnax_friendly_fire_confirm = true;
@@ -25397,6 +25436,7 @@ namespace MiscThings {
                                     return result;
                                 }
                             }
+
 
 
                             if (slot_id == 0x00013F42)
@@ -25599,6 +25639,20 @@ namespace MiscThings {
                                     }
 
 
+                                    if (player_issued && MiscThings::player_brawling())
+                                    {
+                                        paarthurnax_different_message = "You are in a brawl, using shouts will count as cheating and guards might attack you for it! Are you sure?";
+
+                                        if (!parthurnax_friendly_fire_confirmed)
+                                        {
+                                            parthurnax_friendly_fire_confirm = true;
+                                            parthurnax_friendly_fire_spell_id = id;
+                                            parthurnax_friendly_fire_target_id = target_index;
+                                            result.first = true;
+                                            result.second = "Processing...";
+                                            return result;
+                                        }
+                                    }
 
                                     equip_manager->EquipShout(player_actor, shout);
                                     //use_ult();
