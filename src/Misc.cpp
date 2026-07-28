@@ -16612,7 +16612,7 @@ namespace MiscThings {
 
                 std::string target_name = "";
 
-                this_quest.displaytext += "(they are usually sold by traders in big cities)";
+                this_quest.displaytext += "(they are usually sold by traders in big cities. Recommended to get at least 10 lockpicks for various needs)";
 
                 this_quest.target_name = target_name;
 

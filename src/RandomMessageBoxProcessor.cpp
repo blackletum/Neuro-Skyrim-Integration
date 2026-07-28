@@ -174,18 +174,49 @@ namespace RandomMessageBoxProcessor {
 				std::string text = "";
 				bool go_further = false;
 				auto menu = ui->GetMenu(RE::MessageBoxMenu::MENU_NAME);
+
+
+				RE::GFxValue var1;
+
+				if (menu->uiMovie->GetVariable(&var1, "_root.MessageMenu.MessageText.text"))
+				{
+					if (!var1.IsNull() && var1.IsString())
+					{
+						text = var1.GetString();
+
+
+						if (text.find("Do you want to poison the") != std::string::npos)
+						{
+							if (!rolled_over)
+							{
+								std::string index = "0";
+								menu->uiMovie->Invoke(("_root.MessageMenu.Buttons.Button" + index + ".onRollOver").c_str(), nullptr, nullptr, 0);
+								menu->uiMovie->Invoke(("_root.MessageMenu.Buttons.Button" + index + ".onPress").c_str(), nullptr, nullptr, 0);
+								set_universal_block(0.3f);
+								return;
+							}
+						}
+
+						if (text.find("You must first equip a weapon to poison it") != std::string::npos)
+						{
+							if (!rolled_over)
+							{
+								std::string index = "0";
+								menu->uiMovie->Invoke(("_root.MessageMenu.Buttons.Button" + index + ".onRollOver").c_str(), nullptr, nullptr, 0);
+								menu->uiMovie->Invoke(("_root.MessageMenu.Buttons.Button" + index + ".onPress").c_str(), nullptr, nullptr, 0);
+								send_random_context(text, false);
+								set_universal_block(0.3f);
+								return;
+							}
+						}
+
+					}
+				}
+
+
 				if (handeled_timeout > 1.5f)
 				{
-					RE::GFxValue var1;
-
-					if (menu->uiMovie->GetVariable(&var1, "_root.MessageMenu.MessageText.text"))
-					{
-						if (!var1.IsNull() && var1.IsString())
-						{
-							text = var1.GetString();
-							go_further = true;
-						}
-					}
+					go_further = true;
 				}
 
 				if (go_further)

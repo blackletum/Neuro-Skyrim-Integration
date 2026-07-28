@@ -31,7 +31,10 @@
 
 //about dodging - maybe add jumps/crouch too
 
+
+
 //TODO fix prison. work through situation when we are locked but no quest and out of lockpicks, check morthal and dawnstar and falkreath prisons specifically because they go through lockable guard houses
+
 
 ///////////////////////
 
@@ -1240,6 +1243,16 @@ namespace Hooks {
             if (a_message.type.get() == RE::UI_MESSAGE_TYPE::kShow) {
                 RE::ConsoleLog::GetSingleton()->Print("MESSAGEBOX MENU WAS OPENED");
 
+
+
+                
+
+                //RE::UIMessageQueue::GetSingleton()->AddMessage(RE::TutorialMenu::MENU_NAME, RE::UI_MESSAGE_TYPE::kHide, nullptr); //OKAY this shit just autocloses tutorial menus
+
+
+
+
+
                 //menu->menuFlags.reset(RE::UI_MENU_FLAGS::kUsesCursor); //works
 
                 //unregister_all_actions();
@@ -1250,6 +1263,9 @@ namespace Hooks {
                 //RE::BSInputEventQueue::GetSingleton()->AddButtonEvent(RE::INPUT_DEVICES::kKeyboard, my_key, 0.0, 0.0);
 
             }
+
+            bool stop_here = false;
+
 
             if (a_message.type.get() == RE::UI_MESSAGE_TYPE::kHide) {
 
