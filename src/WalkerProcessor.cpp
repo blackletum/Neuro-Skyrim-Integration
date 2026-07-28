@@ -13,6 +13,13 @@
 
 namespace WalkerProcessor {
 
+
+
+    RE::TESObjectREFR* quest_door_that_needs_a_lockpick = nullptr; //dont reset normally
+
+
+
+
     bool attack_target_needs_to_come_closer = false;
     bool fight_versus_dangerous_mage_power_attack_if_possible = false;
 

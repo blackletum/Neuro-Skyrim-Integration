@@ -31,6 +31,7 @@
 
 //about dodging - maybe add jumps/crouch too
 
+//TODO fix prison. work through situation when we are locked but no quest and out of lockpicks, check morthal and dawnstar and falkreath prisons specifically because they go through lockable guard houses
 
 ///////////////////////
 

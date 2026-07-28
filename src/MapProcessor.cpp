@@ -1352,6 +1352,26 @@ namespace MapProcessor {
 				{
 					quicksave();
 					send_random_context("[Successfully travelled]", false);
+
+					auto player = RE::PlayerCharacter::GetSingleton();
+
+					if (player)
+					{
+						auto worldspace = player->GetWorldspace();
+
+						if (worldspace)
+						{
+							switch (worldspace->formID) //reset walker on fast travels to big cities so walker doesnt automatically go to the exit door if quest leads there
+							{
+							case (0x1691d):
+							case (0x16bb4):
+							case (0x16d71):
+							case (0x37edf):
+							case (0x1a26f):
+								WalkerProcessor::reset_walker();
+							}
+						}
+					}
 				}
 				else
 				{
