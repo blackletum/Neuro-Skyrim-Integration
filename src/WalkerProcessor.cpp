@@ -20518,7 +20518,10 @@ namespace WalkerProcessor {
                                                             if (!door_is_closed_request_sent && !is_targeted_door_locked())
                                                             {
                                                                 ignore_closed_doors_time = 3.0f;
-                                                                if (is_targeted_door_closed())
+
+                                                                bool ignore_door_is_closed = (get_targeted_ref() && is_door(get_targeted_ref()) && MiscThings::get_door_teleport(get_targeted_ref()) != "");
+
+                                                                if (is_targeted_door_closed() || ignore_door_is_closed)
                                                                 {
                                                                     
                                                                     confirm(); //just unlock it
@@ -20938,7 +20941,10 @@ namespace WalkerProcessor {
                                             if (!door_is_closed_request_sent && !is_targeted_door_locked())
                                             {
                                                 ignore_closed_doors_time = 3.0f;
-                                                if (is_targeted_door_closed())
+
+                                                bool ignore_door_is_closed = (get_targeted_ref() && is_door(get_targeted_ref()) && MiscThings::get_door_teleport(get_targeted_ref()) != "");
+
+                                                if (is_targeted_door_closed() || ignore_door_is_closed)
                                                 {
                                                     confirm(); //just unlock it
 

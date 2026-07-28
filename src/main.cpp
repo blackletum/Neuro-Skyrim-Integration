@@ -48,7 +48,6 @@
 //TODO that seducers AE quest
 
 
-
 //TODO improve dodging for super dangerous spells
 //TODO blast super dangerous mages with fus ro da and focus if possible, maybe even ignoring melee dodging in case somebody is blocking. do this after dodge works for high aoe spells
 

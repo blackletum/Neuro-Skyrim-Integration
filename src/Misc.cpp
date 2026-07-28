@@ -4195,7 +4195,9 @@ namespace MiscThings {
                 {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1a677), 5, "Jarl", 6}, //jarl
                 {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1a67e), 6, "Wizard [Sells spells]", 7}, //wizard
                 {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1a700), 7, "Church [Has shrines]", 8}, //church
-                {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1a6f9), 8, "Breezehome (your house)", 9 } //house
+                {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1a6f9), 8, "Breezehome (your house)", 9 }, //house
+                {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xA2C94), 9, "Lydia (friend)", 10 } //house
+                
             }
 
         }
