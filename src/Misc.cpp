@@ -83,6 +83,19 @@ namespace MiscThings {
     }
 
 
+    bool is_poison(RE::TESBoundObject* object)
+    {
+        if (object && object->formType == RE::FormType::AlchemyItem)
+        {
+            auto potion = (RE::AlchemyItem*)object;
+            return potion->IsPoison();
+        }
+
+        return false;
+    }
+
+
+
     bool player_has_deseases()
     {
         return player_has_deseases_flag;
@@ -22852,7 +22865,11 @@ namespace MiscThings {
                                 actor_equip->EquipObject((RE::Actor*)player_ref, object);
 
                                 result.first = true;
-                                result.second = "[Consuming [id " + std::to_string(item_id) + "] " + object_name + "...]";
+                                if (MiscThings::is_poison(object))
+                                    result.second = "[Processing...]";
+                                else
+                                    result.second = "[Consuming [id " + std::to_string(item_id) + "] " + object_name + "...]";
+
                                 return result;
                             }
 
