@@ -13,11 +13,23 @@
 
 namespace WalkerProcessor {
 
+    long long dragon_landing_spot_placed_timestamp = 0;
+
+    std::vector<RE::NiPoint3> dragon_landing_banned_spots{};
+    bool dragon_landing_spot_mode = false;
+    bool dragon_landing_spot_placed = false;
+    bool dragon_landing_spot_nowhere_to_land = false;
+    bool dragon_landing_spot_arrived = false;
+    RE::TESObjectREFR* dragon_for_landing = nullptr;
+
 
     int longer_range_advices_ignored = 0;
 
     bool blind_walk_rotates_camera = false;
     bool blind_walk_rotates_camera_direction_right = false;
+
+
+    long long too_high_notified_timestamp = 0;
 
 
     bool tried_to_step_forward_a_little = false;
@@ -1566,6 +1578,7 @@ namespace WalkerProcessor {
 
                     bool autoloader_door_had_correct_shift = false;
 
+                    RE::NiPoint3 last_dragon_landing_point_used = RE::NiPoint3::Zero();
 
                     if (target_ref && marker)
                     {
@@ -1593,6 +1606,7 @@ namespace WalkerProcessor {
 
                         
 
+                        
 
                         auto marker_ref = marker->AsReference();
                         if (marker_ref)
@@ -1687,8 +1701,85 @@ namespace WalkerProcessor {
                                         dragon_pathfinding_failed = false;
 
 
+                                
+                                bool dragon_landing_mode_shifted = false;
 
-                                MiscThings::SetPosition_moveto(marker_ref, marker_ref->GetPosition() + shift + pickpocket_shift);
+                                //remove false to unlock. need special marker for it + add check if player is near the marker (if near - raise "arrived" and dont do anything)
+                                //just check distance from player to the spot - if near - dont do anything here and no redirects
+
+                                auto dragon_landing_marker = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x7121d4f);
+
+                                if (dragon_landing_marker)
+                                {
+                                    if (dragon_landing_spot_mode && dragon_landing_spot_arrived && !dragon_landing_spot_placed)
+                                    {
+                                        dragon_for_landing = target_ref;
+                                        target_ref = dragon_landing_marker;
+                                        dragon_landing_mode_shifted = true;
+                                        dragon_landing_spot_placed = true;
+                                        dragon_landing_spot_placed_timestamp = std::chrono::steady_clock::now().time_since_epoch().count();
+                                        return;
+                                    }
+                                    else
+                                    {
+                                        if (dragon_landing_spot_mode && !dragon_landing_spot_placed && !dragon_landing_spot_nowhere_to_land)
+                                        {
+
+
+
+                                            auto landing_point = MiscThings::find_dragon_landing_spot(dragon_landing_banned_spots);
+
+                                            if (landing_point != RE::NiPoint3::Zero())
+                                            {
+                                                dragon_landing_marker->MoveTo(player);
+                                                MiscThings::SetPosition_moveto(dragon_landing_marker, landing_point);
+
+                                                dragon_for_landing = target_ref;
+                                                target_ref = dragon_landing_marker;
+                                                dragon_landing_mode_shifted = true;
+                                                dragon_landing_spot_placed = true;
+                                                last_dragon_landing_point_used = landing_point;
+                                                dragon_landing_spot_placed_timestamp = std::chrono::steady_clock::now().time_since_epoch().count();
+                                                return;
+                                            }
+                                            else
+                                            {
+                                                dragon_landing_spot_nowhere_to_land = true;
+                                                return;
+                                            }
+
+
+                                        }
+                                        else
+                                        {
+                                            if (dragon_landing_spot_mode && dragon_landing_spot_placed && !dragon_landing_spot_nowhere_to_land)
+                                            {
+                                                //test if landing spot goes through portal doors. do not accept it
+                                                auto now = std::chrono::steady_clock::now().time_since_epoch().count();
+                                                float delta_landing_spot = (double)(now - dragon_landing_spot_placed_timestamp) / 1000000000.0;
+                                                if (delta_landing_spot > 3.0f)
+                                                {
+                                                    auto test = MiscThings::get_mysc_quest_teleport_ref();
+                                                    if (test)
+                                                    {
+                                                        target_ref = dragon_for_landing;
+                                                        dragon_landing_spot_placed = false;
+                                                        dragon_landing_banned_spots.push_back(marker_ref->GetPosition());
+                                                        return;
+                                                    }
+                                                }
+                                            }
+
+                                        }
+                                    }
+                                    
+                                }
+
+                                
+
+
+                                if (!dragon_landing_mode_shifted)
+                                    MiscThings::SetPosition_moveto(marker_ref, marker_ref->GetPosition() + shift + pickpocket_shift);
 
                                 //correct_marker_pos();
                             }
@@ -1971,6 +2062,7 @@ namespace WalkerProcessor {
                                         if (!too_high_notified)
                                         {
                                             too_high_notified = true;
+                                            too_high_notified_timestamp = std::chrono::steady_clock::now().time_since_epoch().count();
 
                                             std::string ranged_weapon_advice = "";
                                             if (interaction_after_walk == 3 && get_weapon_range(get_current_active_hand()) < 4000.0f)
@@ -1995,6 +2087,10 @@ namespace WalkerProcessor {
                                                     if (longer_range_advices_ignored > 0)
                                                     {
                                                         //try to find landing spot for dragon
+                                                        dragon_landing_spot_mode = true;
+                                                        send_random_context("You try to find a spot where dragon will land...");
+                                                        longer_range_advices_ignored++;
+                                                        return;
                                                     }
 
                                                     ranged_weapon_advice = "Or equip some weapons/magic with longer range";
@@ -2008,43 +2104,72 @@ namespace WalkerProcessor {
                                             if (!check_special_too_high_message())
                                                 send_random_context(MiscThings::insert_object_into_list_and_get_info(target_ref) + " is too high! Looking at it instead. " + ranged_weapon_advice, false);
                                         }
+                                        else
+                                        {
+                                            auto now = std::chrono::steady_clock::now().time_since_epoch().count();
+                                            float delta_notified = (double)(now - too_high_notified_timestamp) / 1000000000.0;
+                                            
+                                            if (delta_notified > 15.0f)
+                                                too_high_notified = false;
+                                        }
                                     }
                                     else
                                     {
-                                        if (!autoloader_door_had_correct_shift && !autoload_door_pathfinding_failed && MiscThings::is_cave_autoloader_door(target_ref))
+                                        if (dragon_landing_spot_placed && dragon_landing_spot_mode)
                                         {
-                                            autoload_door_pathfinding_failed = true;
+                                            dragon_landing_spot_placed = false;
+                                            if (last_dragon_landing_point_used != RE::NiPoint3::Zero())
+                                            {
+                                                target_ref = dragon_for_landing;
+                                                dragon_landing_banned_spots.push_back(last_dragon_landing_point_used);
+                                            }
+                                            else
+                                            {
+                                                dragon_landing_spot_nowhere_to_land = true;
+                                                target_ref = dragon_for_landing;
+                                            }
+                                                
                                             return;
+
                                         }
                                         else
                                         {
-                                            if (!is_fighting() && !dragon_pathfinding_failed && ((MiscThings::is_dragon(target_ref) && (!MiscThings::is_flying(target_ref) || (MiscThings::same_worldspace(player, target_ref) && player->GetDistance(target_ref) > 30000.0f)))))// || (player->GetDistance(target_ref) > 10000.0f && player->GetWorldspace() && player->GetWorldspace()->formID == 0x3c)))
+                                            if (!autoloader_door_had_correct_shift && !autoload_door_pathfinding_failed && MiscThings::is_cave_autoloader_door(target_ref))
                                             {
-                                                dragon_pathfinding_failed = true;
+                                                autoload_door_pathfinding_failed = true;
                                                 return;
                                             }
                                             else
                                             {
-                                                if (!navmesh_probe_result_valid)
+                                                if (!is_fighting() && !dragon_pathfinding_failed && ((MiscThings::is_dragon(target_ref) && (!MiscThings::is_flying(target_ref) || (MiscThings::same_worldspace(player, target_ref) && player->GetDistance(target_ref) > 30000.0f)))))// || (player->GetDistance(target_ref) > 10000.0f && player->GetWorldspace() && player->GetWorldspace()->formID == 0x3c)))
                                                 {
-                                                    if (MiscThings::dont_probe_navmesh())
+                                                    dragon_pathfinding_failed = true;
+                                                    return;
+                                                }
+                                                else
+                                                {
+                                                    if (!navmesh_probe_result_valid)
                                                     {
-                                                        navmesh_probe_mode = false;
-                                                        navmesh_probe_result = false;
-                                                        navmesh_probe_result_valid = true;
-                                                        return; //fake "no navmesh" result so it gives a blind walk
-                                                    }
-                                                    else
-                                                    {
-                                                        navmesh_probe_mode = true;
-                                                        navmesh_probe_result = false;
-                                                        navmesh_probe_result_valid = false;
-                                                        return;
-                                                        //and we hope whoever called us - calls us again and we get probe
+                                                        if (MiscThings::dont_probe_navmesh())
+                                                        {
+                                                            navmesh_probe_mode = false;
+                                                            navmesh_probe_result = false;
+                                                            navmesh_probe_result_valid = true;
+                                                            return; //fake "no navmesh" result so it gives a blind walk
+                                                        }
+                                                        else
+                                                        {
+                                                            navmesh_probe_mode = true;
+                                                            navmesh_probe_result = false;
+                                                            navmesh_probe_result_valid = false;
+                                                            return;
+                                                            //and we hope whoever called us - calls us again and we get probe
+                                                        }
                                                     }
                                                 }
                                             }
                                         }
+                                        
                                     }
                                 }
                             }
@@ -5547,6 +5672,14 @@ namespace WalkerProcessor {
 
     void reset_walker()
     {
+        dragon_landing_banned_spots.clear();
+        too_high_notified_timestamp = 0;
+
+        dragon_landing_spot_mode = false;
+        dragon_landing_spot_placed = false;
+        dragon_landing_spot_nowhere_to_land = false;
+        dragon_landing_spot_arrived = false;
+
         longer_range_advices_ignored = 0;
 
         blind_walk_rotates_camera = false;
@@ -6583,8 +6716,13 @@ namespace WalkerProcessor {
 
     bool close_enough()
     {
+        auto player = RE::PlayerCharacter::GetSingleton();
 
-        if (close_enough_force_fail)
+        if (!player)
+            return false;
+
+
+        if (close_enough_force_fail && !MiscThings::is_dragon(target_ref))
         {
             auto now = std::chrono::steady_clock::now().time_since_epoch().count();
             float delta_cancel_fail = (double)(now - close_enough_force_fail_time_start) / 1000000000.0;
@@ -6615,7 +6753,7 @@ namespace WalkerProcessor {
 
 
 
-        auto player = RE::PlayerCharacter::GetSingleton();
+        
 
 
         if (MiscThings::is_cave_autoloader_door(target_ref))
@@ -6828,6 +6966,10 @@ namespace WalkerProcessor {
 
                         float range = get_weapon_range(get_current_active_hand());
 
+
+                        if ((has_bow_equipped(true) || has_crossbow_equipped(true)) && MiscThings::is_dragon(target_ref) && !no_ammo())
+                            range = 10000.0f;
+
                         if (shout_mode)
                         {
                             auto dragonrend = (RE::TESShout*)RE::TESForm::LookupByID(0x44250);
@@ -6848,8 +6990,81 @@ namespace WalkerProcessor {
 
 
                         //this is for melee
-                        if (MiscThings::is_dragon(target_ref) && MiscThings::is_flying(target_ref))// && (!(has_ranged_weapon_equipped(get_current_active_hand()) || shout_mode)))
-                            range = 50000.0f;
+                        if (!dragon_landing_spot_mode || dragon_landing_spot_nowhere_to_land)
+                        {
+                            if (MiscThings::is_dragon(target_ref) && MiscThings::is_flying(target_ref))// && (!(has_ranged_weapon_equipped(get_current_active_hand()) || shout_mode)))
+                            {
+                                if (target_ref->GetDistance(player) < 50000.0f)
+                                {
+                                    if (target_is_too_high())
+                                    {
+                                        if (!too_high_notified)
+                                        {
+                                            too_high_notified = true;
+                                            too_high_notified_timestamp = std::chrono::steady_clock::now().time_since_epoch().count();
+
+                                            if (!check_special_too_high_message())
+                                            {
+                                                std::string ranged_weapon_advice = "";
+                                                if (interaction_after_walk == 3 && get_weapon_range(get_current_active_hand()) < 4000.0f)
+                                                {
+                                                    if (longer_range_advices_ignored > 2)
+                                                    {
+                                                        if (MiscThings::has_ammo_in_inventory(false))
+                                                        {
+                                                            int best_bow = MiscThings::find_best_bow();
+
+                                                            if (best_bow >= 0)
+                                                            {
+                                                                auto temp = MiscThings::activate_inventory_object_by_index(best_bow, 1);
+
+                                                                if (temp.first)
+                                                                    ranged_weapon_advice = temp.second;
+                                                            }
+                                                        }
+                                                    }
+                                                    else
+                                                    {
+                                                        if (longer_range_advices_ignored > 0)
+                                                        {
+                                                            //try to find landing spot for dragon
+                                                            dragon_landing_spot_mode = true;
+                                                            send_random_context("You try to find a spot where dragon will land...");
+                                                            longer_range_advices_ignored++;
+                                                            return false;
+                                                        }
+
+
+                                                        ranged_weapon_advice = "Or equip some weapons/magic with longer range";
+                                                        longer_range_advices_ignored++;
+                                                    }
+
+                                                }
+                                                else
+                                                    longer_range_advices_ignored = 0;
+
+                                                send_random_context(MiscThings::insert_object_into_list_and_get_info(target_ref) + " is too high! Looking at it instead. " + ranged_weapon_advice, false);
+
+                                            }
+
+                                        }
+                                        else
+                                        {
+                                            auto now = std::chrono::steady_clock::now().time_since_epoch().count();
+                                            float delta_notified = (double)(now - too_high_notified_timestamp) / 1000000000.0;
+
+                                            if (delta_notified > 15.0f)
+                                                too_high_notified = false;
+                                        }
+                                    }
+                                }
+
+
+                                range = 50000.0f;
+                            }
+                        }
+                        
+                            
 
 
                         if (MiscThings::is_player_swimming())
@@ -16783,6 +16998,23 @@ namespace WalkerProcessor {
 
                 
 
+                auto dragon_landing_marker = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x7121d4f);
+
+                if (target_ref == dragon_landing_marker)
+                {
+                    auto distance = player->GetDistance(dragon_landing_marker);
+
+                    if (distance < 500.0f)
+                    {
+                        //arrived;
+                        target_ref = dragon_for_landing;
+                        dragon_landing_spot_arrived = true;
+                        dragon_landing_spot_mode = false;
+                        dragon_landing_spot_placed = false;
+                        longer_range_advices_ignored = 0;
+                        return;
+                    }
+                }
 
                 auto test_targeted_ref = get_targeted_ref();
 
@@ -19969,6 +20201,8 @@ namespace WalkerProcessor {
                                                     if (!too_high_notified)
                                                     {
                                                         too_high_notified = true;
+                                                        too_high_notified_timestamp = std::chrono::steady_clock::now().time_since_epoch().count();
+
                                                         if (!check_special_too_high_message())
                                                         {
                                                             std::string ranged_weapon_advice = "";
@@ -19986,6 +20220,8 @@ namespace WalkerProcessor {
 
                                                                             if (temp.first)
                                                                                 ranged_weapon_advice = temp.second;
+
+                                                                            longer_range_advices_ignored = 1;
                                                                         }
                                                                     }
                                                                 }
@@ -19994,6 +20230,10 @@ namespace WalkerProcessor {
                                                                     if (longer_range_advices_ignored > 0)
                                                                     {
                                                                         //try to find landing spot for dragon
+                                                                        dragon_landing_spot_mode = true;
+                                                                        send_random_context("You try to find a spot where dragon will land...");
+                                                                        longer_range_advices_ignored++;
+                                                                        return;
                                                                     }
 
 
@@ -20011,6 +20251,14 @@ namespace WalkerProcessor {
                                                         
                                                         }
                                                             
+                                                    }
+                                                    else
+                                                    {
+                                                        auto now = std::chrono::steady_clock::now().time_since_epoch().count();
+                                                        float delta_notified = (double)(now - too_high_notified_timestamp) / 1000000000.0;
+
+                                                        if (delta_notified > 15.0f)
+                                                            too_high_notified = false;
                                                     }
                                                     lock_camera_onto_target(target_ref, dtime);
                                                     return;

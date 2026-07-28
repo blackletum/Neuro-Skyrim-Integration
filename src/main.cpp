@@ -23,9 +23,6 @@
 // add ability to shoow the sun with auriel bow
 
 
-//dragon-doesnt-land-go-find-some-landing-area?
-
-
 //combat-only commands? that appear instead of map/wait? (they should be super compact, maybe even no description)
 //candidate commands:
 //tactical retreat (run away from enemies for a little)/full retreat (plain runaway action)
@@ -49,6 +46,12 @@
 
 
 //TODO that seducers AE quest
+
+
+
+
+//check bound weapons - filter ENTIRELY even from "new item in the inventory" and check what happpens if you try to unequip/drop it
+
 
 
 

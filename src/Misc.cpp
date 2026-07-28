@@ -115,6 +115,9 @@ namespace MiscThings {
 
                                             actor_pos.z = player->GetPosition().z + 70.0f;
 
+                                            if (MiscThings::is_dragon(a_ref))
+                                                actor_pos.z += 70.0f;
+
                                             auto attack_vector = actor_3d->world.rotate.GetVectorY();
 
                                             if (MiscThings::is_dragon(a_ref))
@@ -126,14 +129,29 @@ namespace MiscThings {
                                                     auto target_ref = RE::TESObjectREFR::LookupByHandle(target_handle.native_handle());
                                                     if (target_ref && target_ref.get() == player)
                                                     {
-                                                        auto player_pos = player->GetPosition();
+                                                        RE::NiPoint3 player_pos = player->GetPosition();
+
+                                                        if (player->currentProcess)
+                                                            if (player->currentProcess->middleHigh)
+                                                                if (player->currentProcess->middleHigh->torsoNode)
+                                                                {
+                                                                    auto torso_pos = player->currentProcess->middleHigh->torsoNode->world.translate;
+
+                                                                    auto lookat_location = torso_pos;
+
+                                                                    auto player_temp_pos = player->GetPosition();
+
+                                                                    player_pos = lookat_location;
+                                                                }
+
                                                         attack_vector = player_pos - actor_pos;
                                                     }
                                                 }
                                             }
+                                            else
+                                                attack_vector.z = 0.0f;
 
-
-                                            attack_vector.z = 0.0f;
+                                            
 
                                             RE::CFilter cFilter_info{};
                                             actor_ref->GetCollisionFilterInfo(cFilter_info);
@@ -2900,6 +2918,154 @@ namespace MiscThings {
 
         return result;
     }
+
+
+
+    RE::NiPoint3 find_dragon_landing_spot(std::vector<RE::NiPoint3> banned_spots)
+    {
+        RE::NiPoint3 result = RE::NiPoint3::Zero();
+
+        auto player = RE::PlayerCharacter::GetSingleton();
+
+        if (!player)
+            return result;
+
+        auto player_pos = player->GetPosition();
+
+        player_pos.z += 10000.0f; //pretend player is high so it prefers higher points, like top of mountain
+
+        auto parent_cell = player->GetParentCell();
+
+        if (parent_cell)
+        {
+            bool interiorCell = parent_cell->IsInteriorCell();
+
+            if (interiorCell)
+            {
+                return result;
+            }
+            else
+            {
+                auto gridCells = RE::TES::GetSingleton()->gridCells;
+
+                float r = 600.0f;
+                float pi = RE::NI_PI;
+
+                if (gridCells)
+                {
+                    //check all cells within 1 cell radius
+                    auto parent_cell_coords_raw = parent_cell->GetCoordinates();
+
+                    RE::NiPoint2 parent_cell_coords = { parent_cell_coords_raw->worldX, parent_cell_coords_raw->worldY };
+
+                    float min_distance_to_player = FLT_MAX;
+
+                    RE::NiPoint3 best_vertex_pos{};
+
+
+                    for (int x = 0; x < gridCells->length; x++)
+                        for (int y = 0; y < gridCells->length; y++)
+                        {
+                            auto adjacent_cell = gridCells->GetCell(x, y);
+
+                            if (adjacent_cell && adjacent_cell->IsAttached())
+                            {
+                                auto navmeshes_array = adjacent_cell->navMeshes;
+
+                                if (navmeshes_array)
+                                {
+                                    RE::BSTArray<RE::BSTSmartPointer<RE::NavMesh>>* navmeshes_bs_array = &navmeshes_array->navMeshes;
+
+                                    for (auto& navmesh : *navmeshes_bs_array)
+                                    {
+                                        if (navmesh)
+                                        {
+                                            auto vertices = navmesh->vertices;
+
+
+                                            auto triangles = navmesh->triangles;
+
+                                            for (RE::BSNavmeshTriangle triangle : triangles)
+                                            {
+                                                RE::BSNavmeshVertex vertex0 = vertices[triangle.vertices[0]];
+                                                auto vertex_pos = vertex0.location;
+
+                                                float distance = vertex_pos.GetDistance(player_pos);
+
+                                                if (distance > min_distance_to_player)
+                                                    continue;
+
+
+                                                bool spot_is_banned = false;
+
+                                                for (auto banned_spot : banned_spots)
+                                                {
+                                                    if (vertex_pos.GetDistance(banned_spot) < 3000.0f)
+                                                    {
+                                                        spot_is_banned = true;
+                                                        break;
+                                                    }
+                                                }
+
+                                                if (spot_is_banned)
+                                                    continue;
+
+                                                bool point_is_good = true;
+
+                                                for (int i = 0; i < 16; i++)
+                                                {
+                                                    RE::NiPoint3 shift = { r * std::cos(pi / 8 * i), r * std::sin(pi / 8 * i), 0.0f };
+
+                                                    if (!object_is_on_navmesh_in_cell(vertex_pos + shift, adjacent_cell))
+                                                    {
+                                                        point_is_good = false;
+                                                        break;
+                                                    }
+
+                                                }
+
+                                                for (int i = 0; i < 16; i++)
+                                                {
+                                                    RE::NiPoint3 shift = { r / 2.0f * std::cos(pi / 8 * i), r / 2.0f * std::sin(pi / 8 * i), 0.0f };
+
+                                                    if (!object_is_on_navmesh_in_cell(vertex_pos + shift, adjacent_cell))
+                                                    {
+                                                        point_is_good = false;
+                                                        break;
+                                                    }
+
+                                                }
+
+
+
+                                                if (point_is_good)
+                                                {
+                                                    min_distance_to_player = distance;
+                                                    best_vertex_pos = vertex_pos;
+                                                }
+
+
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+
+
+                    return best_vertex_pos;
+                }
+            }
+        }
+
+
+        return result;
+    }
+
+
+
+
 
 
     bool getbit(uint64_t in, int pos)

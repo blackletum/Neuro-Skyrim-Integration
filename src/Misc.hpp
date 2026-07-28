@@ -509,6 +509,8 @@ namespace MiscThings {
     int find_best_bow();
     int find_good_weapon_in_inventory();
 
+    RE::NiPoint3 find_dragon_landing_spot(std::vector<RE::NiPoint3> banned_spots);
+    RE::TESObjectREFR* get_mysc_quest_teleport_ref();
 
     RE::TESForm* get_hand_contents(bool right);
     bool is_self_healing_spell(bool right);
