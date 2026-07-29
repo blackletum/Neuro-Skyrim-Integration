@@ -5260,6 +5260,8 @@ namespace WalkerProcessor {
             //    base_reach_distance = 20.0f;
 
 
+            auto test_targeted_ref = get_targeted_ref();
+
 
             if (use_last_point_of_last_path)
             {
@@ -5290,7 +5292,13 @@ namespace WalkerProcessor {
                 if (!using_custom_path)
                     path_point_reached_timeout += dtime;
 
-                if (path_point_reached_timeout > 2.0f)
+
+                float threshold = 2.0f;
+
+                if (test_targeted_ref && MiscThings::is_dragon(test_targeted_ref))
+                    threshold = 0.1f;
+
+                if (path_point_reached_timeout > threshold)
                 {
                     return true;
                 }
@@ -5307,7 +5315,14 @@ namespace WalkerProcessor {
                     if (!using_custom_path)
                         path_point_reached_timeout += dtime;
 
-                    if (path_point_reached_timeout > 4.0f)
+
+
+                    float threshold = 3.0f;
+
+                    if (test_targeted_ref && MiscThings::is_dragon(test_targeted_ref))
+                        threshold = 0.1f;
+
+                    if (path_point_reached_timeout > threshold)
                     {
                         return true;
                     }
