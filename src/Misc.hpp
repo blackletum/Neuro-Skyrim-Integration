@@ -477,6 +477,8 @@ namespace MiscThings {
     bool quicksave_is_banned();
 
 
+    void set_door_locked(RE::TESObjectREFR* door, bool locked);
+
     bool is_novice_destruction_spell(RE::SpellItem* spell);
 
     std::pair<RE::NiPoint3, RE::TESObjectREFR*> projectile_flying_into_player_face();

@@ -962,7 +962,7 @@ namespace Observer {
 
 
 		auto player = RE::PlayerCharacter::GetSingleton();
-		auto escaping_jail = player->playerFlags.escaping;
+		auto escaping_jail = player->playerFlags.escaping; //leave it like this!
 		return closest_guard && player_can_be_arrested && !escaping_jail;
 	}
 
@@ -1292,7 +1292,7 @@ namespace Observer {
 									}
 
 									auto tried_to_yield = player->playerFlags.attemptedYieldInCurrentCombat;
-									auto escaping_jail = player->playerFlags.escaping;
+									auto escaping_jail = player->playerFlags.escaping; //leave it like this!
 
 									if (!tried_to_yield && !escaping_jail && attacker->IsGuard())
 									{
@@ -4744,6 +4744,376 @@ namespace Observer {
 
 
 
+
+	float time_bad_escape = 0.0f;
+
+
+	void jail_fix(float dtime)
+	{
+		if (!MiscThings::player_escaping_jail())
+		{
+			time_bad_escape = 0.0f;
+			return;
+		}
+
+
+		auto player = RE::PlayerCharacter::GetSingleton();
+
+		if (!player)
+		{
+			time_bad_escape = 0.0f;
+			return;
+		}
+
+
+		auto parent_cell = player->GetParentCell();
+		auto player_pos = player->GetPosition();
+
+
+		if (parent_cell)
+		{
+			switch (parent_cell->formID)
+			{
+			case (0x5d010): //morthal1
+			{
+
+				auto cell_door = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xec565);
+
+				if (MiscThings::is_door_locked(cell_door))
+				{
+					if (player_pos.y > 145.0f)
+					{
+						if (time_bad_escape > 3.0f)
+						{
+							player->playerFlags.escaping = false;
+
+							if (get_active_force() == -1)
+							{
+								unregister_all_actions();
+								register_allowed_actions();
+							}
+							
+						}
+						else
+							time_bad_escape += dtime;
+					}
+				}
+
+				//return; //fall through down and check exit door
+			}
+
+			case (0x138cd): //morthal2
+			{
+				auto exit_door = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x173c4);
+				if (MiscThings::is_door_locked(exit_door)) MiscThings::set_door_locked(exit_door, false); //escaping but exit door is locked, even though it should be forced to unlock. try unlocking it
+				return;
+			}
+
+
+
+			case (0xeb440): //dawnstar1
+			{
+
+				auto cell_door = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xec564);
+
+				if (MiscThings::is_door_locked(cell_door))
+				{
+					if (player_pos.y > 160.0f)
+					{
+						if (time_bad_escape > 3.0f)
+						{
+							player->playerFlags.escaping = false;
+
+							if (get_active_force() == -1)
+							{
+								unregister_all_actions();
+								register_allowed_actions();
+							}
+
+						}
+						else
+							time_bad_escape += dtime;
+					}
+				}
+
+				//return; //fall through down and check exit door
+			}
+
+			case (0x13a89): //dawnstar2
+			{
+				auto exit_door = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x13be0);
+				if (MiscThings::is_door_locked(exit_door)) MiscThings::set_door_locked(exit_door, false); //escaping but exit door is locked, even though it should be forced to unlock. try unlocking it
+				return;
+			}
+
+
+
+
+
+
+			case (0xef324): //falkreath1
+			{
+
+				auto cell_door = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xef434);
+
+				if (MiscThings::is_door_locked(cell_door))
+				{
+					if (player_pos.x < 1700.0f && player_pos.y > 22.0f)
+					{
+						if (time_bad_escape > 3.0f)
+						{
+							player->playerFlags.escaping = false;
+
+							if (get_active_force() == -1)
+							{
+								unregister_all_actions();
+								register_allowed_actions();
+							}
+
+						}
+						else
+							time_bad_escape += dtime;
+					}
+				}
+
+				//return; //fall through down and check exit door
+			}
+
+			case (0xef325): //falkreath2
+			{
+				auto exit_door = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xef3a2);
+				if (MiscThings::is_door_locked(exit_door)) MiscThings::set_door_locked(exit_door, false); //escaping but exit door is locked, even though it should be forced to unlock. try unlocking it
+				return;
+			}
+
+
+
+
+
+			case (0xa8b23): //riften
+			{
+
+				auto cell_door = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xa8e46);
+
+				if (MiscThings::is_door_locked(cell_door))
+				{
+					if (player_pos.x > 1358.3f && player_pos.y > 380.69f && player_pos.z > 168.7f)
+					{
+						if (time_bad_escape > 3.0f)
+						{
+							player->playerFlags.escaping = false;
+
+							if (get_active_force() == -1)
+							{
+								unregister_all_actions();
+								register_allowed_actions();
+							}
+
+						}
+						else
+							time_bad_escape += dtime;
+					}
+				}
+
+				auto exit_door = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xa8fdc);
+				if (MiscThings::is_door_locked(exit_door)) MiscThings::set_door_locked(exit_door, false); //escaping but exit door is locked, even though it should be forced to unlock. try unlocking it
+				return;
+			}
+
+
+
+
+
+			case (0x4a376): //whiterun1
+			{
+
+				auto cell_door1 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xa577d);
+				auto cell_door2 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xa7618);
+
+				if (MiscThings::is_door_locked(cell_door1) && MiscThings::is_door_locked(cell_door2))
+				{
+
+					if (player_pos.z > -290.0f)
+					{
+						RE::NiPoint2 a = { 380.810974, -680.513672 }; //-5733.7241
+						RE::NiPoint2 b = { 369.341553, -107.226341 }; //-5633.2554
+						RE::NiPoint2 c = { 955.944031, -134.017273 }; //-5640.6494
+						RE::NiPoint2 d = { 1044.92053, -675.791260 }; //-5724.9077
+
+						RE::NiPoint2 p = { player_pos.x, player_pos.y };
+						if (MiscThings::is_inside_of_rectangle(p, a, b, c, d))
+						{
+							if (time_bad_escape > 3.0f)
+							{
+								player->playerFlags.escaping = false;
+
+								if (get_active_force() == -1)
+								{
+									unregister_all_actions();
+									register_allowed_actions();
+								}
+
+							}
+							else
+								time_bad_escape += dtime;
+						}
+					}
+				}
+
+				//return; //fall through down and check exit door
+				
+			}
+
+			case (0x580a2): //whiterun2
+			{
+				auto exit_door = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x5815f);
+				if (MiscThings::is_door_locked(exit_door)) MiscThings::set_door_locked(exit_door, false); //escaping but exit door is locked, even though it should be forced to unlock. try unlocking it
+				return;
+			}
+
+
+
+
+
+			case (0x56e88): //solitude
+			{
+
+				auto cell_door = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x5e921);
+				auto crumbling_wall = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x5ABC1);
+
+				bool crumbling_wall_crumbled = false;
+				if (crumbling_wall)
+				{
+					auto extra_action = crumbling_wall->extraList.GetByType(RE::ExtraDataType::kAction);
+
+					if (extra_action)
+						crumbling_wall_crumbled = true;
+				}
+
+				if (MiscThings::is_door_locked(cell_door) && !crumbling_wall_crumbled)
+				{
+
+					if (player_pos.z < -372.0f)
+					{
+						RE::NiPoint2 a = { 740.482788, 2115.31152 }; //-5733.7241
+						RE::NiPoint2 b = { 779.091125, 1680.79016 }; //-5633.2554
+						RE::NiPoint2 c = { 424.822571, 1555.79907 }; //-5640.6494
+						RE::NiPoint2 d = { 442.413696, 2218.90601 }; //-5724.9077
+
+						RE::NiPoint2 p = { player_pos.x, player_pos.y };
+						if (MiscThings::is_inside_of_rectangle(p, a, b, c, d))
+						{
+							if (time_bad_escape > 3.0f)
+							{
+								player->playerFlags.escaping = false;
+
+								if (get_active_force() == -1)
+								{
+									unregister_all_actions();
+									register_allowed_actions();
+								}
+
+							}
+							else
+								time_bad_escape += dtime;
+						}
+					}
+				}
+
+				return;
+			}
+
+
+			
+
+			case (0x961ff): //winterhold
+			{
+
+				auto cell_door = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x10cff3);
+
+
+				if (MiscThings::is_door_locked(cell_door))
+				{
+
+					RE::NiPoint2 a = { -694.291504, -2732.36499 }; //-5733.7241
+					RE::NiPoint2 b = { -999.704651, -2749.85986 }; //-5633.2554
+					RE::NiPoint2 c = { -1007.29266, -2475.72070 }; //-5640.6494
+					RE::NiPoint2 d = { -687.942688, -2460.46997 }; //-5724.9077
+
+					RE::NiPoint2 p = { player_pos.x, player_pos.y };
+					if (MiscThings::is_inside_of_rectangle(p, a, b, c, d))
+					{
+						if (time_bad_escape > 3.0f)
+						{
+							player->playerFlags.escaping = false;
+
+							if (get_active_force() == -1)
+							{
+								unregister_all_actions();
+								register_allowed_actions();
+							}
+
+						}
+						else
+							time_bad_escape += dtime;
+					}
+				}
+
+				return;
+			}
+
+
+
+
+			case (0x1677a): //windhelm
+			{
+
+				auto cell_door = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x8d449);
+
+
+				if (MiscThings::is_door_locked(cell_door))
+				{
+					if (player_pos.x > -592.3f && player_pos.y > 4002.8f)
+						if (time_bad_escape > 3.0f)
+						{
+							player->playerFlags.escaping = false;
+
+							if (get_active_force() == -1)
+							{
+								unregister_all_actions();
+								register_allowed_actions();
+							}
+
+						}
+						else
+							time_bad_escape += dtime;
+				}
+
+
+			auto exit_door1 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xc0e0c);
+			auto exit_door2 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xd61e5);
+			if (MiscThings::is_door_locked(exit_door1)) MiscThings::set_door_locked(exit_door1, false); //escaping but exit door is locked, even though it should be forced to unlock. try unlocking it
+			if (MiscThings::is_door_locked(exit_door2)) MiscThings::set_door_locked(exit_door2, false);
+			return;
+
+
+			}
+
+			}
+		}
+
+
+		//nothing found
+		time_bad_escape = 0.0f;
+
+	}
+
+
+
+
+
+
+
 	
 
 	void detect_locations(float dtime)
@@ -5638,7 +6008,7 @@ namespace Observer {
 				bool can_fight = control_map->enabledControls.any(RE::UserEvents::USER_EVENT_FLAG::kFighting);
 
 
-				auto escaping_jail = player->playerFlags.escaping;
+				auto escaping_jail = MiscThings::player_escaping_jail();
 
 				//auto serving_jail = player->playerFlags.servingJailTime;
 				auto jail_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("JailQuest");
@@ -5781,6 +6151,13 @@ namespace Observer {
 
 
 				old_had_any_quests = new_had_any_quests;
+
+
+
+
+
+				jail_fix(dtime + 0.5f);
+
 
 			
 				if (serving_jail && !jail_serving_notified)

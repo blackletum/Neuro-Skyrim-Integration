@@ -2710,7 +2710,7 @@ namespace WalkerProcessor {
         if (lock_camera_while_walking)
             lock_camera_onto_target(target_ref, dtime_maybe_bad);
 
-        if (do_dodge_projectile && dodge_melee_mode)
+        if (do_dodge_projectile && dodge_melee_mode && interaction_after_walk == 3)
             {
                 lock_camera_onto_target(target_ref, dtime_maybe_bad);
                 return;
@@ -3831,6 +3831,9 @@ namespace WalkerProcessor {
             ignore_closed_doors_time -= dtime;
             return result;
         }
+
+        if (MiscThings::is_serving_jail() && interaction_after_walk == 2) //trying to pickpocket guard, potentially through a cell door. attempt to do it, dont tell the door is blocking
+            return false;
 
 
         auto targeted_ref = get_targeted_ref();
@@ -6947,7 +6950,7 @@ namespace WalkerProcessor {
 
                 if (!wait_and_start_pickpocket && !got_close_for_pickpocket)
                 {
-                    if (distance.Length() < 70.0f)
+                    if (distance.Length() < 90.0f)
                     {
                         interact_with_target(0.016); //just to crouch.
                         got_close_for_pickpocket = true;

@@ -5141,12 +5141,52 @@ namespace MiscThings {
     }
 
 
+    void set_door_locked(RE::TESObjectREFR* door, bool locked)
+    {
+        if (door)
+        {
+            if (auto extra = door->extraList.GetByType(RE::ExtraDataType::kLock); extra)
+            {
+                auto extra_lock = (RE::ExtraLock*)extra;
+
+                if (auto extra_lock_data = extra_lock->lock; extra_lock_data)
+                {
+                    extra_lock_data->SetLocked(locked);
+                    return;
+                }
+                    
+            }
+
+            if (door->IsLocked())
+            {
+                auto lock = door->GetLock();
+
+                if (lock)
+                {
+                    lock->SetLocked(locked);
+                    return;
+                }
+
+            }
+
+        }
+    }
+
+
+
     bool is_door_locked(RE::TESObjectREFR* target_refr, bool ignore_player_has_key)
     {
         bool result = false;
 
         if (target_refr)
         {
+
+            //switch (target_refr->formID)
+            //{
+            //case (0x173c4)://morthal guard house door from inside. by all means it is locked (has lock, with lock level, status locked) but actually it isnt (????)
+            //    return false;
+            //}
+
             //auto base_obj = target_refr->GetBaseObject();
 
             //if (base_obj->GetFormType() == RE::FormType::Door || base_obj->GetFormType() == RE::FormType::Container)
@@ -5192,7 +5232,7 @@ namespace MiscThings {
                 }
             }
         }
-        
+
         return result;
     }
 
@@ -10551,6 +10591,28 @@ namespace MiscThings {
     bool player_escaping_jail()
     {
         auto player = RE::PlayerCharacter::GetSingleton();
+
+        if (!player)
+            return false;
+
+        /*
+        auto parent_cell = player->parentCell;
+
+        if (parent_cell && parent_cell->formID == 0xa8b23) //riften jail
+        {
+            bool serving_jail_raw = (bool)player->currentPrisonFaction && !MiscThings::is_intro() && !MiscThings::is_intro2() && MiscThings::escaped_helgen();
+
+            if (serving_jail_raw)
+            {
+                auto cell_door = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xa8e46);
+
+                if (!MiscThings::is_door_locked(cell_door))
+                    return true; //we are "in jail" but the door is open = we are actually escaping
+            }
+        }
+        */
+
+
         return player->playerFlags.escaping;
     }
 
@@ -15771,6 +15833,12 @@ namespace MiscThings {
 
                         std::string model = door->GetModel();
 
+                        if (model.find("SMdDoorHoleCei01") != std::string::npos) //dlc1 wayshrine portals
+                        {
+                            RE::NiPoint3 base_shift_vector = { 0.0f, 0.0f, 220.0f };
+                            RE::NiPoint3 rotated_shift_vector = rotate_vector_by_angles(base_shift_vector, object_angles);
+                            result = rotated_shift_vector;
+                        }
 
                         if (model.find("SEWayShrinePortal01") != std::string::npos) //dlc1 wayshrine portals
                         {
@@ -18886,7 +18954,7 @@ namespace MiscThings {
 
         if (player)
         {
-            auto escaping_jail = player->playerFlags.escaping;
+            auto escaping_jail = MiscThings::player_escaping_jail();
             bool serving_jail = (bool)player->currentPrisonFaction && !escaping_jail && !MiscThings::is_intro() && !MiscThings::is_intro2() && MiscThings::escaped_helgen();
 
             if (serving_jail)
