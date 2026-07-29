@@ -1464,6 +1464,8 @@ bool neuro::NeuroSocket::Tick(float dtime) //const neurosdk_message_action_t& aC
                         case force_type::confirm_replace_twohanded:
                             command_result = MiscThings::set_replace_twohanded_weapon_choice(json.id); break;
 
+                        case force_type::barter_vendor_confirm_big_transaction:
+                            command_result = BarterProcessor::set_big_transaction_choice(json.id); break;
 
                         default:
                         {

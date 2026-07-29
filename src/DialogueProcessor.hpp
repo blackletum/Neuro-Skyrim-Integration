@@ -62,7 +62,8 @@
         change_character,
         confirm_cast_parthurnax,
         double_confirm,
-        confirm_replace_twohanded
+        confirm_replace_twohanded,
+        barter_vendor_confirm_big_transaction
     };
 
     int get_active_force();
