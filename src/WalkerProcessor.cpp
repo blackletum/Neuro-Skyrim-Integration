@@ -6469,7 +6469,7 @@ namespace WalkerProcessor {
             threshold = 0.4f;
 
         if (dodge_projectile_extra_dangerous)
-            threshold = 0.6f;
+            threshold = 0.8f;
 
         if (dodge_projectile_time < threshold && player)
         {
@@ -13958,6 +13958,16 @@ namespace WalkerProcessor {
                                 {
                                     return true;
                                 }
+                                else
+                                {
+                                    if (active_attacking_time > 5.0f)
+                                    {
+                                        send_random_context("Attacking doesnt work... They are not dying. You can try to run away or ignore the fight instead.", false);
+                                        Observer::reset_threats(); //so it can actually offer choice to run or ignore
+                                        reset_walker();
+                                        return true;
+                                    }
+                                }
                             }
                         }
 
@@ -14707,7 +14717,7 @@ namespace WalkerProcessor {
                     ignore_alive = MiscThings::is_immortal(target_actor) && cur_health < 2;
                     ignore_alive |= MiscThings::is_wabbajack(!last_attack_action);
 
-                    ignore_alive = !MiscThings::is_enemy_to_actor(target_ref);
+                    ignore_alive |= !MiscThings::is_enemy_to_actor(target_ref);
                 }
 
                 if (still_alive && !ignore_alive)
@@ -16511,6 +16521,115 @@ namespace WalkerProcessor {
 
         
 
+
+
+        if (!RE::UI::GetSingleton()->IsMenuOpen(RE::TweenMenu::MENU_NAME) && !RE::UI::GetSingleton()->IsMenuOpen(RE::LevelUpMenu::MENU_NAME) && !RE::UI::GetSingleton()->IsMenuOpen(RE::StatsMenu::MENU_NAME))
+        {
+            //dodging
+
+            auto projectile_test = MiscThings::projectile_flying_into_player_face();
+
+            auto projectile_dir = projectile_test.direction;
+
+            if (projectile_dir == RE::NiPoint3::Zero())
+            {
+                auto temp = MiscThings::about_to_be_hit_by_melee_attack();
+                projectile_dir = temp.first;
+
+                if (projectile_dir != RE::NiPoint3::Zero())
+                {
+                    dodge_melee_mode = true;
+                    dodge_melee_mode_enemy_long_reach = temp.second;
+                }
+                else
+                    if (!do_dodge_projectile)
+                    {
+                        dodge_projectile_extra_dangerous = false;
+                        dodge_melee_mode = false;
+                        dodge_melee_mode_enemy_long_reach = false;
+                    }
+
+
+            }
+            else
+            {
+                if (projectile_test.shooter)
+                {
+                    dodge_projectile_extra_dangerous = true;
+                    dodge_projectile_blast_target = projectile_test.shooter;
+                }
+
+                if (projectile_test.high_aoe)
+                {
+                    dodge_projectile_extra_dangerous = true;
+                }
+
+
+                if (!do_dodge_projectile)
+                {
+                    dodge_melee_mode = false;
+                    dodge_melee_mode_enemy_long_reach = false;
+                }
+            }
+
+
+
+
+            if (projectile_dir != RE::NiPoint3::Zero())
+            {
+                int allowed_dirs = MiscThings::safe_to_dodge_projectile();
+
+                if (allowed_dirs)
+                {
+                    do_dodge_projectile = true;
+                    dodge_projectile_direction = projectile_dir;
+                    dodge_projectile_allowed_dirs = allowed_dirs;
+
+
+                    long long now = std::chrono::steady_clock::now().time_since_epoch().count();;
+                    float delta_dodge_info = (double)(now - last_dodge_info_timestamp) / 1000000000.0;
+
+                    if (delta_dodge_info > 5.0f)
+                    {
+                        if (MiscThings::coinflip() && MiscThings::coinflip())
+                            if (MiscThings::coinflip())
+                                send_random_context("You are dodging...", true);
+                            else
+                                send_random_context("You are evading attack...", true);
+
+                        last_dodge_info_timestamp = now;
+                    }
+
+
+
+                    //if (allowed_dirs == 1)
+                    //    dodge_direction = 0;
+
+                    //if (allowed_dirs == 2)
+                    //    dodge_direction = 1;
+                }
+                else
+                    if (!do_dodge_projectile)
+                    {
+                        dodge_melee_mode = false;
+                        dodge_melee_mode_enemy_long_reach = false;
+                    }
+
+
+            }
+
+            if (do_dodge_projectile)
+            {
+                if (dodge_projectile(dtime))
+                {
+                    dodge_projectile_time = 0.0f;
+                    do_dodge_projectile = false;
+                }
+            }
+        }
+            
+        
+
         if (Observer::threat_response_choice_pending())
         {
             //if (!looking_mode)
@@ -16899,102 +17018,7 @@ namespace WalkerProcessor {
 
 
 
-            //copy this for melee, change function so it dodges alongside attack vector. this is good
-
-                auto projectile_test = MiscThings::projectile_flying_into_player_face();
-
-                auto projectile_dir = projectile_test.first;
-
-                if (projectile_dir == RE::NiPoint3::Zero())
-                {
-                    auto temp = MiscThings::about_to_be_hit_by_melee_attack();
-                    projectile_dir = temp.first;
-
-                    if (projectile_dir != RE::NiPoint3::Zero())
-                    {
-                        dodge_melee_mode = true;
-                        dodge_melee_mode_enemy_long_reach = temp.second;
-                    }
-                    else
-                        if (!do_dodge_projectile)
-                        {
-                            dodge_projectile_extra_dangerous = false;
-                            dodge_melee_mode = false;
-                            dodge_melee_mode_enemy_long_reach = false;
-                        }
-                            
-
-                }
-                else
-                {
-                    if (projectile_test.second)
-                    {
-                        dodge_projectile_extra_dangerous = true;
-                        dodge_projectile_blast_target = projectile_test.second;
-                    }
-
-
-                    if (!do_dodge_projectile)
-                    {
-                        dodge_melee_mode = false;
-                        dodge_melee_mode_enemy_long_reach = false;
-                    }
-                }
-
-                        
-
-
-                if (projectile_dir != RE::NiPoint3::Zero())
-                {
-                    int allowed_dirs = MiscThings::safe_to_dodge_projectile();
-
-                    if (allowed_dirs)
-                    {
-                        do_dodge_projectile = true;
-                        dodge_projectile_direction = projectile_dir;
-                        dodge_projectile_allowed_dirs = allowed_dirs;
-
-
-                        long long now = std::chrono::steady_clock::now().time_since_epoch().count();;
-                        float delta_dodge_info = (double)(now - last_dodge_info_timestamp) / 1000000000.0;
-
-                        if (delta_dodge_info > 5.0f)
-                        {
-                            if (MiscThings::coinflip() && MiscThings::coinflip())
-                                if (MiscThings::coinflip())
-                                    send_random_context("You are dodging...", true);
-                                else
-                                    send_random_context("You are evading attack...", true);
-
-                            last_dodge_info_timestamp = now;
-                        }
-
-
-
-                        //if (allowed_dirs == 1)
-                        //    dodge_direction = 0;
-
-                        //if (allowed_dirs == 2)
-                        //    dodge_direction = 1;
-                    }
-                    else
-                        if (!do_dodge_projectile)
-                        {
-                            dodge_melee_mode = false;
-                            dodge_melee_mode_enemy_long_reach = false;
-                        }
-                            
-
-                }
-
-                if (do_dodge_projectile)
-                {
-                    if (dodge_projectile(dtime))
-                    {
-                        dodge_projectile_time = 0.0f;
-                        do_dodge_projectile = false;
-                    }
-                }
+            
             
 
 

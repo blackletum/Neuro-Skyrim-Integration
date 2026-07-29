@@ -382,10 +382,10 @@ namespace MiscThings {
 
 
 
-    std::pair<RE::NiPoint3, RE::TESObjectREFR*> projectile_flying_into_player_face()
+    projectile_info projectile_flying_into_player_face()
     {
         auto player = RE::PlayerCharacter::GetSingleton();
-        std::pair<RE::NiPoint3, RE::TESObjectREFR*> result{};
+        projectile_info result{};
 
         if (player)
         {
@@ -449,6 +449,19 @@ namespace MiscThings {
                                         }
                                     }
 
+
+                                    if (aoe_radius > 40.0f)
+                                        result.high_aoe = true;
+
+                                    auto explosion = projectile_ref->explosion;
+
+                                    if (explosion)
+                                    {
+                                        if (explosion->data.radius > 40.0f)
+                                            result.high_aoe = true;
+                                    }
+
+
                                     
 
 
@@ -460,10 +473,10 @@ namespace MiscThings {
 
                                     if (raycast_ref == player)
                                     {
-                                        result.first = projectile_fly_vector;
+                                        result.direction = projectile_fly_vector;
                                         if (extra_dangerous)
                                             if (projectile_ref->shooter && projectile_ref->shooter.get() && projectile_ref->shooter.get().get())
-                                                result.second = projectile_ref->shooter.get().get();
+                                                result.shooter = projectile_ref->shooter.get().get();
 
                                         return RE::BSContainer::ForEachResult::kStop;
                                     }
@@ -482,10 +495,10 @@ namespace MiscThings {
                                             MiscThings::GetRaycastRef(pos4, projectile_fly_vector, 3000.0f, nullptr, 0b00001000000000000000000000000110) == player
                                             )
                                         {
-                                            result.first = projectile_fly_vector;
+                                            result.direction = projectile_fly_vector;
                                             if (extra_dangerous)
                                                 if (projectile_ref->shooter && projectile_ref->shooter.get() && projectile_ref->shooter.get().get())
-                                                    result.second = projectile_ref->shooter.get().get();
+                                                    result.shooter = projectile_ref->shooter.get().get();
                                             return RE::BSContainer::ForEachResult::kStop;
                                         }
                                         else
@@ -515,10 +528,10 @@ namespace MiscThings {
                                                     MiscThings::GetRaycastRef(pos8, projectile_fly_vector, 3000.0f, nullptr, 0b00001000000000000000000000000110) == player
                                                     )
                                                 {
-                                                    result.first = projectile_fly_vector;
+                                                    result.direction = projectile_fly_vector;
                                                     if (extra_dangerous)
                                                         if (projectile_ref->shooter && projectile_ref->shooter.get() && projectile_ref->shooter.get().get())
-                                                            result.second = projectile_ref->shooter.get().get();
+                                                            result.shooter = projectile_ref->shooter.get().get();
                                                     return RE::BSContainer::ForEachResult::kStop;
                                                 }
                                             }

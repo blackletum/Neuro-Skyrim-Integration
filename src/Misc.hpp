@@ -477,13 +477,20 @@ namespace MiscThings {
     bool quicksave_is_banned();
 
 
+    struct projectile_info {
+        RE::NiPoint3 direction;
+        RE::TESObjectREFR* shooter;
+        bool high_aoe;
+    };
+
+
     std::string get_quest_journal_description(RE::TESQuest* quest);
 
     void set_door_locked(RE::TESObjectREFR* door, bool locked);
 
     bool is_novice_destruction_spell(RE::SpellItem* spell);
 
-    std::pair<RE::NiPoint3, RE::TESObjectREFR*> projectile_flying_into_player_face();
+    projectile_info projectile_flying_into_player_face();
     std::pair<RE::NiPoint3, bool> about_to_be_hit_by_melee_attack();
 
     bool is_self_cast_spell(bool right);
