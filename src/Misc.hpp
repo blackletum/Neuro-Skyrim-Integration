@@ -477,6 +477,8 @@ namespace MiscThings {
     bool quicksave_is_banned();
 
 
+    std::string get_quest_journal_description(RE::TESQuest* quest);
+
     void set_door_locked(RE::TESObjectREFR* door, bool locked);
 
     bool is_novice_destruction_spell(RE::SpellItem* spell);

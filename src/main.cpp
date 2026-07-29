@@ -94,9 +94,6 @@
 
 
 
-//TODO fit quest long descriptions somewhere. maybe give it for both quests when player changes quests, and first time whenever new quest is followed.
-
-
 //////////////////////////////////////////////////////
 // for later random stuff
 

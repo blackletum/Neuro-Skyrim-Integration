@@ -109,6 +109,28 @@ namespace MiscThings {
 
 
 
+    std::string get_quest_journal_description(RE::TESQuest* quest)
+    {
+        std::string result = "";
+
+        if (quest && quest->formType == RE::FormType::Quest)
+        {
+            RE::BSString bsstring{};
+
+            quest->GetJournalTextForInstance(bsstring, quest->currentInstanceID);
+
+            result = bsstring;
+
+            if (result != "")
+                result = "(Quest notes: " + result + ")";
+        }
+
+
+        return result;
+    }
+
+
+
 
     bool is_ward(RE::TESForm* form)
     {

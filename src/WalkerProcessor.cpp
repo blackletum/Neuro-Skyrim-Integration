@@ -15,6 +15,12 @@ namespace WalkerProcessor {
 
 
 
+    std::map<RE::TESQuest*, std::vector<uint32_t>> followed_quests{};
+
+
+
+
+
     RE::TESObjectREFR* quest_door_that_needs_a_lockpick = nullptr; //dont reset normally
 
 
@@ -570,6 +576,47 @@ namespace WalkerProcessor {
     RE::NiPoint3 last_point_of_last_path{};
 
     bool last_dragon_was_flying = false;
+
+
+
+    std::string get_quest_journal_description_if_never_shown(RE::TESQuest* quest)
+    {
+        bool is_new = true;
+
+        auto existing_entry = followed_quests.find(quest);
+
+        if (existing_entry != followed_quests.end())
+        {
+            
+
+            for (auto shown_instance : existing_entry->second)
+            {
+                if (shown_instance == quest->currentInstanceID)
+                {
+                    is_new = false;
+                    break;
+                }
+            }
+
+            if (is_new)
+            {
+                existing_entry->second.push_back(quest->currentInstanceID);
+
+                return MiscThings::get_quest_journal_description(quest);
+            }
+        }
+        else
+        {
+            //quest not found at all, create note for it
+
+            followed_quests.insert({ quest, { quest->currentInstanceID } });
+            return MiscThings::get_quest_journal_description(quest);
+        }
+
+
+
+        return "";
+    }
 
 
 
@@ -9966,9 +10013,13 @@ namespace WalkerProcessor {
                                                     big_distance = " Distance to target: " + std::to_string((int)distance / 100) + " m. ";
 
 
+                                                std::string long_description = get_quest_journal_description_if_never_shown(current_quest_followed);
+
+                                                if (long_description != "")
+                                                    long_description = " " + long_description + " \n";
 
                                                 result.first = true;
-                                                result.second = "[Started following quest: " + reminder_target_name + "..." + big_distance + "]";
+                                                result.second = "[Started following quest: " + reminder_target_name + long_description + "..." + big_distance + "]";
 
 
                                                 if (distance > 40000.0f)
@@ -10204,9 +10255,13 @@ namespace WalkerProcessor {
                             big_distance = " Distance to target: " + std::to_string((int)distance / 100) + " m. ";
 
 
+                            std::string long_description = get_quest_journal_description_if_never_shown(current_quest_followed);
+
+                            if (long_description != "")
+                                long_description = " " + long_description + " ";
 
                             result.first = true;
-                            result.second = "[Started following quest: " + reminder_target_name + "..." + big_distance + "]";
+                            result.second = "[Started following quest: " + reminder_target_name + long_description + "..." + big_distance + "]";
 
 
                             if (distance > 40000.0f)
@@ -17176,8 +17231,13 @@ namespace WalkerProcessor {
 
                         unregister_all_actions();
 
-                        if (force_choice(options, "Previously you were following another quest: " + last_quest_chosen_name + ". Are you sure you want to change course and follow new quest: " + new_quest_chosen_name + "?", force_type::confirm_change_quest_course))
+                        if (force_choice(options, "Previously you were following another quest: " + last_quest_chosen_name + " " + MiscThings::get_quest_journal_description(last_quest_chosen) + "\n" + "Are you sure you want to change course and follow new quest: " + new_quest_chosen_name + + " " + MiscThings::get_quest_journal_description(new_quest_chosen) + "\n" + "?", force_type::confirm_change_quest_course))
                         {
+                            //remember these quests
+                            auto temp = get_quest_journal_description_if_never_shown(last_quest_chosen);
+                            temp = get_quest_journal_description_if_never_shown(new_quest_chosen);
+
+
                             change_quest_course_request_sent = true;
                         }
                     }
