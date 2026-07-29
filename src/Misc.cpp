@@ -9171,6 +9171,17 @@ namespace MiscThings {
 
 
         
+        if (quest->formID == 0x54d0a) //visit college
+        {
+            auto faralda = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1c1a5);
+            auto gates = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x37a7d);
+
+            if (faralda && gates && gates->IsLocked())
+                return faralda;
+        }
+
+
+
 
         bool check_elder_scroll_zone_dwemer_mechanism = false;
 
