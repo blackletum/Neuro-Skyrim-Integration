@@ -532,6 +532,7 @@ namespace WalkerProcessor {
 
 
     bool spell_mode = false;
+    bool spell_ult_mode = false;
     RE::SpellItem* spell_to_use = nullptr;
 
 
@@ -1312,6 +1313,7 @@ namespace WalkerProcessor {
         {
             spell_mode = false;
             spell_to_use = nullptr;
+            spell_ult_mode = false;
         }
 
         start_attacking = false; //so it restarts attack properly
@@ -6135,6 +6137,7 @@ namespace WalkerProcessor {
 
         spell_mode = false;
         spell_to_use = nullptr;
+        spell_ult_mode = false;
 
         if (gate_shout)
             register_allowed_actions();
@@ -7088,6 +7091,13 @@ namespace WalkerProcessor {
 
                         if (start_attacking)
                             range = range * 1.25;
+
+
+
+                        if (spell_mode && spell_ult_mode && spell_to_use)
+                        {
+                            range = 500.0f;
+                        }
 
 
                         //this is for melee
@@ -11510,6 +11520,24 @@ namespace WalkerProcessor {
     }
 
 
+    bool is_fire_and_forget_spell(RE::SpellItem* spell)
+    {
+        auto player = RE::PlayerCharacter::GetSingleton();
+
+        if (spell && (spell->GetFormType() == RE::FormType::Spell || spell->GetFormType() == RE::FormType::Scroll))
+        {
+            if (spell->avEffectSetting)
+            {
+                auto cast_type = spell->avEffectSetting->data.castingType;
+                if (cast_type == RE::MagicSystem::CastingType::kFireAndForget)
+                    return true;
+            }
+
+        }
+
+        return false;
+    }
+
     bool is_fire_and_forget_spell(bool right)
     {
         auto player = RE::PlayerCharacter::GetSingleton();
@@ -12227,6 +12255,21 @@ namespace WalkerProcessor {
         }
 
 
+        if (spell_mode && spell_ult_mode && spell_to_use)
+        {
+            if (lock_camera_onto_target(target_ref, dtime, 1.0f, true, true))
+            {
+                std::string spell_name = spell_to_use->GetFullName();
+                send_random_context("You are using ability: " + spell_name);
+                use_ult();
+                return true;
+            }
+            else
+                return false;
+        }
+
+
+
         bool speed_correction = is_casting_ult() && target_ref && MiscThings::is_dragon(target_ref);
 
 
@@ -12497,6 +12540,7 @@ namespace WalkerProcessor {
                         //no hand has this spell. do nothing
                         spell_mode = false;
                         spell_to_use = nullptr;
+                        spell_ult_mode = false;
                     }
                 }
             }
@@ -13644,6 +13688,7 @@ namespace WalkerProcessor {
                     if (spell_mode)
                     {
                         spell_mode = false;
+                        spell_ult_mode = false;
                         spell_to_use = nullptr;
                         return true;
                     }
@@ -15785,7 +15830,7 @@ namespace WalkerProcessor {
 
             if (check_fight_condition && target_ref)
             {
-                if (is_fighting() && target_ref->IsActor() && !target_ref->IsDead() && MiscThings::is_enemy_to_actor(target_ref) && (!target->IsActor() || target->IsDead() || !MiscThings::is_enemy_to_actor(target)))
+                if (is_fighting() && target_ref->IsActor() && !target_ref->IsDead() && MiscThings::is_enemy_to_actor(target_ref) && (!target->IsActor() || (target->IsDead() && !MiscThings::is_reanimate_spell(spell)) || !MiscThings::is_enemy_to_actor(target)))
                 {
                     //already fighting and current target isnt dead, but new target is dead or isnt an actor
 
@@ -15836,6 +15881,24 @@ namespace WalkerProcessor {
             if (left_hand == spell)
                 attack_action = 1;
 
+
+            auto equip_slot = spell->GetEquipSlot();
+
+            auto slot_id = equip_slot->GetFormID();
+
+            auto equip_manager = RE::ActorEquipManager::GetSingleton();
+
+            spell_mode = false;
+
+            if (equip_manager)
+            {
+                if (slot_id == 0x00025BEE) //voice
+                {
+                    spell_ult_mode = true;
+                }
+            }
+
+            
             spell_mode = true;
             spell_to_use = spell;
             if (MiscThings::is_offensive_spell(spell))

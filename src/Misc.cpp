@@ -379,6 +379,10 @@ namespace MiscThings {
                         {
                             auto projectile_ref = (RE::Projectile*)a_ref;
 
+
+                            if (projectile_ref->shooter && projectile_ref->shooter.get() && projectile_ref->shooter.get().get() == player)
+                                return RE::BSContainer::ForEachResult::kContinue;
+
                             if (std::size(projectile_ref->impacts) <= 0)
                             {
                                 RE::NiPoint3 projectile_fly_vector{};
@@ -25540,16 +25544,34 @@ namespace MiscThings {
                         }
 
 
+                        auto spell_target = MiscThings::get_object_by_index(target_index);
 
-                        equip_manager->EquipSpell(player_actor, spell, equip_slot);
-                        right_attack_cancel();
-                        left_attack_cancel();
-                        use_ult();
-                        result.first = true;
-                        if (spell->GetSpellType() == RE::MagicSystem::SpellType::kSpell)
-                            result.second = "[Casting spell:  [id " + std::to_string(id) + "] " + spell->GetFullName() + "]";
+                        if (spell_target && WalkerProcessor::is_fire_and_forget_spell(spell))
+                        {
+                            equip_manager->EquipSpell(player_actor, spell, equip_slot);
+
+                            auto temp = WalkerProcessor::cast_spell_at_target(spell_target, spell, true);
+
+                            if (!temp.first)
+                                return temp;
+
+                            result.first = true;
+                            result.second = "Processing...";
+                            return result;
+                        }
                         else
-                            result.second = "[Using ult: [id " + std::to_string(id) + "] " + spell->GetFullName() + "]";
+                        {
+                            equip_manager->EquipSpell(player_actor, spell, equip_slot);
+                            right_attack_cancel();
+                            left_attack_cancel();
+                            use_ult();
+                            result.first = true;
+                            if (spell->GetSpellType() == RE::MagicSystem::SpellType::kSpell)
+                                result.second = "[Casting spell:  [id " + std::to_string(id) + "] " + spell->GetFullName() + "]";
+                            else
+                                result.second = "[Using ult: [id " + std::to_string(id) + "] " + spell->GetFullName() + "]";
+                        }
+
                     }
                     else
                     {

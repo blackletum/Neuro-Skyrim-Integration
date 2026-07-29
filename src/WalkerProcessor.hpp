@@ -186,6 +186,7 @@ namespace WalkerProcessor {
 
 	void walk_karthspire_plates();
 
+	bool is_fire_and_forget_spell(RE::SpellItem* spell);
 	bool is_fire_and_forget_spell(bool right);
 	//void set_last_teleport_timestamp(long long timestamp);
 
