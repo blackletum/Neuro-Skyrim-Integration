@@ -18,6 +18,9 @@ namespace BarterProcessor {
     bool big_transaction_choice_valid = false;
     int big_transaction_choice = 0;
 
+    bool slider_big_transaction_request_sent = false;
+    bool slider_big_transaction_choice_valid = false;
+    int slider_big_transaction_choice = 0;
 
 
     float preconfirm_timer = 0.0f;
@@ -319,6 +322,10 @@ namespace BarterProcessor {
         big_transaction_request_sent = false;
         big_transaction_choice_valid = false;
 
+        slider_big_transaction_request_sent = false;
+        slider_big_transaction_choice_valid = false;
+        slider_big_transaction_choice = 0;
+
 
         last_scroll = -1;
         scroll_stuck = false;
@@ -605,7 +612,58 @@ namespace BarterProcessor {
         return result;
     }
 
+    std::pair<bool, std::string> set_slider_big_transaction_choice(int choice)
+    {
+        std::pair<bool, std::string> result{};
 
+        auto ui = RE::UI::GetSingleton();
+        if (!ui->IsMenuOpen(RE::BarterMenu::MENU_NAME))
+        {
+            result.first = true;
+            result.second = "[Error]";
+            return result;
+        }
+
+        if (choice == -1)
+        {
+            quit_menu();
+            result.first = true;
+            result.second = "[Barter stopped]";
+            return result;
+        }
+
+
+        if (choice == -3)
+        {
+            back_to_categories();
+            result.first = true;
+            result.second = "[Went back to category selection]";
+            return result;
+        }
+
+        if (choice == -4)
+        {
+            back_to_items();
+            result.first = true;
+            result.second = "[Went back to item selection]";
+            return result;
+        }
+
+
+        if (choice == 0 || choice == 1)
+        {
+            slider_big_transaction_choice = choice;
+            slider_big_transaction_choice_valid = true;
+            result.first = true;
+            result.second = "[Processing...]";
+        }
+        else
+        {
+            result.first = false;
+            result.second = "Invalid choice ID";
+        }
+        return result;
+    }
 
 
 
@@ -1613,7 +1671,7 @@ namespace BarterProcessor {
 
                                                 int amount = get_item_amount_from_name(name);
 
-                                                bool equipped = menu->itemList->GetSelectedItem()->data.GetEquipState();
+                                                bool equipped = menu->itemList->GetSelectedItem() ? menu->itemList->GetSelectedItem()->data.GetEquipState() : false;
                                                 data.equipped = equipped;
 
                                                 //if (!equipped || data.amount > 1)
@@ -1830,9 +1888,13 @@ namespace BarterProcessor {
         vendor_not_enough_gold_choice_valid = false;
         vendor_not_enough_gold_request_sent = false;
 
-        big_transaction_choice = 0;
-        big_transaction_request_sent = false;
-        big_transaction_choice_valid = false;
+        //big_transaction_choice = 0;
+        //big_transaction_request_sent = false;
+        //big_transaction_choice_valid = false;
+
+        slider_big_transaction_choice = 0;
+        slider_big_transaction_request_sent = false;
+        slider_big_transaction_choice_valid = false;
 
         slider_confirming = false;
         slider_confirmed = false;
@@ -2660,46 +2722,55 @@ namespace BarterProcessor {
                                                     {
                                                         //check the price, ask for confirmation if its high
 
-                                                        int price = get_price_selected_item();
-                                                        float player_gold_threshold = ((float)MiscThings::get_player_gold())*0.2f;
-                                                        float flat_minimum = 250.0f;
-                                                        float lower_bound = player_gold_threshold > flat_minimum ? player_gold_threshold : flat_minimum;
-
-                                                        if (type == BarterProcessor::barter_type::buy && price > lower_bound)
+                                                        if (type == BarterProcessor::barter_type::buy && !(slider_big_transaction_request_sent || slider_big_transaction_choice_valid))
                                                         {
-                                                            if (big_transaction_choice_valid)
-                                                            {
-                                                                if (big_transaction_choice)
-                                                                {
-                                                                    ;// fall through down
-                                                                }
-                                                                else
-                                                                {
-                                                                    finish_transaction(); //cancel operation
-                                                                    return;
-                                                                }
-                                                            }
-                                                            else
-                                                            {
-                                                                if (!big_transaction_request_sent)
-                                                                {
-                                                                    auto p_item_info = items_list.find(pos_to_id(item_choice));
+                                                            auto p_item_info = items_list.find(pos_to_id(item_choice));
 
-                                                                    if (p_item_info != items_list.end())
+                                                            if (p_item_info != items_list.end())
+                                                            {
+
+                                                                int price = p_item_info->second.price;
+                                                                float player_gold_threshold = ((float)MiscThings::get_player_gold()) * 0.2f;
+                                                                float flat_minimum = 250.0f;
+                                                                float lower_bound = player_gold_threshold > flat_minimum ? player_gold_threshold : flat_minimum;
+
+                                                                if (price > lower_bound)
+                                                                {
+                                                                    if (big_transaction_choice_valid)
                                                                     {
-                                                                        std::string player_gold_text = std::to_string(MiscThings::get_player_gold());
-                                                                        std::string price_text = std::to_string(price);
+                                                                        if (big_transaction_choice)
+                                                                        {
+                                                                            ;// fall through down
+                                                                        }
+                                                                        else
+                                                                        {
+                                                                            finish_transaction(); //cancel operation
+                                                                            return;
+                                                                        }
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        if (!big_transaction_request_sent)
+                                                                        {
 
-                                                                        std::string item_name = p_item_info->second.name;
+                                                                            std::string player_gold_text = std::to_string(MiscThings::get_player_gold());
+                                                                            std::string price_text = std::to_string(price);
 
-                                                                        if (force_choice({ {0, "No"}, {1, "Yes"}, {-1, "[QUIT BARTER]"} }, "You are about to buy " + item_name + ". Item costs " + price_text + " gold, you have " + player_gold_text + " gold, confirm operation ? ", force_type::barter_vendor_confirm_big_transaction))
-                                                                            big_transaction_request_sent = true;
+                                                                            std::string item_name = p_item_info->second.name;
+
+                                                                            if (force_choice({ {0, "No"}, {1, "Yes"}, {-1, "[QUIT BARTER]"} }, "You are about to buy " + item_name + ". Item costs " + price_text + " gold, you have " + player_gold_text + " gold, confirm operation ? ", force_type::barter_vendor_confirm_big_transaction))
+                                                                                big_transaction_request_sent = true;
+
+                                                                            return;
+
+                                                                        }
+                                                                        else
+                                                                            return; //wait for response
                                                                     }
                                                                 }
-                                                                else
-                                                                    return; //wait for response
                                                             }
                                                         }
+                                                        
 
 
 
@@ -2763,6 +2834,62 @@ namespace BarterProcessor {
                                                                                 finish_transaction();
                                                                                 return;
                                                                             }
+
+
+
+
+                                                                            if (type == BarterProcessor::barter_type::buy)
+                                                                            {
+                                                                                auto p_item_info = items_list.find(pos_to_id(item_choice));
+
+                                                                                if (p_item_info != items_list.end())
+                                                                                {
+                                                                                    int price = p_item_info->second.price * slider_choice;
+                                                                                    float player_gold_threshold = ((float)MiscThings::get_player_gold()) * 0.2f;
+                                                                                    float flat_minimum = 250.0f;
+                                                                                    float lower_bound = player_gold_threshold > flat_minimum ? player_gold_threshold : flat_minimum;
+
+                                                                                    if (price > lower_bound)
+                                                                                    {
+                                                                                        if (slider_big_transaction_choice_valid)
+                                                                                        {
+                                                                                            if (slider_big_transaction_choice)
+                                                                                            {
+                                                                                                ;// fall through down
+                                                                                            }
+                                                                                            else
+                                                                                            {
+                                                                                                slider_confirmed = true;
+                                                                                                cancel();
+                                                                                                finish_transaction(); //cancel operation
+                                                                                                return;
+                                                                                            }
+                                                                                        }
+                                                                                        else
+                                                                                        {
+                                                                                            if (!slider_big_transaction_request_sent)
+                                                                                            {
+
+                                                                                                std::string player_gold_text = std::to_string(MiscThings::get_player_gold());
+                                                                                                std::string price_text = std::to_string(price);
+
+                                                                                                std::string item_name = p_item_info->second.name;
+
+                                                                                                if (force_choice({ {0, "No"}, {1, "Yes"}, {-1, "[QUIT BARTER]"} }, "You are about to buy " + item_name + ". Item costs " + price_text + " gold, you have " + player_gold_text + " gold, confirm operation ? ", force_type::barter_vendor_confirm_slider_big_transaction))
+                                                                                                    slider_big_transaction_request_sent = true;
+
+                                                                                                return;
+                                                                                            }
+                                                                                            else
+                                                                                                return; //wait for response
+                                                                                        }
+                                                                                    }
+                                                                                }
+                                                                            }
+
+
+
+
 
 
                                                                             if (!slider_confirmed)
