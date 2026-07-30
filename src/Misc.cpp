@@ -3144,6 +3144,8 @@ namespace MiscThings {
     RE::NiPoint3 current_best_vertex{};
     float current_best_distance = FLT_MAX;
 
+    uint32_t last_navmesh_n = -1;
+    uint32_t last_triangle_n = -1;
 
     void reset_dragon_landing_vars()
     {
@@ -3152,6 +3154,9 @@ namespace MiscThings {
 
         current_best_vertex = RE::NiPoint3::Zero();
         current_best_distance = FLT_MAX;
+
+        last_navmesh_n = -1;
+        last_triangle_n = -1;
     }
 
 
@@ -3233,6 +3238,9 @@ namespace MiscThings {
                     int x = landing_last_grid_x;
                     int y = landing_last_grid_y;
 
+
+                    int n_triangles = 0;
+
                         {
                             auto adjacent_cell = gridCells->GetCell(x, y);
 
@@ -3244,8 +3252,24 @@ namespace MiscThings {
                                 {
                                     RE::BSTArray<RE::BSTSmartPointer<RE::NavMesh>>* navmeshes_bs_array = &navmeshes_array->navMeshes;
 
-                                    for (auto& navmesh : *navmeshes_bs_array)
+
+                                    if (last_navmesh_n >= std::size(*navmeshes_bs_array))
+                                        last_navmesh_n = 0;
+
+
+                                    int current_last_navmesh_n = last_navmesh_n;
+
+
+                                    for (int i = current_last_navmesh_n; i < std::size(*navmeshes_bs_array); i++)
                                     {
+                                        //auto navmesh = (*navmeshes_bs_array)[i]; //this doesnt work
+                                        //auto navmesh_smth = navmeshes_bs_array[i].begin();
+                                        //auto navmesh = navmeshes_bs_array->begin()->get(); //this works
+
+                                        auto p_navmesh = &(*navmeshes_bs_array)[i];
+
+                                        auto navmesh = p_navmesh->get();
+
                                         if (navmesh)
                                         {
                                             auto vertices = navmesh->vertices;
@@ -3253,8 +3277,20 @@ namespace MiscThings {
 
                                             auto triangles = navmesh->triangles;
 
-                                            for (RE::BSNavmeshTriangle triangle : triangles)
+                                            if (last_triangle_n >= std::size(triangles))
+                                                last_triangle_n = 0;
+
+                                            int current_last_triangle_n = last_triangle_n;
+
+                                            for (int j = current_last_triangle_n; j < std::size(triangles); j++)
+                                            //for (RE::BSNavmeshTriangle triangle : triangles)
                                             {
+                                                //Hooks::add_debug_line("Navmesh: " + std::to_string(i) + ", Triangle: " + std::to_string(j), true);
+
+                                                auto triangle = triangles[j];
+
+                                                n_triangles++;
+
                                                 RE::BSNavmeshVertex vertex0 = vertices[triangle.vertices[0]];
                                                 auto vertex_pos = vertex0.location;
 
@@ -3304,8 +3340,6 @@ namespace MiscThings {
 
                                                 }
 
-
-
                                                 if (point_is_good)
                                                 {
                                                     current_best_distance = distance;
@@ -3313,9 +3347,27 @@ namespace MiscThings {
                                                 }
 
 
+                                                last_triangle_n = j++;
+
+                                                if (n_triangles >= 10)
+                                                {
+                                                    last_navmesh_n = i;
+                                                    return { 0.0f, 0.0f, 0.1f }; //continue next frame
+                                                }
                                             }
                                         }
+                                        else
+                                        {
+                                            bool stop_here = false;
+                                        }
+
+
+                                        last_navmesh_n = i++;
                                     }
+
+                                    last_navmesh_n = -1;
+
+
                                 }
                             }
                         }
@@ -3325,7 +3377,6 @@ namespace MiscThings {
                             landing_last_grid_y++;
                         else
                             landing_last_grid_x++;
-
 
 
                         //waiting for it to check all
@@ -5334,6 +5385,33 @@ namespace MiscThings {
     }
 
 
+    bool dragon_is_on_the_ground(RE::TESObjectREFR* refr)
+    {
+        if (is_sitting(refr))
+            return false;
+
+        if (refr)
+        {
+            if (refr->IsActor())
+            {
+                auto actor_refr = (RE::Actor*)refr;
+
+                auto fly_state = actor_refr->actorState1.flyState;
+
+                //Hooks::add_debug_line("dragon fly_state: " + std::to_string((int)fly_state), true);
+
+                return fly_state == RE::FLY_STATE::kNone;
+
+                //return fly_state == RE::FLY_STATE::kCruising || fly_state == RE::FLY_STATE::kHovering;
+            }
+        }
+
+        return false;
+
+    }
+
+
+
     bool is_flying(RE::TESObjectREFR* refr)
     {
         if (is_sitting(refr))
@@ -5353,6 +5431,14 @@ namespace MiscThings {
 
                 //if (furniture)
                 //    return false; //he is sitting
+
+
+
+
+                //Hooks::add_debug_line("dragon fly_state: " + std::to_string((int)fly_state), true);
+
+
+
 
                 return fly_state != RE::FLY_STATE::kNone && fly_state != RE::FLY_STATE::kTakeOff;
 

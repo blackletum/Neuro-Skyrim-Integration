@@ -383,6 +383,8 @@ namespace MiscThings {
 
     bool is_dragon(RE::TESObjectREFR* refr);
     bool is_flying(RE::TESObjectREFR* refr);
+    bool dragon_is_on_the_ground(RE::TESObjectREFR* refr);
+
 
     bool is_player_swimming();
 

@@ -18,7 +18,7 @@ namespace WalkerProcessor {
     std::map<RE::TESQuest*, std::vector<uint32_t>> followed_quests{};
 
 
-
+    bool seaching_dragon_land_spot = false;
 
 
     RE::TESObjectREFR* quest_door_that_needs_a_lockpick = nullptr; //dont reset normally
@@ -1794,16 +1794,17 @@ namespace WalkerProcessor {
                                     {
                                         if (dragon_landing_spot_mode && !dragon_landing_spot_placed && !dragon_landing_spot_nowhere_to_land)
                                         {
-
-
-
                                             auto landing_point = MiscThings::find_dragon_landing_spot(dragon_landing_banned_spots);
 
                                             RE::NiPoint3 wait_val = { 0.0f, 0.0f, 0.1f };
 
                                             if (landing_point == wait_val)
+                                            {
+                                                seaching_dragon_land_spot = true;
                                                 return;
-
+                                            }
+                                                
+                                            seaching_dragon_land_spot = false;
 
                                             if (landing_point != RE::NiPoint3::Zero())
                                             {
@@ -5766,6 +5767,9 @@ namespace WalkerProcessor {
 
     void reset_walker()
     {
+
+        seaching_dragon_land_spot = false;
+
         dodge_projectile_blast_target = nullptr;
         fight_versus_dangerous_mage_power_attack_if_possible = false;
 
@@ -17379,7 +17383,16 @@ namespace WalkerProcessor {
                 {
                     auto distance = player->GetDistance(dragon_landing_marker);
 
-                    if (distance < 500.0f)
+                    if (!MiscThings::is_object_still_valid(dragon_for_landing))
+                    {
+                        reset_walker();
+                        return;
+                    }
+
+
+
+
+                    if (distance < 500.0f || MiscThings::dragon_is_on_the_ground(dragon_for_landing))
                     {
                         //arrived;
                         target_ref = dragon_for_landing;
@@ -19510,6 +19523,13 @@ namespace WalkerProcessor {
                         }
                         else
                         {
+
+
+                            if (seaching_dragon_land_spot)
+                            {
+                                lock_camera_onto_target(target_ref, dtime, 0.5f);
+                            }
+
 
                             if (looking_mode || path_valid || use_last_point_of_last_path || close_enough())
                             {
