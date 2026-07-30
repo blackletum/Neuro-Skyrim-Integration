@@ -20925,6 +20925,8 @@ namespace MiscThings {
 
     float get_ench_usefullness_coef_without_given_ench(RE::EnchantmentItem* ench)
     {
+        float result = 1.0f;
+
         auto player = RE::PlayerCharacter::GetSingleton();
 
         if (player)
@@ -20947,7 +20949,7 @@ namespace MiscThings {
                             if (current_player_value > 100.0f)
                                 current_player_value = 100.0f;
 
-                            return 1.0f + 2.0f * magnitude*(100.0f - current_player_value)/100.0f/100.0f;
+                            result += 2.0f * magnitude*(100.0f - current_player_value)/100.0f/100.0f;
 
                             break;
                         }
@@ -20960,7 +20962,7 @@ namespace MiscThings {
                             if (current_player_value > 100.0f)
                                 current_player_value = 100.0f;
 
-                            return 1.0f + 5.0f * magnitude * (100.0f - current_player_value) / 100.0f / 100.0f;
+                            result += 5.0f * magnitude * (100.0f - current_player_value) / 100.0f / 100.0f;
 
                             break;
                         }
@@ -20973,7 +20975,7 @@ namespace MiscThings {
                             if (current_player_value > 100.0f)
                                 current_player_value = 100.0f;
 
-                            return 1.0f + 10.0f * magnitude * (100.0f - current_player_value) / 100.0f / 100.0f;
+                            result += 10.0f * magnitude * (100.0f - current_player_value) / 100.0f / 100.0f;
 
                             break;
                         }
@@ -20986,7 +20988,7 @@ namespace MiscThings {
                             if (current_player_value > 100.0f)
                                 current_player_value = 100.0f;
 
-                            return 1.0f + 5.0f * magnitude * (100.0f - current_player_value) / 100.0f / 100.0f;
+                            result += 5.0f * magnitude * (100.0f - current_player_value) / 100.0f / 100.0f;
 
                             break;
                         }
@@ -20998,7 +21000,7 @@ namespace MiscThings {
         }
 
 
-        return 0.0f;
+        return result;
     }
 
 

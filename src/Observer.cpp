@@ -1381,7 +1381,20 @@ namespace Observer {
 
 											runaway_in_a_row++;
 											if (runaway_in_a_row >= 3)
-												message += "[You will not have much progress in the game if you keep running away from fights every time]";
+											{
+
+												auto now = std::chrono::steady_clock::now().time_since_epoch().count();
+												float delta_death = (double)(now - last_actual_death_timestamp) / 1000000000.0;
+												
+												if (delta_death > 300.0f)
+												{
+													message += "[You will not have much progress in the game if you keep running away from fights every time]";
+												}
+												else
+													runaway_in_a_row = 0;
+												
+											}
+												
 
 											send_random_context(message);
 											action_taken = true;
