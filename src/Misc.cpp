@@ -20923,9 +20923,9 @@ namespace MiscThings {
 
 
 
-    float get_ench_usefullness_coef_without_given_ench(RE::EnchantmentItem* ench)
+    float get_enchantment_value(RE::EnchantmentItem* ench)
     {
-        float result = 1.0f;
+        float result = 0.0f;
 
         auto player = RE::PlayerCharacter::GetSingleton();
 
@@ -20949,7 +20949,9 @@ namespace MiscThings {
                             if (current_player_value > 100.0f)
                                 current_player_value = 100.0f;
 
-                            result += 2.0f * magnitude*(100.0f - current_player_value)/100.0f/100.0f;
+                            float coef = 1.0f + 2.0f * magnitude * (100.0f - current_player_value) / 100.0f / 100.0f;
+
+                            result += 40.0f * coef;
 
                             break;
                         }
@@ -20962,7 +20964,9 @@ namespace MiscThings {
                             if (current_player_value > 100.0f)
                                 current_player_value = 100.0f;
 
-                            result += 5.0f * magnitude * (100.0f - current_player_value) / 100.0f / 100.0f;
+                            float coef = 1.0f + 5.0f * magnitude * (100.0f - current_player_value) / 100.0f / 100.0f;
+
+                            result += 40.0f * coef;
 
                             break;
                         }
@@ -20975,7 +20979,9 @@ namespace MiscThings {
                             if (current_player_value > 100.0f)
                                 current_player_value = 100.0f;
 
-                            result += 10.0f * magnitude * (100.0f - current_player_value) / 100.0f / 100.0f;
+                            float coef = 1.0f + 10.0f * magnitude * (100.0f - current_player_value) / 100.0f / 100.0f;
+
+                            result += 40.0f * coef;
 
                             break;
                         }
@@ -20988,7 +20994,36 @@ namespace MiscThings {
                             if (current_player_value > 100.0f)
                                 current_player_value = 100.0f;
 
-                            result += 5.0f * magnitude * (100.0f - current_player_value) / 100.0f / 100.0f;
+                            float coef = 1.0f + 5.0f * magnitude * (100.0f - current_player_value) / 100.0f / 100.0f;
+
+                            result += 40.0f * coef;
+
+                            break;
+                        }
+
+
+                        case (0x493aa): //bonus health
+                        {
+                            float coef = 1.6f;
+
+                            result += coef * magnitude;
+
+                            break;
+                        }
+
+                        case (0x49504): //bonus mana
+                        {
+                            float coef = 0.7f;
+
+                            result += coef * magnitude;
+
+                            break;
+                        }
+
+
+                        default: //random enchantment
+                        {
+                            result += magnitude*0.3f;
 
                             break;
                         }
@@ -21009,36 +21044,19 @@ namespace MiscThings {
         float result = 0.0f;
 
 
-        if (ench && ench->data.baseEnchantment)
+        if (ench)
         {
-            for (auto effect : ench->data.baseEnchantment->effects)
+            result = get_enchantment_value(ench);
+
+            if (!current_gear)
             {
-                if (effect && effect->baseEffect)
+                if (current_gear_ench)
                 {
-                    float magnitude = effect->GetMagnitude();
+                    float current_gear_ench_value = get_enchantment_value(current_gear_ench);
 
-                    float coef = 1.0f;
-
-                    if (current_gear)
-                    {
-                        coef = get_ench_usefullness_coef_without_given_ench(ench);
-
-                    }
-                    else
-                    {
-
-                        if (current_gear_ench)
-                            coef = get_ench_usefullness_coef_without_given_ench(current_gear_ench);
-
-                        coef *= get_ench_usefullness_coef_without_given_ench(ench);
-                    }
-
-                    result += magnitude * coef;
-
+                    result -= current_gear_ench_value;
                 }
             }
-
-            result += 40.0f;
         }
 
 
@@ -21090,7 +21108,7 @@ namespace MiscThings {
                             if (current_armor->formEnchanting != nullptr)
                             {
 
-                                float ench_val = 40.0f + get_enchantment_bonus_value(current_armor->formEnchanting, true, nullptr);
+                                float ench_val = get_enchantment_bonus_value(current_armor->formEnchanting, true, nullptr);
 
                                 current_armor_val += ench_val;
 
@@ -21106,7 +21124,7 @@ namespace MiscThings {
                     {
                         if (new_armor->formEnchanting != nullptr)
                         {
-                            float ench_val = 40.0f + get_enchantment_bonus_value(new_armor->formEnchanting, false, current_gear_ench);
+                            float ench_val = get_enchantment_bonus_value(new_armor->formEnchanting, false, current_gear_ench);
 
                             if (value_current_more)
                                 ench_val *= 0.9f;
