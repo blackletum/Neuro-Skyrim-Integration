@@ -6027,6 +6027,34 @@ namespace MiscThings {
 
 
 
+    bool myscpath_quest_is_in_the_list()
+    {
+        if (MiscThings::is_quest_list_valid())
+        {
+            auto quest_list = MiscThings::get_p_quest_list();
+
+            for (auto quest_entry : *quest_list)
+            {
+                if (quest_entry.quest)
+                {
+                    if (!(MiscThings::is_bad_jailquest(quest_entry.quest, quest_entry.target)) && !MiscThings::quest_target_is_hidden(quest_entry.quest, quest_entry.objective, quest_entry.target))
+                    {
+                        auto my_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("myscPath");
+
+                        if (my_quest && quest_entry.quest == my_quest)
+                        {
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+
+        return false;
+    }
+
+
+
 
 
     RE::TESObjectREFR* get_mysc_quest_teleport_ref()

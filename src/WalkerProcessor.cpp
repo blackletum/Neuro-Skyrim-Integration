@@ -9300,6 +9300,18 @@ namespace WalkerProcessor {
                         {
                             if (!(MiscThings::is_bad_jailquest(quest_entry.quest, quest_entry.target)) && !MiscThings::quest_target_is_hidden(quest_entry.quest, quest_entry.objective, quest_entry.target))
                             {
+                                auto my_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("myscPath");
+
+                                if (my_quest && last_quest_chosen == my_quest && quest_entry.quest == my_quest)
+                                {
+                                    //do not autoswitch from this quest. player must switch it manually to ensure player gets the message
+                                    result.first = false;
+                                    result.second = "Cannot define where to walk to complete quest: " + quest_entry.name + ". " + quest_entry.displaytext + ". You need to figure it our yourself";
+                                    return result;
+                                }
+
+
+
                                 quest_is_still_there = true;
                                 break;
                             }
@@ -9729,7 +9741,7 @@ namespace WalkerProcessor {
 
                                                 bool quest_is_questionable = false;
 
-                                                if (last_quest_chosen && quest_entry.quest != last_quest_chosen)
+                                                if (last_quest_chosen && quest_entry.quest != last_quest_chosen && last_quest_chosen != my_quest)
                                                 {
                                                     //check if last quest is still there and ask for confirmation to digress from it
                                                     if (!MiscThings::quest_is_hidden(last_quest_chosen, last_quest_objective_chosen))
@@ -10141,7 +10153,7 @@ namespace WalkerProcessor {
 
                             bool quest_is_questionable = false;
 
-                            if (last_quest_chosen && quest_entry.quest != last_quest_chosen)
+                            if (last_quest_chosen && quest_entry.quest != last_quest_chosen && last_quest_chosen != my_quest)
                             {
                                 //check if last quest is still there and ask for confirmation to digress from it
                                 if (!MiscThings::quest_is_hidden(last_quest_chosen, last_quest_objective_chosen))
@@ -14177,6 +14189,16 @@ namespace WalkerProcessor {
 
                         if (is_door(target_ref))
                             cut_navmesh_on_target(get_targeted_ref());
+
+
+                        if (quest_mode)
+                        {
+                            if (MiscThings::myscpath_quest_is_in_the_list()) //lockpick fake quest is active, switch to it so follow_quest tries to follow it giving explicit notification
+                            {
+                                auto my_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("myscPath");
+                                last_quest_chosen = my_quest;         
+                            }
+                        }
 
                         reset_walker();
                         return true;
@@ -20333,6 +20355,17 @@ namespace WalkerProcessor {
                                                                                 if (is_door(result_target))
                                                                                     cut_navmesh_on_target(result_target);
 
+
+                                                                                if (quest_mode && target_ref == result_target)
+                                                                                {
+                                                                                    if (MiscThings::myscpath_quest_is_in_the_list()) //lockpick fake quest is active, switch to it so follow_quest tries to follow it giving explicit notification
+                                                                                    {
+                                                                                        auto my_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("myscPath");
+                                                                                        last_quest_chosen = my_quest;
+                                                                                    }
+                                                                                }
+
+
                                                                                 reset_walker();
                                                                                 return;
                                                                             }
@@ -20801,6 +20834,16 @@ namespace WalkerProcessor {
                                                                             if (is_door(get_targeted_ref()))
                                                                                 cut_navmesh_on_target(get_targeted_ref());
 
+                                                                            if (quest_mode && get_targeted_ref() == target_ref)
+                                                                            {
+                                                                                if (MiscThings::myscpath_quest_is_in_the_list()) //lockpick fake quest is active, switch to it so follow_quest tries to follow it giving explicit notification
+                                                                                {
+                                                                                    auto my_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("myscPath");
+                                                                                    last_quest_chosen = my_quest;
+                                                                                }
+                                                                            }
+
+
                                                                             reset_walker();
                                                                             return;
                                                                         }
@@ -21221,6 +21264,15 @@ namespace WalkerProcessor {
 
                                                             if (is_door(get_targeted_ref()))
                                                                 cut_navmesh_on_target(get_targeted_ref());
+
+                                                            if (quest_mode && get_targeted_ref() == target_ref)
+                                                            {
+                                                                if (MiscThings::myscpath_quest_is_in_the_list()) //lockpick fake quest is active, switch to it so follow_quest tries to follow it giving explicit notification
+                                                                {
+                                                                    auto my_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("myscPath");
+                                                                    last_quest_chosen = my_quest;
+                                                                }
+                                                            }
 
                                                             reset_walker();
                                                             return;
