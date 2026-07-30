@@ -1500,6 +1500,8 @@ namespace Hooks {
                 reset_input_processor();
                 //clear_input_queue();
 
+                MiscThings::reset_dropper();
+
                 exit_dungeon_was_registered = false;
 
                 send_random_context("[The game is loading. Object list was cleared]");// .You are not in game yet]");
@@ -3336,6 +3338,9 @@ class MyHook {
             WalkerProcessor::processor(dtime);
             DialogueProcessor::processor(dtime);
             MiscThings::shout_cooldown_fix(dtime);
+
+
+            MiscThings::item_dropper(dtime);
 
             Hooks::update_debug_text();
         }

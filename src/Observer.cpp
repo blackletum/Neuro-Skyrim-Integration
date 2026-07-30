@@ -5483,7 +5483,11 @@ namespace Observer {
 					std::string message = "[No longer in the inventory: ";
 					message += removed_info;
 					if (!dont_inform_inventory)
+					{
+						message = MiscThings::fix_book_description(message);
 						send_random_context(message);
+					}
+						
 				}
 
 

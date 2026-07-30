@@ -22546,6 +22546,73 @@ namespace MiscThings {
 
 
 
+
+    std::vector<int> item_ids_to_drop{};
+    int drop_success = 0;
+    int drop_fail = 0;
+    std::string drop_result_message = "";
+    float item_dropper_timer = 0.0f;
+
+    bool dropper_busy = false;
+
+
+    bool confirm_drop_request_sent = false;
+    bool confirm_drop_choice_valid = false;
+    int confirm_drop_choice_id = -1;
+
+
+    bool dropper_paused = false;
+
+
+
+    void reset_dropper()
+    {
+        if (!dropper_busy)
+        {
+            item_ids_to_drop.clear();
+            drop_success = 0;
+            drop_fail = 0;
+            drop_result_message = "";
+
+            confirm_drop_request_sent = false;
+            confirm_drop_choice_valid = false;
+            confirm_drop_choice_id = -1;
+
+            dropper_paused = false;
+        }
+
+    }
+
+
+    std::pair<bool, std::string> set_item_drop_choice_id(int id)
+    {
+        std::pair<bool, std::string> result{};
+
+        if (!confirm_drop_request_sent)
+        {
+            result.first = true;
+            result.second = "[Error]";
+        }
+        else
+        {
+            if (id == 0 || id == 1)
+            {
+                confirm_drop_choice_valid = true;
+                confirm_drop_choice_id = id;
+                result.first = true;
+                result.second = "[Processing...]";
+            }
+            else
+            {
+                result.first = false;
+                result.second = "[Invalid choice ID]";
+            }
+        }
+        return result;
+    }
+
+
+
     std::pair<bool, std::string> drop_array_of_inventory_objects(std::vector<int> ids)
     {
         std::pair<bool, std::string> result{};
@@ -22553,44 +22620,211 @@ namespace MiscThings {
         dropped_amount_of_melee_weapons = 0;
         dropped_amount_of_bows = 0;
 
+        item_ids_to_drop = ids;
 
-        int success = 0;
-        int fail = 0;
+        result.first = true;
+        result.second = "[Dropping selected items...]";
 
-        std::pair<bool, std::string> temp_result{};
+        return result;
+    }
 
-        for (auto id : ids)
+
+
+
+
+    void item_dropper(float dtime) //put this in the very end so its overwritten by every other force
+    {
+        dropper_busy = true;
+
+
+        dropper_start:
+
+        if (std::size(item_ids_to_drop) > 0)
         {
-            temp_result = activate_inventory_object_by_index(id, 2);
+            if (dropper_paused)
+            {
+                if (item_dropper_timer > 0.5f)
+                {
+                    item_dropper_timer = 0.0f;
+                    dropper_paused = false;
+                }
+                else
+                    item_dropper_timer += dtime;
 
-            if (temp_result.first)
-                success++;
+                dropper_busy = false;
+                return;
+            }
+
+            int id = item_ids_to_drop.back();
+
+            auto p_item = inventory_items_list.find(id);
+
+            if (p_item != inventory_items_list.end())
+            {
+                auto item = p_item->second.object;
+
+                if (item)
+                {
+
+                    std::pair<bool, std::string> probe_result = activate_inventory_object_by_index(id, 2, true);
+
+                    if (!probe_result.first)
+                    {
+                        drop_fail++;
+
+                        drop_result_message = probe_result.second;
+
+                        item_ids_to_drop.pop_back();
+
+                        goto dropper_start;
+                    }
+
+
+                    int value = item->GetGoldValue();
+
+                    std::string message = "";
+
+                    bool do_force = false;
+
+
+                    std::stringstream ss;
+                    ss << std::fixed << std::setprecision(1) << item->GetWeight();
+                    std::string weight_text_number = ss.str();
+
+                    std::string weight_text = "weight: " + weight_text_number;
+
+
+
+                    if (value > 500.0f)
+                    {
+                        do_force = true;
+                        std::string name = item->GetName();
+
+                        message = "You are about to drop: " + name + ", item's gold value: " + std::to_string(value) + ", " + weight_text + ", confirm dropping this item ? ";
+                    }
+
+                    if (MiscThings::is_equipped(item))
+                    {
+                        do_force = true;
+                        std::string name = item->GetName();
+                        message = "You are about to drop: " + name + ", " + std::to_string(value) + ", " + weight_text + ", but it is currently equipped. Confirm dropping this item?";
+                    }
+
+
+                    if (do_force)
+                    {
+                        if (!confirm_drop_request_sent)
+                        {
+                            unregister_all_actions();
+
+                            if (force_choice({ {0, "No"}, {1, "Yes"} }, message, force_type::confirm_item_drop))
+                                confirm_drop_request_sent = true;
+
+                            return;
+                        }
+                        else
+                        {
+                            if (confirm_drop_choice_valid)
+                            {
+                                register_allowed_actions();
+
+                                if (confirm_drop_choice_id == 1)
+                                {
+                                    confirm_drop_request_sent = false;
+                                    confirm_drop_choice_valid = false;
+                                    confirm_drop_choice_id = -1;
+                                    //and fall down, but make a pause so it registers missing item and does not attempt to drop it if it doesnt exist anymore
+
+                                    dropper_paused = true;
+                                }
+                                else
+                                {
+                                    //cancel
+                                    confirm_drop_request_sent = false;
+                                    confirm_drop_choice_valid = false;
+                                    confirm_drop_choice_id = -1;
+
+                                    item_ids_to_drop.pop_back();
+                                    dropper_busy = false;
+                                    return;
+                                }
+                            }
+                            else
+                                return;
+                        }
+                    }
+
+
+                    std::pair<bool, std::string> temp_result = activate_inventory_object_by_index(id, 2);
+
+                    if (temp_result.first)
+                        drop_success++;
+                    else
+                        drop_fail++;
+
+                    drop_result_message = temp_result.second;
+
+                    item_ids_to_drop.pop_back();
+
+                    goto dropper_start;
+
+                }
+
+            }
             else
-                fail++;
-        }
+            {
+                //cancel
+                if (confirm_drop_request_sent) //if request was in process
+                    register_allowed_actions();
 
-        std::string result_message = "";
+                confirm_drop_request_sent = false;
+                confirm_drop_choice_valid = false;
+                confirm_drop_choice_id = -1;
 
-        if (success > 0)
-        {
-            result.first = true;
-            if (std::size(ids) == 1)
-                result.second = temp_result.second;
-            else
-                result.second = "[Successsfully dropped " + std::to_string(success) + "/" + std::to_string(success + fail) + " items]";
+                item_ids_to_drop.pop_back();
+                dropper_busy = false;
+                return;
+            }
         }
         else
         {
-            result.first = false;
-            if (std::size(ids) == 1)
-                result.second = temp_result.second;
-            else
-                result.second = "Couldnt drop any of selected items";
-        }
-            
-        return result;
+            //dropping ended
+            if (drop_success > 0 || drop_fail > 0)
+            {
+                std::string final_drop_result = "";
 
+
+                if (drop_success > 0)
+                {
+                    if ((drop_success + drop_fail) == 1)
+                        final_drop_result = drop_result_message;
+                    else
+                        final_drop_result = "[Successsfully dropped " + std::to_string(drop_success) + "/" + std::to_string(drop_success + drop_fail) + " items]";
+                }
+                else
+                {
+                    if ((drop_success + drop_fail) == 1)
+                        final_drop_result = drop_result_message;
+                    else
+                        final_drop_result = "Couldnt drop any of selected items";
+                }
+
+
+                if (final_drop_result != "")
+                    send_random_context(final_drop_result, true);
+            }
+
+            dropper_busy = false;
+            reset_dropper();
+        }
+
+        dropper_busy = false;
     }
+
+
+
+
+
 
 
 
@@ -23086,7 +23320,7 @@ namespace MiscThings {
 
 
 
-    std::pair<bool, std::string> activate_inventory_object_by_index(int item_id, int action_id)
+    std::pair<bool, std::string> activate_inventory_object_by_index(int item_id, int action_id, bool probe_mode)
     {
         std::pair<bool, std::string> result{};
 
@@ -23117,7 +23351,7 @@ namespace MiscThings {
         }
 
 
-        if (!inventory_valid)
+        if (!inventory_valid && !probe_mode)
         {
             auto get_inventory_result = GetInventory();
             send_random_context("You inventory contents: " + get_inventory_result.second);
@@ -23160,20 +23394,24 @@ namespace MiscThings {
                                 staff_of_magnus = true;
                             }
 
-                            if (staff_of_magnus && magnus_eye_attack_condition())
+                            if (!probe_mode && staff_of_magnus && magnus_eye_attack_condition())
                             {
                                 auto magnus_eye = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x25224);
                                 if (magnus_eye)
                                     return WalkerProcessor::walk_to_object_by_refr(magnus_eye, 3);
                             }
 
+                            if (!probe_mode)
+                                result.first = actor_equip->UnequipObject((RE::Actor*)player_ref, object);
+                            else
+                                result.first = true;
 
-                            result.first = actor_equip->UnequipObject((RE::Actor*)player_ref, object);
                             result.second = "[Unequipped [id " + std::to_string(item_id) + "] " + object_name + "]";
 
-                            if (object->IsWeapon())
-                                if (player_actor && !MiscThings::is_weapon_drawn() && !(player_actor->actorState2.weaponState == RE::WEAPON_STATE::kDrawing))
-                                    ready_weapon(); //show off unequipped hands
+                            if (!probe_mode)
+                                if (object->IsWeapon())
+                                    if (player_actor && !MiscThings::is_weapon_drawn() && !(player_actor->actorState2.weaponState == RE::WEAPON_STATE::kDrawing))
+                                        ready_weapon(); //show off unequipped hands
                         }
                         else
                         {
@@ -23248,10 +23486,12 @@ namespace MiscThings {
                                         if (making_dualwield)
                                             extra = nullptr; //it doesnt let it equip it in the other hand in this case.
 
-                                        actor_equip->EquipObject((RE::Actor*)player_ref, object, extra, 1, slot); //equip with extra for scripts to trigger
+                                        if (!probe_mode)
+                                            actor_equip->EquipObject((RE::Actor*)player_ref, object, extra, 1, slot); //equip with extra for scripts to trigger
                                     }
                                     else
-                                        actor_equip->EquipObject((RE::Actor*)player_ref, object, nullptr, 1, slot); //normal equip
+                                        if (!probe_mode)
+                                            actor_equip->EquipObject((RE::Actor*)player_ref, object, nullptr, 1, slot); //normal equip
                                 }
                                 else
                                 {
@@ -23264,21 +23504,23 @@ namespace MiscThings {
 
 
 
-
-                                WalkerProcessor::reset_attacking_inanimate_object_time();
+                                if (!probe_mode)
+                                    WalkerProcessor::reset_attacking_inanimate_object_time();
                                 
-                                if (staff_of_magnus && magnus_eye_attack_condition())
-                                {
-                                    auto magnus_eye = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x25224);
-                                    if (magnus_eye)
-                                        WalkerProcessor::walk_to_object_by_refr(magnus_eye, 3);
-                                }
+                                if (!probe_mode)
+                                    if (staff_of_magnus && magnus_eye_attack_condition())
+                                    {
+                                        auto magnus_eye = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x25224);
+                                        if (magnus_eye)
+                                            WalkerProcessor::walk_to_object_by_refr(magnus_eye, 3);
+                                    }
 
 
 
                                 if (player_actor && !MiscThings::is_weapon_drawn() && !(player_actor->actorState2.weaponState == RE::WEAPON_STATE::kDrawing))
                                 {
-                                    ready_weapon(); //show off new weapon
+                                    if (!probe_mode)
+                                        ready_weapon(); //show off new weapon
                                 }
                                     
                             }
@@ -23296,13 +23538,16 @@ namespace MiscThings {
                                     {
                                         extra = *entry_entry->extraLists->begin();
 
-                                        actor_equip->EquipObject((RE::Actor*)player_ref, object, extra); //equip with extra for scripts to trigger
+                                        if (!probe_mode)
+                                            actor_equip->EquipObject((RE::Actor*)player_ref, object, extra); //equip with extra for scripts to trigger
                                     }
                                     else
-                                        actor_equip->EquipObject((RE::Actor*)player_ref, object); //normal equip
+                                        if (!probe_mode)
+                                            actor_equip->EquipObject((RE::Actor*)player_ref, object); //normal equip
                                 }
                                 else
-                                    actor_equip->EquipObject((RE::Actor*)player_ref, object); //normal equip
+                                    if (!probe_mode)
+                                        actor_equip->EquipObject((RE::Actor*)player_ref, object); //normal equip
 
                             }
                                 
@@ -23328,12 +23573,14 @@ namespace MiscThings {
                             }
                             else
                             {
-                                remember_restored_values(object);
-
+                                if (!probe_mode)
+                                    remember_restored_values(object);
 
                                 auto actor_equip = RE::ActorEquipManager::GetSingleton();
                                 //result = object->Activate(player_ref, player_ref, 0, nullptr, 1);
-                                actor_equip->EquipObject((RE::Actor*)player_ref, object);
+
+                                if (!probe_mode)
+                                    actor_equip->EquipObject((RE::Actor*)player_ref, object);
 
                                 result.first = true;
                                 if (MiscThings::is_poison(object))
@@ -23531,7 +23778,8 @@ namespace MiscThings {
                                                 return result;
                                             }
 
-                                            actor_equip->EquipObject((RE::Actor*)player_ref, object, extra);
+                                            if (!probe_mode)
+                                                actor_equip->EquipObject((RE::Actor*)player_ref, object, extra);
 
                                             has_read_book_this_activation = true;
 
@@ -23560,15 +23808,17 @@ namespace MiscThings {
                                         if (!player_has_spell(spell))
                                             eat_the_book = true;
 
-                                        book_book->Read(player_ref);
+                                        if (!probe_mode)
+                                            book_book->Read(player_ref);
 
-                                        if (eat_the_book)
-                                        {
-                                            auto object_ptr = inventory.find((RE::TESBoundObject*)object);
-                                            if (object_ptr != inventory.end())
-                                                if (object_ptr->first)
-                                                    player->RemoveItem(object_ptr->first, 1, RE::ITEM_REMOVE_REASON::kRemove, nullptr, nullptr);
-                                        }
+                                        if (!probe_mode)
+                                            if (eat_the_book)
+                                            {
+                                                auto object_ptr = inventory.find((RE::TESBoundObject*)object);
+                                                if (object_ptr != inventory.end())
+                                                    if (object_ptr->first)
+                                                        player->RemoveItem(object_ptr->first, 1, RE::ITEM_REMOVE_REASON::kRemove, nullptr, nullptr);
+                                            }
 
 
                                     }
@@ -23600,8 +23850,12 @@ namespace MiscThings {
                                                 return result;
                                             }
 
-                                            actor_equip->EquipObject((RE::Actor*)player_ref, object, extra);
-                                            RE::BookMenu::OpenMenuFromBaseForm(book_book, extra, { 0,0,0 }, rot, 1.0f, true);
+                                            if (!probe_mode)
+                                            {
+                                                actor_equip->EquipObject((RE::Actor*)player_ref, object, extra);
+                                                RE::BookMenu::OpenMenuFromBaseForm(book_book, extra, { 0,0,0 }, rot, 1.0f, true);
+                                            }
+
 
                                             has_read_book_this_activation = true;
 
@@ -23658,29 +23912,35 @@ namespace MiscThings {
 
                                                     auto entry_object = entry_data->object;
 
-                                                    bool charge_result = charge_inventory_item(entry_data, charge_to_add, charge_right_hand);
+                                                    bool charge_result = false;
+                                                    
+                                                    if (!probe_mode)
+                                                        charge_result = charge_inventory_item(entry_data, charge_to_add, charge_right_hand);
+                                                    else
+                                                        charge_result = true;
+
 
                                                     if (charge_result)
                                                     {
                                                         auto form_id = entry_object->GetFormID();
 
                                                         
+                                                        if (!probe_mode)
+                                                            if (form_id == 0x63b27 || //azure white
+                                                                form_id == 0x63b29 || //azure black
+                                                                form_id == 0xfe001801 //cc varla stone
+                                                                )
+                                                                soulgem->currentSoul = RE::SOUL_LEVEL::kNone; //clear soul
+                                                            else
+                                                            {
+                                                                auto object_ptr = inventory.find((RE::TESBoundObject*)object);
 
-                                                        if (form_id == 0x63b27 || //azure white
-                                                            form_id == 0x63b29 || //azure black
-                                                            form_id == 0xfe001801 //cc varla stone
-                                                            )
-                                                            soulgem->currentSoul = RE::SOUL_LEVEL::kNone; //clear soul
-                                                        else
-                                                        {
-                                                            auto object_ptr = inventory.find((RE::TESBoundObject*)object);
-
-                                                            if (object_ptr != inventory.end())
-                                                                if (object_ptr->first)
-                                                                    player->RemoveItem(object_ptr->first, 1, RE::ITEM_REMOVE_REASON::kRemove, nullptr, nullptr);
+                                                                if (object_ptr != inventory.end())
+                                                                    if (object_ptr->first)
+                                                                        player->RemoveItem(object_ptr->first, 1, RE::ITEM_REMOVE_REASON::kRemove, nullptr, nullptr);
 
                                                             
-                                                        }
+                                                            }
 
                                                         successful_charge = true;
 
@@ -23840,8 +24100,10 @@ namespace MiscThings {
                             }
                         }
 
+                        if (!probe_mode)
+                            player_actor->DropObject(object, nullptr, 1);
 
-                        player_actor->DropObject(object, nullptr, 1);
+
                         result.first = true;
                         result.second = "[Dropping [id " + std::to_string(item_id) + "] " + object_name + "...]";
                         return result;

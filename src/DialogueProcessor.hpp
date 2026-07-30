@@ -64,7 +64,8 @@
         double_confirm,
         confirm_replace_twohanded,
         barter_vendor_confirm_big_transaction,
-        barter_vendor_confirm_slider_big_transaction
+        barter_vendor_confirm_slider_big_transaction,
+        confirm_item_drop
     };
 
     int get_active_force();

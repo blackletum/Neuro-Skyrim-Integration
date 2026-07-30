@@ -246,7 +246,7 @@ namespace MiscThings {
     RE::NiPoint3 get_walking_point_shift(RE::TESObjectREFR* object);
 
     void reset_misc();
-    std::pair<bool, std::string> activate_inventory_object_by_index(int item_id, int action_id);
+    std::pair<bool, std::string> activate_inventory_object_by_index(int item_id, int action_id, bool probe_mode = false);
     std::pair<bool, std::string> drop_array_of_inventory_objects(std::vector<int> ids);
 
     std::pair<bool, std::string> set_replace_twohanded_weapon_choice(int id);
@@ -385,6 +385,11 @@ namespace MiscThings {
     bool is_flying(RE::TESObjectREFR* refr);
     bool dragon_is_on_the_ground(RE::TESObjectREFR* refr);
 
+
+
+    void item_dropper(float dtime);
+    void reset_dropper();
+    std::pair<bool, std::string> set_item_drop_choice_id(int id);
 
     bool myscpath_quest_is_in_the_list();
 
