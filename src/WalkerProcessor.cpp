@@ -1800,6 +1800,7 @@ namespace WalkerProcessor {
 
                                             if (landing_point == wait_val)
                                             {
+                                                dragon_landing_marker->MoveTo(player); //prepare
                                                 seaching_dragon_land_spot = true;
                                                 return;
                                             }
@@ -2167,6 +2168,7 @@ namespace WalkerProcessor {
                                                         dragon_landing_spot_mode = true;
                                                         send_random_context("You try to find a spot where dragon will land...");
                                                         longer_range_advices_ignored++;
+                                                        invalidate_path();
                                                         return;
                                                     }
 
@@ -2192,7 +2194,7 @@ namespace WalkerProcessor {
                                     }
                                     else
                                     {
-                                        if (dragon_landing_spot_placed && dragon_landing_spot_mode)
+                                        if (dragon_landing_spot_placed && dragon_landing_spot_mode && !had_successful_walk)
                                         {
                                             dragon_landing_spot_placed = false;
                                             if (last_dragon_landing_point_used != RE::NiPoint3::Zero())
@@ -5781,6 +5783,8 @@ namespace WalkerProcessor {
         dragon_landing_spot_placed = false;
         dragon_landing_spot_nowhere_to_land = false;
         dragon_landing_spot_arrived = false;
+        dragon_for_landing = nullptr;
+
         MiscThings::reset_dragon_landing_vars();
 
         longer_range_advices_ignored = 0;
@@ -7208,7 +7212,7 @@ namespace WalkerProcessor {
                                                             dragon_landing_spot_mode = true;
                                                             send_random_context("You try to find a spot where dragon will land...");
                                                             longer_range_advices_ignored++;
-
+                                                            invalidate_path();
                                                             return false;
                                                         }
 

@@ -3147,6 +3147,8 @@ namespace MiscThings {
     uint32_t last_navmesh_n = -1;
     uint32_t last_triangle_n = -1;
 
+    RE::FormID last_cell_formid = 0;
+
     void reset_dragon_landing_vars()
     {
         landing_last_grid_x = -1;
@@ -3157,6 +3159,9 @@ namespace MiscThings {
 
         last_navmesh_n = -1;
         last_triangle_n = -1;
+
+
+        last_cell_formid = 0;
     }
 
 
@@ -3171,7 +3176,7 @@ namespace MiscThings {
 
         auto player_pos = player->GetPosition();
 
-        player_pos.z += 10000.0f; //pretend player is high so it prefers higher points, like top of mountain
+        player_pos.z += 2000.0f; //pretend player is high so it prefers higher points, like top of mountain
 
         auto parent_cell = player->GetParentCell();
 
@@ -3205,22 +3210,7 @@ namespace MiscThings {
                     if (gridCells->length == 0)
                         return RE::NiPoint3::Zero();
 
-                    if (landing_last_grid_x >= 0 && landing_last_grid_y >= 0)
-                    {
-                        if (landing_last_grid_x >= (gridCells->length - 1) && landing_last_grid_y >= (gridCells->length - 1))
-                        {
 
-                            auto result = current_best_vertex;
-                            landing_last_grid_x = -1;
-                            landing_last_grid_y = -1;
-
-                            current_best_vertex = RE::NiPoint3::Zero();
-                            current_best_distance = FLT_MAX;
-
-
-                            return result;
-                        }
-                    }
 
 
 
@@ -3241,146 +3231,227 @@ namespace MiscThings {
 
                     int n_triangles = 0;
 
+
+                    auto adjacent_cell = gridCells->GetCell(x, y);
+
+                    /*
+                    if (adjacent_cell->formID != last_cell_formid)
+                    {
+                        last_cell_formid = adjacent_cell->formID;
+                        std::stringstream ss;
+                        ss << std::fixed << std::hex << std::uppercase << adjacent_cell->formID;
+                        std::string cell_id_text = ss.str();
+
+                        cell_id_text += " (" + std::to_string(x) + ", " + std::to_string(y) + ")";
+
+                        Hooks::add_debug_line("New Cell scan: " + cell_id_text, true);
+                    }
+                    */
+
+                    if (adjacent_cell && adjacent_cell->IsAttached())
+                    {
+                        auto navmeshes_array = adjacent_cell->navMeshes;
+
+                        if (navmeshes_array)
                         {
-                            auto adjacent_cell = gridCells->GetCell(x, y);
+                            RE::BSTArray<RE::BSTSmartPointer<RE::NavMesh>>* navmeshes_bs_array = &navmeshes_array->navMeshes;
 
-                            if (adjacent_cell && adjacent_cell->IsAttached())
+
+                            if (last_navmesh_n >= std::size(*navmeshes_bs_array))
+                                last_navmesh_n = 0;
+
+
+                            int current_last_navmesh_n = last_navmesh_n;
+
+
+                            for (int i = current_last_navmesh_n; i < std::size(*navmeshes_bs_array); i++)
                             {
-                                auto navmeshes_array = adjacent_cell->navMeshes;
+                                //auto navmesh = (*navmeshes_bs_array)[i]; //this doesnt work
+                                //auto navmesh_smth = navmeshes_bs_array[i].begin();
+                                //auto navmesh = navmeshes_bs_array->begin()->get(); //this works
 
-                                if (navmeshes_array)
+                                auto p_navmesh = &(*navmeshes_bs_array)[i];
+
+                                auto navmesh = p_navmesh->get();
+
+                                if (navmesh)
                                 {
-                                    RE::BSTArray<RE::BSTSmartPointer<RE::NavMesh>>* navmeshes_bs_array = &navmeshes_array->navMeshes;
+                                    auto vertices = navmesh->vertices;
 
 
-                                    if (last_navmesh_n >= std::size(*navmeshes_bs_array))
-                                        last_navmesh_n = 0;
+                                    auto triangles = navmesh->triangles;
 
+                                    if (last_triangle_n >= std::size(triangles))
+                                        last_triangle_n = 0;
 
-                                    int current_last_navmesh_n = last_navmesh_n;
+                                    int current_last_triangle_n = last_triangle_n;
 
-
-                                    for (int i = current_last_navmesh_n; i < std::size(*navmeshes_bs_array); i++)
+                                    for (int j = current_last_triangle_n; j < std::size(triangles); j++)
+                                        //for (RE::BSNavmeshTriangle triangle : triangles)
                                     {
-                                        //auto navmesh = (*navmeshes_bs_array)[i]; //this doesnt work
-                                        //auto navmesh_smth = navmeshes_bs_array[i].begin();
-                                        //auto navmesh = navmeshes_bs_array->begin()->get(); //this works
+                                        //Hooks::add_debug_line("Navmesh: " + std::to_string(i) + ", Triangle: " + std::to_string(j), true);
 
-                                        auto p_navmesh = &(*navmeshes_bs_array)[i];
+                                        auto triangle = triangles[j];
 
-                                        auto navmesh = p_navmesh->get();
+                                        n_triangles++;
 
-                                        if (navmesh)
+                                        RE::BSNavmeshVertex vertex0 = vertices[triangle.vertices[0]];
+                                        auto vertex_pos = vertex0.location;
+
+                                        float distance = vertex_pos.GetDistance(player_pos);
+
+                                        if (distance > current_best_distance)
+                                            continue;
+
+
+                                        bool spot_is_banned = false;
+
+                                        for (auto banned_spot : banned_spots)
                                         {
-                                            auto vertices = navmesh->vertices;
-
-
-                                            auto triangles = navmesh->triangles;
-
-                                            if (last_triangle_n >= std::size(triangles))
-                                                last_triangle_n = 0;
-
-                                            int current_last_triangle_n = last_triangle_n;
-
-                                            for (int j = current_last_triangle_n; j < std::size(triangles); j++)
-                                            //for (RE::BSNavmeshTriangle triangle : triangles)
+                                            if (vertex_pos.GetDistance(banned_spot) < 3000.0f)
                                             {
-                                                //Hooks::add_debug_line("Navmesh: " + std::to_string(i) + ", Triangle: " + std::to_string(j), true);
-
-                                                auto triangle = triangles[j];
-
-                                                n_triangles++;
-
-                                                RE::BSNavmeshVertex vertex0 = vertices[triangle.vertices[0]];
-                                                auto vertex_pos = vertex0.location;
-
-                                                float distance = vertex_pos.GetDistance(player_pos);
-
-                                                if (distance > current_best_distance)
-                                                    continue;
-
-
-                                                bool spot_is_banned = false;
-
-                                                for (auto banned_spot : banned_spots)
-                                                {
-                                                    if (vertex_pos.GetDistance(banned_spot) < 3000.0f)
-                                                    {
-                                                        spot_is_banned = true;
-                                                        break;
-                                                    }
-                                                }
-
-                                                if (spot_is_banned)
-                                                    continue;
-
-                                                bool point_is_good = true;
-
-                                                for (int i = 0; i < 16; i++)
-                                                {
-                                                    RE::NiPoint3 shift = { r * std::cos(pi / 8 * i), r * std::sin(pi / 8 * i), 0.0f };
-
-                                                    if (!object_is_on_navmesh_in_cell(vertex_pos + shift, adjacent_cell))
-                                                    {
-                                                        point_is_good = false;
-                                                        break;
-                                                    }
-
-                                                }
-
-                                                for (int i = 0; i < 16; i++)
-                                                {
-                                                    RE::NiPoint3 shift = { r / 2.0f * std::cos(pi / 8 * i), r / 2.0f * std::sin(pi / 8 * i), 0.0f };
-
-                                                    if (!object_is_on_navmesh_in_cell(vertex_pos + shift, adjacent_cell))
-                                                    {
-                                                        point_is_good = false;
-                                                        break;
-                                                    }
-
-                                                }
-
-                                                if (point_is_good)
-                                                {
-                                                    current_best_distance = distance;
-                                                    current_best_vertex = vertex_pos;
-                                                }
-
-
-                                                last_triangle_n = j++;
-
-                                                if (n_triangles >= 10)
-                                                {
-                                                    last_navmesh_n = i;
-                                                    return { 0.0f, 0.0f, 0.1f }; //continue next frame
-                                                }
+                                                spot_is_banned = true;
+                                                break;
                                             }
                                         }
-                                        else
+
+                                        if (spot_is_banned)
+                                            continue;
+
+                                        bool point_is_good = true;
+
+
+                                        int bad_points = 0;
+
+                                        for (int k = 0; k < 16; k++)
                                         {
-                                            bool stop_here = false;
+                                            RE::NiPoint3 shift = { r * std::cos(pi / 8 * k), r * std::sin(pi / 8 * k), 0.0f };
+
+                                            if (!object_is_on_navmesh_in_cell(vertex_pos + shift, adjacent_cell))
+                                            {
+
+                                                bad_points++;
+
+                                                if (bad_points > 4)
+                                                {
+                                                    point_is_good = false;
+                                                    break;
+                                                }
+
+                                            }
+
+                                        }
+
+                                        if (point_is_good)
+                                        {
+                                            for (int k = 0; k < 16; k++)
+                                            {
+                                                RE::NiPoint3 shift = { r / 2.0f * std::cos(pi / 8 * k), r / 2.0f * std::sin(pi / 8 * k), 0.0f };
+
+                                                if (!object_is_on_navmesh_in_cell(vertex_pos + shift, adjacent_cell))
+                                                {
+
+                                                    bad_points++;
+
+                                                    if (bad_points > 4)
+                                                    {
+                                                        point_is_good = false;
+                                                        break;
+                                                    }
+                                                    /*
+                                                    if (adjacent_cell->formID == 0x9485 && i == 0 && j == 126)
+                                                    {
+                                                        debug_bad_points++;
+                                                        Hooks::add_debug_line("TARGET CELL FAILED2: " + std::to_string(k) + ", failed points: " + std::to_string(debug_bad_points), true);
+                                                    }
+                                                    else
+                                                    {
+                                                        point_is_good = false;
+                                                        break;
+                                                    }
+                                                    */
+                                                }
+
+                                            }
                                         }
 
 
-                                        last_navmesh_n = i++;
+                                        if (point_is_good)
+                                        {
+                                            /*
+                                            std::stringstream ss;
+                                            ss << std::fixed << std::hex << std::uppercase << adjacent_cell->formID;
+                                            std::string cell_id_text = ss.str();
+                                            cell_id_text += " (" + std::to_string(x) + ", " + std::to_string(y) + ")";
+                                            Hooks::add_debug_line("GOOD POINT FOUND: Cell: 0x" + cell_id_text + ", Navmesh: " + std::to_string(i) + ", Triangle : " + std::to_string(j) + ", bad_points: " + std::to_string(bad_points) , true);
+                                            */
+                                            current_best_distance = distance;
+                                            current_best_vertex = vertex_pos;
+                                        }
+
+
+                                        last_triangle_n = j++;
+
+                                        if (n_triangles >= 10)
+                                        {
+                                            last_navmesh_n = i;
+                                            return { 0.0f, 0.0f, 0.1f }; //continue next frame
+                                        }
                                     }
-
-                                    last_navmesh_n = -1;
-
-
                                 }
+                                else
+                                {
+                                    bool stop_here = false;
+                                }
+
+
+                                last_navmesh_n = i++;
                             }
+
+                            last_navmesh_n = -1;
+
+
                         }
+                    }
+                    else
+                    {
+                        bool stop_here = false;
+                    }
 
 
-                        if (landing_last_grid_x > landing_last_grid_y)
-                            landing_last_grid_y++;
+
+
+                    if (landing_last_grid_x >= 0 && landing_last_grid_y >= 0)
+                    {
+                        if (landing_last_grid_x >= (gridCells->length - 1) && landing_last_grid_y >= (gridCells->length - 1))
+                        {
+                            //done
+                            auto result = current_best_vertex;
+
+
+                            reset_dragon_landing_vars();
+
+
+                            return result;
+                        }
                         else
-                            landing_last_grid_x++;
+                        {
+                            //next
+                            if (landing_last_grid_x > landing_last_grid_y)
+                                landing_last_grid_y++;
+                            else
+                                landing_last_grid_x++;
+                        }
+                    }
+                    else
+                        return RE::NiPoint3::Zero();
 
 
-                        //waiting for it to check all
-                        return { 0.0f, 0.0f, 0.1f };
+
+
+
+                    //waiting for it to check all
+                    return { 0.0f, 0.0f, 0.1f };
                 }
             }
         }
