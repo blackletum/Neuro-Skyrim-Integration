@@ -20923,7 +20923,125 @@ namespace MiscThings {
 
 
 
+    float get_ench_usefullness_coef_without_given_ench(RE::EnchantmentItem* ench)
+    {
+        auto player = RE::PlayerCharacter::GetSingleton();
 
+        if (player)
+        {
+            if (ench && ench->data.baseEnchantment)
+            {
+                for (auto effect : ench->data.baseEnchantment->effects)
+                {
+                    if (effect && effect->baseEffect)
+                    {
+                        float magnitude = effect->GetMagnitude();
+
+                        switch (effect->baseEffect->formID)
+                        {
+                        case (0x49295): //shock
+                        {
+                            float current_player_value = player->GetActorValue(RE::ActorValue::kResistShock);
+                            current_player_value -= magnitude;
+
+                            if (current_player_value > 100.0f)
+                                current_player_value = 100.0f;
+
+                            return 1.0f + 2.0f * magnitude*(100.0f - current_player_value)/100.0f/100.0f;
+
+                            break;
+                        }
+
+                        case (0x48c8b): //fire
+                        {
+                            float current_player_value = player->GetActorValue(RE::ActorValue::kResistFire);
+                            current_player_value -= magnitude;
+
+                            if (current_player_value > 100.0f)
+                                current_player_value = 100.0f;
+
+                            return 1.0f + 5.0f * magnitude * (100.0f - current_player_value) / 100.0f / 100.0f;
+
+                            break;
+                        }
+
+                        case (0x48f45): //frost
+                        {
+                            float current_player_value = player->GetActorValue(RE::ActorValue::kResistFrost);
+                            current_player_value -= magnitude;
+
+                            if (current_player_value > 100.0f)
+                                current_player_value = 100.0f;
+
+                            return 1.0f + 10.0f * magnitude * (100.0f - current_player_value) / 100.0f / 100.0f;
+
+                            break;
+                        }
+
+                        case (0x109637): //magic
+                        {
+                            float current_player_value = player->GetActorValue(RE::ActorValue::kResistMagic);
+                            current_player_value -= magnitude;
+
+                            if (current_player_value > 100.0f)
+                                current_player_value = 100.0f;
+
+                            return 1.0f + 5.0f * magnitude * (100.0f - current_player_value) / 100.0f / 100.0f;
+
+                            break;
+                        }
+
+                        }
+                    }
+                }
+            }
+        }
+
+
+        return 0.0f;
+    }
+
+
+    float get_enchantment_bonus_value(RE::EnchantmentItem* ench, bool current_gear, RE::EnchantmentItem* current_gear_ench)
+    {
+        float result = 0.0f;
+
+
+        if (ench && ench->data.baseEnchantment)
+        {
+            for (auto effect : ench->data.baseEnchantment->effects)
+            {
+                if (effect && effect->baseEffect)
+                {
+                    float magnitude = effect->GetMagnitude();
+
+                    float coef = 1.0f;
+
+                    if (current_gear)
+                    {
+                        coef = get_ench_usefullness_coef_without_given_ench(ench);
+
+                    }
+                    else
+                    {
+
+                        if (current_gear_ench)
+                            coef = get_ench_usefullness_coef_without_given_ench(current_gear_ench);
+
+                        coef *= get_ench_usefullness_coef_without_given_ench(ench);
+                    }
+
+                    result += magnitude * coef;
+
+                }
+            }
+
+            result += 40.0f;
+        }
+
+
+        return result;
+    }
 
 
     float armor_damage_difference(RE::TESBoundObject* item, bool ignore_current)
@@ -20940,6 +21058,12 @@ namespace MiscThings {
 
                     float new_armor_val = new_armor->GetArmorRating();
 
+                    if (new_armor->IsHeavyArmor())
+                        new_armor_val *= 0.8f;
+
+
+
+
                     float current_armor_val = 0.0f;
 
                     auto current_armor = (RE::TESObjectARMO*)get_armor_slot_contents(slot);
@@ -20947,25 +21071,49 @@ namespace MiscThings {
                     if (ignore_current)
                         current_armor = nullptr;
 
+                    bool value_current_more = false;
+
+                    
+                    RE::EnchantmentItem* current_gear_ench = nullptr;
+
                     if (current_armor)
                     {
                         if (current_armor->IsArmor())
                         {
                             current_armor_val = current_armor->GetArmorRating();
 
+                            if (current_armor->IsHeavyArmor())
+                                current_armor_val *= 0.8f;
+
                             if (current_armor->formEnchanting != nullptr)
                             {
-                                current_armor_val += 40.0f; //dont advice to take off enchanted gear it might be stronger even if rating is lower
+
+                                float ench_val = 40.0f + get_enchantment_bonus_value(current_armor->formEnchanting, true, nullptr);
+
+                                current_armor_val += ench_val;
+
+                                if (ench_val > 0.0f)
+                                    value_current_more = true;
+
+                                current_gear_ench = current_armor->formEnchanting;
                             }
                         }
                     }
-                    else
+
+                    //else
                     {
                         if (new_armor->formEnchanting != nullptr)
                         {
-                            new_armor_val += 40.0f; 
+                            float ench_val = 40.0f + get_enchantment_bonus_value(new_armor->formEnchanting, false, current_gear_ench);
+
+                            if (value_current_more)
+                                ench_val *= 0.9f;
+
+                            new_armor_val += ench_val;
+
                         }
                     }
+
 
 
                     if (slot == RE::BGSBipedObjectForm::BipedObjectSlot::kShield && (!current_armor || has_spell_equipped(false)))
