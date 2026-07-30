@@ -579,6 +579,8 @@ namespace WalkerProcessor {
 
 
 
+
+
     std::string get_quest_journal_description_if_never_shown(RE::TESQuest* quest)
     {
         bool is_new = true;
@@ -1450,6 +1452,14 @@ namespace WalkerProcessor {
         return false;
     }
 
+
+
+
+
+    bool trying_to_unstuck()
+    {
+        return wiggle_body_then_walk_again || (!had_any_path_found_this_run && probe_failed()) || try_unstuck;
+    }
 
 
 

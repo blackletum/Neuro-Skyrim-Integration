@@ -179,6 +179,10 @@ namespace Observer {
 
 
 
+	bool walker_was_unstucking = false;
+	float walker_stopped_unstucking_time = 0.0f;
+
+
 	float jail_reminder_time = 0.0f;
 
 
@@ -1232,6 +1236,31 @@ namespace Observer {
 			reset_threats();
 			return;
 		}
+
+
+		if (WalkerProcessor::trying_to_unstuck())
+		{
+			walker_was_unstucking = true;
+			walker_stopped_unstucking_time = 0.0f;
+			return; //wait for walker to unstuck
+		}
+		else
+		{
+			if (walker_was_unstucking)
+			{
+				if (walker_stopped_unstucking_time > 1.0f)
+				{
+					walker_was_unstucking = false;
+					walker_stopped_unstucking_time = 0.0f;
+				}
+				else
+					walker_stopped_unstucking_time += dtime;
+
+				return;
+			}
+		}
+			
+
 
 
 		if (observers_green_light)

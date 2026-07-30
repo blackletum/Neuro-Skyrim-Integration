@@ -202,6 +202,7 @@ namespace WalkerProcessor {
 	std::pair<bool, std::string> turn_sneak_off();
 	bool is_sneak_on();
 
+	bool trying_to_unstuck();
 
 	void start_emergency_swimup();
 	void clear_emergency_swimup();
