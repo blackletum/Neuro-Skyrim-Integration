@@ -3143,11 +3143,13 @@ namespace MiscThings {
 
     RE::NiPoint3 current_best_vertex{};
     float current_best_distance = FLT_MAX;
+    int current_best_purity = 99999999;
 
     uint32_t last_navmesh_n = -1;
     uint32_t last_triangle_n = -1;
 
     RE::FormID last_cell_formid = 0;
+
 
     void reset_dragon_landing_vars()
     {
@@ -3162,6 +3164,7 @@ namespace MiscThings {
 
 
         last_cell_formid = 0;
+        current_best_purity = 99999999;
     }
 
 
@@ -3300,7 +3303,7 @@ namespace MiscThings {
 
                                         float distance = vertex_pos.GetDistance(player_pos);
 
-                                        if (distance > current_best_distance)
+                                        if (distance > current_best_distance && current_best_purity == 0)
                                             continue;
 
 
@@ -3376,7 +3379,10 @@ namespace MiscThings {
                                         }
 
 
-                                        if (point_is_good)
+
+
+
+                                        if (point_is_good && bad_points < current_best_purity)
                                         {
                                             /*
                                             std::stringstream ss;
@@ -3384,9 +3390,11 @@ namespace MiscThings {
                                             std::string cell_id_text = ss.str();
                                             cell_id_text += " (" + std::to_string(x) + ", " + std::to_string(y) + ")";
                                             Hooks::add_debug_line("GOOD POINT FOUND: Cell: 0x" + cell_id_text + ", Navmesh: " + std::to_string(i) + ", Triangle : " + std::to_string(j) + ", bad_points: " + std::to_string(bad_points) , true);
-                                            */
+                                            
                                             current_best_distance = distance;
                                             current_best_vertex = vertex_pos;
+                                            current_best_purity = bad_points;
+                                            */
                                         }
 
 

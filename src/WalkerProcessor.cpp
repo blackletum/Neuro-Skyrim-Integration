@@ -449,6 +449,8 @@ namespace WalkerProcessor {
 
     bool was_charging_ranged = false;
 
+    bool was_casting_spell_right = false;
+    bool was_casting_spell_left = false;
 
     bool lock_camera_wants_to_crouch = false;
 
@@ -1248,6 +1250,16 @@ namespace WalkerProcessor {
     {
         was_charging_ranged = false;
 
+
+        if (was_casting_spell_right)
+            right_attack_cancel();
+
+        if (was_casting_spell_left)
+            left_attack_cancel();
+
+        was_casting_spell_right = false;
+        was_casting_spell_left = false;
+
         //right_attack_cancel();
         //left_attack_cancel();
 
@@ -1275,7 +1287,7 @@ namespace WalkerProcessor {
             {
                 attack_paused = true;
                 gave_attacking_info = false;
-                if (was_charging_ranged)
+                if (was_charging_ranged || was_casting_spell_left || was_casting_spell_right)
                 {
                     cancel_charge_weapon();
                 }
@@ -3052,7 +3064,7 @@ namespace WalkerProcessor {
 
 
 
-            if (was_charging_ranged)
+            if (was_charging_ranged || was_casting_spell_left || was_casting_spell_right)
             {
                 cancel_charge_weapon();
             }
@@ -6194,6 +6206,9 @@ namespace WalkerProcessor {
         last_u_valid = false;
         was_charging_ranged = false;
 
+        was_casting_spell_right = false;
+        was_casting_spell_left = false;
+
         lasttime = 0;
         lasttime_close_enough = 0;
 
@@ -6358,7 +6373,7 @@ namespace WalkerProcessor {
                 unslow_walk();
             }
 
-            if (was_charging_ranged)
+            if (was_charging_ranged || was_casting_spell_left || was_casting_spell_right)
                 cancel_charge_weapon();
 
 
@@ -7068,7 +7083,7 @@ namespace WalkerProcessor {
 
                     if (target_ref->IsActor() && target_ref->IsDead() && !was_already_dead)
                     {
-                        if (was_charging_ranged)
+                        if (was_charging_ranged || was_casting_spell_left || was_casting_spell_right)
                         {
                             cancel_charge_weapon();
                         }
@@ -12597,7 +12612,7 @@ namespace WalkerProcessor {
 
 
 
-                    if (was_charging_ranged)
+                    if (was_charging_ranged || was_casting_spell_left || was_casting_spell_right)
                         cancel_charge_weapon();
 
                     return false;
@@ -12770,6 +12785,8 @@ namespace WalkerProcessor {
                             }
 
 
+                            was_casting_spell_right = true;
+
 
                             if (MiscThings::is_summon_spell(true))
                                 look_down_for_summon();
@@ -12893,7 +12910,7 @@ namespace WalkerProcessor {
                                             right_attack_spell();
                                     }
 
-
+                                    was_casting_spell_right = true;
 
                                     if (MiscThings::is_summon_spell(true))
                                         look_down_for_summon();
@@ -13117,7 +13134,7 @@ namespace WalkerProcessor {
                         {
                             //end of attack
                             
-                            is_casting_walker2(true);
+                            //is_casting_walker2(true);
 
                             if (has_staff_equipped(true) || is_fire_and_forget_spell(true))
                             {
@@ -13159,6 +13176,7 @@ namespace WalkerProcessor {
 
                             gave_attacking_info = false;
                             was_charging_ranged = false;
+                            was_casting_spell_right = false;
                             right_attack_cancel();
 
 
@@ -13316,6 +13334,8 @@ namespace WalkerProcessor {
                                 }
 
 
+                                was_casting_spell_left = true;
+
                                 if (MiscThings::is_summon_spell(false))
                                     look_down_for_summon();
 
@@ -13445,6 +13465,8 @@ namespace WalkerProcessor {
                                                 left_attack_spell();
                                         }
 
+
+                                        was_casting_spell_left = true;
 
                                         if (MiscThings::is_summon_spell(false))
                                             look_down_for_summon();
@@ -13705,6 +13727,7 @@ namespace WalkerProcessor {
                             gave_attacking_info = false;
                             attack_spell_cast_timeout = 0.0f;
                             was_charging_ranged = false;
+                            was_casting_spell_left = false;
                             try_dual_attack = false;
 
                             left_attack_cancel();
