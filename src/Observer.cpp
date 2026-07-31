@@ -24,6 +24,8 @@ namespace Observer {
 	int same_place_death_count = 0;
 
 
+	bool was_fighting = false;
+	float not_fighting_timer = 0.0f;
 
 
 
@@ -1009,6 +1011,8 @@ namespace Observer {
 
 	void reset_observer()
 	{
+		was_fighting = false;
+		not_fighting_timer = 0.0f;
 
 		check_health_decrease_after_hit = false;
 		check_health_decrease_hit_weapon = nullptr;
@@ -5650,14 +5654,34 @@ namespace Observer {
 		//700c4bc - huge cutter
 		//700ca1f - huge cutter2
 
+		bool is_fighting = WalkerProcessor::is_fighting() || Observer::threat_response_choice_pending();
 
-		if (last_saved_time > 160.0f && !WalkerProcessor::is_fighting() && !WalkerProcessor::is_walking_important_path() && !MiscThings::have_force_only_menu_open() && get_active_force() == -1 && MiscThings::player_hp_more_than(0.3f))
+		bool fighting_condition = false;
+
+		if (!is_fighting && was_fighting)
+		{
+			if (not_fighting_timer > 10.0f)
+			{
+				was_fighting = false;
+				not_fighting_timer = 0.0f;
+			}
+			else
+				not_fighting_timer += dtime;
+		}
+		else
+			not_fighting_timer = 0.0f;
+
+		if (is_fighting)
+			was_fighting = true;
+
+		if (last_saved_time > 160.0f && !was_fighting && !WalkerProcessor::is_walking_important_path() && !MiscThings::have_force_only_menu_open() && get_active_force() == -1 && MiscThings::player_hp_more_than(0.3f))
 		{
 			quicksave();
 			last_saved_time = 0.0f;
 		}
 		else
 			last_saved_time += dtime;
+
 
 		RE::UI* ui = RE::UI::GetSingleton();
 		if (!ui->IsMenuOpen(RE::LoadingMenu::MENU_NAME) && !ui->IsMenuOpen(RE::MainMenu::MENU_NAME))
