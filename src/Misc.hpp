@@ -24,6 +24,10 @@ namespace MiscThings {
 
     bool is_follower_waiting_for_player(RE::TESObjectREFR* refr);
 
+
+    bool object_is_on_navmesh_in_cell(RE::NiPoint3 object_pos, RE::TESObjectCELL* cell, bool skip_water = false);
+    bool object_is_on_navmesh_in_cell(RE::TESObjectREFR* object, RE::TESObjectCELL* cell, bool skip_water = false);
+
     int safe_to_dodge_projectile();
 
 

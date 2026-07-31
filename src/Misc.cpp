@@ -2968,7 +2968,7 @@ namespace MiscThings {
 
 
 
-    bool object_is_on_navmesh_in_cell(RE::NiPoint3 object_pos, RE::TESObjectCELL* cell)
+    bool object_is_on_navmesh_in_cell(RE::NiPoint3 object_pos, RE::TESObjectCELL* cell, bool skip_water)
     {
         if (object_pos != RE::NiPoint3::Zero())
         {
@@ -2979,6 +2979,13 @@ namespace MiscThings {
                 //must check adjacent cells if in overworld
 
                 auto navmeshes_array = cell->navMeshes;
+
+                float water_height = -FLT_MAX;
+
+                if (skip_water)
+                    water_height = cell->GetExteriorWaterHeight();
+
+
 
                 if (navmeshes_array)
                 {
@@ -3013,6 +3020,10 @@ namespace MiscThings {
                                     auto v1 = vertex1.location;
                                     auto v2 = vertex2.location;
 
+                                    if (skip_water)
+                                        if (v0.z < water_height || v1.z < water_height || v2.z < water_height)
+                                            continue;
+
                                     bool z_test = abs(v0.z - object_pos.z) < 300.0f && abs(v1.z - object_pos.z) < 300.0f && abs(v2.z - object_pos.z) < 300.0f;
 
                                     if (z_test && PointInTriangle({ object_pos.x, object_pos.y }, { v0.x, v0.y }, { v1.x, v1.y }, { v2.x, v2.y }))
@@ -3030,13 +3041,13 @@ namespace MiscThings {
 
 
 
-    bool object_is_on_navmesh_in_cell(RE::TESObjectREFR* object, RE::TESObjectCELL* cell)
+    bool object_is_on_navmesh_in_cell(RE::TESObjectREFR* object, RE::TESObjectCELL* cell, bool skip_water)
     {
         if (object)
         {
             auto object_pos = object->GetPosition();
 
-            return object_is_on_navmesh_in_cell(object_pos, cell);
+            return object_is_on_navmesh_in_cell(object_pos, cell, skip_water);
 
         }
 
@@ -3253,6 +3264,12 @@ namespace MiscThings {
 
                     if (adjacent_cell && adjacent_cell->IsAttached())
                     {
+
+                        float water_height = adjacent_cell->GetExteriorWaterHeight();
+
+                        
+
+
                         auto navmeshes_array = adjacent_cell->navMeshes;
 
                         if (navmeshes_array)
@@ -3301,6 +3318,9 @@ namespace MiscThings {
                                         RE::BSNavmeshVertex vertex0 = vertices[triangle.vertices[0]];
                                         auto vertex_pos = vertex0.location;
 
+                                        if (vertex_pos.z < water_height)
+                                            continue;
+
                                         float distance = vertex_pos.GetDistance(player_pos);
 
                                         if (distance > current_best_distance && current_best_purity == 0)
@@ -3330,7 +3350,7 @@ namespace MiscThings {
                                         {
                                             RE::NiPoint3 shift = { r * std::cos(pi / 8 * k), r * std::sin(pi / 8 * k), 0.0f };
 
-                                            if (!object_is_on_navmesh_in_cell(vertex_pos + shift, adjacent_cell))
+                                            if (!object_is_on_navmesh_in_cell(vertex_pos + shift, adjacent_cell, true))
                                             {
 
                                                 bad_points++;
