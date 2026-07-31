@@ -3382,7 +3382,7 @@ namespace MiscThings {
 
 
 
-                                        if (point_is_good && bad_points < current_best_purity)
+                                        if (point_is_good && bad_points <= current_best_purity)
                                         {
                                             /*
                                             std::stringstream ss;
@@ -3390,11 +3390,11 @@ namespace MiscThings {
                                             std::string cell_id_text = ss.str();
                                             cell_id_text += " (" + std::to_string(x) + ", " + std::to_string(y) + ")";
                                             Hooks::add_debug_line("GOOD POINT FOUND: Cell: 0x" + cell_id_text + ", Navmesh: " + std::to_string(i) + ", Triangle : " + std::to_string(j) + ", bad_points: " + std::to_string(bad_points) , true);
-                                            
+                                            */
                                             current_best_distance = distance;
                                             current_best_vertex = vertex_pos;
                                             current_best_purity = bad_points;
-                                            */
+                                            
                                         }
 
 
