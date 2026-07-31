@@ -439,6 +439,9 @@ namespace WalkerProcessor {
     float attack_action_time0 = 0.0f;
     float attack_action_time1 = 0.0f;
 
+    float attack_action_timeout0 = 0.0f;
+    float attack_action_timeout1 = 0.0f;
+
     bool dualcasting = false;
 
     RE::NiPoint3 last_target_pos{};
@@ -1296,6 +1299,9 @@ namespace WalkerProcessor {
                 left_attack_cancel();
                 attack_action_time0 = 0.0f;
                 attack_action_time1 = 0.0f;
+
+                attack_action_timeout0 = 0.0f;
+                attack_action_timeout1 = 0.0f;
             }
             else
             {
@@ -6200,6 +6206,9 @@ namespace WalkerProcessor {
         attack_action_time0 = 0.0f;
         attack_action_time1 = 0.0f;
 
+        attack_action_timeout0 = 0.0f;
+        attack_action_timeout1 = 0.0f;
+
         last_target_pos = RE::NiPoint3::Zero();
         last_u = RE::NiPoint3::Zero();
         last_target_pos_valid = false;
@@ -6361,6 +6370,9 @@ namespace WalkerProcessor {
 
             attack_action_time0 = 0.0f;
             attack_action_time1 = 0.0f;
+
+            attack_action_timeout0 = 0.0f;
+            attack_action_timeout1 = 0.0f;
 
             got_close_for_pickpocket = false;
 
@@ -12644,6 +12656,9 @@ namespace WalkerProcessor {
                     attack_action = 0;
                     attack_action_time0 = 0.0f;
                     attack_action_time1 = 0.0f;
+
+                    attack_action_timeout0 = 0.0f;
+                    attack_action_timeout1 = 0.0f;
                 }
                 else
                 {
@@ -12654,6 +12669,9 @@ namespace WalkerProcessor {
                         attack_action = 1;
                         attack_action_time0 = 0.0f;
                         attack_action_time1 = 0.0f;
+
+                        attack_action_timeout0 = 0.0f;
+                        attack_action_timeout1 = 0.0f;
                     }
                     else
                     {
@@ -12779,11 +12797,11 @@ namespace WalkerProcessor {
 
 
 
-                            if (is_concentration_spell(true) && !dualcasting)
-                                right_attack_spell();
-                            else
+                            //if (is_concentration_spell(true))// && !dualcasting)
+                            //    right_attack_spell();
+                            //else
                             {
-                                if (attack_action_time0 < 0.000001f)
+                                if (attack_action_time0 < 0.1f)
                                     right_attack();
                                 else
                                     right_attack_spell();
@@ -12887,6 +12905,7 @@ namespace WalkerProcessor {
                                         attack_spell_cast_timeout = 0.0f;
                                         right_attack_cancel();
                                         attack_action_time0 = 0.0f;
+                                        attack_action_timeout0 = 0.0f;
 
                                         if (spell_mode && target_ref && !MiscThings::is_enemy_to_actor(target_ref))
                                         {
@@ -12905,11 +12924,11 @@ namespace WalkerProcessor {
 
                                 if (!skip_cast)
                                 {
-                                    if (is_concentration_spell(true) && !dualcasting)
-                                        right_attack_spell();
-                                    else
+                                    //if (is_concentration_spell(true))// && !dualcasting)
+                                    //    right_attack_spell();
+                                    //else
                                     {
-                                        if (attack_action_time0 < 0.000001f)
+                                        if (attack_action_time0 < 0.1f)
                                             right_attack();
                                         else
                                             right_attack_spell();
@@ -13103,7 +13122,20 @@ namespace WalkerProcessor {
                             is_actually_casting |= dualcasting && WalkerProcessor::is_casting_walker(!true);
 
                             if (is_actually_casting)
+                            {
                                 attack_action_time0 += dtime;
+                                attack_action_timeout0 = 0.0f;
+                            }
+                            else
+                            {
+                                if (attack_action_timeout0 > 1.0f)
+                                {
+                                    attack_action_time0 = 999.0f;
+                                    attack_action_timeout0 = 0.0f;
+                                }
+                                else
+                                    attack_action_timeout0 += dtime;
+                            }
                         }
                         else
                             attack_action_time0 += dtime;
@@ -13187,6 +13219,8 @@ namespace WalkerProcessor {
 
 
                             attack_action_time0 = 0.0f;
+                            attack_action_timeout0 = 0.0f;
+
 
                             float choose_next_action = (float)std::rand() / RAND_MAX;
 
@@ -13328,11 +13362,11 @@ namespace WalkerProcessor {
                                 }
 
 
-                                if (is_concentration_spell(false) && !dualcasting)
-                                    left_attack_spell();
-                                else
+                                //if (is_concentration_spell(false))// && !dualcasting)
+                                //    left_attack_spell();
+                                //else
                                 {
-                                    if (attack_action_time1 < 0.000001f)
+                                    if (attack_action_time1 < 0.1f)
                                         left_attack();
                                     else
                                         left_attack_spell();
@@ -13436,7 +13470,7 @@ namespace WalkerProcessor {
                                             attack_spell_cast_timeout = 0.0f;
                                             left_attack_cancel();
                                             attack_action_time1 = 0.0f;
-
+                                            attack_action_timeout1 = 0.0f;
                                             if (spell_mode && target_ref && !MiscThings::is_enemy_to_actor(target_ref))
                                             {
                                                 reset_walker();
@@ -13460,11 +13494,11 @@ namespace WalkerProcessor {
 
                                     if (!skip_cast)
                                     {
-                                        if (is_concentration_spell(false) && !dualcasting)
-                                            left_attack_spell();
-                                        else
+                                        //if (is_concentration_spell(false))// && !dualcasting)
+                                        //    left_attack_spell();
+                                        //else
                                         {
-                                            if (attack_action_time1 < 0.000001f)
+                                            if (attack_action_time1 < 0.1f)
                                                 left_attack();
                                             else
                                                 left_attack_spell();
@@ -13656,7 +13690,20 @@ namespace WalkerProcessor {
                                 is_actually_casting |= dualcasting && WalkerProcessor::is_casting_walker(!false);
 
                                 if (is_actually_casting)
+                                {
                                     attack_action_time1 += dtime;
+                                    attack_action_timeout1 = 0.0f;
+                                }
+                                else
+                                {
+                                    if (attack_action_timeout1 > 1.0f)
+                                    {
+                                        attack_action_time1 = 999.0f;
+                                        attack_action_timeout1 = 0.0f;
+                                    }
+                                    else
+                                        attack_action_timeout1 += dtime;
+                                }
                             }
                             else
                                 attack_action_time1 += dtime;
@@ -13737,6 +13784,8 @@ namespace WalkerProcessor {
 
                             left_attack_cancel();
                             attack_action_time1 = 0.0f;
+                            attack_action_timeout1 = 0.0f;
+
                             float choose_next_action = (float)std::rand() / RAND_MAX;
 
                             float power_attack_chance = (float)std::rand() / RAND_MAX;
