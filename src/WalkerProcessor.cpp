@@ -12139,8 +12139,13 @@ namespace WalkerProcessor {
                             {
                                 auto range2 = effectSetting->data.projectileBase->data.range;
 
+                                float coef = 0.8f;
+
+                                if (target_ref && MiscThings::is_dragon(target_ref))
+                                    coef = 1.0f;
+
                                 if (range2 > 0.0f)
-                                    return range2*0.8f;
+                                    return range2* coef;
                             }
 
                         }
