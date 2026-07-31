@@ -22,6 +22,7 @@ namespace MiscThings {
 
     bool quest_target_is_hidden(RE::TESQuest* quest, RE::BGSQuestObjective* objective, RE::TESQuestTarget* target);
 
+    bool is_follower_waiting_for_player(RE::TESObjectREFR* refr);
 
     int safe_to_dodge_projectile();
 

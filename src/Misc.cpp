@@ -4756,8 +4756,18 @@ namespace MiscThings {
                         }
                     }
 
+                    bool follower_not_ready = false;
 
-                    return !not_trading && !is_dead && !is_disabled;
+                    if (mode == 9) //friend
+                    {
+                        //if (!is_follower_waiting_for_player(object))
+                        if (player_has_follower())
+                            follower_not_ready = true;
+                    }
+
+
+
+                    return !not_trading && !is_dead && !is_disabled && !follower_not_ready;
                 }
                 else
                 {
@@ -10308,6 +10318,24 @@ namespace MiscThings {
     }
 
 
+
+
+    bool is_follower_waiting_for_player(RE::TESObjectREFR* refr)
+    {
+        if (refr && refr->IsActor())
+        {
+            auto actor = (RE::Actor*)refr;
+
+            auto faction = (RE::TESFaction*)RE::TESForm::LookupByID(0x5c84e);
+
+            if (faction)
+            {
+                return !actor->IsInFaction(faction);
+            }
+        }
+
+        return false;
+    }
 
     bool player_has_follower()
     {
