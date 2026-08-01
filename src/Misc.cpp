@@ -57,6 +57,30 @@ namespace MiscThings {
 
 
 
+    bool mzinchaleft_puzzle_condition()
+    {
+        auto player = RE::PlayerCharacter::GetSingleton();
+
+        if (player)
+        {
+            auto parent_cell = player->GetParentCell();
+            if (parent_cell && parent_cell->formID == 0x1523d)
+            {
+                auto mzinchaleft_lever = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xbe4c7);
+
+                if (mzinchaleft_lever)
+                {
+                    if (player->GetDistance(mzinchaleft_lever) < 1000.0f)
+                        return true;
+                }
+            }
+            
+        }
+
+        return false;
+    }
+
+
 
     bool quicksave_is_banned()
     {
@@ -11881,6 +11905,48 @@ namespace MiscThings {
         if (!a_ref)
             return "";
 
+
+        switch (a_ref->formID) //mzinchaleft filtered poles (maybe worth doing it for all pole-type gates)
+        {
+        case (0xbe490):
+        case (0xbe48e):
+        case (0xbe48c):
+        case (0xbe494):
+
+        case (0x63ced):
+        case (0x63cee):
+        case (0x63cef):
+        case (0x63cf0):
+
+        case (0x63d01):
+        case (0x63cff):
+        case (0x63d04):
+        case (0x63d06):
+
+        case (0xbe4b8):
+        case (0xbe4b9):
+        case (0xbe4bc):
+        case (0xbe4be):
+
+        case (0xbe496):
+        case (0xbe499):
+        case (0xbe49c):
+        case (0xbe49e):
+
+        case (0xbe4b3):
+        case (0xbe4b1):
+        case (0xbe4af):
+        case (0xbe4ad):
+
+        case (0x63cf3):
+        case (0x63cf8):
+        case (0x63cfa):
+        case (0x63cfc):
+        case (0x63cfe):
+            return "";
+        }
+
+
        // return "";
         std::string result = "";
 
@@ -19634,97 +19700,172 @@ namespace MiscThings {
                 std::vector<std::string> linked_to{};
                 std::string linked_to_text = "";
 
-                auto extra = object->extraList.GetByType(RE::ExtraDataType::kLinkedRef);
+
+
+
+
+                
 
                 if (!no_linked_chains)
                 {
-                    if (extra)
-                    {
-                        auto extra_linked = (RE::ExtraLinkedRef*)extra;
+                    std::string mzinchaleft_info = "";
 
-                        for (auto linked_ref : extra_linked->linkedRefs)
-                        {
-                            if (linked_ref.refr)
-                            {
-                                std::string name_linked = insert_object_into_list_and_get_info(linked_ref.refr, false, true);
-                                if (name_linked != "")
-                                {
-                                    linked_to.push_back(name_linked);
-                                }
-                            }
-                        }
+                    switch (object->formID)
+                    {
+                    case (0xbe4c7): //mzinchaleft levers
+                    {
+                        mzinchaleft_info = MiscThings::insert_object_into_list_custom_name(" Dwemer metal pole gate", (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xbe492));
+                        if (mzinchaleft_info != "") linked_to.push_back(mzinchaleft_info);
+
+                        //mzinchaleft_info = MiscThings::insert_object_into_list_custom_name(" Dwemer metal pole gate", (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x63cfa));
+                        //if (mzinchaleft_info != "") linked_to.push_back(mzinchaleft_info);
+
+                        break;
                     }
 
-                    extra = object->extraList.GetByType(RE::ExtraDataType::kActivateRefChildren);
-
-                    if (extra)
+                    case (0xbe4cf): //mzinchaleft levers
                     {
-                        auto extra_linked = (RE::ExtraActivateRefChildren*)extra;
+                        mzinchaleft_info = MiscThings::insert_object_into_list_custom_name(" Dwemer metal pole gate", (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x63cf1));
+                        if (mzinchaleft_info != "") linked_to.push_back(mzinchaleft_info);
 
-                        for (auto linked_ref : extra_linked->children)
+                        mzinchaleft_info = MiscThings::insert_object_into_list_custom_name(" Dwemer metal pole gate", (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xbe498));
+                        if (mzinchaleft_info != "") linked_to.push_back(mzinchaleft_info);
+
+                        break;
+                    }
+
+                    case (0xbe4c8): //mzinchaleft levers
+                    {
+                        mzinchaleft_info = MiscThings::insert_object_into_list_custom_name(" Dwemer metal pole gate", (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xbe492));
+                        if (mzinchaleft_info != "") linked_to.push_back(mzinchaleft_info);
+
+                        mzinchaleft_info = MiscThings::insert_object_into_list_custom_name(" Dwemer metal pole gate", (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x63d08));
+                        if (mzinchaleft_info != "") linked_to.push_back(mzinchaleft_info);
+
+                        break;
+                    }
+
+                    case (0xbe4ca): //mzinchaleft levers
+                    {
+                        mzinchaleft_info = MiscThings::insert_object_into_list_custom_name(" Dwemer metal pole gate", (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x63cf1));
+                        if (mzinchaleft_info != "") linked_to.push_back(mzinchaleft_info);
+
+                        mzinchaleft_info = MiscThings::insert_object_into_list_custom_name(" Dwemer metal pole gate", (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xbe498));
+                        if (mzinchaleft_info != "") linked_to.push_back(mzinchaleft_info);
+
+                        break;
+                    }
+
+                    case (0xbe4cb): //mzinchaleft levers
+                    {
+                        mzinchaleft_info = MiscThings::insert_object_into_list_custom_name(" Dwemer metal pole gate", (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xbe4c0));
+                        if (mzinchaleft_info != "") linked_to.push_back(mzinchaleft_info);
+
+                        break;
+                    }
+
+                    case (0xc061c): //mzinchaleft levers
+                    {
+                        mzinchaleft_info = MiscThings::insert_object_into_list_custom_name(" Dwemer metal pole gate", (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xbe4b5));
+                        if (mzinchaleft_info != "") linked_to.push_back(mzinchaleft_info);
+
+                        break;
+                    }
+
+
+                    default:
+                    {
+                        //normal linked search
+                        auto extra = object->extraList.GetByType(RE::ExtraDataType::kLinkedRef);
+
+                        if (extra)
                         {
-                            if (linked_ref->activateRef && linked_ref->activateRef.get() && linked_ref->activateRef.get().get())
+                            auto extra_linked = (RE::ExtraLinkedRef*)extra;
+
+                            for (auto linked_ref : extra_linked->linkedRefs)
                             {
-                                if (std::size(linked_to) == 0)
+                                if (linked_ref.refr)
                                 {
-                                    std::string name_linked = insert_object_into_list_and_get_info(linked_ref->activateRef.get().get(), false, true);
+                                    std::string name_linked = insert_object_into_list_and_get_info(linked_ref.refr, false, true);
                                     if (name_linked != "")
                                     {
                                         linked_to.push_back(name_linked);
                                     }
                                 }
-
                             }
                         }
-                    }
+
+                        extra = object->extraList.GetByType(RE::ExtraDataType::kActivateRefChildren);
+
+                        if (extra)
+                        {
+                            auto extra_linked = (RE::ExtraActivateRefChildren*)extra;
+
+                            for (auto linked_ref : extra_linked->children)
+                            {
+                                if (linked_ref->activateRef && linked_ref->activateRef.get() && linked_ref->activateRef.get().get())
+                                {
+                                    if (std::size(linked_to) == 0)
+                                    {
+                                        std::string name_linked = insert_object_into_list_and_get_info(linked_ref->activateRef.get().get(), false, true);
+                                        if (name_linked != "")
+                                        {
+                                            linked_to.push_back(name_linked);
+                                        }
+                                    }
+
+                                }
+                            }
+                        }
 
 
-                    //this gave me link to shit lever and didnt give link to actual lever
-                   /*
-                   extra = object->extraList.GetByType(RE::ExtraDataType::kActivateRef);
-                   if (extra)
-                   {
-                       auto extra_linked = (RE::ExtraActivateRef*)extra;
-
-                       for (auto linked_ref : extra_linked->parents)
+                        //this gave me link to shit lever and didnt give link to actual lever
+                       /*
+                       extra = object->extraList.GetByType(RE::ExtraDataType::kActivateRef);
+                       if (extra)
                        {
-                           if (linked_ref->activateRef && linked_ref->activateRef.get() && linked_ref->activateRef.get().get())
+                           auto extra_linked = (RE::ExtraActivateRef*)extra;
+
+                           for (auto linked_ref : extra_linked->parents)
                            {
-                               RE::TESObjectREFR* activate_ref = linked_ref->activateRef.get().get();
-
-                               std::string temp_name = activate_ref->GetDisplayFullName();
-
-                               if (temp_name != "" || is_object_in_the_list(activate_ref))
+                               if (linked_ref->activateRef && linked_ref->activateRef.get() && linked_ref->activateRef.get().get())
                                {
-                                   std::string name_linked = insert_object_into_list_and_get_info(activate_ref);
-                                   if (name_linked != "")
-                                   {
-                                       linked_to.push_back(name_linked);
-                                   }
-                               }
-                               else
-                               {
-                                   //maybe its some script marker that has some lever attatched even higher
-                                   auto extra2 = activate_ref->extraList.GetByType(RE::ExtraDataType::kActivateRefChildren);
+                                   RE::TESObjectREFR* activate_ref = linked_ref->activateRef.get().get();
 
-                                   if (extra2)
-                                   {
-                                       auto extra_linked2 = (RE::ExtraActivateRefChildren*)extra2;
+                                   std::string temp_name = activate_ref->GetDisplayFullName();
 
-                                       for (auto linked_ref2 : extra_linked2->children)
+                                   if (temp_name != "" || is_object_in_the_list(activate_ref))
+                                   {
+                                       std::string name_linked = insert_object_into_list_and_get_info(activate_ref);
+                                       if (name_linked != "")
                                        {
-                                           if (linked_ref2->activateRef && linked_ref2->activateRef.get() && linked_ref2->activateRef.get().get())
+                                           linked_to.push_back(name_linked);
+                                       }
+                                   }
+                                   else
+                                   {
+                                       //maybe its some script marker that has some lever attatched even higher
+                                       auto extra2 = activate_ref->extraList.GetByType(RE::ExtraDataType::kActivateRefChildren);
+
+                                       if (extra2)
+                                       {
+                                           auto extra_linked2 = (RE::ExtraActivateRefChildren*)extra2;
+
+                                           for (auto linked_ref2 : extra_linked2->children)
                                            {
-                                               RE::TESObjectREFR* activate_ref2 = linked_ref2->activateRef.get().get();
-
-                                               std::string temp_name2 = activate_ref2->GetDisplayFullName();
-
-                                               if (temp_name2 != "" || is_object_in_the_list(activate_ref2))
+                                               if (linked_ref2->activateRef && linked_ref2->activateRef.get() && linked_ref2->activateRef.get().get())
                                                {
-                                                   std::string name_linked2 = insert_object_into_list_and_get_info(activate_ref2);
-                                                   if (name_linked2 != "")
+                                                   RE::TESObjectREFR* activate_ref2 = linked_ref2->activateRef.get().get();
+
+                                                   std::string temp_name2 = activate_ref2->GetDisplayFullName();
+
+                                                   if (temp_name2 != "" || is_object_in_the_list(activate_ref2))
                                                    {
-                                                       linked_to.push_back(name_linked2);
+                                                       std::string name_linked2 = insert_object_into_list_and_get_info(activate_ref2);
+                                                       if (name_linked2 != "")
+                                                       {
+                                                           linked_to.push_back(name_linked2);
+                                                       }
                                                    }
                                                }
                                            }
@@ -19733,8 +19874,15 @@ namespace MiscThings {
                                }
                            }
                        }
-                   }
-                   */
+                       */
+
+                        break;
+                    }
+                    }
+                    
+
+
+                    
 
 
                     if (std::size(linked_to) != 0)

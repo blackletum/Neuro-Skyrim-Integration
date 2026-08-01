@@ -30,6 +30,7 @@ namespace MiscThings {
 
     int safe_to_dodge_projectile();
 
+    bool mzinchaleft_puzzle_condition();
 
     bool is_workbench(RE::TESObjectREFR* object);
 

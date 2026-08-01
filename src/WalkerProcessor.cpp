@@ -15379,6 +15379,9 @@ namespace WalkerProcessor {
 
             float threshold = 1.5f;
 
+            if (MiscThings::mzinchaleft_puzzle_condition())
+                threshold = 0.7f;
+
 
             if (Apocrypha::in_apocrypha() && using_custom_path)
                 threshold = 5.0f;
@@ -19736,7 +19739,7 @@ namespace WalkerProcessor {
                                             else
                                             {
                                                 //stuck detected. wiggle body.
-                                                if (unstuck_attempts < 5)
+                                                if (unstuck_attempts < 5 && !(MiscThings::mzinchaleft_puzzle_condition() && unstuck_attempts < 3))
                                                 {
                                                     time_stuck = 0.0f;
                                                     try_unstuck = true;

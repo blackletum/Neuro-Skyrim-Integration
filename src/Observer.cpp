@@ -2420,8 +2420,34 @@ namespace Observer {
 															send_random_context("You see: " + info, false);
 														}
 														else
-															interesting_buffer.insert_or_assign(a_ref, info);
+														{
+															if (a_ref->formID == 0xbe4c7) //mzinchaleft puzzle
+															{
+																std::string info = "";
 
+																info += MiscThings::insert_object_into_list_custom_name(" Dwemer metal pole gate", (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xbe492)) + "\n";
+																info += MiscThings::insert_object_into_list_custom_name(" Dwemer metal pole gate", (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x63cf1)) + "\n";
+																info += MiscThings::insert_object_into_list_custom_name(" Dwemer metal pole gate", (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x63d08)) + "\n";
+																//info += MiscThings::insert_object_into_list_custom_name(" Dwemer metal pole gate", (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x63cfa)) + "\n";
+																info += MiscThings::insert_object_into_list_custom_name(" Dwemer metal pole gate", (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xbe4c0)) + "\n";
+																info += MiscThings::insert_object_into_list_custom_name(" Dwemer metal pole gate", (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xbe498)) + "\n";
+																info += MiscThings::insert_object_into_list_custom_name(" Dwemer metal pole gate", (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xbe4b5)) + "\n";
+
+																info += MiscThings::insert_object_into_list_and_get_info((RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xbe4c7)) + "\n";
+																info += MiscThings::insert_object_into_list_and_get_info((RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xbe4cf)) + "\n";
+																info += MiscThings::insert_object_into_list_and_get_info((RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xbe4c8)) + "\n";
+																info += MiscThings::insert_object_into_list_and_get_info((RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xbe4ca)) + "\n";
+																info += MiscThings::insert_object_into_list_and_get_info((RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xbe4cb)) + "\n";
+																info += MiscThings::insert_object_into_list_and_get_info((RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xc061c)) + "\n";
+
+																send_random_context("Looks like its a dwemer puzzle... you see: " + info, false);
+
+															}
+															else
+															{
+																interesting_buffer.insert_or_assign(a_ref, info);
+															}
+														}
 													}
 
 												}
@@ -4308,6 +4334,58 @@ namespace Observer {
 
 															if (anim_name == "PortGatePoleDwemer01")
 															{
+
+																switch (a_ref->formID) //mzinchaleft gates
+																{
+																case (0xbe492):
+																case (0x63cf1):
+																case (0x63d08):
+																case (0xbe4c0):
+																case (0xbe498):
+																case (0xbe4b5):
+																	no_spam = false;
+																	break;
+
+																case (0xbe490):
+																case (0xbe48e):
+																case (0xbe48c):
+																case (0xbe494):
+
+																case (0x63ced):
+																case (0x63cee):
+																case (0x63cef):
+																case (0x63cf0):
+
+																case (0x63d01):
+																case (0x63cff):
+																case (0x63d04):
+																case (0x63d06):
+
+																case (0xbe4b8):
+																case (0xbe4b9):
+																case (0xbe4bc):
+																case (0xbe4be):
+
+																case (0xbe496):
+																case (0xbe499):
+																case (0xbe49c):
+																case (0xbe49e):
+
+																case (0xbe4b3):
+																case (0xbe4b1):
+																case (0xbe4af):
+																case (0xbe4ad):
+
+																case (0x63cf3):
+																case (0x63cf8):
+																case (0x63cfa):
+																case (0x63cfc):
+																case (0x63cfe):
+																	no_spam = true;
+																}
+
+
+
 																if (!no_spam)
 																{
 																	std::string name = MiscThings::insert_object_into_list_custom_name("Dwemer metal pole gate", a_ref);
@@ -4316,6 +4394,21 @@ namespace Observer {
 																	{
 																		result.push_back("[ " + name + " opened]");
 																		no_spam = true;
+
+
+																		if (a_ref->formID == 0xbe4ad) //mzinchaleft middle gate
+																		{
+																			auto navcutter = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x711cc4e);
+
+																			if (navcutter && !navcutter->IsDisabled())
+																			{
+																				auto pos = navcutter->GetPosition();
+																				pos.z += 2000.0f;
+																				MiscThings::SetPosition_moveto(navcutter, pos);
+																				navcutter->Disable();
+																			}
+
+																		}
 																	}
 
 
