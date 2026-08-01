@@ -1439,6 +1439,11 @@ namespace BarterProcessor {
 
                                                 int new_price = get_price_selected_item();
 
+
+                                                auto special_tag = get_special_tag(name);
+                                                name += special_tag;
+
+
                                                 if (new_price != -1)
                                                     price = new_price;
 
@@ -1451,7 +1456,6 @@ namespace BarterProcessor {
                                                 int amount = get_item_amount_from_name(name);
                                                 data.amount = amount;
                                                 
-
                                                 bool equipped = menu->itemList->GetSelectedItem()->data.GetEquipState();
                                                 data.equipped = equipped;
 
