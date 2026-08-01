@@ -6385,7 +6385,7 @@ namespace WalkerProcessor {
                 unslow_walk();
             }
 
-            if (was_charging_ranged || was_casting_spell_left || was_casting_spell_right)
+            if ((was_charging_ranged || was_casting_spell_left || was_casting_spell_right) && !close_enough())
                 cancel_charge_weapon();
 
 
@@ -12684,6 +12684,8 @@ namespace WalkerProcessor {
             }
 
 
+
+
             bool attack_action_done = false;
 
             if (attack_action < 0 || attack_action > 1)
@@ -12700,6 +12702,12 @@ namespace WalkerProcessor {
             bool goto_attack_used = false;
             
 
+
+            bool dualcasting_no_mana = MiscThings::has_spell_equipped(true) && MiscThings::get_player_mana() < get_spell_cost(true) * 2.8f;
+            bool dualcast_condition = !dualcasting_no_mana && MiscThings::get_hand_contents(true) == MiscThings::get_hand_contents(false) && MiscThings::has_spell_equipped(true);
+
+
+
             if (dont_use_right)
                 bool stop_here = false;
 
@@ -12708,6 +12716,7 @@ namespace WalkerProcessor {
 
             if (left_is_useless && right_is_useless && !spell_mode)
                 goto finalize_attack;
+
 
 
             if (!spell_mode && !shout_mode && MiscThings::has_spell_equipped(true) && MiscThings::has_spell_equipped(false) && !MiscThings::is_offensive_spell(true) && !MiscThings::is_offensive_spell(false) && MiscThings::player_hp_more_than(90.0f))
@@ -12731,6 +12740,8 @@ namespace WalkerProcessor {
             //{
 
             
+
+
 
 
 
@@ -12797,9 +12808,9 @@ namespace WalkerProcessor {
 
 
 
-                            //if (is_concentration_spell(true))// && !dualcasting)
-                            //    right_attack_spell();
-                            //else
+                            if (is_concentration_spell(true))// && !dualcast_condition)
+                                right_attack_spell();
+                            else
                             {
                                 if (attack_action_time0 < 0.1f)
                                     right_attack();
@@ -12924,9 +12935,9 @@ namespace WalkerProcessor {
 
                                 if (!skip_cast)
                                 {
-                                    //if (is_concentration_spell(true))// && !dualcasting)
-                                    //    right_attack_spell();
-                                    //else
+                                    if (is_concentration_spell(true) && !dualcast_condition)// && !dualcasting)
+                                        right_attack_spell();
+                                    else
                                     {
                                         if (attack_action_time0 < 0.1f)
                                             right_attack();
@@ -13116,6 +13127,7 @@ namespace WalkerProcessor {
 
                         //end of attack0
 
+
                         if (attack_action_uses_cast_time)
                         {
                             bool is_actually_casting = WalkerProcessor::is_casting_walker(true);
@@ -13142,10 +13154,10 @@ namespace WalkerProcessor {
 
 
 
-                        bool dualcasting_no_mana = MiscThings::has_spell_equipped(true) && MiscThings::get_player_mana() < get_spell_cost(true) * 2.8f;
+                        
 
 
-                        if (!goto_attack_used && !dualcasting_no_mana && MiscThings::get_hand_contents(true) == MiscThings::get_hand_contents(false) && MiscThings::has_spell_equipped(true))
+                        if (!goto_attack_used && dualcast_condition)
                         {
                             //dualcasting 
                             dualcasting = true;
@@ -13362,9 +13374,9 @@ namespace WalkerProcessor {
                                 }
 
 
-                                //if (is_concentration_spell(false))// && !dualcasting)
-                                //    left_attack_spell();
-                                //else
+                                if (is_concentration_spell(false))// && !dualcasting)
+                                    left_attack_spell();
+                                else
                                 {
                                     if (attack_action_time1 < 0.1f)
                                         left_attack();
@@ -13494,9 +13506,9 @@ namespace WalkerProcessor {
 
                                     if (!skip_cast)
                                     {
-                                        //if (is_concentration_spell(false))// && !dualcasting)
-                                        //    left_attack_spell();
-                                        //else
+                                        if (is_concentration_spell(false) && !dualcast_condition)
+                                            left_attack_spell();
+                                        else
                                         {
                                             if (attack_action_time1 < 0.1f)
                                                 left_attack();
@@ -13708,9 +13720,9 @@ namespace WalkerProcessor {
                             else
                                 attack_action_time1 += dtime;
 
-                            bool dualcasting_no_mana = MiscThings::has_spell_equipped(true) && MiscThings::get_player_mana() < get_spell_cost(true) * 2.8f;
+                            //bool dualcasting_no_mana = MiscThings::has_spell_equipped(true) && MiscThings::get_player_mana() < get_spell_cost(true) * 2.8f;
 
-                            if (!goto_attack_used && !dualcasting_no_mana && MiscThings::get_hand_contents(true) == MiscThings::get_hand_contents(false) && MiscThings::has_spell_equipped(true))
+                            if (!goto_attack_used && dualcast_condition)//!dualcasting_no_mana && MiscThings::get_hand_contents(true) == MiscThings::get_hand_contents(false) && MiscThings::has_spell_equipped(true))
                             {
                                 //dualcasting 
                                 dualcasting = true;

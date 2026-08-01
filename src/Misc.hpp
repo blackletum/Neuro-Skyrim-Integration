@@ -32,6 +32,9 @@ namespace MiscThings {
 
     bool mzinchaleft_puzzle_condition();
 
+    bool is_bound_weapon_spell(RE::SpellItem* spell);
+    bool bound_weapon_summoned(RE::SpellItem* spell, bool right);
+
     bool is_workbench(RE::TESObjectREFR* object);
 
     RE::ObjectRefHandle get_occupied_furniture_all_process(RE::TESObjectREFR* object);

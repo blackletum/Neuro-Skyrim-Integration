@@ -26519,6 +26519,26 @@ namespace MiscThings {
 
                             bool already_equipped = false;
 
+                            if (bound_weapon_summoned(spell, true) && bound_weapon_summoned(spell, false))
+                            {
+                                std::string spell_name = spell->GetFullName();
+                                result.first = false;
+                                result.second = "You already have " + spell_name + " summoned in both hands!";
+                                return result;
+                            }
+
+                            if (bound_weapon_summoned(spell, right_hand))
+                            {
+                                std::string spell_name = spell->GetFullName();
+                                result.first = false;
+
+                                std::string hand_text = right_hand ? "right hand" : "left hand";
+
+                                result.second = "You already have " + spell_name + " summoned in " + hand_text + "!";
+                                return result;
+                            }
+
+
                             if (get_hand_contents(true) == spell || get_hand_contents(false) == spell) //now it will not additionally equip spell on cast command if player already has it in any hand. if want to dualcast - must equip explicitly
                             {
                                 already_equipped = true;
@@ -27139,7 +27159,7 @@ namespace MiscThings {
 
                             //slot we need to use was decided above.
 
-                            if (get_hand_contents(right_hand) == spell)
+                            if (get_hand_contents(right_hand) == spell || bound_weapon_summoned(spell, right_hand))
                             {
                                 if (is_offensive_spell(spell))
                                 {
@@ -27609,6 +27629,50 @@ namespace MiscThings {
         return false;
     }
 
+
+    bool bound_weapon_summoned(RE::SpellItem* spell, bool right)
+    {
+        if (spell && spell->formType == RE::FormType::Spell)
+        {
+            auto hand_contents = MiscThings::get_hand_contents(right);
+
+            if (hand_contents)
+            {
+                switch (spell->formID)
+                {
+                case (0x211EB)://bound sword
+                    return hand_contents->formID == 0x58f5f;
+                case (0x211EC)://bound battleaxe
+                    return hand_contents->formID == 0x58f5e;
+                case (0x211ED)://bound bow
+                    return hand_contents->formID == 0x58f60;
+                case (0x401ce06)://bound dagger
+                    return hand_contents->formID == 0x401ce02;
+                }
+            }
+
+        }
+
+        return false;
+    }
+
+
+    bool is_bound_weapon_spell(RE::SpellItem* spell)
+    {
+        if (spell && spell->formType == RE::FormType::Spell)
+        {
+            switch (spell->formID)
+            {
+            case (0x211EB)://bound sword
+            case (0x211EC)://bound battleaxe
+            case (0x211ED)://bound bow
+            case (0x401ce06)://bound dagger
+                return true;
+            }
+        }
+
+        return false;
+    }
 
     bool is_offensive_spell(bool right)
     {
