@@ -83,7 +83,6 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////DO ALL THIS
 
-//item value display (maybe only when overencumbered)
 //work on saartal pillar puzzle (silent pillars)
 //block vampirism cure quest if black soul gem is obtained but its empty. test soul trap spell
 //fix shouts being interrupted by spellcasting/equipping//weapon equipment (pause it until shout is done)
@@ -105,7 +104,7 @@
 //try to track current follower position, add hint about it in quest list
 //no restrictions on buying lockpicks
 //ranged weapon-not-hitting check should not force-fail close_enough for long if target is very close
-
+//belethor entrance should use front door
 
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

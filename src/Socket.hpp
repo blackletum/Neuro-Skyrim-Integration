@@ -466,9 +466,10 @@ namespace Capabilities
         constexpr char Name[] = "get_inventory";
         constexpr char Desc[] =
             R"(Get contents of your inventory)";
-        //constexpr char JsonSchema[] = null;
+        //constexpr char JsonSchema[] =
+        //    R"({ "additionalProperties": false, "type": "object", "properties": { "full_info": { "description": "(optional) 1 to show gold value and weight for all items", "type": "integer" } })";//, "required": ["id"] })";//
 
-        constexpr neurosdk_action Action = { .name = Name, .description = Desc };//, .json_schema = JsonSchema };
+        constexpr neurosdk_action Action = { .name = Name, .description = Desc };// , .json_schema = JsonSchema};
     } // namespace SelectChoiceOption
 
 

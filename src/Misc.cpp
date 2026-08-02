@@ -24533,7 +24533,7 @@ namespace MiscThings {
 
 
 
-    std::pair<int, std::string> get_inventory_item_full_info(RE::TESBoundObject* item, bool compact = false, RE::InventoryEntryData* entry = nullptr, bool without_text_category = false)
+    std::pair<int, std::string> get_inventory_item_full_info(RE::TESBoundObject* item, bool compact = false, RE::InventoryEntryData* entry = nullptr, bool without_text_category = false, bool force_weight_value_info = false)
     {
 
         std::pair<int, std::string> result{};
@@ -24561,6 +24561,9 @@ namespace MiscThings {
 
         if (item_form)
         {
+
+            std::string value_text = "[Value: " + std::to_string(item_form->GetGoldValue()) + "]";
+
             if (item_form->IsArmor() || item_form->IsWeapon() || item_form->IsAmmo())
             {
                 std::string hand_text = "";
@@ -24614,9 +24617,13 @@ namespace MiscThings {
                         damage_text = "Dmg: " + std::to_string(damage);
 
                     std::string weight_text = "Weight: " + weight_text_number;
-
-                    if (MiscThings::player_overencumbered_by() <= 0)
+                    
+                    if (!force_weight_value_info && MiscThings::player_overencumbered_by() <= 0)
+                    {
                         weight_text = "";
+                        value_text = "";
+                    }
+                        
 
                     if (damage <= 0)
                         damage_text = "";
@@ -24651,8 +24658,12 @@ namespace MiscThings {
 
                     std::string weight_text = "Weight: " + weight_text_number;
 
-                    if (MiscThings::player_overencumbered_by() <= 0)
+                    if (!force_weight_value_info && MiscThings::player_overencumbered_by() <= 0)
+                    {
                         weight_text = "";
+                        value_text = "";
+                    }
+                        
 
                     if (armor_val <= 0)
                         armor_val_text = "";
@@ -24678,7 +24689,7 @@ namespace MiscThings {
             }
             else
             {
-                if (MiscThings::player_overencumbered_by())
+                if (!force_weight_value_info && MiscThings::player_overencumbered_by())
                 {
                     //if overencumbered
                     auto weight = item_form->GetWeight();
@@ -24689,6 +24700,8 @@ namespace MiscThings {
 
                     actions += "[Weight: " + weight_text_number + "]";
                 }
+                else
+                    value_text = "";
             }
 
             if (item_form->formType == RE::FormType::Ingredient || item_form->formType == RE::FormType::AlchemyItem)
@@ -24714,6 +24727,7 @@ namespace MiscThings {
                     auto category = get_object_category(item_form, item, without_text_category);
 
                     result.second += category.second;
+                    result.second += value_text;
                     result.second += actions + " ";
                     result.second += item_name;
                     result.first = category.first;
@@ -24747,7 +24761,7 @@ namespace MiscThings {
     }
 
 
-    std::pair<int, std::string> insert_item_into_inventory_list_and_get_info(RE::TESBoundObject* item, bool compact, bool without_text_category)
+    std::pair<int, std::string> insert_item_into_inventory_list_and_get_info(RE::TESBoundObject* item, bool compact, bool without_text_category, bool force_weight_value_info)
     {
         std::pair<int, std::string> result{};
 
@@ -24761,7 +24775,7 @@ namespace MiscThings {
             if (inventory_entry.second.object == item)
             {
 
-                auto info = get_inventory_item_full_info(item, compact, nullptr, without_text_category);
+                auto info = get_inventory_item_full_info(item, compact, nullptr, without_text_category, force_weight_value_info);
 
                 if (info.second == "")
                     return result; //nothing
@@ -24796,7 +24810,7 @@ namespace MiscThings {
             if (data)
                 inv_entry = data.get();
 
-            auto info = get_inventory_item_full_info(item, compact, nullptr, without_text_category);
+            auto info = get_inventory_item_full_info(item, compact, nullptr, without_text_category, force_weight_value_info);
 
             if (info.second == "" || quantity <= 0)
                 return result;
@@ -24846,7 +24860,7 @@ namespace MiscThings {
     }
 
 
-    std::pair<bool, std::string> GetInventory()
+    std::pair<bool, std::string> GetInventory(bool force_weight_value_info)
     {
         std::pair<bool, std::string> result{};
 
@@ -24889,7 +24903,7 @@ namespace MiscThings {
                 }
             }
 
-            auto info = insert_item_into_inventory_list_and_get_info(item, false, true);
+            auto info = insert_item_into_inventory_list_and_get_info(item, false, true, force_weight_value_info);
 
             if (info.second == "")
                 continue;

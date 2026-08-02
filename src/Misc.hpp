@@ -242,7 +242,7 @@ namespace MiscThings {
 
     bool is_running_allowed_in_current_cell();
 
-    std::pair<bool, std::string> GetInventory();
+    std::pair<bool, std::string> GetInventory(bool force_weight_value_info = false);
     std::pair<bool, std::string> GetGold();
     std::pair<bool, std::string> GetObjectsAround(int type);
     bool is_objects_around_valid();
@@ -528,7 +528,7 @@ namespace MiscThings {
     RE::TESObjectREFR* get_dragon_for_dragonrend();
 
     bool is_inventory_item_in_the_list(RE::TESBoundObject* item);
-    std::pair<int, std::string> insert_item_into_inventory_list_and_get_info(RE::TESBoundObject* item, bool compact = false, bool without_text_category = false);
+    std::pair<int, std::string> insert_item_into_inventory_list_and_get_info(RE::TESBoundObject* item, bool compact = false, bool without_text_category = false, bool force_weight_value_info = false);
     std::map<int, item_data>* get_p_inventory_items_list();
     int remove_item_from_inventory_list(RE::TESBoundObject* item);
 
