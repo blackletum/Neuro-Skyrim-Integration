@@ -13,6 +13,8 @@
 namespace MiscThings {
 
 
+    long long last_bloodboil_message_timestamp = 0; //dont reset ever
+
     int dropped_amount_of_melee_weapons = 0;
     int dropped_amount_of_bows = 0;
     float restored_health = 0.0f;
@@ -15007,6 +15009,21 @@ namespace MiscThings {
                                                         old_topleft_notification = result_string;
                                                         if (result_string != "Autosaving..." && result_string != "Quicksaving..." && result_string != "Quickloading..." && result_string.find("is too powerful") == std::string::npos)
                                                         {
+
+                                                            if (result_string == "Your vampire blood boils in the sunlight.")
+                                                            {
+                                                                auto now = std::chrono::steady_clock::now().time_since_epoch().count();
+                                                                float delta_message = (double)(now - last_bloodboil_message_timestamp) / 1000000000.0;
+
+                                                                if (delta_message > 3600.0f)
+                                                                {
+                                                                    send_random_context("[" + result_string + "]", true);
+                                                                    last_bloodboil_message_timestamp = now;
+                                                                    return;
+                                                                }
+                                                                else
+                                                                    return;
+                                                            }
 
                                                             if (result_string == "Someone else is using this.")
                                                             {
