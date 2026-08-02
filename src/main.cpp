@@ -99,7 +99,6 @@
 //dragon landing search - do not interrupt count with reset_walker, dont clear landing point unless dragon is dead or we are far from last fight area
 //check what happens when whiterun prison escape triggers while player comes too close to the door
 //add handling for solstheim prison escaping flag bug
-//do not use black soul gem for charging automatically
 //try to track current follower position, add hint about it in quest list
 //no restrictions on buying lockpicks
 //ranged weapon-not-hitting check should not force-fail close_enough for long if target is very close

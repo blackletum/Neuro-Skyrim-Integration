@@ -24407,6 +24407,9 @@ namespace MiscThings {
             {
                 auto soulgem = (RE::TESSoulGem*)item;
 
+                if (soulgem && soulgem->formID == 0x2E504) //skip charged black soulgems
+                    continue;
+
                 auto soul = soulgem->currentSoul;
 
                 if (get_soul_charge_value(soul) > 0)
