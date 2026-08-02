@@ -552,6 +552,7 @@ namespace MiscThings {
     RE::TESForm* get_hand_contents(bool right);
     bool is_self_healing_spell(bool right);
     bool is_summon_spell(bool right);
+    bool is_reanimate_spell(RE::SpellItem* spell);
     bool is_reanimate_spell(bool right);
     bool player_has_summon();
 

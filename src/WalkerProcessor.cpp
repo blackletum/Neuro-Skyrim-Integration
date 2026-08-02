@@ -7196,15 +7196,17 @@ namespace WalkerProcessor {
                         }
                             
 
+                        if (spell_mode && spell_ult_mode && spell_to_use)
+                        {
+                            range = 500.0f;
+                        }
+
                         if (start_attacking)
                             range = range * 1.25;
 
 
 
-                        if (spell_mode && spell_ult_mode && spell_to_use)
-                        {
-                            range = 500.0f;
-                        }
+
 
 
                         //this is for melee

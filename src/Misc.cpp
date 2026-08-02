@@ -1373,7 +1373,7 @@ namespace MiscThings {
             std::vector<RE::TESObjectREFR*> corpses{};
 
 
-            RE::TES::GetSingleton()->ForEachReferenceInRange(player_ref, 800.0f,
+            RE::TES::GetSingleton()->ForEachReferenceInRange(player_ref, 3000.0f,
                 //player->GetParentCell()->ForEachReferenceInRange(player->GetPosition(), 3000.0,
                 [&](RE::TESObjectREFR* a_ref) {
 
@@ -26266,6 +26266,32 @@ namespace MiscThings {
 
 
 
+
+
+    bool is_reanimate_spell(RE::SpellItem* spell)
+    {
+        if (spell && spell->formType == RE::FormType::Spell)
+        {
+            if (spell->GetFormType() == RE::FormType::Spell || spell->GetFormType() == RE::FormType::Scroll)
+            {
+                if (spell->GetSpellType() != RE::MagicSystem::SpellType::kEnchantment)
+                {
+                    for (auto effect : spell->effects)
+                    {
+                        if (effect->baseEffect && effect->baseEffect->GetArchetype() == RE::EffectArchetypes::ArchetypeID::kReanimate)
+                        {
+                            return true;
+                        }
+                    }
+
+                }
+            }
+        }
+        return false;
+    }
+
+
+
     bool is_reanimate_spell(bool right)
     {
         bool result = false;
@@ -26440,6 +26466,8 @@ namespace MiscThings {
                         }
 
 
+
+
                         auto spell_target = MiscThings::get_object_by_index(target_index);
 
                         if (spell_target && WalkerProcessor::is_fire_and_forget_spell(spell))
@@ -26457,15 +26485,44 @@ namespace MiscThings {
                         }
                         else
                         {
-                            equip_manager->EquipSpell(player_actor, spell, equip_slot);
-                            right_attack_cancel();
-                            left_attack_cancel();
-                            use_ult();
-                            result.first = true;
-                            if (spell->GetSpellType() == RE::MagicSystem::SpellType::kSpell)
-                                result.second = "[Casting spell:  [id " + std::to_string(id) + "] " + spell->GetFullName() + "]";
+
+                            if (MiscThings::is_reanimate_spell(spell) && WalkerProcessor::is_fire_and_forget_spell(spell))
+                            {
+                                auto some_corpse = MiscThings::find_nearest_resurrectable_corpse();
+
+                                if (some_corpse)
+                                {
+                                    equip_manager->EquipSpell(player_actor, spell, equip_slot);
+
+                                    auto temp = WalkerProcessor::cast_spell_at_target(some_corpse, spell);
+
+                                    if (!temp.first)
+                                        return temp;
+
+                                    result.first = true;
+                                    result.second = "Processing...";
+                                    return result;
+                                }
+                                else
+                                {
+                                    result.first = false;
+                                    result.second = "Cannot find any corpses around to reanimate!";
+                                    return result;
+                                }
+                            }
                             else
+                            {
+                                equip_manager->EquipSpell(player_actor, spell, equip_slot);
+                                //right_attack_cancel();
+                                //left_attack_cancel();
+                                use_ult();
+                                result.first = true;
+                                //if (spell->GetSpellType() == RE::MagicSystem::SpellType::kSpell)
+                                //    result.second = "[Casting spell:  [id " + std::to_string(id) + "] " + spell->GetFullName() + "]";
+                                //else
+
                                 result.second = "[Using ult: [id " + std::to_string(id) + "] " + spell->GetFullName() + "]";
+                            }
                         }
 
                     }
