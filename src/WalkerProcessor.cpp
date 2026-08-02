@@ -6908,7 +6908,13 @@ namespace WalkerProcessor {
             auto now = std::chrono::steady_clock::now().time_since_epoch().count();
             float delta_cancel_fail = (double)(now - close_enough_force_fail_time_start) / 1000000000.0;
 
-            if (delta_cancel_fail > 10.0f)
+
+            float cancel_fail_time_threshold = 10.0f;
+
+            if (target_ref && player->GetDistance(target_ref) < 500.0f)
+                cancel_fail_time_threshold = 3.0f;
+
+            if (delta_cancel_fail > cancel_fail_time_threshold)
             {
                 close_enough_force_fail = false;
                 close_enough_force_fail_time_start = 0;

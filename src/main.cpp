@@ -101,7 +101,6 @@
 //add handling for solstheim prison escaping flag bug
 //try to track current follower position, add hint about it in quest list
 //no restrictions on buying lockpicks
-//ranged weapon-not-hitting check should not force-fail close_enough for long if target is very close
 //belethor entrance should use front door
 //work on saartal pillar puzzle (silent pillars)
 
