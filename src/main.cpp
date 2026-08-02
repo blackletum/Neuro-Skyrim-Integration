@@ -94,7 +94,8 @@
 //maybe dont interrupt spellcasting by equipping stuff at all (pause equip "processing..." style or choose different hand)
 //try to improve sneak
 //nightvision cooldown?
-//make lockpicks break slower (hold button for less time), try to scan vendors if they actually have gold, riften thieves guild vendor easy access, add more interior locations for check_interesting_places command
+//ults that are on cooldown should be tagged [On cooldown]
+//try to scan vendors if they actually have gold, riften thieves guild vendor easy access, add more interior locations for check_interesting_places command
 //check if throw-ban properly checks amount of items if they are best in class
 //dragon landing search - do not interrupt count with reset_walker, dont clear landing point unless dragon is dead or we are far from last fight area
 //check what happens when whiterun prison escape triggers while player comes too close to the door

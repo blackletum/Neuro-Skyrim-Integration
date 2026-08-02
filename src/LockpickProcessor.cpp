@@ -245,7 +245,7 @@ namespace LockpickProcessor {
 	bool is_lock_stuck(float dtime)
 	{
 		int lock_angle = get_lock_angle();
-		if (lock_not_moving_time > 0.12f)
+		if (lock_not_moving_time > 0.07f)
 		{
 			lock_not_moving_time = 0.0f;
 			return true;
