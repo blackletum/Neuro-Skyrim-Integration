@@ -21006,12 +21006,16 @@ namespace MiscThings {
                     }
                     else
                     {
-                        //onehanded
-                        if (damage > best_weapon_damage)
+                        if (!(weapon->IsBow() || weapon->IsCrossbow()))
                         {
-                            best_weapon_damage = damage;
-                            best_weapon = inventory_entry.first;
+                            //onehanded
+                            if (damage > best_weapon_damage)
+                            {
+                                best_weapon_damage = damage;
+                                best_weapon = inventory_entry.first;
+                            }
                         }
+
                     }
                 }
             }
@@ -24288,9 +24292,14 @@ namespace MiscThings {
                             {
                                 if (find_best_melee_weapon() == item_id)
                                 {
-                                    result.first = false;
-                                    result.second = "[You cannot drop your best melee weapon, you will need it in certain situations]";
-                                    return result;
+                                    if (entry->second.first <= 1)
+                                    {
+                                        result.first = false;
+                                        result.second = "[You cannot drop your best melee weapon, you will need it in certain situations]";
+                                        return result;
+                                    }
+                                    else
+                                        dropped_amount_of_melee_weapons++;
                                 }
                             }
                             else
@@ -24299,24 +24308,31 @@ namespace MiscThings {
                                 {
                                     if (find_best_bow() == item_id)
                                     {
-                                        result.first = false;
-                                        result.second = "[You cannot drop your best bow, you will need it in certain situations]";
-                                        return result;
+                                        if (entry->second.first <= 1)
+                                        {
+                                            result.first = false;
+                                            result.second = "[You cannot drop your best bow, you will need it in certain situations]";
+                                            return result;
+                                        }
+                                        else
+                                            dropped_amount_of_bows++;
                                     }
-                                    else
-                                        dropped_amount_of_bows++;
+
                                 }
                                 else
                                 {
                                     //onehanded
                                     if (find_best_melee_weapon() == item_id)
                                     {
-                                        result.first = false;
-                                        result.second = "[You cannot drop your last melee weapon, you will need it in certain situations]";
-                                        return result;
-                                    }
-                                    else
-                                        dropped_amount_of_melee_weapons++;
+                                        if (entry->second.first <= 1)
+                                        {
+                                            result.first = false;
+                                            result.second = "[You cannot drop your best melee weapon, you will need it in certain situations]";
+                                            return result;
+                                        }
+                                        else
+                                            dropped_amount_of_melee_weapons++;
+                                    }   
                                 }
                             }
                         }

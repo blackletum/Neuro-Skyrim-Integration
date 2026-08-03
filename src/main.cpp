@@ -89,14 +89,12 @@
 //improve dodging of 2handed charge attacks
 //do not dodge projectiles on pure front if we are walking (they are usually launched with account for player movement)
 //barter track of all purchases for current barter session
-//container track all items for current section (maybe not worth, no money involved)
 //test tolfdir spellcasting, maybe improve it because sequence of follow-quest-cast is not intuitive (just autowalk to point and then cast after pause or hint that you need to follow quest to take position first)
 //maybe dont interrupt spellcasting by equipping stuff at all (pause equip "processing..." style or choose different hand)
 //try to improve sneak
 //nightvision cooldown?
 //ults that are on cooldown should be tagged [On cooldown]
 //try to scan vendors if they actually have gold, riften thieves guild vendor easy access, add more interior locations for check_interesting_places command
-//check if throw-ban properly checks amount of items if they are best in class
 //dragon landing search - do not interrupt count with reset_walker, dont clear landing point unless dragon is dead or we are far from last fight area
 //check what happens when whiterun prison escape triggers while player comes too close to the door
 //add handling for solstheim prison escaping flag bug
@@ -105,6 +103,7 @@
 //belethor entrance should use front door
 //work on saartal pillar puzzle (silent pillars)
 
+//container track all items for current section (maybe not worth, no money involved)
 
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
