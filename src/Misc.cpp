@@ -21227,6 +21227,16 @@ namespace MiscThings {
                         }
 
 
+                        case (0x109630): //magic regen
+                        {
+                            float coef = 0.2f;
+
+                            result += coef * magnitude;
+
+                            break;
+                        }
+
+
                         case (0x493aa): //bonus health
                         {
                             float coef = 1.6f;
@@ -21248,7 +21258,9 @@ namespace MiscThings {
 
                         default: //random enchantment
                         {
-                            result += magnitude*0.3f;
+                            float coef = 0.3f;
+
+                            result += coef * magnitude;
 
                             break;
                         }

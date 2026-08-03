@@ -98,6 +98,7 @@
 //add handling for solstheim prison escaping flag bug
 //work on saartal pillar puzzle (silent pillars)
 
+
 //container track all items for current section (maybe not worth, no money involved)
 //try to improve sneak
 //nightvision cooldown?
