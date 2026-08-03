@@ -41,6 +41,7 @@ namespace WalkerProcessor {
 
 
     int longer_range_advices_ignored = 0;
+    int longer_range_advices_ignored_for_bow = 0;
 
     bool blind_walk_rotates_camera = false;
     bool blind_walk_rotates_camera_direction_right = false;
@@ -2173,7 +2174,7 @@ namespace WalkerProcessor {
                                             std::string ranged_weapon_advice = "";
                                             if (interaction_after_walk == 3 && get_weapon_range(get_current_active_hand()) < 4000.0f)
                                             {
-                                                if (longer_range_advices_ignored > 2)
+                                                if (longer_range_advices_ignored_for_bow > 2)
                                                 {
                                                     if (MiscThings::has_ammo_in_inventory(false))
                                                     {
@@ -2196,16 +2197,22 @@ namespace WalkerProcessor {
                                                         dragon_landing_spot_mode = true;
                                                         send_random_context("You try to find a spot where dragon will land...");
                                                         longer_range_advices_ignored++;
+                                                        longer_range_advices_ignored_for_bow++;
                                                         invalidate_path();
                                                         return;
                                                     }
 
                                                     ranged_weapon_advice = "Or equip some weapons/magic with longer range";
                                                     longer_range_advices_ignored++;
+                                                    longer_range_advices_ignored_for_bow++;
                                                 }
                                             }
                                             else
+                                            {
+                                                longer_range_advices_ignored_for_bow = 0;
                                                 longer_range_advices_ignored = 0;
+                                            }
+                                                
                                                 
 
                                             if (!check_special_too_high_message())
@@ -5815,7 +5822,7 @@ namespace WalkerProcessor {
 
         MiscThings::reset_dragon_landing_vars();
 
-        longer_range_advices_ignored = 0;
+        longer_range_advices_ignored_for_bow = 0;
 
         blind_walk_rotates_camera = false;
         blind_walk_rotates_camera_direction_right = false;
@@ -5903,7 +5910,7 @@ namespace WalkerProcessor {
 
         interaction_before_generic_redirect = -1;
 
-        generic_redirect_active = false; 
+        generic_redirect_active = false;
 
         must_use_bounds = false;
 
@@ -5923,7 +5930,7 @@ namespace WalkerProcessor {
             walk_to_object_by_refr(refr_to_activate, 1);
             return;
         }
-        
+
         lock_and_interact_when_finished = false;
         custom_with_close_enough_confirm = false;
         alftand_counter = 0;
@@ -5961,9 +5968,9 @@ namespace WalkerProcessor {
 
         just_teleported = false;
 
-        no_weapons_notified = false; 
+        no_weapons_notified = false;
 
-        stop_sneaking = false; 
+        stop_sneaking = false;
 
         opening_door_attempts = 0;
 
@@ -5979,7 +5986,7 @@ namespace WalkerProcessor {
         pause_pre_stealing_time = 0.0f;
 
 
-        
+
 
         special_ref_for_distance_calculation = nullptr;
 
@@ -6019,7 +6026,7 @@ namespace WalkerProcessor {
             reset_explore_mode_start_range();
 
         explore_mode = false;
-            
+
         last_walk_reminded_time = 0.0f;
 
         //}
@@ -6033,7 +6040,7 @@ namespace WalkerProcessor {
 
         looking_mode = false;
 
-        too_high_notified = false; 
+        too_high_notified = false;
 
         last_start_attacking_info = "";
         last_attacking_target = "";
@@ -6047,7 +6054,7 @@ namespace WalkerProcessor {
 
         intro_look_timeout = 0.0f;
 
-        custom_path_appended = false; 
+        custom_path_appended = false;
 
         custom_path_must_jump_on_last_point = false;
 
@@ -6111,7 +6118,7 @@ namespace WalkerProcessor {
             was_slowwalking = false;
             unslow_walk();
         }
-        
+
 
         wiggle_camera_time = 0.0f;
         locking_failed = false;
@@ -6158,7 +6165,7 @@ namespace WalkerProcessor {
             fasttravel_advice_last_quest_objective = nullptr;
             fasttravel_advice_last_quest_target = nullptr;
         }
-        
+
 
 
         last_quest = nullptr;
@@ -6196,7 +6203,7 @@ namespace WalkerProcessor {
         had_any_path_found_this_run = false;
 
 
-        backup_interaction_made = false; 
+        backup_interaction_made = false;
 
 
         gave_attacking_info = false;
@@ -6224,9 +6231,15 @@ namespace WalkerProcessor {
         low_mana_notified = false;
         low_mana_notify_time = 0.0f;
 
-        attack_paused = false;
-        attack_pause_time = 0.0f;
-        attack_postpause_time = 0.0f;
+        if (!is_casting_ult() && !is_casting_cast())
+        {
+            attack_paused = false;
+            attack_pause_time = 0.0f;
+            attack_postpause_time = 0.0f;
+        }
+
+
+
         got_close_for_pickpocket = false;
 
         search_next_fight_target = false;
@@ -7234,7 +7247,7 @@ namespace WalkerProcessor {
                                                 std::string ranged_weapon_advice = "";
                                                 if (interaction_after_walk == 3 && get_weapon_range(get_current_active_hand()) < 4000.0f)
                                                 {
-                                                    if (longer_range_advices_ignored > 2)
+                                                    if (longer_range_advices_ignored_for_bow > 2)
                                                     {
                                                         if (MiscThings::has_ammo_in_inventory(false))
                                                         {
@@ -7257,6 +7270,7 @@ namespace WalkerProcessor {
                                                             dragon_landing_spot_mode = true;
                                                             send_random_context("You try to find a spot where dragon will land...");
                                                             longer_range_advices_ignored++;
+                                                            longer_range_advices_ignored_for_bow++;
                                                             invalidate_path();
                                                             return false;
                                                         }
@@ -7264,11 +7278,16 @@ namespace WalkerProcessor {
 
                                                         ranged_weapon_advice = "Or equip some weapons/magic with longer range";
                                                         longer_range_advices_ignored++;
+                                                        longer_range_advices_ignored_for_bow++;
                                                     }
 
                                                 }
                                                 else
+                                                {
+                                                    longer_range_advices_ignored_for_bow = 0;
                                                     longer_range_advices_ignored = 0;
+                                                }
+                                                    
 
                                                 send_random_context(MiscThings::insert_object_into_list_and_get_info(target_ref) + " is too high! Looking at it instead. " + ranged_weapon_advice, false);
 
@@ -17536,6 +17555,7 @@ namespace WalkerProcessor {
                         dragon_landing_spot_mode = false;
                         dragon_landing_spot_placed = false;
                         longer_range_advices_ignored = 0;
+                        longer_range_advices_ignored_for_bow = 0;
                         return;
                     }
                 }
@@ -20750,7 +20770,7 @@ namespace WalkerProcessor {
                                                             std::string ranged_weapon_advice = "";
                                                             if (interaction_after_walk == 3 && get_weapon_range(get_current_active_hand()) < 4000.0f)
                                                             {
-                                                                if (longer_range_advices_ignored > 2)
+                                                                if (longer_range_advices_ignored_for_bow > 2)
                                                                 {
                                                                     if (MiscThings::has_ammo_in_inventory(false))
                                                                     {
@@ -20763,7 +20783,7 @@ namespace WalkerProcessor {
                                                                             if (temp.first)
                                                                                 ranged_weapon_advice = temp.second;
 
-                                                                            longer_range_advices_ignored = 1;
+                                                                            //longer_range_advices_ignored = 1;
                                                                         }
                                                                     }
                                                                 }
@@ -20775,17 +20795,23 @@ namespace WalkerProcessor {
                                                                         dragon_landing_spot_mode = true;
                                                                         send_random_context("You try to find a spot where dragon will land...");
                                                                         longer_range_advices_ignored++;
+                                                                        longer_range_advices_ignored_for_bow++;
                                                                         return;
                                                                     }
 
 
                                                                     ranged_weapon_advice = "Or equip some weapons/magic with longer range";
                                                                     longer_range_advices_ignored++;
+                                                                    longer_range_advices_ignored_for_bow++;
                                                                 }
 
                                                             }
                                                             else
+                                                            {
+                                                                longer_range_advices_ignored_for_bow = 0;
                                                                 longer_range_advices_ignored = 0;
+                                                            }
+                                                                
 
                                                             send_random_context(MiscThings::insert_object_into_list_and_get_info(target_ref) + " is too high! Looking at it instead. " + ranged_weapon_advice, false);
                                                         

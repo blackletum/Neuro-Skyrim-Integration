@@ -93,11 +93,10 @@
 //maybe dont interrupt spellcasting by equipping stuff at all (pause equip "processing..." style or choose different hand)
 //ults that are on cooldown should be tagged [On cooldown]
 //try to scan vendors if they actually have lockpicks, riften thieves guild vendor easy access, add more interior locations for check_interesting_places command
-//dragon landing search - do not interrupt count with reset_walker, dont clear landing point unless dragon is dead or we are far from last fight area
 //check what happens when whiterun prison escape triggers while player comes too close to the door
 //add handling for solstheim prison escaping flag bug
 //work on saartal pillar puzzle (silent pillars)
-
+//friendly fire raycasting for aoe spells + interrupt cast if friend started blocking mid attack
 
 //container track all items for current section (maybe not worth, no money involved)
 //try to improve sneak
