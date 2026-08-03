@@ -96,8 +96,6 @@
 //dragon landing search - do not interrupt count with reset_walker, dont clear landing point unless dragon is dead or we are far from last fight area
 //check what happens when whiterun prison escape triggers while player comes too close to the door
 //add handling for solstheim prison escaping flag bug
-//no restrictions on buying lockpicks
-//belethor entrance should use front door
 //work on saartal pillar puzzle (silent pillars)
 
 //container track all items for current section (maybe not worth, no money involved)

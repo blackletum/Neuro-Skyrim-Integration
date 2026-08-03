@@ -123,6 +123,12 @@ namespace BarterProcessor {
 
 
 
+    bool is_lockpick(std::string name)
+    {
+        return name.find("Lockpick ") != std::string::npos || name == "Lockpick";
+    }
+
+
     std::string get_special_tag(std::string text)
     {
         if (text.find("Spell Tome") != std::string::npos)
@@ -1682,6 +1688,10 @@ namespace BarterProcessor {
                                                 
                                                 if (equipped)
                                                     data.amount -= 1;
+
+                                                if (type == barter_type::sell && is_lockpick(name))
+                                                    data.amount = 0;
+
                                                 
                                                 items_list.insert({ result.id, data });
                                                 
@@ -2738,7 +2748,7 @@ namespace BarterProcessor {
                                                                 float flat_minimum = 250.0f;
                                                                 float lower_bound = player_gold_threshold > flat_minimum ? player_gold_threshold : flat_minimum;
 
-                                                                if (price > lower_bound)
+                                                                if (price > lower_bound && !is_lockpick(p_item_info->second.name))
                                                                 {
                                                                     if (big_transaction_choice_valid)
                                                                     {
@@ -2853,7 +2863,7 @@ namespace BarterProcessor {
                                                                                     float flat_minimum = 250.0f;
                                                                                     float lower_bound = player_gold_threshold > flat_minimum ? player_gold_threshold : flat_minimum;
 
-                                                                                    if (price > lower_bound)
+                                                                                    if (price > lower_bound && !is_lockpick(p_item_info->second.name))
                                                                                     {
                                                                                         if (slider_big_transaction_choice_valid)
                                                                                         {
