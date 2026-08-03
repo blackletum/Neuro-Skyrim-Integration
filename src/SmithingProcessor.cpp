@@ -1208,6 +1208,8 @@ void processor(float dtime)
 
 		if (in_smithing)
 		{
+			WalkerProcessor::reset_walker();
+
 			if (quitting_menu)
 			{
 				if (auto menu_confirm_quit = ui->GetMenu<RE::MessageBoxMenu>(); menu_confirm_quit)
