@@ -13,6 +13,13 @@
 namespace MiscThings {
 
 
+    int delayed_weapon_to_equip = -1;
+    int delayed_spell_to_equip = -1;
+    int delayed_spell_to_cast = -1;
+    int delayed_spell_target = -1;
+
+
+
     long long last_bloodboil_message_timestamp = 0; //dont reset ever
 
     int dropped_amount_of_melee_weapons = 0;
@@ -22867,6 +22874,43 @@ namespace MiscThings {
 
 
 
+    void reset_delayed_equipper()
+    {
+        delayed_weapon_to_equip = -1;
+        delayed_spell_to_equip = -1;
+        delayed_spell_to_cast = -1;
+        delayed_spell_target = -1;
+    }
+
+
+    void delayed_equipper(float dtime) //for situations when we are about to shout but player wants to equip something in the process
+    {
+        if (!is_casting_ult())
+        {
+            if (delayed_weapon_to_equip >= 0)
+            {
+                auto temp_result = activate_inventory_object_by_index(delayed_weapon_to_equip, 1);
+                send_random_context(temp_result.second, true);
+                delayed_weapon_to_equip = -1;
+            }
+
+            if (delayed_spell_to_equip >= 0)
+            {
+                auto temp_result = equip_spell_by_index(delayed_spell_to_equip);
+                send_random_context(temp_result.second, true);
+                delayed_spell_to_equip = -1;
+            }
+
+            if (delayed_spell_to_cast >= 0)
+            {
+                auto temp_result = cast_spell_by_index(delayed_spell_to_cast, false, false, delayed_spell_target);
+                send_random_context(temp_result.second, true);
+                delayed_spell_to_cast = -1;
+                delayed_spell_target = -1;
+            }
+        }
+    }
+
 
 
     void item_dropper(float dtime) //put this in the very end so its overwritten by every other force
@@ -23638,6 +23682,16 @@ namespace MiscThings {
                                     return WalkerProcessor::walk_to_object_by_refr(magnus_eye, 3);
                             }
 
+
+                            if (!probe_mode && object->IsWeapon() && is_casting_ult())
+                            {
+                                result.first = true;
+                                result.second = "[Processing...]";
+                                delayed_weapon_to_equip = item_id; //should work for unequip too because uses same function
+                                return result;
+                            }
+
+
                             if (!probe_mode)
                                 result.first = actor_equip->UnequipObject((RE::Actor*)player_ref, object);
                             else
@@ -23714,6 +23768,17 @@ namespace MiscThings {
                                     RE::InventoryEntryData* entry_entry = entry->second.second.get();
 
                                     RE::ExtraDataList* extra = nullptr;
+
+
+
+                                    if (!probe_mode && is_casting_ult())
+                                    {
+                                        result.first = true;
+                                        result.second = "[Processing...]";
+                                        delayed_weapon_to_equip = item_id;
+                                        return result;
+                                    }
+
 
 
                                     if (entry_entry->extraLists && entry_entry->extraLists->size() > 0)
@@ -26503,6 +26568,19 @@ namespace MiscThings {
 
                         if (spell_target && WalkerProcessor::is_fire_and_forget_spell(spell))
                         {
+
+
+                            if (is_casting_ult())
+                            {
+                                result.first = true;
+                                result.second = "[Processing...]";
+                                delayed_spell_to_cast = id;
+                                delayed_spell_target = target_index;
+                                return result;
+                            }
+
+
+
                             equip_manager->EquipSpell(player_actor, spell, equip_slot);
 
                             auto temp = WalkerProcessor::cast_spell_at_target(spell_target, spell, true);
@@ -26523,6 +26601,17 @@ namespace MiscThings {
 
                                 if (some_corpse)
                                 {
+
+                                    if (is_casting_ult())
+                                    {
+                                        result.first = true;
+                                        result.second = "[Processing...]";
+                                        delayed_spell_to_cast = id;
+                                        delayed_spell_target = target_index;
+                                        return result;
+                                    }
+
+
                                     equip_manager->EquipSpell(player_actor, spell, equip_slot);
 
                                     auto temp = WalkerProcessor::cast_spell_at_target(some_corpse, spell);
@@ -26543,6 +26632,17 @@ namespace MiscThings {
                             }
                             else
                             {
+
+                                if (is_casting_ult())
+                                {
+                                    result.first = true;
+                                    result.second = "[Processing...]";
+                                    delayed_spell_to_cast = id;
+                                    delayed_spell_target = target_index;
+                                    return result;
+                                }
+
+
                                 equip_manager->EquipSpell(player_actor, spell, equip_slot);
                                 //right_attack_cancel();
                                 //left_attack_cancel();
@@ -26698,6 +26798,17 @@ namespace MiscThings {
                                 }
 
 
+
+                                if (is_casting_ult())
+                                {
+                                    result.first = true;
+                                    result.second = "[Processing...]";
+                                    delayed_spell_to_cast = id;
+                                    delayed_spell_target = target_index;
+                                    return result;
+                                }
+
+
                                 equip_manager->EquipSpell(player_actor, spell, slot);
                                 WalkerProcessor::reset_attacking_inanimate_object_time();
                             }
@@ -26725,6 +26836,15 @@ namespace MiscThings {
 
                                     if (spell_target)
                                     {
+                                        if (is_casting_ult())
+                                        {
+                                            result.first = true;
+                                            result.second = "[Processing...]";
+                                            delayed_spell_to_cast = id;
+                                            delayed_spell_target = target_index;
+                                            return result;
+                                        }
+
                                         auto temp = WalkerProcessor::cast_spell_at_target(spell_target, spell, true);
 
                                         if (!temp.first)
@@ -26732,6 +26852,17 @@ namespace MiscThings {
                                     }
                                     else
                                     {
+
+                                        if (is_casting_ult())
+                                        {
+                                            result.first = true;
+                                            result.second = "[Processing...]";
+                                            delayed_spell_to_cast = id;
+                                            delayed_spell_target = target_index;
+                                            return result;
+                                        }
+
+
                                         if (MiscThings::is_reanimate_spell(right_hand))
                                         {
                                             auto some_corpse = MiscThings::find_nearest_resurrectable_corpse();
@@ -27178,6 +27309,17 @@ namespace MiscThings {
                 {
                     if (slot_id == 0x00025BEE) //voice
                     {
+
+                        if (is_casting_ult())
+                        {
+                            result.first = true;
+                            result.second = "[Processing...]";
+                            delayed_spell_to_equip = id;
+                            return result;
+                        }
+
+
+
                         equip_manager->EquipSpell(player_actor, spell, equip_slot);
                         right_attack_cancel();
                         left_attack_cancel();
@@ -27307,6 +27449,15 @@ namespace MiscThings {
 
                             }
                                 
+
+                            if (is_casting_ult())
+                            {
+                                result.first = true;
+                                result.second = "[Processing...]";
+                                delayed_spell_to_equip = id;
+                                return result;
+                            }
+
 
                             WalkerProcessor::reset_attacking_inanimate_object_time();
 

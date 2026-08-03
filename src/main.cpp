@@ -85,7 +85,6 @@
 
 
 //block vampirism cure quest if black soul gem is obtained but its empty. test soul trap spell
-//fix shouts being interrupted by spellcasting/equipping//weapon equipment (pause it until shout is done)
 //improve dodging of 2handed charge attacks
 //do not dodge projectiles on pure front if we are walking (they are usually launched with account for player movement)
 //barter track of all purchases for current barter session
@@ -102,6 +101,10 @@
 //try to improve sneak
 //nightvision cooldown?
 //try to track current follower position, add hint about it in quest list
+
+
+//autoheal should not block attacking (basically, in combat it should use walker's caster instead of input's caster so it can properly add other hand)
+
 
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1537,6 +1540,7 @@ namespace Hooks {
                 //clear_input_queue();
 
                 MiscThings::reset_dropper();
+                MiscThings::reset_delayed_equipper();
 
                 exit_dungeon_was_registered = false;
 
@@ -3377,6 +3381,8 @@ class MyHook {
 
 
             MiscThings::item_dropper(dtime);
+            MiscThings::delayed_equipper(dtime);
+
 
             Hooks::update_debug_text();
         }

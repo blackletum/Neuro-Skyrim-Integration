@@ -625,10 +625,16 @@ void confirm_craft()
 
 void ready_weapon()
 {
-    int32_t my_key = RE::ControlMap::GetSingleton()->GetMappedKey(RE::UserEvents::GetSingleton()->readyWeapon, RE::INPUT_DEVICES::kKeyboard);
-    RE::BSInputEventQueue::GetSingleton()->AddButtonEvent(RE::INPUT_DEVICES::kKeyboard, my_key, 1.0, 0.0);
+    if (!is_casting_ult())
+    {
+        int32_t my_key = RE::ControlMap::GetSingleton()->GetMappedKey(RE::UserEvents::GetSingleton()->readyWeapon, RE::INPUT_DEVICES::kKeyboard);
+        RE::BSInputEventQueue::GetSingleton()->AddButtonEvent(RE::INPUT_DEVICES::kKeyboard, my_key, 1.0, 0.0);
 
-    Hooks::add_debug_line("Input: ready weapon");
+        Hooks::add_debug_line("Input: ready weapon");
+    }
+    else
+        Hooks::add_debug_line("Input: ready weapon canceled because casting ult");
+
 
 }
 

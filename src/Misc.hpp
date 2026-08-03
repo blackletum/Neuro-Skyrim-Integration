@@ -556,6 +556,10 @@ namespace MiscThings {
     bool is_reanimate_spell(bool right);
     bool player_has_summon();
 
+    void delayed_equipper(float dtime);
+    void reset_delayed_equipper();
+
+
     float get_shout_cooldown();
     void shout_cooldown_fix(float dtime);
 
