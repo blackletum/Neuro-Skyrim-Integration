@@ -14374,7 +14374,7 @@ namespace WalkerProcessor {
 
                     if (MiscThings::get_picks_amount_int() <= 0)
                     {
-                        send_random_context("You dont have any lockpicks to open the lock. You can buy some lockpicks from traders in towns", false);
+                        send_random_context("You dont have any lockpicks to open the lock. You can buy some lockpicks from traders in towns (Riften has the most traders)", false);
 
                         if (is_door(target_ref))
                             cut_navmesh_on_target(get_targeted_ref());
@@ -20570,7 +20570,7 @@ namespace WalkerProcessor {
 
                                                                             if (MiscThings::get_picks_amount_int() <= 0)
                                                                             {
-                                                                                send_random_context("You dont have any lockpicks to open the lock. You can buy some lockpicks from traders in towns", false);
+                                                                                send_random_context("You dont have any lockpicks to open the lock. You can buy some lockpicks from traders in towns (Riften has the most traders)", false);
 
                                                                                 if (is_door(result_target))
                                                                                     cut_navmesh_on_target(result_target);
@@ -21055,7 +21055,7 @@ namespace WalkerProcessor {
 
                                                                         if (MiscThings::get_picks_amount_int() <= 0)
                                                                         {
-                                                                            send_random_context("The path is blocked by a locked door and you dont have any lockpicks to open the lock. You can buy some lockpicks from traders in towns", false);
+                                                                            send_random_context("The path is blocked by a locked door and you dont have any lockpicks to open the lock. You can buy some lockpicks from traders in towns (Riften has the most traders)", false);
 
                                                                             if (is_door(get_targeted_ref()))
                                                                                 cut_navmesh_on_target(get_targeted_ref());
@@ -21486,7 +21486,7 @@ namespace WalkerProcessor {
 
                                                         if (MiscThings::get_picks_amount_int() <= 0)
                                                         {
-                                                            send_random_context("The path is blocked by a locked door and you dont have any lockpicks to open the lock. You can buy some lockpicks from traders in towns", false);
+                                                            send_random_context("The path is blocked by a locked door and you dont have any lockpicks to open the lock. You can buy some lockpicks from traders in towns (Riften has the most traders)", false);
 
                                                             if (is_door(get_targeted_ref()))
                                                                 cut_navmesh_on_target(get_targeted_ref());
