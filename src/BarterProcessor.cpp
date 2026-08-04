@@ -14,6 +14,10 @@ namespace BarterProcessor {
 
   
 
+    std::string transaction_history = "";
+    int transaction_history_total_gold = 0;
+
+
     bool big_transaction_request_sent = false;
     bool big_transaction_choice_valid = false;
     int big_transaction_choice = 0;
@@ -349,6 +353,9 @@ namespace BarterProcessor {
 
     bool barter_reset()
     {
+        transaction_history = "";
+        transaction_history_total_gold = 0;
+
         barter_reset_categories_selection();
         barter_reset_items_selection();
 
@@ -2432,29 +2439,29 @@ namespace BarterProcessor {
     }
 
 
-    bool detect_item_barter_result(bool ignore_slider, bool ignore_vendor_not_enough_gold)
+    int detect_item_barter_result(bool ignore_slider, bool ignore_vendor_not_enough_gold)
     {
         if (!update_barter_item_by_id(pos_to_id(item_choice)))
         {
             old_item_choice_text = "";
-            return true; //item disappeared
+            return 1; //item disappeared
         }
 
         if (have_not_enough_gold_message())
         {
             send_random_context("[Not enough gold!]", false);
             old_item_choice_text = "";
-            return true; //not enough gold
+            return 2; //not enough gold
         }
 
         if (!ignore_slider && quantity_slider_active())
         {
-            return true; //processed later in algorithm
+            return 3; //processed later in algorithm
         }
 
         if (!ignore_vendor_not_enough_gold && vendor_not_enough_gold_message() != "")
         {
-            return true; //processed later in algorithm
+            return 4; //processed later in algorithm
         }
 
 
@@ -2463,20 +2470,20 @@ namespace BarterProcessor {
         if (item_choice_text == "")
         {
             old_item_choice_text = "";
-            return true; //item disappeared
+            return 5; //item disappeared
         }
         else
             if (item_choice_text != old_item_choice_text)
             {
                 old_item_choice_text = "";
-                return true; //text changed. probably quantity.
+                return 6; //text changed. probably quantity.
             }
 
 
         //TODO: popups
 
 
-        return false; //nothing seem to be changed
+        return 0; //nothing seem to be changed
     }
 
 
@@ -2699,7 +2706,15 @@ namespace BarterProcessor {
                                                 }
 
 
-                                                if (force_choice(options, "You are bartering in Skyrim. " + get_gold_text() + ". Choose item to " + get_barter_type_text() + ". " + get_items_we_cant_buy_text(), force_type::barter_item_array))
+                                                std::string history_message = "";
+
+                                                if (transaction_history != "")
+                                                {
+                                                    std::string sold_bought = type == barter_type::buy ? "bought" : "sold";
+                                                    history_message = "\nYou already " + sold_bought + ": " + transaction_history + " for total of " + std::to_string(transaction_history_total_gold) + " gold";
+                                                }
+
+                                                if (force_choice(options, "You are bartering in Skyrim. " + get_gold_text() + history_message + ". Choose item to " + get_barter_type_text() + ". " + get_items_we_cant_buy_text(), force_type::barter_item_array))
                                                 {
                                                     missing_item_detected = false;
                                                     last_cursor_move = 0;
@@ -2799,10 +2814,24 @@ namespace BarterProcessor {
                                                         {
                                                             if (preconfirm_timer > 0.3f)
                                                             {
-                                                                if (detect_item_barter_result(false, false))
+                                                                int detect_result = detect_item_barter_result(false, false);
+
+                                                                if (detect_result)
                                                                 {
                                                                     item_confirming = false;
                                                                     item_confirmed = true;
+
+
+                                                                    if (detect_result == 1 || detect_result == 5 || detect_result == 6)
+                                                                    {
+                                                                        auto p_item_info = items_list.find(pos_to_id(item_choice));
+                                                                        if (p_item_info != items_list.end())
+                                                                        {
+                                                                            transaction_history += p_item_info->second.name + ", ";
+                                                                            transaction_history_total_gold += p_item_info->second.price;
+                                                                        }
+                                                                    }
+
                                                                     //RE::DebugMessageBox("SOLD");//this works but it gives message box with OK button. not what i need
                                                                 }
                                                                 else
@@ -2902,18 +2931,16 @@ namespace BarterProcessor {
                                                                             }
 
 
-
-
-
-
                                                                             if (!slider_confirmed)
                                                                             {
                                                                                 if (preconfirm_timer2 > 0.3f)
                                                                                 {
-                                                                                    if (detect_item_barter_result(true, false))
+                                                                                    int detect_result = detect_item_barter_result(true, false);
+                                                                                    if (detect_result)
                                                                                     {
                                                                                         slider_confirming = false;
                                                                                         slider_confirmed = true;
+
                                                                                     }
                                                                                     else
                                                                                     {
@@ -2945,10 +2972,12 @@ namespace BarterProcessor {
                                                                                             {
                                                                                                 if (!vendor_not_enough_gold_confirmed)
                                                                                                 {
-                                                                                                    if (detect_item_barter_result(false, true))
+                                                                                                    int detect_result = detect_item_barter_result(false, true);
+                                                                                                    if (detect_result)
                                                                                                     {
                                                                                                         vendor_not_enough_gold_confirming = false;
                                                                                                         vendor_not_enough_gold_confirmed = true;
+
                                                                                                     }
                                                                                                     else
                                                                                                     {
@@ -3015,10 +3044,12 @@ namespace BarterProcessor {
                                                                             {
                                                                                 if (!vendor_not_enough_gold_confirmed)
                                                                                 {
-                                                                                    if (detect_item_barter_result(false, true))
+                                                                                    int detect_result = detect_item_barter_result(false, true);
+                                                                                    if (detect_result)
                                                                                     {
                                                                                         vendor_not_enough_gold_confirming = false;
                                                                                         vendor_not_enough_gold_confirmed = true;
+
                                                                                     }
                                                                                     else
                                                                                     {
@@ -3056,6 +3087,43 @@ namespace BarterProcessor {
                                                                 }
                                                                 else
                                                                 {
+
+                                                                    if (!block_set && slider_confirming && !slider_confirmed) //got here trying to confirm slider. means slider confirmed successfully
+                                                                    {
+                                                                        auto p_item_info = items_list.find(pos_to_id(item_choice));
+                                                                        if (p_item_info != items_list.end())
+                                                                        {
+                                                                            transaction_history += p_item_info->second.name + " x" + std::to_string(slider_choice) + ", ";
+                                                                            transaction_history_total_gold += p_item_info->second.price * slider_choice;
+                                                                        }
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        if (!block_set && vendor_not_enough_gold_confirming && vendor_not_enough_gold_choice == 1) //got here after confirming not enough gold prompt...
+                                                                        {
+                                                                            if (slider_confirmed) //and there was a slider
+                                                                            {
+                                                                                auto p_item_info = items_list.find(pos_to_id(item_choice));
+                                                                                if (p_item_info != items_list.end())
+                                                                                {
+                                                                                    transaction_history += p_item_info->second.name + " x" + std::to_string(slider_choice) + ", ";
+                                                                                    transaction_history_total_gold += p_item_info->second.price * slider_choice;
+                                                                                }
+                                                                            }
+                                                                            else
+                                                                            {
+                                                                                auto p_item_info = items_list.find(pos_to_id(item_choice));
+                                                                                if (p_item_info != items_list.end())
+                                                                                {
+                                                                                    transaction_history += p_item_info->second.name + ", ";
+                                                                                    transaction_history_total_gold += p_item_info->second.price;
+                                                                                }
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                    
+
+
                                                                     finish_transaction();
 
                                                                     //back_to_items();
