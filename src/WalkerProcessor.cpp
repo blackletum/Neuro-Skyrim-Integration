@@ -16149,7 +16149,24 @@ namespace WalkerProcessor {
             
             spell_mode = true;
             spell_to_use = spell;
-            if (MiscThings::is_offensive_spell(spell))
+
+            bool dont_replace_with_shout = false;
+            
+            switch (spell->formID)
+            {
+            case (0x4DBA4)://soul trap
+            case (0x6D22C)://banish daedra
+            case (0x6F953)://command daedra
+            case (0x6F952)://expell daedra
+                dont_replace_with_shout = true;
+            }
+
+            bool inanimate = !(target && target->IsActor());
+            bool target_is_dead = target && target->IsActor() && target->IsDead();
+
+            dont_replace_with_shout |= inanimate || target_is_dead;
+
+            if (!dont_replace_with_shout && MiscThings::is_offensive_spell(spell))
                 return walk_to_object_by_index(MiscThings::get_object_by_refr(target), 3);
             else
                 return walk_to_object_by_refr(target, 3);
@@ -16158,9 +16175,19 @@ namespace WalkerProcessor {
         }
         else
         {
-            result.first = false;
-            result.second = "You dont have this spell ";
-            return result;
+            if (!target)
+            {
+                result.first = false;
+                result.second = "Target is unreachable ";
+                return result;
+            }
+            else
+            {
+                result.first = false;
+                result.second = "You dont have this spell ";
+                return result;
+            }
+
         }
     }
     
