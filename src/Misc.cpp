@@ -10398,6 +10398,36 @@ namespace MiscThings {
         return false;
     }
 
+
+
+    bool transformation_will_be_punished()
+    {
+        
+
+
+        return false;
+    }
+
+
+    RE::TESObjectREFR* get_current_follower()
+    {
+        if (!player_has_follower)
+            return nullptr;
+
+        auto follower_faction = (RE::TESFaction*)RE::TESForm::LookupByID(0x5c84e); //currentfollowerfaction
+
+        if (follower_faction && follower_faction->crimeGoldMap)
+        {
+            for (auto npc : *follower_faction->crimeGoldMap)
+            {
+                bool stop_here = false;
+            }
+        }
+
+        return nullptr;
+    }
+
+
     bool player_has_follower()
     {
         auto var_form = RE::TESForm::LookupByEditorID("PlayerFollowerCount");
@@ -26595,6 +26625,38 @@ namespace MiscThings {
                 {
                     if (slot_id == 0x00025BEE) //voice
                     {
+
+
+                        if (player_issued && spell->formID == 0x92C48) //beast form
+                        {
+                            paarthurnax_different_message = "While in beast form, most civillians and guards will be hostile, and you will get a bounty if they see you. But it will give you great powers for a while... Are you sure?";
+
+                            if (!parthurnax_friendly_fire_confirmed)
+                            {
+                                parthurnax_friendly_fire_confirm = true;
+                                parthurnax_friendly_fire_spell_id = id;
+                                parthurnax_friendly_fire_target_id = target_index;
+                                result.first = true;
+                                result.second = "Processing...";
+                                return result;
+                            }
+                        }
+
+                        if (player_issued && spell->formID == 0x200283b) //vampirelord form
+                        {
+                            paarthurnax_different_message = "While in Vampire Lord form, most civillians and guards will be hostile, and you will get a bounty if they see you. But it will give you great powers for a while... Are you sure?";
+
+                            if (!parthurnax_friendly_fire_confirmed)
+                            {
+                                parthurnax_friendly_fire_confirm = true;
+                                parthurnax_friendly_fire_spell_id = id;
+                                parthurnax_friendly_fire_target_id = target_index;
+                                result.first = true;
+                                result.second = "Processing...";
+                                return result;
+                            }
+                        }
+
 
                         if (player_issued && MiscThings::player_brawling())
                         {

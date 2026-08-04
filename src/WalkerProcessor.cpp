@@ -13,7 +13,7 @@
 
 namespace WalkerProcessor {
 
-
+    bool midcombat_reanimate_cast = false;
 
     std::map<RE::TESQuest*, std::vector<uint32_t>> followed_quests{};
 
@@ -5804,6 +5804,7 @@ namespace WalkerProcessor {
 
     void reset_walker()
     {
+        midcombat_reanimate_cast = false;
 
         seaching_dragon_land_spot = false;
 
@@ -12786,15 +12787,37 @@ namespace WalkerProcessor {
 
                     attack_action_0:
 
-                    if (!spell_mode && MiscThings::is_reanimate_spell(true) && !right_is_useless && resurrectable_corpse)
+                    if (!spell_mode && MiscThings::is_reanimate_spell(true) && !right_is_useless && resurrectable_corpse && !target_is_dead)
                     {
-                        //redirect to the corpse
-                        spell_mode = true; //but no spell to use so it doesnt mess up above
-                        target_ref = resurrectable_corpse;
-                        was_already_dead = true;
-                        start_attacking = false;
-                        invalidate_path();
-                        return false;
+                        if (MiscThings::get_player_mana() < get_spell_cost(true))
+                        {
+                            //not enough mana. dont start this
+                            attack_action = 1;
+                            attack_action_done = true;
+                            goto finalize_attack;
+
+                        }
+                        else
+                        {
+                            //redirect to the corpse
+                            spell_mode = true; //but no spell to use so it doesnt mess up above
+                            target_ref = resurrectable_corpse;
+                            was_already_dead = true;
+                            start_attacking = false;
+                            invalidate_path();
+                            midcombat_reanimate_cast = true;
+                            return false;
+                        }
+                    }
+                    else
+                    {
+                        if (!spell_mode && MiscThings::is_reanimate_spell(true) && !right_is_useless && !resurrectable_corpse && !target_is_dead)
+                        {
+                            //cant find corpse
+                            attack_action = 1;
+                            attack_action_done = true;
+                            goto finalize_attack;
+                        }
                     }
                     
 
@@ -13331,7 +13354,11 @@ namespace WalkerProcessor {
 
                             if (spell_mode && target_ref && !MiscThings::is_enemy_to_actor(target_ref))
                             {
-                                reset_walker();
+                                if (!midcombat_reanimate_cast)
+                                    reset_walker();
+                                else
+                                    midcombat_reanimate_cast = false;
+
                                 return true;
                             }
 
@@ -13348,16 +13375,36 @@ namespace WalkerProcessor {
                     {
                         attack_action_1:
 
-                        if (!spell_mode && MiscThings::is_reanimate_spell(false) && !right_is_useless && resurrectable_corpse)
+                        if (!spell_mode && MiscThings::is_reanimate_spell(false) && !left_is_useless && resurrectable_corpse && !target_is_dead)
                         {
-                            //redirect to the corpse
-                            spell_mode = true; //but no spell to use so it doesnt mess up above
-                            target_ref = resurrectable_corpse;
-                            was_already_dead = true;
-                            start_attacking = false;
-                            invalidate_path();
-                            return false; //in next cycle its supposed to properly return here but this time we are aiming at the corpse
+                            if (MiscThings::get_player_mana() < get_spell_cost(false))
+                            {
+                                //not enough mana. dont start this
+                                attack_action = 0;
+                                attack_action_done = true;
+                                goto finalize_attack;
+
+                            }
+                            else
+                            {
+                                //redirect to the corpse
+                                spell_mode = true; //but no spell to use so it doesnt mess up above
+                                target_ref = resurrectable_corpse;
+                                was_already_dead = true;
+                                start_attacking = false;
+                                invalidate_path();
+                                midcombat_reanimate_cast = true;
+                                return false; //in next cycle its supposed to properly return here but this time we are aiming at the corpse
+                            }
                         }
+                        else
+                            if (!spell_mode && MiscThings::is_reanimate_spell(false) && !left_is_useless && !resurrectable_corpse && !target_is_dead)
+                            {
+                                //no corpse
+                                attack_action = 0;
+                                attack_action_done = true;
+                                goto finalize_attack;
+                            }
 
                         if (attack_action_time1 < get_attack_time(false) && !((MiscThings::is_self_healing_spell(false) && (MiscThings::player_hp_more_than(90.0f) && !is_casting_walker(false))) || (!spell_mode && MiscThings::is_summon_spell(false) && MiscThings::player_has_summon())))
                         {
@@ -13892,7 +13939,14 @@ namespace WalkerProcessor {
 
                             if (spell_mode && target_ref && !MiscThings::is_enemy_to_actor(target_ref))
                             {
-                                reset_walker();
+                                if (!midcombat_reanimate_cast)
+                                    reset_walker();
+                                else
+                                {
+                                    midcombat_reanimate_cast = false;
+                                }
+                                    
+
                                 return true;
                             }
 

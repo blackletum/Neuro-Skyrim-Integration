@@ -6927,6 +6927,9 @@ namespace Observer {
 						}
 					}
 
+
+					//auto test = MiscThings::get_current_follower();
+
 					if (tried_to_heal)
 					{
 						if (tried_to_heal_time > 15.0f)

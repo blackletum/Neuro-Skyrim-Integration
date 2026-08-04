@@ -479,6 +479,7 @@ namespace MiscThings {
 
     bool have_any_quests();
 
+    RE::TESObjectREFR* get_current_follower();
     bool player_has_follower();
 
     bool equip_ammo(bool crossbow);
