@@ -6913,11 +6913,16 @@ namespace Observer {
 
 						if (right_healing || left_healing)
 						{
+							MiscThings::cast_spell_by_refr((RE::SpellItem*)MiscThings::get_hand_contents(right_healing));
+
+							/*
 							if (right_healing)
 								try_casting_hand(true);
 							else
 								try_casting_hand(false);
-							
+							*/
+
+
 							tried_to_heal = true;
 						}
 					}
@@ -6930,7 +6935,7 @@ namespace Observer {
 							tried_to_heal_time = 0.0f;
 						}
 						else
-							tried_to_heal_time += dtime;
+							tried_to_heal_time += 0.5f; //dtime here is wrong
 					}
 
 

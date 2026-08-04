@@ -84,7 +84,6 @@
 ///////////DO ALL THIS
 
 
-//block vampirism cure quest if black soul gem is obtained but its empty. test soul trap spell
 //improve dodging of 2handed charge attacks
 //do not dodge projectiles on pure front if we are walking (they are usually launched with account for player movement)
 //barter track of all purchases for current barter session
@@ -97,13 +96,14 @@
 //work on saartal pillar puzzle (silent pillars)
 //friendly fire raycasting for aoe spells + interrupt cast if friend started blocking mid attack
 
+//autoheal should not block attacking (basically, in combat it should use walker's caster instead of input's caster so it can properly add other hand)
+
 //container track all items for current section (maybe not worth, no money involved)
 //try to improve sneak
 //nightvision cooldown?
 //try to track current follower position, add hint about it in quest list
 
 
-//autoheal should not block attacking (basically, in combat it should use walker's caster instead of input's caster so it can properly add other hand)
 
 
 

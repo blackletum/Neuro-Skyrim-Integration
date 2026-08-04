@@ -9675,6 +9675,15 @@ namespace WalkerProcessor {
                     return result;
                 }
 
+                
+                if (quest_entry.quest && quest_entry.quest->formID == 0x5c625 && (quest_entry.quest->currentStage == 125 || quest_entry.quest->currentStage == 100) && !MiscThings::player_has_item((RE::TESBoundObject*)RE::TESForm::LookupByID(0x2E504)))
+                {
+                    result.first = false;
+                    result.second = "You need to find a filled Black Soul Gem first to complete this quest";
+                    return result;
+                }
+
+
 
                 auto objective = quest_entry.objective;
 

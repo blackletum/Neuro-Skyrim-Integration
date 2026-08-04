@@ -26185,6 +26185,56 @@ namespace MiscThings {
 
 
 
+    bool is_self_cast_spell(RE::SpellItem* spell)
+    {
+        if (spell && spell->formType == RE::FormType::Spell)
+        {
+            switch (spell->formID)
+            {
+            case (0x13018): //lesser ward
+            case (0x211F1): //steadfast ward
+            case (0x211F0): //greater ward
+            case (0x1A4CC): //telekinesis
+                return false;
+            }
+
+            if ((spell->GetFormType() == RE::FormType::Spell || spell->GetFormType() == RE::FormType::Scroll))
+            {
+                if (spell->GetSpellType() != RE::MagicSystem::SpellType::kEnchantment)
+                {
+                    if (spell->GetDelivery() == RE::MagicSystem::Delivery::kSelf)
+                    {
+                        return true;
+                    }
+                }
+            }
+            else
+            {
+                if (spell->GetFormType() == RE::FormType::Weapon)
+                {
+                    auto staff = (RE::TESObjectWEAP*)spell;
+
+                    if (staff->IsStaff())
+                    {
+                        auto ench = staff ? staff->As<RE::TESEnchantableForm>() : nullptr;
+
+                        if (ench && ench->formEnchanting && ench->amountofEnchantment != 0)
+                        {
+                            if (ench->formEnchanting->GetDelivery() == RE::MagicSystem::Delivery::kSelf)
+                            {
+                                return true;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return false;
+    }
+
+
+
     bool is_self_cast_spell(bool right)
     {
         bool result = false;
@@ -26566,7 +26616,7 @@ namespace MiscThings {
 
                         auto spell_target = MiscThings::get_object_by_index(target_index);
 
-                        if (spell_target && WalkerProcessor::is_fire_and_forget_spell(spell))
+                        if (spell_target && WalkerProcessor::is_fire_and_forget_spell(spell) && !MiscThings::is_self_cast_spell(spell))
                         {
 
 
@@ -26595,7 +26645,7 @@ namespace MiscThings {
                         else
                         {
 
-                            if (MiscThings::is_reanimate_spell(spell) && WalkerProcessor::is_fire_and_forget_spell(spell))
+                            if (MiscThings::is_reanimate_spell(spell) && WalkerProcessor::is_fire_and_forget_spell(spell) && !MiscThings::is_self_cast_spell(spell))
                             {
                                 auto some_corpse = MiscThings::find_nearest_resurrectable_corpse();
 
