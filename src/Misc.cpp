@@ -4274,7 +4274,7 @@ namespace MiscThings {
                 "Winterhold",
 
                 {
-                    {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1c18c), 1, "Trader [Buys everything, might have lockpicks]", 1}, //trader
+                    {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1c18c), 1, "Trader", 1}, //trader
                     {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1c18d), 2, "Tavern [Provides bed, jobs and food/booze]", 2}, //tavern
                     {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1c1b5), 5, "Jarl", 3} //jarl
 
@@ -4289,13 +4289,13 @@ namespace MiscThings {
                 {
                     "Windhelm",
                     {
-                        {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1b11c), 1, "Trader (Niranye) [Buys everything, might have lockpicks]", 1}, //trader
-                        {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1b123), 1, "Trader (Sadri's Used Wares) [Buys everything, might have lockpicks]", 1}, //trader
+                        {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1b11c), 1, "Trader (Niranye)", 1}, //trader
+                        {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1b123), 1, "Trader (Sadri's Used Wares)", 1}, //trader
                         {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1b118), 2, "Tavern [Provides bed, jobs and food/booze]", 2}, //tavern
                         {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1b115), 3, "Alchemist [Provides potions and ingredients. Probably has alchemist table]", 3}, //alchemist
                         {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1b135), 4, "Blacksmith [Weapons, armor, materials for crafting. Might have crafting workbenches around]", 4}, //blacksmith
                         {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1b131), 5, "Jarl", 5}, //jarl
-                        {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1b132), 6, "Wizard [Sells spells]", 6}, //wizard
+                        {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1b132), 6, "Wizard", 6}, //wizard
                         {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x16962), 7, "Church [Has shrines]", 7} //church
                     }
                 }
@@ -4307,17 +4307,17 @@ namespace MiscThings {
         {
             "Riften",
             {
-                {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xb882a), 1, "Trader (Tonila, Thieves guild) [Buys everything, usually has a lot of lockpicks]", 1}, //trader
-                {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4e0b3), 1, "Trader (Grelka) [Buys everything, might have lockpicks]", 1}, //trader
-                {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x19dd0), 1, "Trader (Pawned Prawn) [Buys everything, might have lockpicks]", 2}, //trader
-                {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x19ddc), 1, "Trader (Brand-Shei) [Buys everything, might have lockpicks]", 3}, //trader
-                {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x21ea6), 1, "Trader (Madesi) (jewelry)", 4}, //trader
+                {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xb882a), 1, "Trader (Tonila, Thieves guild)", 1}, //trader
+                {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4e0b3), 1, "Trader (Grelka)", 2}, //trader
+                {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x19dd0), 1, "Trader (Pawned Prawn)", 3}, //trader
+                {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x19ddc), 1, "Trader (Brand-Shei)", 4}, //trader
+                {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x21ea6), 1, "Trader (Madesi) [Jewelry]", 5}, //trader
                 //{(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xb882a), 1, "Thieves Guild Trader", 5}, //tavern //this needs some crazy risky walker enhancements
                 {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x19dc8), 2, "Tavern [Provides bed, jobs and food/booze]", 6}, //tavern
                 {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x19dfc), 3, "Alchemist [Provides potions and ingredients. Probably has alchemist table]", 7}, //alchemist
                 {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x19df1), 4, "Blacksmith [Weapons, materials for crafting. Might have crafting workbenches around]", 8}, //blacksmith
                 {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x19dea), 5, "Jarl", 9}, //jarl
-                {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x19df0), 6, "Wizard [Sells spells]", 10}, //wizard
+                {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x19df0), 6, "Wizard", 10}, //wizard
                 {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4227b), 7, "Church [Has shrines]", 11} //church
             }
 
@@ -4330,7 +4330,7 @@ namespace MiscThings {
                 {
                     "Riverwood",
                     {
-                        {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x13487), 1, "Trader [Buys everything, might have lockpicks]", 1}, //trader
+                        {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x13487), 1, "Trader", 1}, //trader
                         {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x13486), 2, "Tavern [Provides bed, jobs and food/booze]", 2}, //tavern
                         {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x13482), 4, "Blacksmith [Weapons, armor, materials for crafting. Might have crafting workbenches around]", 3} //blacksmith
                     }
@@ -4345,12 +4345,12 @@ namespace MiscThings {
                 {
                     "Falkreath",
                     {
-                        {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1981e), 1, "Trader [Buys everything, might have lockpicks]", 1}, //trader
+                        {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1981e), 1, "Trader", 1}, //trader
                         {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x3a198), 2, "Tavern [Provides bed, jobs and food/booze]", 2}, //tavern
                         {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x3a19b), 3, "Alchemist [Provides potions and ingredients. Probably has alchemist table]", 3}, //alchemist
                         {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x3a19f), 4, "Blacksmith [Weapons, armor, materials for crafting. Might have crafting workbenches around]", 4}, //blacksmith
                         {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x19822), 5, "Jarl", 5}, //jarl
-                        {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1b132), 6, "Wizard [Sells spells]", 6}, //wizard
+                        {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1b132), 6, "Wizard", 6}, //wizard
                         {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x17766), 7, "Church [Has shrines]", 7} //church
                     }
 
@@ -4364,12 +4364,12 @@ namespace MiscThings {
                 {
                     "Markarth",
                     {
-                        {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x198ea), 1, "Trader [Buys everything, might have lockpicks]", 1}, //trader
+                        {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x198ea), 1, "Trader", 1}, //trader
                         {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x198ec), 2, "Tavern [Provides bed, jobs and food/booze]", 2}, //tavern
                         {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x198f7), 3, "Alchemist [Provides potions and ingredients. Probably has alchemist table]", 3}, //alchemist
                         {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x19906), 4, "Blacksmith [Weapons, armor, materials for crafting. Might have crafting workbenches around]", 4}, //blacksmith
                         {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x19903), 5, "Jarl", 5}, //jarl
-                        {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x19908), 6, "Wizard [Sells spells]", 6}, //wizard
+                        {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x19908), 6, "Wizard", 6}, //wizard
                         {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x16e3e), 7, "Church [Has shrines]", 7} //church
                     }
 
@@ -4383,12 +4383,12 @@ namespace MiscThings {
                 {
                     "Solitude",
                     {
-                    {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x198c9), 1, "Trader [Buys everything, might have lockpicks]", 1}, //trader
+                    {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x198c9), 1, "Trader", 1}, //trader
                     {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x198a0), 2, "Tavern [Provides bed, jobs and food/booze]", 2}, //tavern
                     {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x198d2), 3, "Alchemist [Provides potions and ingredients. Probably has alchemist table]", 3}, //alchemist
                     {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x198d8), 4, "Blacksmith [Weapons, armor, materials for crafting. Might have crafting workbenches around]", 4}, //blacksmith
                     {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x198c1), 5, "Jarl", 5}, //jarl
-                    {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x198c5), 6, "Wizard [Sells spells]", 6}, //wizard
+                    {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x198c5), 6, "Wizard", 6}, //wizard
                     {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x37f3e), 7, "Church [Has shrines]", 7} //church
                     }
 
@@ -4405,7 +4405,7 @@ namespace MiscThings {
                     {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1aa62), 2, "Tavern [Provides bed, jobs and food/booze]", 1}, //tavern
                     {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1aa61), 3, "Alchemist [Provides potions and ingredients. Probably has alchemist table]", 2}, //alchemist
                     {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1aa66), 5, "Jarl", 3}, //jarl
-                    {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1aa5e), 6, "Wizard [Sells spells]", 4 } //wizard
+                    {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1aa5e), 6, "Wizard", 4 } //wizard
                     }
 
                 }
@@ -4433,17 +4433,17 @@ namespace MiscThings {
         {
             "Whiterun",
             {
-                {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1a672), 1, "Trader [Buys everything, might have lockpicks]", 1}, //trader
+                {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1a672), 1, "Trader", 1}, //trader
                 {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1a66e), 2, "Tavern [Provides bed, jobs and food/booze]", 2}, //tavern
                 {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1a681), 2, "Hunting shop [Sells bows and arrows]", 3}, //tavern
                 {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1a66d), 3, "Alchemist [Provides potions and ingredients. Probably has alchemist table]", 4}, //alchemist
                 {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1a67c), 4, "Blacksmith [Weapons, armor, materials for crafting. Might have crafting workbenches around]", 5}, //blacksmith
                 //{(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xd15b0), 4, "Blacksmith (Warmaiden's)", 6}, //blacksmith
                 {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1a677), 5, "Jarl", 6}, //jarl
-                {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1a67e), 6, "Wizard [Sells spells]", 7}, //wizard
+                {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1a67e), 6, "Wizard", 7}, //wizard
                 {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1a700), 7, "Church [Has shrines]", 8}, //church
-                {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1a6f9), 8, "Breezehome (your house)", 9 }, //house
-                {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xA2C94), 9, "Lydia (friend)", 10 } //lydia
+                {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1a6f9), 8, "Breezehome [your house]", 9 }, //house
+                {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xA2C94), 9, "Lydia [your friend]", 10 } //lydia
                 
             }
 
@@ -4971,6 +4971,90 @@ namespace MiscThings {
     }
 
 
+    bool trader_has_lockpicks(RE::TESObjectREFR* object)
+    {
+        if (object && object->IsActor())
+        {
+            auto trader = (RE::Actor*)object;
+            auto vendor_faction = trader->GetVendorFaction();
+
+            if (vendor_faction)
+            {
+                auto chest = vendor_faction->vendorData.merchantContainer;
+
+                if (chest)
+                {
+                    auto extralist = &chest->extraList;
+                    if (extralist)
+                    {
+                        RE::ExtraContainerChanges* extra_changes = (RE::ExtraContainerChanges*)extralist->GetByType(RE::ExtraDataType::kContainerChanges);
+
+                        if (extra_changes)
+                        {
+                            if (extra_changes->changes && extra_changes->changes->entryList)
+                            {
+                                for (auto entry : *extra_changes->changes->entryList)
+                                {
+                                    if (entry->countDelta > 0 && entry->object && entry->object->formID == 0xA)
+                                    {
+                                        return true;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return false;
+    }
+
+
+    bool wizard_has_unknown_spells(RE::TESObjectREFR* object)
+    {
+        if (object && object->IsActor())
+        {
+            auto trader = (RE::Actor*)object;
+            auto vendor_faction = trader->GetVendorFaction();
+
+            if (vendor_faction)
+            {
+                auto chest = vendor_faction->vendorData.merchantContainer;
+
+                if (chest)
+                {
+                    auto extralist = &chest->extraList;
+                    if (extralist)
+                    {
+                        RE::ExtraContainerChanges* extra_changes = (RE::ExtraContainerChanges*)extralist->GetByType(RE::ExtraDataType::kContainerChanges);
+
+                        if (extra_changes)
+                        {
+                            if (extra_changes->changes && extra_changes->changes->entryList)
+                            {
+                                for (auto entry : *extra_changes->changes->entryList)
+                                {
+                                    if (entry->countDelta > 0 && entry->object && entry->object->IsBook())
+                                    {
+                                        auto book = (RE::TESObjectBOOK*)entry->object;
+
+                                        if (book->TeachesSpell() && !MiscThings::player_has_spell(book->GetSpell()))
+                                            return true;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return false;
+    }
+
+
+
     std::vector<MenuOption> get_interesting_places_options()
     {
         std::vector<MenuOption> options{};
@@ -4987,7 +5071,32 @@ namespace MiscThings {
                 {
                     if (is_settlement_place_valid(settlement_place.npc, settlement_place.type))
                     {
-                        options.push_back({ settlement_place.id, settlement_place.name });
+                        std::string place_name = settlement_place.name;
+
+                        if (settlement_place.type == 1) //traders
+                        {
+                            if (MiscThings::get_picks_amount_int() < 50 && trader_has_lockpicks(settlement_place.npc))
+                            {
+                                if (settlement_place.npc && settlement_place.npc->formID == 0xb882a)
+                                    place_name += " [Buys everything, sells lockpicks]";
+                                else
+                                    place_name += " [Buys everything, has some lockpicks]";
+                            }
+                            else
+                                place_name += " [Buys everything]";
+                                
+                        }
+
+                        if (settlement_place.type == 6) //wizards
+                        {
+                            if (wizard_has_unknown_spells(settlement_place.npc))
+                            {
+                                place_name += " [Sells spells]";
+                            }
+                        }
+
+
+                        options.push_back({ settlement_place.id, place_name });
                     }  
                 }
 
