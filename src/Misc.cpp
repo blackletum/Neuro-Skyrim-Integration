@@ -4912,14 +4912,27 @@ namespace MiscThings {
                     
                     bool not_trading = false;
 
-                    if (mode == 1 || mode == 3 || mode == 4)
+                    if (mode == 1 || mode == 3 || mode == 4 || mode == 6)
                     {
                         auto actor = (RE::Actor*)object;
 
                         //if (actor->GetVendorFaction()) //they actually have no faction when they are not trading
                         {
-                            not_trading = !actor->CanOfferServices();
-                            bool stop_here = false;
+                            if (object->formID == 0x1aa5e) //falion
+                            {
+                                auto parent_cell = object->GetParentCell();
+                                auto falion_door = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x177b9);
+
+                                not_trading = !(parent_cell && parent_cell->formID == 0x138d0 && falion_door && !MiscThings::is_door_locked(falion_door));
+                                
+                            }
+                            else
+                            {
+                                not_trading = !actor->CanOfferServices();
+                                bool stop_here = false;
+                            }
+
+
                         }
                     }
 
