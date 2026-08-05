@@ -13,6 +13,7 @@
 
 namespace WalkerProcessor {
 
+    long long last_actual_walk_timestamp = 0;
 
     int preferred_attacking_hand = -1;
 
@@ -3392,6 +3393,8 @@ namespace WalkerProcessor {
 
                 walk_forward();
 
+                last_actual_walk_timestamp = std::chrono::steady_clock::now().time_since_epoch().count();
+
             }
             else
             {
@@ -5809,7 +5812,7 @@ namespace WalkerProcessor {
 
     void reset_walker()
     {
-
+        last_actual_walk_timestamp = 0;
         preferred_attacking_hand = -1;
 
         midcombat_reanimate_cast = false;
@@ -6588,8 +6591,30 @@ namespace WalkerProcessor {
                 int best_dir = -1;
 
 
+
+                bool dont_dodge_front = false;
+
+                if (!dodge_melee_mode)
+                {
+                    auto now = std::chrono::steady_clock::now().time_since_epoch().count();
+                    float delta_walk = (double)(now - last_actual_walk_timestamp) / 1000000000.0;
+                    if (delta_walk < 0.5f)
+                        dont_dodge_front = true;
+                }
+
+                
+                if (dont_dodge_front)
+                {
+                    dodge_projectile_allowed_dirs &= 0b11111110;
+                }
+
+
+
                 for (int i = 0; i < 8; i++)
                 {
+                    
+
+
                     if (MiscThings::getbit(dodge_projectile_allowed_dirs, i))
                     {
                         RE::NiPoint3 test_dir = { r * std::cos(pi / 4 * i + shift), r * std::sin(pi / 4 * i + shift), 0.0f };

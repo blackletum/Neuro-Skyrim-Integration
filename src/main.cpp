@@ -83,7 +83,6 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////DO ALL THIS
 
-//do not dodge projectiles on pure front if we are walking (they are usually launched with account for player movement)
 //test tolfdir spellcasting, maybe improve it because sequence of follow-quest-cast is not intuitive (just autowalk to point and then cast after pause or hint that you need to follow quest to take position first)
 //ults that are on cooldown should be tagged [On cooldown]
 //try to scan vendors if they actually have lockpicks, riften thieves guild vendor easy access, add more interior locations for check_interesting_places command
