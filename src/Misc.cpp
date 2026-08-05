@@ -211,10 +211,10 @@ namespace MiscThings {
 
 
 
-    std::pair<RE::NiPoint3, bool> about_to_be_hit_by_melee_attack()
+    melee_attack_info about_to_be_hit_by_melee_attack()
     {
         auto player = RE::PlayerCharacter::GetSingleton();
-        std::pair<RE::NiPoint3, bool> result{};
+        melee_attack_info result{};
 
         if (player)
         {
@@ -309,8 +309,12 @@ namespace MiscThings {
 
                                             if (raycast_ref == player)
                                             {
-                                                result.first = attack_vector;
-                                                result.second = actor_ref->GetAttackReach() > 200.0f;
+                                                bool distance_check = player->GetDistance(a_ref) < actor_ref->GetAttackReach() + 30.0f;
+                                                result.direction = attack_vector;
+                                                result.long_reach = (actor_ref->GetAttackReach() + distance_check*actor_ref->IsPowerAttacking()*actor_ref->actorState1.movingBack* actor_ref->actorState1.walking *100.0f) > 200.0f;
+                                                result.attacker = a_ref;
+                                                result.is_dragon = MiscThings::is_dragon(a_ref);
+                                                result.charge_powerattack = false;
                                                 return RE::BSContainer::ForEachResult::kStop;
                                             }
                                         }

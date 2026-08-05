@@ -13,6 +13,9 @@
 
 namespace WalkerProcessor {
 
+
+    int preferred_attacking_hand = -1;
+
     bool midcombat_reanimate_cast = false;
 
     std::map<RE::TESQuest*, std::vector<uint32_t>> followed_quests{};
@@ -375,6 +378,8 @@ namespace WalkerProcessor {
     int dodge_projectile_allowed_dirs = 0;
     bool dodge_melee_mode = false;
     bool dodge_melee_mode_enemy_long_reach = false;
+    bool dodge_melee_is_dragon = false;
+    RE::TESObjectREFR* dodge_melee_attacker = nullptr;
     bool dodge_projectile_extra_dangerous = false;
     RE::TESObjectREFR* dodge_projectile_blast_target = nullptr;
 
@@ -2797,11 +2802,11 @@ namespace WalkerProcessor {
         if (lock_camera_while_walking)
             lock_camera_onto_target(target_ref, dtime_maybe_bad);
 
-        if (do_dodge_projectile && dodge_melee_mode && interaction_after_walk == 3)
-            {
-                lock_camera_onto_target(target_ref, dtime_maybe_bad);
-                return;
-            }
+        if (do_dodge_projectile && dodge_melee_mode && interaction_after_walk == 3 && dodge_melee_attacker == target_ref && !dodge_melee_mode_enemy_long_reach)
+        {
+            lock_camera_onto_target(target_ref, dtime_maybe_bad);
+            return;
+        }
 
 
         bool stealth_walking = is_stealthwalking(sneak_probe_sneak_checked);
@@ -5804,12 +5809,18 @@ namespace WalkerProcessor {
 
     void reset_walker()
     {
+
+        preferred_attacking_hand = -1;
+
         midcombat_reanimate_cast = false;
 
         seaching_dragon_land_spot = false;
 
         dodge_projectile_blast_target = nullptr;
         fight_versus_dangerous_mage_power_attack_if_possible = false;
+
+        dodge_melee_is_dragon = false;
+        dodge_melee_attacker = nullptr;
 
         attack_target_needs_to_come_closer = false;
         dragon_landing_banned_spots.clear();
@@ -6527,6 +6538,9 @@ namespace WalkerProcessor {
         if (dodge_melee_mode)
             threshold = 0.4f;
 
+        if (dodge_melee_mode && dodge_melee_mode_enemy_long_reach)
+            threshold = 0.6f;
+
         if (dodge_projectile_extra_dangerous)
             threshold = 0.8f;
 
@@ -6544,6 +6558,8 @@ namespace WalkerProcessor {
                 {
                     dodge_melee_mode_enemy_long_reach = false;
                     dodge_melee_mode = false; //so it doesnt block attack_target's attempt to come closer
+                    dodge_melee_is_dragon = false;
+                    dodge_melee_attacker = nullptr;
                     return true;
                 }
                     
@@ -6570,6 +6586,7 @@ namespace WalkerProcessor {
                 float highest_dotproduct = -FLT_MAX;
                 float lowest_dotproduct = FLT_MAX;
                 int best_dir = -1;
+
 
                 for (int i = 0; i < 8; i++)
                 {
@@ -6613,25 +6630,49 @@ namespace WalkerProcessor {
                         if (dodge_melee_mode_enemy_long_reach && is_fighting() && !has_ranged_weapon_equipped(get_current_active_hand())) //for long reach we duck left or right to the enemy instead but not straight forward
                         {
                             int best_dir_adjacent1 = (best_dir + 1) % 8;
-                            int best_dir_adjacent2 = (best_dir - 1) % 8;
+                            int best_dir_adjacent2 = (8 + best_dir - 1) % 8;
 
                             //float dodge_direction_chance = (float)std::rand() / RAND_MAX;
 
-                            auto now = std::chrono::steady_clock::now().time_since_epoch().count();
+                            if (dodge_melee_is_dragon)
+                            {
+                                auto now = std::chrono::steady_clock::now().time_since_epoch().count();
 
-                            bool rotate_left = ((int)(((double)now / 1000000000.0) / 60.0)) % 2;
+                                bool rotate_left = ((int)(((double)now / 1000000000.0) / 60.0)) % 2;
 
 
-                            if (rotate_left && MiscThings::getbit(dodge_projectile_allowed_dirs, best_dir_adjacent1))
-                                dodge_direction = best_dir_adjacent1;
+                                if (rotate_left && MiscThings::getbit(dodge_projectile_allowed_dirs, best_dir_adjacent1))
+                                    dodge_direction = best_dir_adjacent1;
+                                else
+                                    if (MiscThings::getbit(dodge_projectile_allowed_dirs, best_dir_adjacent2))
+                                        dodge_direction = best_dir_adjacent2;
+                            }
                             else
-                                if (MiscThings::getbit(dodge_projectile_allowed_dirs, best_dir_adjacent2))
-                                    dodge_direction = best_dir_adjacent2;
+                            {
+                                if (MiscThings::getbit(dodge_projectile_allowed_dirs, best_dir_adjacent1))
+                                {
+                                    if (MiscThings::getbit(dodge_projectile_allowed_dirs, best_dir_adjacent2))
+                                    {
+                                        if (MiscThings::coinflip())
+                                            dodge_direction = best_dir_adjacent1;
+                                        else
+                                            dodge_direction = best_dir_adjacent2;
+                                    }
+                                    else
+                                        dodge_direction = best_dir_adjacent1;
+                                }
+                                else
+                                {
+                                    if (MiscThings::getbit(dodge_projectile_allowed_dirs, best_dir_adjacent2))
+                                        dodge_direction = best_dir_adjacent2;
+                                }
+                            }
+
                         }
                         else
                         {
                             int best_dir_adjacent1 = (best_dir + 1) % 8;
-                            int best_dir_adjacent2 = (best_dir - 1) % 8;
+                            int best_dir_adjacent2 = (8 + best_dir - 1) % 8;
 
                             float dodge_direction_chance = (float)std::rand() / RAND_MAX;
 
@@ -6673,6 +6714,8 @@ namespace WalkerProcessor {
                 dodge_direction = -1;
                 dodge_melee_mode = false; //so it doesnt block attack_target's attempt to come closer
                 dodge_melee_mode_enemy_long_reach = false;
+                dodge_melee_is_dragon = false;
+                dodge_melee_attacker = nullptr;
                 return true; //could not decide
             }
                 
@@ -6771,6 +6814,8 @@ namespace WalkerProcessor {
             dodge_projectile_extra_dangerous = false;
             dodge_melee_mode = false; //so it doesnt block attack_target's attempt to come closer
             dodge_melee_mode_enemy_long_reach = false;
+            dodge_melee_is_dragon = false;
+            dodge_melee_attacker = nullptr;
             result = true;
         }
 
@@ -12877,8 +12922,8 @@ namespace WalkerProcessor {
                                     right_attack_spell();
                             }
 
-
-                            was_casting_spell_right = true;
+                            if (!MiscThings::is_self_cast_spell(true))
+                                was_casting_spell_right = true;
 
 
                             if (MiscThings::is_summon_spell(true))
@@ -12916,6 +12961,8 @@ namespace WalkerProcessor {
 
                                 if (low_mana_check || (MiscThings::is_self_healing_spell(true) && MiscThings::player_hp_more_than(100.0f)))
                                 {
+                                    if (preferred_attacking_hand == 0)
+                                        preferred_attacking_hand = -1;
 
                                     //set_universal_block(1.0f);
                                     right_attack_cancel();
@@ -13004,7 +13051,8 @@ namespace WalkerProcessor {
                                             right_attack_spell();
                                     }
 
-                                    was_casting_spell_right = true;
+                                    if (!MiscThings::is_self_cast_spell(true))
+                                        was_casting_spell_right = true;
 
                                     if (MiscThings::is_summon_spell(true))
                                         look_down_for_summon();
@@ -13228,10 +13276,13 @@ namespace WalkerProcessor {
 
                         if (!goto_attack_used && MiscThings::has_spell_equipped(true) && is_concentration_spell(true) && is_casting_walker3(true))
                         {
-                            if (player->GetDistance(target_ref, true) < get_weapon_range(false) * target_ref->GetScale() && !left_is_useless)
+                            if (player->GetDistance(target_ref, true) < (50.0f + get_weapon_range(false) * target_ref->GetScale()) && !left_is_useless)
                             {
-                                goto_attack_used = true;
-                                goto attack_action_1; //add left while we doing this concentration spell
+                                if (!do_dodge_projectile || !is_melee_weapon(false))
+                                {
+                                    goto_attack_used = true;
+                                    goto attack_action_1; //add left while we doing this concentration spell
+                                }
                             }
                         }
 
@@ -13352,6 +13403,13 @@ namespace WalkerProcessor {
                             }
 
 
+                            if (preferred_attacking_hand != -1)
+                            {
+                                attack_action = preferred_attacking_hand;
+                                //preferred_attacking_hand = -1;
+                            }
+
+
                             if (spell_mode && target_ref && !MiscThings::is_enemy_to_actor(target_ref))
                             {
                                 if (!midcombat_reanimate_cast)
@@ -13468,7 +13526,8 @@ namespace WalkerProcessor {
                                 }
 
 
-                                was_casting_spell_left = true;
+                                if (!MiscThings::is_self_cast_spell(false))
+                                    was_casting_spell_left = true;
 
                                 if (MiscThings::is_summon_spell(false))
                                     look_down_for_summon();
@@ -13504,6 +13563,10 @@ namespace WalkerProcessor {
 
                                     if (low_mana_check || (MiscThings::is_self_healing_spell(false) && MiscThings::player_hp_more_than(100.0f)))// && MiscThings::player_is_full_hp()))
                                     {
+                                        if (preferred_attacking_hand == 1)
+                                            preferred_attacking_hand = -1;
+
+
                                         //set_universal_block(1.0f);
                                         left_attack_cancel();
                                         //was_charging_ranged = false;
@@ -13599,8 +13662,8 @@ namespace WalkerProcessor {
                                                 left_attack_spell();
                                         }
 
-
-                                        was_casting_spell_left = true;
+                                        if (!MiscThings::is_self_cast_spell(false))
+                                            was_casting_spell_left = true;
 
                                         if (MiscThings::is_summon_spell(false))
                                             look_down_for_summon();
@@ -13816,10 +13879,14 @@ namespace WalkerProcessor {
 
                             if (!goto_attack_used && MiscThings::has_spell_equipped(false) && is_concentration_spell(false) && is_casting_walker3(false) && !MiscThings::is_summon_spell(true) && !MiscThings::is_summon_spell(false))
                             {
-                                if (player->GetDistance(target_ref, true) < get_weapon_range(true) * target_ref->GetScale() && !right_is_useless)
+                                if (player->GetDistance(target_ref, true) < (50.0f + get_weapon_range(true) * target_ref->GetScale()) && !right_is_useless)
                                 {
-                                    goto_attack_used = true;
-                                    goto attack_action_0; //add right while we doing this concentration spell
+                                    if (!do_dodge_projectile || !is_melee_weapon(true))
+                                    {
+                                        goto_attack_used = true;
+                                        goto attack_action_0; //add right while we doing this concentration spell
+                                    }
+
                                 }
                             }
 
@@ -13933,6 +14000,15 @@ namespace WalkerProcessor {
 
                                 //set_universal_block(0.2f);
                             }
+
+
+                            if (preferred_attacking_hand != -1)
+                            {
+                                attack_action = preferred_attacking_hand;
+                                //preferred_attacking_hand = -1;
+                            }
+
+
 
                             dualcasting = false;
                             
@@ -16119,6 +16195,13 @@ namespace WalkerProcessor {
         }
     }
 
+
+    void set_preferred_attacking_hand(int hand)
+    {
+        preferred_attacking_hand = hand;
+    }
+
+
     std::pair<bool, std::string> cast_spell_at_target(RE::TESObjectREFR* target, RE::SpellItem* spell, bool check_fight_condition)
     {
         std::pair<bool, std::string> result{};
@@ -16783,12 +16866,14 @@ namespace WalkerProcessor {
             if (projectile_dir == RE::NiPoint3::Zero())
             {
                 auto temp = MiscThings::about_to_be_hit_by_melee_attack();
-                projectile_dir = temp.first;
+                projectile_dir = temp.direction;
 
                 if (projectile_dir != RE::NiPoint3::Zero())
                 {
                     dodge_melee_mode = true;
-                    dodge_melee_mode_enemy_long_reach = temp.second;
+                    dodge_melee_mode_enemy_long_reach = temp.long_reach;
+                    dodge_melee_is_dragon = temp.is_dragon;
+                    dodge_melee_attacker = temp.attacker;
                 }
                 else
                     if (!do_dodge_projectile)
@@ -16796,6 +16881,8 @@ namespace WalkerProcessor {
                         dodge_projectile_extra_dangerous = false;
                         dodge_melee_mode = false;
                         dodge_melee_mode_enemy_long_reach = false;
+                        dodge_melee_is_dragon = false;
+                        dodge_melee_attacker = nullptr;
                     }
 
 
@@ -16818,6 +16905,8 @@ namespace WalkerProcessor {
                 {
                     dodge_melee_mode = false;
                     dodge_melee_mode_enemy_long_reach = false;
+                    dodge_melee_is_dragon = false;
+                    dodge_melee_attacker = nullptr;
                 }
             }
 
@@ -16862,6 +16951,8 @@ namespace WalkerProcessor {
                     {
                         dodge_melee_mode = false;
                         dodge_melee_mode_enemy_long_reach = false;
+                        dodge_melee_is_dragon = false;
+                        dodge_melee_attacker = nullptr;
                     }
 
 

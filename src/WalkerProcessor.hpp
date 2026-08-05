@@ -72,6 +72,7 @@ namespace WalkerProcessor {
 	bool interacting_with_workbench();
 
 
+	void set_preferred_attacking_hand(int hand);
 
 
 	bool close_enough();

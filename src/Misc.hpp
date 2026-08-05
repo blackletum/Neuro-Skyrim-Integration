@@ -502,6 +502,14 @@ namespace MiscThings {
         bool high_aoe;
     };
 
+    struct melee_attack_info {
+        RE::NiPoint3 direction;
+        RE::TESObjectREFR* attacker;
+        bool long_reach;
+        bool charge_powerattack;
+        bool is_dragon;
+    };
+
 
     std::string get_quest_journal_description(RE::TESQuest* quest);
 
@@ -510,7 +518,7 @@ namespace MiscThings {
     bool is_novice_destruction_spell(RE::SpellItem* spell);
 
     projectile_info projectile_flying_into_player_face();
-    std::pair<RE::NiPoint3, bool> about_to_be_hit_by_melee_attack();
+    melee_attack_info about_to_be_hit_by_melee_attack();
 
     bool is_self_cast_spell(RE::SpellItem* spell);
     bool is_self_cast_spell(bool right);

@@ -1011,6 +1011,9 @@ namespace Observer {
 
 	void reset_observer()
 	{
+		tried_to_heal = false;
+		tried_to_heal_time = 0.0f;
+
 		was_fighting = false;
 		not_fighting_timer = 0.0f;
 
@@ -6906,26 +6909,39 @@ namespace Observer {
 
 					
 
-					if (!tried_to_heal && MiscThings::player_hp_less_than(60.0f) && !MiscThings::is_werewolf() && !MiscThings::is_vampirelord())
+					if (MiscThings::player_hp_less_than(60.0f) && !MiscThings::is_werewolf() && !MiscThings::is_vampirelord())
 					{
 						bool right_healing = MiscThings::is_self_healing_spell(true);
 						bool left_healing = MiscThings::is_self_healing_spell(false);
 
 						if (right_healing || left_healing)
 						{
-							MiscThings::cast_spell_by_refr((RE::SpellItem*)MiscThings::get_hand_contents(right_healing));
+							if (!tried_to_heal)
+							{
+								if (WalkerProcessor::is_fighting())
+									WalkerProcessor::set_preferred_attacking_hand(left_healing);
+								else
+									MiscThings::cast_spell_by_refr((RE::SpellItem*)MiscThings::get_hand_contents(right_healing));
 
-							/*
-							if (right_healing)
-								try_casting_hand(true);
-							else
-								try_casting_hand(false);
-							*/
+								/*
+								if (right_healing)
+									try_casting_hand(true);
+								else
+									try_casting_hand(false);
+								*/
 
 
-							tried_to_heal = true;
+								tried_to_heal = true;
+							}
 						}
+						else
+							if (tried_to_heal)
+								WalkerProcessor::set_preferred_attacking_hand(-1); //have no healing anymore
 					}
+					else
+						if (MiscThings::player_hp_more_than(90.0f) || MiscThings::is_werewolf() || MiscThings::is_vampirelord())
+							WalkerProcessor::set_preferred_attacking_hand(-1); //no need to heal anymore
+
 
 
 					//auto test = MiscThings::get_current_follower();

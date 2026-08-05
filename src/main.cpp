@@ -83,8 +83,6 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////DO ALL THIS
 
-
-//improve dodging of 2handed charge attacks
 //do not dodge projectiles on pure front if we are walking (they are usually launched with account for player movement)
 //test tolfdir spellcasting, maybe improve it because sequence of follow-quest-cast is not intuitive (just autowalk to point and then cast after pause or hint that you need to follow quest to take position first)
 //ults that are on cooldown should be tagged [On cooldown]
@@ -92,8 +90,6 @@
 //add handling for solstheim prison escaping flag bug
 //work on saartal pillar puzzle (silent pillars)
 //friendly fire raycasting for aoe spells + interrupt cast if friend started blocking mid attack
-
-//autoheal should not block attacking (basically, in combat it should use walker's caster instead of input's caster so it can properly add other hand)
 
 //container track all items for current section (maybe not worth, no money involved)
 //try to improve sneak
