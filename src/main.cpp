@@ -83,16 +83,15 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////DO ALL THIS
 
-//add more sublocations for check_interesting places
+//mage guild should have check_interesting action with all major npcs
 
 //test tolfdir spellcasting, maybe improve it because sequence of follow-quest-cast is not intuitive (just autowalk to point and then cast after pause or hint that you need to follow quest to take position first)
 
-//try to scan vendors if they actually have lockpicks
 //add handling for solstheim prison escaping flag bug
 //work on saartal pillar puzzle (silent pillars)
 //friendly fire raycasting for aoe spells + interrupt cast if friend started blocking mid attack (ignore for followers)
 
-//container track all items for current section (maybe not worth, no money involved)
+//container track all items for current session (maybe not worth, no money involved)
 //try to improve sneak (it still sometimes tries to sneak when we are 100% visible)
 //nightvision cooldown? (if has buff - refuse to buff again)
 //try to track current follower position, add hint about it in quest list
@@ -103,9 +102,8 @@
 
 //some weird weapon half-attacks bug when it cancels attack before its finished (maybe some attack phase coincidence)
 
-//ults that are on cooldown should be tagged [On cooldown]
+//ults that are on cooldown should be tagged [On cooldown] - MAYBE NO
 
-//wizards - add "offers services" check from traders
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

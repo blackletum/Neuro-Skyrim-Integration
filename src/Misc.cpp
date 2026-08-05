@@ -5083,7 +5083,8 @@ namespace MiscThings {
                                     place_name += " [Buys everything, has some lockpicks]";
                             }
                             else
-                                place_name += " [Buys everything]";
+                                if (settlement_place.npc && settlement_place.npc->formID != 0x21ea6) //madesi
+                                    place_name += " [Buys everything]";
                                 
                         }
 
