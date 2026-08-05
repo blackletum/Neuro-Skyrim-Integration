@@ -83,21 +83,29 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////DO ALL THIS
 
+//add more sublocations for check_interesting places
+
 //test tolfdir spellcasting, maybe improve it because sequence of follow-quest-cast is not intuitive (just autowalk to point and then cast after pause or hint that you need to follow quest to take position first)
-//ults that are on cooldown should be tagged [On cooldown]
-//try to scan vendors if they actually have lockpicks, riften thieves guild vendor easy access, add more interior locations for check_interesting_places command
+
+//try to scan vendors if they actually have lockpicks
 //add handling for solstheim prison escaping flag bug
 //work on saartal pillar puzzle (silent pillars)
-//friendly fire raycasting for aoe spells + interrupt cast if friend started blocking mid attack
+//friendly fire raycasting for aoe spells + interrupt cast if friend started blocking mid attack (ignore for followers)
 
 //container track all items for current section (maybe not worth, no money involved)
-//try to improve sneak
+//try to improve sneak (it still sometimes tries to sneak when we are 100% visible)
 //nightvision cooldown? (if has buff - refuse to buff again)
 //try to track current follower position, add hint about it in quest list
 
 //maybe dont interrupt spellcasting by equipping stuff at all (pause equip "processing..." style or choose different hand)
 
 //fix reanimate spells interrupting battle
+
+//some weird weapon half-attacks bug when it cancels attack before its finished (maybe some attack phase coincidence)
+
+//ults that are on cooldown should be tagged [On cooldown]
+
+//wizards - add "offers services" check from traders
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

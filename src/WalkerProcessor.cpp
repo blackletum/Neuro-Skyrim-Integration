@@ -14897,8 +14897,8 @@ namespace WalkerProcessor {
                         //return false;
                     }
                     else
-                    {
-                        if (!MiscThings::is_cave_autoloader_door(target_ref) && MiscThings::get_door_teleport(target_ref) != "" && quest_mode)
+                    {                                                                                                                                                       //trieves guild hatch, for tonila
+                        if (!MiscThings::is_cave_autoloader_door(target_ref) && MiscThings::get_door_teleport(target_ref) != "" && (quest_mode || (target_ref && target_ref->formID == 0x2d2dd)))
                             just_teleported = true;
 
                         confirm();
@@ -18759,6 +18759,10 @@ namespace WalkerProcessor {
                             auto mushroom_lift_up = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x403bd7d);
                             auto mushroom_lift_down = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x403bd7e);
 
+
+                            auto thief_guild_hatch = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x2d2dd);
+                            auto riften_mausoleum_redirect_button = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xc730a);
+                            auto redirect_chain = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xc7312);
                             //auto redirect_movarth = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x70cbc26);
 
                             if (!target_before_generic_redirect && target_ref == redirect_ysgramor_statue)
@@ -18768,15 +18772,17 @@ namespace WalkerProcessor {
                                 goto skip_generic_redirect; 
                             }
 
-                            if (target_ref != redirect_water && target_ref != labyrinth_marker1 && target_ref != labyrinth_marker2 && target_ref != labyrinth_lever1 && target_ref != labyrinth_lever2 && target_ref != redirect_in_tower && target_ref != redirect_out_tower && target_ref != redirect_in_riften_watchtower && target_ref != redirect_out_riften_watchtower && target_ref != redirect_ysgramor_chain && target_ref != redirect_ysgramor_statue) //its a chain redirect of 2 points, current target ref is invalid either
+                            if (target_ref != riften_mausoleum_redirect_button && target_ref != thief_guild_hatch && target_ref != redirect_water && target_ref != labyrinth_marker1 && target_ref != labyrinth_marker2 && target_ref != labyrinth_lever1 && target_ref != labyrinth_lever2 && target_ref != redirect_in_tower && target_ref != redirect_out_tower && target_ref != redirect_in_riften_watchtower && target_ref != redirect_out_riften_watchtower && target_ref != redirect_ysgramor_chain && target_ref != redirect_ysgramor_statue) //its a chain redirect of 2 points, current target ref is invalid either
                                 target_before_generic_redirect = target_ref;
 
                             interaction_before_generic_redirect = interaction_after_walk;
 
-                            
-                            auto redirect_chain = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xc7312);
-                            if (redirect_ref == redirect_chain || redirect_ref == redirect_ysgramor_chain || redirect_ref == redirect_ysgramor_statue || redirect_ref == mushroom_lift_up || redirect_ref == mushroom_lift_down)
+
+                            if (redirect_ref == thief_guild_hatch || redirect_ref == riften_mausoleum_redirect_button || redirect_ref == redirect_chain || redirect_ref == redirect_ysgramor_chain || redirect_ref == redirect_ysgramor_statue || redirect_ref == mushroom_lift_up || redirect_ref == mushroom_lift_down)
                             {
+                                if (redirect_ref == riften_mausoleum_redirect_button)
+                                    dont_use_bounds_for_close_enough = true;
+
                                 generic_redirect_active = false;
                                 backup_interaction_made = false;
                                 interaction_after_walk = 1;
@@ -18811,7 +18817,10 @@ namespace WalkerProcessor {
 
                             auto redirect_forsworn = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x28450);
 
-                            if (generic_redirect_active || (target_ref == redirect_chain && redirect_chain) || (target_ref == redirect_ysgramor_chain && redirect_ysgramor_chain) || (target_ref == redirect_ysgramor_statue && redirect_ysgramor_statue) || (target_ref == mushroom_lift_up && mushroom_lift_up) || (target_ref == mushroom_lift_down && mushroom_lift_down) || (target_ref == redirect_forsworn && redirect_forsworn))
+                            auto riften_mausoleum_redirect_button = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xc730a);
+                            auto thief_guild_hatch = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x2d2dd);
+
+                            if (generic_redirect_active || (target_ref == thief_guild_hatch && thief_guild_hatch) || (target_ref == riften_mausoleum_redirect_button && riften_mausoleum_redirect_button) || (target_ref == redirect_chain && redirect_chain) || (target_ref == redirect_ysgramor_chain && redirect_ysgramor_chain) || (target_ref == redirect_ysgramor_statue && redirect_ysgramor_statue) || (target_ref == mushroom_lift_up && mushroom_lift_up) || (target_ref == mushroom_lift_down && mushroom_lift_down) || (target_ref == redirect_forsworn && redirect_forsworn))
                             {
                                 //check for cancel
                                 if (!redirect_ref)
@@ -18822,8 +18831,11 @@ namespace WalkerProcessor {
                                         return;
                                     }
 
-                                    if (target_ref == mushroom_lift_down || target_ref == mushroom_lift_up)
+                                    if (target_ref == mushroom_lift_down || target_ref == mushroom_lift_up || target_ref == riften_mausoleum_redirect_button)
                                         backup_interaction_made = false; //allow it to interact again
+
+                                    if (target_ref == thief_guild_hatch)
+                                        catch_door_result = false;
 
 
                                     dont_check_quest_target_change = false;
@@ -19673,7 +19685,9 @@ namespace WalkerProcessor {
                                 {
                                     if (!get_targeted_ref() || target_ref == get_targeted_ref())
                                     {
-                                        if (!MiscThings::is_cave_autoloader_door(target_ref) && target_ref == get_targeted_ref() && is_door(target_ref) && (MiscThings::get_door_teleport(target_ref) != "") && (quest_mode || runaway_mode || (target_ref != get_targeted_ref())))
+                                        //so this check is for teleport doors that are not cave autoloader doors... why was there a reset for situation when door disappeared?
+                                                                                                                                      //REMOVE THIS IF DOORS BREAK
+                                        if (!MiscThings::is_cave_autoloader_door(target_ref) && (target_ref == get_targeted_ref() || !get_targeted_ref()) && is_door(target_ref) && (MiscThings::get_door_teleport(target_ref) != "") && (quest_mode || runaway_mode || (target_ref != get_targeted_ref())))
                                         {
                                             just_teleported = true;
                                             catch_door_result = false;
@@ -20379,8 +20393,8 @@ namespace WalkerProcessor {
                                                                                     
                                                                             }
                                                                             else
-                                                                            {
-                                                                                if (!quest_mode)
+                                                                            {                                                             //tg mausoleum door               //tg hatch              //tg chain         //these are for riften-tonila walk and out-of-riften non quest mode
+                                                                                if (!quest_mode && !(target_ref && (target_ref->formID == 0xc730a || target_ref->formID == 0x2d2dd || target_ref->formID == 0xc7312)))
                                                                                     reset_walker();
                                                                                 else
                                                                                 {

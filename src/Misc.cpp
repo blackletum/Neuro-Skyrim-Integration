@@ -4289,7 +4289,8 @@ namespace MiscThings {
                 {
                     "Windhelm",
                     {
-                        {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1b11c), 1, "Trader [Buys everything, might have lockpicks]", 1}, //trader
+                        {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1b11c), 1, "Trader (Niranye) [Buys everything, might have lockpicks]", 1}, //trader
+                        {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1b123), 1, "Trader (Sadri's Used Wares) [Buys everything, might have lockpicks]", 1}, //trader
                         {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1b118), 2, "Tavern [Provides bed, jobs and food/booze]", 2}, //tavern
                         {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1b115), 3, "Alchemist [Provides potions and ingredients. Probably has alchemist table]", 3}, //alchemist
                         {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1b135), 4, "Blacksmith [Weapons, armor, materials for crafting. Might have crafting workbenches around]", 4}, //blacksmith
@@ -4306,6 +4307,7 @@ namespace MiscThings {
         {
             "Riften",
             {
+                {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xb882a), 1, "Trader (Tonila, Thieves guild) [Buys everything, usually has a lot of lockpicks]", 1}, //trader
                 {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4e0b3), 1, "Trader (Grelka) [Buys everything, might have lockpicks]", 1}, //trader
                 {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x19dd0), 1, "Trader (Pawned Prawn) [Buys everything, might have lockpicks]", 2}, //trader
                 {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x19ddc), 1, "Trader (Brand-Shei) [Buys everything, might have lockpicks]", 3}, //trader
@@ -4554,6 +4556,13 @@ namespace MiscThings {
                     {
                     case (0x165a3): //whiterun palace1
                     case (0x80c6a): //whiterun palace2
+                        //new
+                    //case (0x165a7):
+                    case (0x1605e):
+                    case (0x165b6):
+                    case (0x165b3):
+                    case (0x165b7):
+                    case (0x165a8):
                     {
                         auto settlement_worldspace = settlements.find(RE::TESForm::LookupByID(0x1a26f));
 
@@ -4564,6 +4573,10 @@ namespace MiscThings {
                     }
 
                     case (0x16df2): //markarth palace
+                        //new
+                    case (0x16dfe):
+                    case (0x16dff):
+                    case (0x16df6):
                     {
                         auto settlement_worldspace = settlements.find(RE::TESForm::LookupByID(0x16d71));
 
@@ -4575,6 +4588,11 @@ namespace MiscThings {
 
                     case (0x1677c): //windhelm palace1
                     case (0x97299): //windhelm palace2
+                        //new
+                    case (0x16789):
+                    case (0x1678c):
+                    //case (0x16786):
+                    case (0x16782):
                     {
                         auto settlement_worldspace = settlements.find(RE::TESForm::LookupByID(0x1691d));
 
@@ -4584,6 +4602,12 @@ namespace MiscThings {
                         break;
                     }
                     case (0x16a04): //solitude palace
+                        //new
+                    case (0x16a0e):
+                    case (0x16a10):
+                    case (0x16a0f):
+                    case (0x16a11):
+                    //case (0x16a02):
                     {
                         auto settlement_worldspace = settlements.find(RE::TESForm::LookupByID(0x37edf));
 
@@ -4592,6 +4616,27 @@ namespace MiscThings {
 
                         break;
                     }
+
+
+
+                    //new, riften
+                    case (0x16bdf):
+                    case (0x16bce):
+                    case (0x16bd9):
+                    case (0x16bd2):
+                    case (0x16bd0):
+                    case (0x16bcf):
+                        //case (0x16a02):
+                    {
+                        auto settlement_worldspace = settlements.find(RE::TESForm::LookupByID(0x16bb4));
+
+                        if (settlement_worldspace != settlements.end())
+                            return settlement_worldspace->first;
+
+                        break;
+                    }
+
+
                     }
                 }
             }
@@ -4672,6 +4717,34 @@ namespace MiscThings {
                 case (0x1677c): //windhelm palace
                 case (0x97299): //windhelm palace
                 case (0x16a04): //solitude palace
+
+                    //new
+
+                //case (0x165a7):
+                case (0x1605e):
+                case (0x165b6):
+                case (0x165b3):
+                case (0x165b7):
+                case (0x165a8):
+                case (0x16789):
+                case (0x1678c):
+                //case (0x16786):
+                case (0x16782):
+                case (0x16bdf):
+                case (0x16bce):
+                case (0x16bd9):
+                case (0x16bd2):
+                case (0x16bd0): //tg
+                case (0x16bcf): //tg
+                case (0x16dfe):
+                case (0x16dff):
+                case (0x16df6):
+                case (0x16a0e):
+                case (0x16a10):
+                case (0x16a0f):
+                case (0x16a11):
+                //case (0x16a02):
+
                     return true;
                 }
             }
@@ -4748,6 +4821,35 @@ namespace MiscThings {
                 case (0x1677c): //windhelm palace
                 case (0x97299): //windhelm palace
                 case (0x16a04): //solitude palace
+
+
+                    //new
+
+                //case (0x165a7):
+                case (0x1605e):
+                case (0x165b6):
+                case (0x165b3):
+                case (0x165b7):
+                case (0x165a8):
+                case (0x16789):
+                case (0x1678c):
+                //case (0x16786):
+                case (0x16782):
+                case (0x16bdf):
+                case (0x16bce):
+                case (0x16bd9):
+                case (0x16bd2):
+                case (0x16bd0): //tg
+                case (0x16bcf): //tg
+                case (0x16dfe):
+                case (0x16dff):
+                case (0x16df6):
+                case (0x16a0e):
+                case (0x16a10):
+                case (0x16a0f):
+                case (0x16a11):
+                //case (0x16a02):
+
                     return false;
                 }
             }
@@ -6207,6 +6309,28 @@ namespace MiscThings {
                         }
                     }
                 }
+
+
+                auto target_parent_cell = target ? target->GetParentCell() : nullptr;
+                bool object_inside_of_thieves_guild_and_player_is_in_riften = player_worldspace && player_worldspace->formID == 0x16bb4 && target_parent_cell && (target_parent_cell->formID == 0x16bd0 || target_parent_cell->formID == 0x16bcf);
+                auto thief_guild_hatch = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x2d2dd);
+                auto redirect_button = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xc730a);
+
+                if (player_worldspace && player_worldspace->formID == 0x16bb4 && redirect_button && thief_guild_hatch && (object_inside_of_thieves_guild_and_player_is_in_riften || target == redirect_button || target == thief_guild_hatch))
+                {
+                    //check if mausoleum is open, if not - redirect to button
+                    auto mausoleum_blocker = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xc730a);
+
+                    if (!is_inside_of_thief_guild_exit(player) && mausoleum_blocker && MiscThings::two_state_activator_state(mausoleum_blocker) == 1)
+                        return redirect_button;
+                    else
+                        return thief_guild_hatch;
+                }
+
+
+
+
+
             }
 
 
@@ -6760,6 +6884,8 @@ namespace MiscThings {
 
         if (player)
         {
+            auto player_worldspace = player->GetWorldspace();
+
             RE::TESObjectREFR* mage_force_field_1 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xf0ea9);
             RE::TESObjectREFR* redirect_marker = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x7029a57);
 
@@ -6800,6 +6926,29 @@ namespace MiscThings {
 
             if (redirect_hermaeus_book2_end_speak_activator && target == redirect_hermaeus_book2_end)
                 return redirect_hermaeus_book2_end_speak_activator;
+
+
+            
+            /* //doesnt work - need to adjust interaction with button + will require consequetive autowalks to other objects. think better use generic_redirect, it has some kind of consequetive mechanism
+            auto target_parent_cell = target ? target->GetParentCell() : nullptr;
+
+            bool object_inside_of_thieves_guild_and_player_is_in_riften = player_worldspace && player_worldspace->formID == 0x16bb4 && target_parent_cell && (target_parent_cell->formID == 0x16bd0 || target_parent_cell->formID == 0x16bcf);
+
+            auto thief_guild_hatch = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x2d2dd);
+            auto redirect_button = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xc730a);
+
+            if (redirect_button && thief_guild_hatch && object_inside_of_thieves_guild_and_player_is_in_riften)
+            {
+                //check if mausoleum is open, if not - redirect to button
+                auto mausoleum_blocker = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xc730a);
+
+                if (!is_inside_of_thief_guild_exit(player) && mausoleum_blocker && MiscThings::two_state_activator_state(mausoleum_blocker) == 1)
+                    return redirect_button;
+                else
+                    return thief_guild_hatch;
+            }
+            */
+
 
         }
 
@@ -9112,7 +9261,6 @@ namespace MiscThings {
 
             }
         }
-
 
 
         auto thief_guild_hatch = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x2d2dd);
