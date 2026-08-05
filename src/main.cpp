@@ -89,7 +89,6 @@
 //test tolfdir spellcasting, maybe improve it because sequence of follow-quest-cast is not intuitive (just autowalk to point and then cast after pause or hint that you need to follow quest to take position first)
 //ults that are on cooldown should be tagged [On cooldown]
 //try to scan vendors if they actually have lockpicks, riften thieves guild vendor easy access, add more interior locations for check_interesting_places command
-//check what happens when whiterun prison escape triggers while player comes too close to the door
 //add handling for solstheim prison escaping flag bug
 //work on saartal pillar puzzle (silent pillars)
 //friendly fire raycasting for aoe spells + interrupt cast if friend started blocking mid attack

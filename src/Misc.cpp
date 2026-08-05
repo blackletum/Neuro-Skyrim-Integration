@@ -10409,21 +10409,271 @@ namespace MiscThings {
     }
 
 
+    bool is_in_faction(RE::TESNPC* npc, RE::TESFaction* faction)
+    {
+        if (npc && faction && npc->formType == RE::FormType::NPC && faction->formType == RE::FormType::Faction)
+        {
+            for (auto npc_faction : npc->factions)
+            {
+                if (npc_faction.faction == faction)
+                {
+                    if (npc_faction.rank != -1)
+                        return true;
+                }
+                    
+            }
+        }
+
+        return false;
+    }
+
+
+    //this shit doesnt work because sometimes they just assign some special follower to player, he fucks off, they increment PlayerFollowerCount and no universal storage holds who is the follower (example: farkas retrieve fragment quest)
+    //all other potential followers fail just by global variable, these situations need special handling
     RE::TESObjectREFR* get_current_follower()
     {
         if (!player_has_follower)
             return nullptr;
 
-        auto follower_faction = (RE::TESFaction*)RE::TESForm::LookupByID(0x5c84e); //currentfollowerfaction
+        
 
-        if (follower_faction && follower_faction->crimeGoldMap)
+        auto current_follower_faction = (RE::TESFaction*)RE::TESForm::LookupByID(0x5c84e); //currentfollowerfaction
+        auto potential_follower_faction = (RE::TESFaction*)RE::TESForm::LookupByID(0x5c84d); //potentialfollowerfaction
+        auto dismissed_follower_faction = (RE::TESFaction*)RE::TESForm::LookupByID(0x5c84c); //dismissedfollowerfaction
+        auto player_follower_faction = (RE::TESFaction*)RE::TESForm::LookupByID(0x84d1b); //playerfollowerfaction
+
+        auto current_hireling_faction = (RE::TESFaction*)RE::TESForm::LookupByID(0xbd738); //playerfollowerfaction
+        auto potential_hireling_faction = (RE::TESFaction*)RE::TESForm::LookupByID(0xbcc9a); //playerfollowerfaction
+        
+        auto farkas = (RE::Actor*)RE::TESObjectREFR::LookupByID(0x1a693);
+        auto lydia = (RE::Actor*)RE::TESObjectREFR::LookupByID(0xa2c94);
+
+        /*
+        if (current_follower_faction && current_follower_faction->crimeGoldMap)
         {
-            for (auto npc : *follower_faction->crimeGoldMap)
+            for (auto npc : *current_follower_faction->crimeGoldMap)
             {
                 bool stop_here = false;
             }
         }
+        */
+        auto datahandler = RE::TESDataHandler::GetSingleton();
 
+
+        
+
+        std::vector<RE::TESNPC*> current_followers{};
+        std::vector<RE::TESNPC*> potential_followers{};
+        std::vector<RE::TESNPC*> dismissed_followers{};
+        std::vector<RE::TESNPC*> player_followers{};
+
+        std::vector<RE::TESNPC*> current_followers2{};
+        std::vector<RE::TESNPC*> potential_followers2{};
+        std::vector<RE::TESNPC*> dismissed_followers2{};
+        std::vector<RE::TESNPC*> player_followers2{};
+
+        std::vector<RE::TESNPC*> potential_hirelings{};
+        std::vector<RE::TESNPC*> current_hirelings{};
+
+        std::vector<RE::TESNPC*> player_followers3{};
+
+        /* //this is companions-only
+        auto debug_follower_quest = (RE::TESQuest*)RE::TESForm::LookupByID(0xa81fe);
+        if (debug_follower_quest)
+        {
+            auto follower_ref = MiscThings::get_alias_ref_by_name(debug_follower_quest, "Follower");
+
+            return follower_ref;
+        }
+        */
+
+
+        auto debug_follower_quest = (RE::TESQuest*)RE::TESForm::LookupByID(0x750ba);
+        if (debug_follower_quest)
+        {
+            auto follower_ref = MiscThings::get_alias_ref_by_name(debug_follower_quest, "Follower");
+
+            bool stop_here = false;
+            //return follower_ref;
+        }
+
+        if (current_follower_faction && datahandler)
+        {
+            auto npc_array = datahandler->GetFormArray(RE::FormType::NPC);
+
+            for (auto npc_raw : npc_array)
+            {
+                auto npc = (RE::TESNPC*)npc_raw;
+
+                if (npc && is_in_faction(npc, current_follower_faction))
+                {
+                    current_followers.push_back(npc);
+                }
+
+                if (npc && is_in_faction(npc, potential_follower_faction))
+                {
+                    potential_followers.push_back(npc);
+                }
+
+                if (npc && is_in_faction(npc, dismissed_follower_faction))
+                {
+                    dismissed_followers.push_back(npc);
+                }
+
+                if (npc && is_in_faction(npc, player_follower_faction))
+                {
+                    player_followers.push_back(npc);
+                }
+
+
+                if (npc && npc->IsInFaction(current_follower_faction))
+                {
+                    current_followers2.push_back(npc);
+                }
+
+                if (npc && npc->IsInFaction(potential_follower_faction))
+                {
+                    potential_followers2.push_back(npc);
+                }
+
+                if (npc && npc->IsInFaction(dismissed_follower_faction))
+                {
+                    dismissed_followers2.push_back(npc);
+                }
+
+                if (npc && npc->IsInFaction(player_follower_faction))
+                {
+                    player_followers2.push_back(npc);
+                }
+
+
+                if (npc && npc->IsInFaction(potential_hireling_faction))
+                {
+                    potential_hirelings.push_back(npc);
+                }
+
+                if (npc && npc->IsInFaction(current_hireling_faction))
+                {
+                    current_hirelings.push_back(npc);
+                }
+            }
+        }
+
+
+
+
+        std::vector<RE::TESObjectREFR*> potential_followers_refrs{};
+
+
+        std::vector<uint64_t> potential_follower_npcs_formid{};
+        std::vector<uint64_t> potential_follower_refr_formid{};
+
+        if (current_follower_faction && datahandler)
+        {
+            //auto reference_array = datahandler->GetFormArray(RE::FormType::Reference);
+
+
+
+            for (auto potential_follower_npc : potential_followers)
+            {
+                bool found = false;
+
+
+                auto all_forms = RE::TESForm::GetAllForms();
+
+                for (auto raw_reference : *all_forms.first)
+                {
+                    auto actor = (RE::Actor*)raw_reference.second;
+
+                    if (actor->IsActor())
+                    {
+                        auto base_obj = actor->GetBaseObject();
+
+                        if (base_obj)
+                        {
+                            if (base_obj == potential_follower_npc)
+                            {
+                                found = true;
+                                potential_followers_refrs.push_back(actor);
+                                potential_follower_refr_formid.push_back(actor->formID);
+                            }
+                        }
+                    }
+                }
+
+
+
+
+
+
+
+
+                if (!found)
+                {
+                    potential_followers_refrs.push_back(nullptr);
+                    potential_follower_refr_formid.push_back(0);
+                }
+                    
+                potential_follower_npcs_formid.push_back(potential_follower_npc->formID);
+
+
+            }
+
+
+        }
+
+
+
+        //if (std::size(all_followers) > 0)
+        //    return all_followers.at(0); ?? how to get the refr? its a base object
+
+        
+        if (farkas && lydia && current_follower_faction && potential_follower_faction && dismissed_follower_faction && player_follower_faction)
+        {
+            bool test1 = farkas->IsInFaction(current_follower_faction);
+            bool test2 = lydia->IsInFaction(current_follower_faction);
+
+            bool test3 = farkas->IsInFaction(potential_follower_faction);
+            bool test4 = lydia->IsInFaction(potential_follower_faction);
+
+            bool test5 = farkas->IsInFaction(dismissed_follower_faction);
+            bool test6 = lydia->IsInFaction(dismissed_follower_faction);
+
+            bool test7 = farkas->IsInFaction(player_follower_faction);
+            bool test8 = lydia->IsInFaction(player_follower_faction);
+
+
+            bool test9 = farkas->IsInFaction(potential_hireling_faction);
+            bool test10 = lydia->IsInFaction(potential_hireling_faction);
+
+            bool test11 = farkas->IsInFaction(current_hireling_faction);
+            bool test12 = lydia->IsInFaction(current_hireling_faction);
+
+            std::vector<RE::TESFaction*> farkas_factions{};
+            std::vector<RE::TESFaction*> lydia_factions{};
+
+            for (auto faction : ((RE::TESNPC*)(farkas->GetBaseObject()))->factions)
+            {
+                if (faction.faction)
+                {
+                    farkas_factions.push_back(faction.faction);
+                }
+            }
+
+            for (auto faction : ((RE::TESNPC*)(lydia->GetBaseObject()))->factions)
+            {
+                if (faction.faction)
+                {
+                    lydia_factions.push_back(faction.faction);
+                }
+            }
+
+
+
+            bool stop_here = false;
+        }
+
+        
         return nullptr;
     }
 
@@ -17202,6 +17452,7 @@ namespace MiscThings {
                                                 this_quest.id = id;
                                                 this_quest.quest = the_quest;
                                                 this_quest.name = the_quest->GetFullName();
+
                                                 this_quest.target = target;
 
                                                 this_quest.name = MiscThings::replace_aliases(this_quest.quest, this_quest.name);
@@ -17216,6 +17467,28 @@ namespace MiscThings {
 
 
                                                 this_quest.displaytext = MiscThings::fix_book_description(this_quest.displaytext);
+
+
+                                                if (this_quest.quest->formID == 0x6e803 && this_quest.quest->currentStage == 30) //c01 quest retrieve fragment, farkas assigned to us as follower, waits outside
+                                                {
+                                                    auto parent_cell = player->GetParentCell();
+
+                                                    if (parent_cell && (parent_cell->formID != 0x1528c && parent_cell->formID != 0x2a03a)) //we are not inside of cairn
+                                                    {
+                                                        auto farkas = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1a693);
+                                                        auto cairn_door = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xf5b80);
+
+                                                        if (farkas && cairn_door)
+                                                        {
+                                                            if (farkas->GetWorldspace() == cairn_door->GetWorldspace())
+                                                            {
+                                                                if (farkas->GetDistance(cairn_door) < 2000.0f)
+                                                                    this_quest.displaytext += " (follower Farkas waits for you there)";
+                                                            }
+                                                        }
+                                                    }
+                                                }
+
 
 
                                                 if (this_quest.name == "Unbound" && target->alias == 124)

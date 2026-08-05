@@ -3,6 +3,102 @@
 
 
 
+void PathingHook::SetGroundPath(std::uintptr_t  a_subPtr, std::uintptr_t* a_newNode, std::uintptr_t* a_newData) {
+    // This hook fires whenever an actor needs updated pathing,  including dragons in flyingstate == 0 (Landed)
+    // Used to modify pathing for mounted dragon in flyingState == 0 (Landed)
+    // This is to improve handling of obstacles, and avoid that the dragon deviates from the straight
+    // path that has been directed by the player, if possible.
+
+        if (_SetGroundPath == 0) {
+            log::error("{}: trampoline not initialized!", __FUNCTION__);
+            return;
+
+        }
+
+        // call the original function
+        using FuncType = decltype(&SetGroundPath);
+        reinterpret_cast<FuncType>(_SetGroundPath)(a_subPtr, a_newNode, a_newData);
+
+        // modify waypoints for grounded, mounted dragon
+
+        auto* dragonActor = IDRC::DataManager::GetSingleton().GetDragonActor();
+        if (!dragonActor) {
+            // no dragon mounted
+            return;
+        } else if (_ts_SKSEFunctions::GetFlyingState(dragonActor) != 0 ||
+                    IDRC::FlyingModeManager::GetSingleton().GetFlyingMode() != IDRC::FlyingMode::kLanded) {
+            // not in landed state
+            return;
+        }
+
+        auto agent = reinterpret_cast<std::byte*>(a_subPtr - 0x20);
+        auto* actorState = *reinterpret_cast<RE::ActorState**>(agent + 0x10);
+        if (!actorState) {
+            return;
+        }
+
+        auto* actor = reinterpret_cast<RE::Actor*>(reinterpret_cast<std::uintptr_t>(actorState) - m_actorOffset);
+        if(actor != dragonActor) {
+            // not the mounted dragon
+            return;
+        }
+
+        // Read waypoints from agent+0x48 (pathData_48), which is now set
+        // a_subPtr + 0x28 = agent+0x48 = pathData_48
+        auto* pathData = reinterpret_cast<std::byte*>(
+        *reinterpret_cast<std::uintptr_t*>(a_subPtr + 0x108));
+        if (!pathData) {
+            return;
+        }
+
+        // pathData + 0x90 = waypointArray_90 (float* base)
+        // pathData + 0xA0 = waypointCount_A0 (uint32)
+        auto* wayPointBase  = *reinterpret_cast<float**>(pathData + 0x90);
+        auto  wayPointCount = *reinterpret_cast<std::uint32_t*>(pathData + 0xA0);
+
+
+        if (!wayPointBase || wayPointCount == 0) {
+            return;
+        }
+
+        // Each entry is 0x48 bytes; XYZ floats at byte offsets +0, +4, +8
+        constexpr std::size_t kStride = 0x48 / sizeof(float);  // = 0x12 floats
+
+        auto& firstWayPoint = *reinterpret_cast<RE::NiPoint3*>(&wayPointBase[0]);
+        auto& lastWayPoint = *reinterpret_cast<RE::NiPoint3*>(&wayPointBase[(wayPointCount - 1) * kStride]);
+
+        for (std::uint32_t i = 0; i < wayPointCount; ++i) {
+            // modify waypoints -  linearly interpolate between first and last waypoint
+            // then adjust z to be above ground
+            const float t = (wayPointCount > 1) ?
+                (static_cast<float>(i) / static_cast<float>(wayPointCount - 1)) :
+                0.0f;
+
+            RE::NiPoint3 currentWayPoint;
+            currentWayPoint.x = firstWayPoint.x + (lastWayPoint.x - firstWayPoint.x) * t;
+            currentWayPoint.y = firstWayPoint.y + (lastWayPoint.y - firstWayPoint.y) * t;
+            currentWayPoint.z = firstWayPoint.z + (lastWayPoint.z - firstWayPoint.z) * t;
+
+            float landHeight = _ts_SKSEFunctions::GetLandHeightWithWater(currentWayPoint, true);
+            currentWayPoint.z = landHeight + 20.f;
+
+            // update waypoint position
+            wayPointBase[i * kStride] = currentWayPoint.x;
+            wayPointBase[i * kStride + 1] = currentWayPoint.y;
+            wayPointBase[i * kStride + 2] = currentWayPoint.z;
+        }
+    }
+
+
+
+
+
+
+
+
+
+REL 88302, 90713 (SE: IMovementPathManagerAgent::Func1_1410bb860) updates actor paths. The function runs for each actor whenever it needs an updated path. Probably you can start from there.
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //GET SCRIPT FROM SCRIPT
