@@ -17769,21 +17769,38 @@ namespace MiscThings {
 
         if (my_quest)
         {
-            if (MiscThings::get_picks_amount_int() <= 0)
+            if (MiscThings::get_picks_amount_int() <= 0 || MiscThings::get_player_gold() < 200)
             {
 
                 quest this_quest{};
 
                 this_quest.id = id;
                 this_quest.quest = my_quest;
-                this_quest.name = "Find lockpicks";
+                
+                std::string special_name = "";
+                std::string special_display_text = "";
+
+                if (MiscThings::get_picks_amount_int() <= 0)
+                {
+                    special_name += "Find lockpicks; ";
+                    special_display_text += "(Lockpicks are usually sold by traders in big cities. Recommended to get at least 10 lockpicks for various needs. Riften has the most traders)";
+                }
+                    
+
+                if (MiscThings::get_player_gold() < 300)
+                {
+                    special_name += "Get some gold";
+                    special_display_text += "(You can earn gold by completing quests or by selling useless items to traders)";
+                }
+
+                this_quest.name = special_name;
                 this_quest.target = nullptr;
 
                 std::string displaytext = "";
 
                 std::string target_name = "";
 
-                this_quest.displaytext += "(they are usually sold by traders in big cities. Recommended to get at least 10 lockpicks for various needs. Riften has the most traders)";
+                this_quest.displaytext += special_display_text;
 
                 this_quest.target_name = target_name;
 
@@ -19124,7 +19141,7 @@ namespace MiscThings {
     {
         if (quest)
         {
-            if (quest->data.questType == RE::QUEST_DATA::Type::kMainQuest)
+            if (quest->data.questType == RE::QUEST_DATA::Type::kMainQuest && quest->formID != 0x7000d62) //myscpath
                 return "[Main Quest]";
 
             if (quest->data.questType == RE::QUEST_DATA::Type::kSideQuest || quest->data.questType == RE::QUEST_DATA::Type::kMiscellaneous)
