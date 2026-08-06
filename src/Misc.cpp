@@ -27431,6 +27431,84 @@ namespace MiscThings {
                     {
                         if (slot_id == 0x00013F44 || slot_id == 0x00013F42 || slot_id == 0x00013F43) //either hand
                         {
+
+                            //tolfdir ward casting scene
+
+                            if (spell && spell->formID == 0x13018) //lesser ward
+                            {
+                                auto parent_cell = player->GetParentCell();
+
+                                if (parent_cell && parent_cell->formID == 0x0001380e) //hall of elements
+                                {
+                                    auto mg01_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("MG01");
+                                    if (mg01_quest && mg01_quest->currentStage == 50)
+                                    {
+
+                                        auto scene = (RE::BGSScene*)RE::TESForm::LookupByID(0x9152b);
+                                        if (scene && scene->unkBC < 5)
+                                        {
+                                            auto object_p = General::Script::GetObject(mg01_quest, "MG01QuestScript");
+                                            if (object_p)
+                                            {
+                                                RE::BSFixedString prop_name = "::WardGiven_var";
+                                                bool ready_for_ward = General::Script::GetVariable<int>(object_p, prop_name) >= 5;
+                                                int test = General::Script::GetVariable<int>(object_p, prop_name);
+                                                if (ready_for_ward)
+                                                {
+                                                    auto cast_marker = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xf9363);
+                                                    if (cast_marker && player->GetDistance(cast_marker) > 100.0f)
+                                                    {
+                                                        result.first = false;
+                                                        result.second = "You are not in position yet! Use follow_quest to take correct position for casting the Ward spell first";
+                                                        return result;
+                                                    }
+                                                }
+                                            }
+                                        }
+
+
+                                        
+                                    }
+                                    
+                                    
+                                    /*
+                                    auto scene = (RE::BGSScene*)RE::TESForm::LookupByEditorID("MG01WardScene");
+                                    if (scene)
+                                    {
+                                        for (auto action : scene->actions)
+                                        {
+                                            if (action && action->index == 6)
+                                            {
+                                                if (action)
+                                                {
+                                                    //auto p_func = &decltype(*action)::Unk_02; // or explicitly: void (ClassName::*)() = &ClassName::Unk_02;
+
+                                                    // If you want to call the function:
+                                                    //(action->*p_func)(); // where action is a pointer to the object
+
+                                                    // If you just want to call the function, do:
+                                                    //action->Unk_02();
+
+
+                                                    // Declare the function pointer type
+                                                    //bool (*FuncWithParam)(int) = (bool(*)(int))(&(action->Unk_02));
+
+                                                    // Call the function
+                                                    //bool result = FuncWithParam(42);
+
+                                                    bool result = (action->*Unk_02)(42);
+                                                    bool result = ((bool(*)(int))(action->Unk_02))(42);
+                                                }
+                                            }
+                                        }
+                                    }
+                                    */
+                                }
+                            }
+
+
+
+
                             auto slot = get_free_slot(is_offensive_spell(spell), true);
 
                             bool right_hand = false;

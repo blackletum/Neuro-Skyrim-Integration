@@ -13060,7 +13060,10 @@ namespace WalkerProcessor {
 
                                     }
                                     else
-                                        attack_spell_cast_timeout += dtime;
+                                        if (!MiscThings::is_weapon_drawn())
+                                            attack_spell_cast_timeout += 0.2f*dtime;
+                                        else
+                                            attack_spell_cast_timeout += dtime;
                                 }
                                 else
                                     attack_spell_cast_timeout = 0.0f;
@@ -13670,7 +13673,10 @@ namespace WalkerProcessor {
                                         }
 
                                         else
-                                            attack_spell_cast_timeout += dtime;
+                                            if (!MiscThings::is_weapon_drawn())
+                                                attack_spell_cast_timeout += 0.2f * dtime;
+                                            else
+                                                attack_spell_cast_timeout += dtime;
                                     }
                                     else
                                     {

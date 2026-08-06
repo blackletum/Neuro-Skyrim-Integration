@@ -85,9 +85,6 @@
 
 
 
-
-//test tolfdir spellcasting, maybe improve it because sequence of follow-quest-cast is not intuitive (just autowalk to point and then cast after pause or hint that you need to follow quest to take position first)
-
 //add handling for solstheim prison escaping flag bug
 //work on saartal pillar puzzle (silent pillars)
 //friendly fire raycasting for aoe spells + interrupt cast if friend started blocking mid attack (ignore for followers)
