@@ -14,6 +14,9 @@
 namespace WalkerProcessor {
 
 
+    int friendly_fire_blocks = 0;
+    int friendly_fire_blocks2 = 0;
+
     long long last_actual_walk_timestamp = 0;
 
     int preferred_attacking_hand = -1;
@@ -126,6 +129,7 @@ namespace WalkerProcessor {
     float last_checked_enemy_health = -1.0f;
     bool close_enough_force_fail = false;
     long long close_enough_force_fail_time_start = 0;
+    bool close_enough_force_fail_reason_friendly_fire = false;
 
     bool reload_after_walk = false;
     bool reload_after_walk_quicksaved = false;
@@ -5814,6 +5818,10 @@ namespace WalkerProcessor {
 
     void reset_walker()
     {
+        friendly_fire_blocks = 0;
+        friendly_fire_blocks2 = 0;
+
+
         last_actual_walk_timestamp = 0;
         preferred_attacking_hand = -1;
 
@@ -6379,7 +6387,9 @@ namespace WalkerProcessor {
 
             if (start_attacking)
             {
-                attacking_done = true;
+                if (!(close_enough_force_fail_reason_friendly_fire && (spell_mode || attacking_inanimate_object_time > 0.0f)))
+                    attacking_done = true;
+
                 start_attacking = false;
             }
 
@@ -6989,7 +6999,7 @@ namespace WalkerProcessor {
             return false;
 
 
-        if (close_enough_force_fail && !MiscThings::is_dragon(target_ref))
+        if (close_enough_force_fail && !MiscThings::is_dragon(target_ref) || close_enough_force_fail_reason_friendly_fire)
         {
             auto now = std::chrono::steady_clock::now().time_since_epoch().count();
             float delta_cancel_fail = (double)(now - close_enough_force_fail_time_start) / 1000000000.0;
@@ -7004,10 +7014,15 @@ namespace WalkerProcessor {
             {
                 close_enough_force_fail = false;
                 close_enough_force_fail_time_start = 0;
+                close_enough_force_fail_reason_friendly_fire = false;
             }
             else
                 return false;
         }
+
+
+
+
 
 
         if (generic_redirect_active)
@@ -12986,6 +13001,27 @@ namespace WalkerProcessor {
                                 }
                                     
 
+                                bool friendly_fire_check = (target_is_dead || inanimate || MiscThings::is_enemy_to_actor(target_ref)) && MiscThings::friendly_fire_test(true);
+
+                                if (friendly_fire_check && !close_enough_force_fail && friendly_fire_blocks < 3 && friendly_fire_blocks2 < 10)
+                                {
+                                    friendly_fire_blocks++;
+                                    friendly_fire_blocks2++;
+                                    close_enough_force_fail_reason_friendly_fire = true;
+
+                                    if (inanimate || target_is_dead)
+                                        if (attacking_inanimate_object_time == 0.0f)
+                                            attacking_inanimate_object_time = 0.001f;
+
+                                    close_enough_force_fail = true;
+                                    close_enough_force_fail_time_start = std::chrono::steady_clock::now().time_since_epoch().count() - 1000000000.0f * 2.0f; //
+                                    walk_again();
+                                    return false;
+                                }
+                                else
+                                    friendly_fire_blocks = 0;
+
+
                                 if (low_mana_check || (MiscThings::is_self_healing_spell(true) && MiscThings::player_hp_more_than(100.0f)))
                                 {
                                     if (preferred_attacking_hand == 0)
@@ -12998,7 +13034,6 @@ namespace WalkerProcessor {
                                     last_attack_action = 0;
 
                                     attack_action_done = true;
-
 
                                     if (spell_mode && target_ref && !MiscThings::is_enemy_to_actor(target_ref))
                                     {
@@ -13265,7 +13300,7 @@ namespace WalkerProcessor {
 
                         //end of attack0
 
-
+                        //i forgot why there is another similar check below
                         if (attack_action_uses_cast_time)
                         {
                             bool is_actually_casting = WalkerProcessor::is_casting_walker(true);
@@ -13278,7 +13313,9 @@ namespace WalkerProcessor {
                             }
                             else
                             {
-                                if (attack_action_timeout0 > 1.0f)
+                                float timeout_val = get_spell_timeout(true);
+
+                                if (attack_action_timeout0 > timeout_val)
                                 {
                                     attack_action_time0 = 999.0f;
                                     attack_action_timeout0 = 0.0f;
@@ -13606,6 +13643,29 @@ namespace WalkerProcessor {
                                         low_mana_detected_left = true;
                                     }
 
+
+
+                                    bool friendly_fire_check = (target_is_dead || inanimate || MiscThings::is_enemy_to_actor(target_ref)) && MiscThings::friendly_fire_test(false);
+
+                                    if (friendly_fire_check && !close_enough_force_fail && friendly_fire_blocks < 3 && friendly_fire_blocks2 < 10)
+                                    {
+                                        friendly_fire_blocks++;
+                                        friendly_fire_blocks2++;
+                                        close_enough_force_fail_reason_friendly_fire = true;
+
+                                        if (inanimate || target_is_dead)
+                                            if (attacking_inanimate_object_time == 0.0f)
+                                                attacking_inanimate_object_time = 0.001f;
+
+                                        close_enough_force_fail = true;
+                                        close_enough_force_fail_time_start = std::chrono::steady_clock::now().time_since_epoch().count() - 1000000000.0f * 2.0f; //
+                                        walk_again();
+                                        return false;
+                                    }
+                                    else
+                                        friendly_fire_blocks = 0;
+
+
                                     if (low_mana_check || (MiscThings::is_self_healing_spell(false) && MiscThings::player_hp_more_than(100.0f)))// && MiscThings::player_is_full_hp()))
                                     {
                                         if (preferred_attacking_hand == 1)
@@ -13902,7 +13962,9 @@ namespace WalkerProcessor {
                                 }
                                 else
                                 {
-                                    if (attack_action_timeout1 > 1.0f)
+                                    float timeout_val = get_spell_timeout(false);
+
+                                    if (attack_action_timeout1 > timeout_val)
                                     {
                                         attack_action_time1 = 999.0f;
                                         attack_action_timeout1 = 0.0f;
@@ -16887,6 +16949,9 @@ namespace WalkerProcessor {
 
 	void processor(float dtime)
 	{
+
+        //MiscThings::friendly_fire_test(true);
+
         lock_camera_used_this_cycle = false;
 
         //Hooks::add_debug_line("walker_processor called", true);

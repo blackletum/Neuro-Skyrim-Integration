@@ -85,19 +85,16 @@
 
 
 //add handling for solstheim prison escaping flag bug
-//friendly fire raycasting for aoe spells + interrupt cast if friend started blocking mid attack (ignore for followers)
-
-//container track all items for current session (maybe not worth, no money involved)
 //try to improve sneak (it still sometimes tries to sneak when we are 100% visible)
 //nightvision cooldown? (if has buff - refuse to buff again)
-//try to track current follower position, add hint about it in quest list
-
-//maybe dont interrupt spellcasting by equipping stuff at all (pause equip "processing..." style or choose different hand)
-
 //fix reanimate spells interrupting battle
 
-//ults that are on cooldown should be tagged [On cooldown] - MAYBE NO
 
+
+//try to track current follower position, add hint about it in quest list - this is really only useful for followers that are untrackable with universal methods (for example farkas in companions quest), but normal followers dont need this function at all - they either follow you or go home in short time. therefore this is pretty useless overall
+//maybe dont interrupt spellcasting by equipping stuff at all (pause equip "processing..." style or choose different hand) - QUESTIONABLE, may create too much blocking
+//ults that are on cooldown should be tagged [On cooldown] - MAYBE NO
+//container track all items for current session - MAYBE NO
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -417,6 +417,199 @@ namespace MiscThings {
 
 
 
+    bool friendly_fire_test(bool right_hand)
+    {
+        auto player = RE::PlayerCharacter::GetSingleton();
+
+        if (!player)
+            return false;
+
+        auto hand_contents = right_hand ? MiscThings::get_hand_contents(true) : MiscThings::get_hand_contents(false);
+
+        if (hand_contents)
+        {
+            if (is_offensive_spell(hand_contents))
+            {
+                auto spell = (RE::SpellItem*)hand_contents;
+
+                if (WalkerProcessor::is_concentration_spell(right_hand))
+                {
+                    if (spell->GetDelivery() != RE::MagicSystem::Delivery::kSelf)
+                    {
+                        for (auto effect : spell->effects)
+                        {
+                            auto effectSetting = effect->baseEffect;
+
+                            if (effectSetting && effectSetting->data.projectileBase)
+                            {
+                                auto range2 = effectSetting->data.projectileBase->data.range;
+
+                                if (range2 > 0.0f)
+                                {
+                                    auto projectile_base = effectSetting->data.projectileBase;
+
+
+
+                                    auto camera = RE::PlayerCamera::GetSingleton();
+
+                                    if (!camera || !camera->cameraRoot.get())
+                                        return false;
+
+
+                                    auto camera_pos = camera->cameraRoot.get()->world.translate;
+                                    auto camera_dir = camera->cameraRoot.get()->world.rotate.GetVectorY();
+
+                                    auto camera_orth_dir1 = camera->cameraRoot.get()->world.rotate.GetVectorX();
+                                    auto camera_orth_dir2 = camera->cameraRoot.get()->world.rotate.GetVectorZ();
+
+                                    auto hand_pos = camera_pos;
+
+                                    if (right_hand)
+                                        hand_pos += camera_orth_dir1 * 5.0f;
+                                    else
+                                        hand_pos -= camera_orth_dir1 * 5.0f;
+
+
+                                    auto raycast_ref = MiscThings::GetRaycastRef(camera_pos, camera_dir, range2, nullptr, 0b00000000000010010000000000000110);
+
+
+                                    float pi = RE::NI_PI;
+
+                                    //DebugAPI_IMPL::DebugAPI::GetSingleton()->Update();
+
+                                    if (raycast_ref && raycast_ref->IsActor() && !MiscThings::is_enemy_to_actor(raycast_ref))
+                                    {
+                                        DebugAPI_IMPL::DebugAPI::GetSingleton()->LinesToDraw.clear();
+                                        return true;
+                                    }
+                                    else
+                                    {
+                                        /*
+                                        std::string test_starts{};
+                                        for (int i = 0; i < 8; i++)
+                                        {
+                                            //this is for dir = {1.0f, 0.0f}
+                                            point = { 10.0f * std::cos(pi / 4 * i), r * std::sin(pi / 4 * i), 0.0f };
+                                            test_starts.push_back({ hand_pos + point, true });
+                                        }
+                                        */
+
+                                        float r1 = 10.0f;
+                                        float r2 = 50.0f;
+
+                                        float coef2 = 0.5f;
+
+
+
+                                        //test 4 more positions
+                                        auto pos1 = hand_pos + camera_orth_dir1 * r1;
+                                        auto pos2 = hand_pos - camera_orth_dir1 * r1;
+                                        auto pos3 = hand_pos + camera_orth_dir2 * r1;
+                                        auto pos4 = hand_pos - camera_orth_dir2 * r1;
+
+                                        auto pos5 = hand_pos + camera_orth_dir1 * r1 * coef2 + camera_orth_dir2 * r1 * coef2;
+                                        auto pos6 = hand_pos + camera_orth_dir1 * r1 * coef2 - camera_orth_dir2 * r1 * coef2;
+                                        auto pos7 = hand_pos - camera_orth_dir1 * r1 * coef2 + camera_orth_dir2 * r1 * coef2;
+                                        auto pos8 = hand_pos - camera_orth_dir1 * r1 * coef2 - camera_orth_dir2 * r1 * coef2;
+
+
+                                        auto camera_dir_tilted1 = hand_pos + camera_orth_dir1 * r2 + camera_dir * 400.0f - camera_pos;
+                                        auto camera_dir_tilted2 = hand_pos - camera_orth_dir1 * r2 + camera_dir * 400.0f - camera_pos;
+                                        auto camera_dir_tilted3 = hand_pos + camera_orth_dir2 * r2 + camera_dir * 400.0f - camera_pos;
+                                        auto camera_dir_tilted4 = hand_pos - camera_orth_dir2 * r2 + camera_dir * 400.0f - camera_pos;
+                                        
+                                        auto camera_dir_tilted5 = hand_pos + camera_orth_dir1 * r2 * coef2 + camera_orth_dir2 * r2 * coef2 + camera_dir * 400.0f - camera_pos;
+                                        auto camera_dir_tilted6 = hand_pos + camera_orth_dir1 * r2 * coef2 - camera_orth_dir2 * r2 * coef2 + camera_dir * 400.0f - camera_pos;
+                                        auto camera_dir_tilted7 = hand_pos - camera_orth_dir1 * r2 * coef2 + camera_orth_dir2 * r2 * coef2 + camera_dir * 400.0f - camera_pos;
+                                        auto camera_dir_tilted8 = hand_pos - camera_orth_dir1 * r2 * coef2 - camera_orth_dir2 * r2 * coef2 + camera_dir * 400.0f - camera_pos;
+
+                                        camera_dir_tilted1.Unitize();
+                                        camera_dir_tilted2.Unitize();
+                                        camera_dir_tilted3.Unitize();
+                                        camera_dir_tilted4.Unitize();
+
+                                        camera_dir_tilted5.Unitize();
+                                        camera_dir_tilted6.Unitize();
+                                        camera_dir_tilted7.Unitize();
+                                        camera_dir_tilted8.Unitize();
+
+                                        //DebugAPI_IMPL::DebugAPI::GetSingleton()->LinesToDraw.clear();
+
+
+                                        RE::NiPoint3 small_up = { 0.0f, 0.0f, 1.0f };
+
+
+                                        //auto color = DebugAPI_IMPL::DrawDebug::Colors::GRN;
+
+
+
+                                        //DebugAPI_IMPL::DrawDebug::draw_line(pos1 + camera_dir_tilted1 * range2, pos1 + camera_dir_tilted1 * range2 + small_up, 5.0f, color);
+                                        //DebugAPI_IMPL::DrawDebug::draw_line(pos1 + camera_dir_tilted2 * range2, pos2 + camera_dir_tilted2 * range2 + small_up, 5.0f, color);
+                                        //DebugAPI_IMPL::DrawDebug::draw_line(pos1 + camera_dir_tilted3 * range2, pos3 + camera_dir_tilted3 * range2 + small_up, 5.0f, color);
+                                        //DebugAPI_IMPL::DrawDebug::draw_line(pos1 + camera_dir_tilted4 * range2, pos4 + camera_dir_tilted4 * range2 + small_up, 5.0f, color);
+                                        //DebugAPI_IMPL::DebugAPI::GetSingleton()->Update();
+                                        
+
+
+                                        auto raycast_ref2 = MiscThings::GetRaycastRef(pos1, camera_dir_tilted1, range2, nullptr, 0b00000000000010010000000000000110);
+                                        auto raycast_ref3 = MiscThings::GetRaycastRef(pos2, camera_dir_tilted2, range2, nullptr, 0b00000000000010010000000000000110);
+                                        auto raycast_ref4 = MiscThings::GetRaycastRef(pos3, camera_dir_tilted3, range2, nullptr, 0b00000000000010010000000000000110);
+                                        auto raycast_ref5 = MiscThings::GetRaycastRef(pos4, camera_dir_tilted4, range2, nullptr, 0b00000000000010010000000000000110);
+
+                                        auto raycast_ref6 = MiscThings::GetRaycastRef(pos5, camera_dir_tilted5, range2, nullptr, 0b00000000000010010000000000000110);
+                                        auto raycast_ref7 = MiscThings::GetRaycastRef(pos6, camera_dir_tilted6, range2, nullptr, 0b00000000000010010000000000000110);
+                                        auto raycast_ref8 = MiscThings::GetRaycastRef(pos7, camera_dir_tilted7, range2, nullptr, 0b00000000000010010000000000000110);
+                                        auto raycast_ref9 = MiscThings::GetRaycastRef(pos8, camera_dir_tilted8, range2, nullptr, 0b00000000000010010000000000000110);
+
+
+
+                                        bool test1 = (raycast_ref2 && raycast_ref2->IsActor() && !MiscThings::is_enemy_to_actor(raycast_ref2));
+                                        bool test2 = (raycast_ref3 && raycast_ref3->IsActor() && !MiscThings::is_enemy_to_actor(raycast_ref3));
+                                        bool test3 = (raycast_ref4 && raycast_ref4->IsActor() && !MiscThings::is_enemy_to_actor(raycast_ref4));
+                                        bool test4 = (raycast_ref5 && raycast_ref5->IsActor() && !MiscThings::is_enemy_to_actor(raycast_ref5));
+
+                                        bool test5 = (raycast_ref6 && raycast_ref6->IsActor() && !MiscThings::is_enemy_to_actor(raycast_ref6));
+                                        bool test6 = (raycast_ref7 && raycast_ref7->IsActor() && !MiscThings::is_enemy_to_actor(raycast_ref7));
+                                        bool test7 = (raycast_ref8 && raycast_ref8->IsActor() && !MiscThings::is_enemy_to_actor(raycast_ref8));
+                                        bool test8 = (raycast_ref9 && raycast_ref9->IsActor() && !MiscThings::is_enemy_to_actor(raycast_ref9));
+
+                                        /*
+                                        DebugAPI_IMPL::DebugAPI::GetSingleton()->LinesToDraw.clear();
+                                        DebugAPI_IMPL::DrawDebug::draw_line(camera_pos + camera_dir * 20.0f, camera_pos + camera_dir * 100.0f);
+                                        DebugAPI_IMPL::DrawDebug::draw_line(pos1 + camera_dir * 20.0f, pos1 + camera_dir_tilted1 * range2, 5.0f, test1 ? DebugAPI_IMPL::DrawDebug::Colors::GRN : DebugAPI_IMPL::DrawDebug::Colors::RED);
+                                        DebugAPI_IMPL::DrawDebug::draw_line(pos2 + camera_dir * 20.0f, pos2 + camera_dir_tilted2 * range2, 5.0f, test2 ? DebugAPI_IMPL::DrawDebug::Colors::GRN : DebugAPI_IMPL::DrawDebug::Colors::RED);
+                                        DebugAPI_IMPL::DrawDebug::draw_line(pos3 + camera_dir * 20.0f, pos3 + camera_dir_tilted3 * range2, 5.0f, test3 ? DebugAPI_IMPL::DrawDebug::Colors::GRN : DebugAPI_IMPL::DrawDebug::Colors::RED);
+                                        DebugAPI_IMPL::DrawDebug::draw_line(pos4 + camera_dir * 20.0f, pos4 + camera_dir_tilted4 * range2, 5.0f, test4 ? DebugAPI_IMPL::DrawDebug::Colors::GRN : DebugAPI_IMPL::DrawDebug::Colors::RED);
+                                        DebugAPI_IMPL::DrawDebug::draw_line(pos5 + camera_dir * 20.0f, pos5 + camera_dir_tilted5 * range2, 5.0f, test5 ? DebugAPI_IMPL::DrawDebug::Colors::GRN : DebugAPI_IMPL::DrawDebug::Colors::RED);
+                                        DebugAPI_IMPL::DrawDebug::draw_line(pos6 + camera_dir * 20.0f, pos6 + camera_dir_tilted6 * range2, 5.0f, test6 ? DebugAPI_IMPL::DrawDebug::Colors::GRN : DebugAPI_IMPL::DrawDebug::Colors::RED);
+                                        DebugAPI_IMPL::DrawDebug::draw_line(pos7 + camera_dir * 20.0f, pos7 + camera_dir_tilted7 * range2, 5.0f, test7 ? DebugAPI_IMPL::DrawDebug::Colors::GRN : DebugAPI_IMPL::DrawDebug::Colors::RED);
+                                        DebugAPI_IMPL::DrawDebug::draw_line(pos8 + camera_dir * 20.0f, pos8 + camera_dir_tilted8 * range2, 5.0f, test8 ? DebugAPI_IMPL::DrawDebug::Colors::GRN : DebugAPI_IMPL::DrawDebug::Colors::RED);
+                                        DebugAPI_IMPL::DebugAPI::GetSingleton()->Update();
+                                        */
+
+                                        if (test1 || test2 || test3 || test4 || test5 || test6 || test7 || test8)
+                                        {
+                                            return true;
+                                        }
+                                        else
+                                        {
+                                            return false;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+
+        return false;
+    }
+
+
+
 
 
     projectile_info projectile_flying_into_player_face()
@@ -440,7 +633,11 @@ namespace MiscThings {
 
 
                             if (projectile_ref->shooter && projectile_ref->shooter.get() && projectile_ref->shooter.get().get() == player)
+                            {
+                                //friendly_fire_test(true);
                                 return RE::BSContainer::ForEachResult::kContinue;
+                            }
+                                
 
                             if (std::size(projectile_ref->impacts) <= 0)
                             {
@@ -573,11 +770,7 @@ namespace MiscThings {
                                                 }
                                             }
                                     }
-
                                 }
-
-
-
                             }
                         }
 
@@ -27531,9 +27724,9 @@ namespace MiscThings {
                                         
                                     }
                                     
-                                    
                                     /*
-                                    auto scene = (RE::BGSScene*)RE::TESForm::LookupByEditorID("MG01WardScene");
+                                    auto scene = (RE::BGSScene*)RE::TESForm::LookupByID(0x9152b);
+                                    //auto scene = (RE::BGSScene*)RE::TESForm::LookupByEditorID("MG01WardScene");
                                     if (scene)
                                     {
                                         for (auto action : scene->actions)
@@ -27557,8 +27750,12 @@ namespace MiscThings {
                                                     // Call the function
                                                     //bool result = FuncWithParam(42);
 
-                                                    bool result = (action->*Unk_02)(42);
-                                                    bool result = ((bool(*)(int))(action->Unk_02))(42);
+                                                    auto my_action = (my_scene::myBGSSceneAction*)action;
+
+                                                    bool test = my_action->Unk_02(6);
+
+                                                    //bool result = (action->*Unk_02)(42);
+                                                    //bool result = ((bool(*)(int))(action->Unk_02))(42);
                                                 }
                                             }
                                         }
