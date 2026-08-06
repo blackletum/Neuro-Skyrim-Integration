@@ -4267,6 +4267,26 @@ namespace MiscThings {
     {
         settlements =
         {
+
+            //mage college
+{
+    RE::TESForm::LookupByID(0x0001380e), //hall of elements, special checks for other locations in other places
+    {
+        "College of Winterhold",
+
+        {
+                //wrapped them like alchemists so it does not add [Buys everything] tag
+            {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1c1a5), 3, "Faralda [Master of Destruction]", 1}, //
+            {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1c1a6), 3, "Drevis [Master of Illusion]", 2}, //
+            {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1c1a7), 3, "Phinis [Master of Conjuration]", 3}, //
+            {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1c1a8), 3, "Colette [Master of Restoration]", 4}, //
+            {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1c1a1), 3, "Tolfdir [Master of Alteration]", 5}, //
+        }
+
+    }
+},
+
+
             //winterhold
         {
             RE::TESForm::LookupByID(0x8ea2),
@@ -4456,6 +4476,69 @@ namespace MiscThings {
 
 
 
+    bool college_of_winterhold_settlement_condition()
+    {
+        auto player = RE::PlayerCharacter::GetSingleton();
+
+        if (player)
+        {
+            auto player_pos = player->GetPosition();
+            auto player_worldspace = player->GetWorldspace();
+            auto player_cell = player->GetParentCell();
+
+
+            bool gates_are_locked = false;
+            auto gates = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x37a7d);
+            if (gates && gates->IsLocked())
+                gates_are_locked = true;
+
+            if (!gates_are_locked)
+            {
+
+                
+
+
+
+
+                if (player_worldspace && player_worldspace->formID == 0x3c && player_pos.x > 112969.0f && player_pos.y > 108266.2f && player_pos.z > -8150.0f)
+                {
+                    //fix for visit college quest not completing if player did not do faralda's magic test
+
+                    auto visit_college_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("MG01Pointer");
+
+                    if (visit_college_quest && visit_college_quest->currentStage < 200)
+                    {
+                        WalkerProcessor::complete_visit_college_quest();
+                    }
+
+
+                    return true; //outside
+                }
+                    
+
+                if (player_cell)
+                {
+                    switch (player_cell->formID)
+                    {
+                    case (0x0001380e):
+                    case (0x00013810):
+                    case (0x000cab92):
+                    case (0x0001380f):
+                    case (0x000cab91):
+                        return true;
+
+                    }
+                }
+            }
+
+        }
+
+        return false;
+    }
+
+
+
+
 
     bool is_aurora_borealis_in_the_sky()
     {
@@ -4502,6 +4585,11 @@ namespace MiscThings {
 
         fill_settlements();
 
+
+        if (college_of_winterhold_settlement_condition())
+            return RE::TESForm::LookupByID(0x0001380e);
+
+
         if (tamriel_worldspace && player_worldspace == tamriel_worldspace)
         {
             //check cells
@@ -4515,9 +4603,9 @@ namespace MiscThings {
                 {
                     auto key_type = settlement.first->GetFormType();
                     auto key = (RE::TESObjectCELL*)settlement.first;
-                    if (key_type == RE::FormType::Cell)
+                    if (key_type == RE::FormType::Cell && key && key->formID != 0x0001380e)
                     {
-                        if (player_cell)
+                        if (player_cell && player_cell->GetCoordinates() && key->GetCoordinates())
                         {
                             auto distX = abs(player_cell->GetCoordinates()->worldX - key->GetCoordinates()->worldX);
                             auto distY = abs(player_cell->GetCoordinates()->worldY - key->GetCoordinates()->worldY);
@@ -4533,6 +4621,7 @@ namespace MiscThings {
                 }
                 
             }
+            
 
             if (min_dist < 9000)
             {
@@ -4654,6 +4743,9 @@ namespace MiscThings {
     bool is_in_settlement()
     {
         auto player = RE::PlayerCharacter::GetSingleton();
+        if (!player)
+            return false;
+
         auto player_worldspace = player->GetWorldspace();
         auto player_cell = player->GetParentCell();
         auto tamriel_worldspace = RE::TESForm::LookupByID(0x3c);
@@ -4662,6 +4754,10 @@ namespace MiscThings {
         //if (std::size(settlements) < 2)
 
         fill_settlements();
+
+
+        if (college_of_winterhold_settlement_condition())
+            return true;
 
         if (tamriel_worldspace && player_worldspace == tamriel_worldspace)
         {
@@ -4676,9 +4772,9 @@ namespace MiscThings {
                 {
                     auto key_type = settlement.first->GetFormType();
                     auto key = (RE::TESObjectCELL*)settlement.first;
-                    if (key_type == RE::FormType::Cell)
+                    if (key_type == RE::FormType::Cell && key && key->formID != 0x0001380e) //college of winterhold has special check
                     {
-                        if (player_cell)
+                        if (player_cell && player_cell->GetCoordinates() && key->GetCoordinates())
                         {
                             auto distX = abs(player_cell->GetCoordinates()->worldX - key->GetCoordinates()->worldX);
                             auto distY = abs(player_cell->GetCoordinates()->worldY - key->GetCoordinates()->worldY);
@@ -4694,6 +4790,7 @@ namespace MiscThings {
                 }
 
             }
+
 
             if (min_dist < 7000)
             {
@@ -4767,6 +4864,9 @@ namespace MiscThings {
 
         fill_settlements();
 
+        if (college_of_winterhold_settlement_condition())
+            return false;
+
         if (tamriel_worldspace && player_worldspace == tamriel_worldspace)
         {
             //check cells
@@ -4780,9 +4880,9 @@ namespace MiscThings {
                 {
                     auto key_type = settlement.first->GetFormType();
                     auto key = (RE::TESObjectCELL*)settlement.first;
-                    if (key_type == RE::FormType::Cell)
+                    if (key_type == RE::FormType::Cell && key && key->formID != 0x0001380e)
                     {
-                        if (player_cell)
+                        if (player_cell && player_cell->GetCoordinates() && key->GetCoordinates())
                         {
                             auto distX = abs(player_cell->GetCoordinates()->worldX - key->GetCoordinates()->worldX);
                             auto distY = abs(player_cell->GetCoordinates()->worldY - key->GetCoordinates()->worldY);
@@ -7415,6 +7515,16 @@ namespace MiscThings {
             return nullptr;
 
 
+        //visit college of winterhold. i thought i fixed it by completing it BUT THEY ACTUALLY PUT THE TARGET ON AN NPC, WHO SOMETIMES, JUST RUNS OUT OF COLLEGE AS WE GO TOWARDS IT.
+        //and quests leads to it
+        //redirect to gates
+        if (quest && quest->formID == 0x54d0a)
+        {
+            auto gates = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x37a7d);
+
+            if (gates && !gates->IsLocked())
+                return gates;
+        }
 
 
             auto dlc1vq07_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("DLC1VQ07");

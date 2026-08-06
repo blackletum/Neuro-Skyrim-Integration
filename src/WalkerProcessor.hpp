@@ -8,6 +8,9 @@ namespace WalkerProcessor {
 	void lower_processor(float dtime);
 
 
+	void complete_visit_college_quest();
+
+
 	void notify_walker_to_stop_autolockpick_on_enemies();
 
 	void stop_casting();

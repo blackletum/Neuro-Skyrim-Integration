@@ -13,6 +13,7 @@
 
 namespace WalkerProcessor {
 
+
     long long last_actual_walk_timestamp = 0;
 
     int preferred_attacking_hand = -1;
@@ -154,6 +155,7 @@ namespace WalkerProcessor {
     bool dont_invalidate_path_on_walk_again = false;
 
     bool start_pathfinding_quest = false;
+    bool finish_visit_college_quest = false;
 
     bool raycast_was_on = false;
 
@@ -16769,12 +16771,42 @@ namespace WalkerProcessor {
 
 
 
+
+    void complete_visit_college_quest()
+    {
+        finish_visit_college_quest = true;
+    }
+
+
 	float walker_processor_timer = 0.0f;
 
 
 
     void lower_processor(float dtime)
     {
+
+        if (finish_visit_college_quest)
+        {
+            auto ui = RE::UI::GetSingleton();
+            if (!ui->IsMenuOpen(RE::Console::MENU_NAME))
+            {
+                RE::UIMessageQueue::GetSingleton()->AddMessage(RE::Console::MENU_NAME, RE::UI_MESSAGE_TYPE::kShow, nullptr);
+            }
+            else
+            {
+                auto console_menu = ui->GetMenu<RE::Console>();
+
+                if (console_menu)
+                {
+                    console_menu->ExecuteCommand("setstage MG01Pointer 200");
+                    RE::UIMessageQueue::GetSingleton()->AddMessage(RE::Console::MENU_NAME, RE::UI_MESSAGE_TYPE::kHide, nullptr);
+                    finish_visit_college_quest = false;
+                    set_universal_block(1.0f);
+                }
+            }
+        }
+
+
 
         if (start_pathfinding_quest)
         {
