@@ -207,7 +207,7 @@ void left_attack_spell()
     }
 }
 
-void right_attack_cancel()
+void right_attack_cancel(int reason)
 {
     were_casting_something_right = false;
 
@@ -218,7 +218,7 @@ void right_attack_cancel()
     //RE::BSInputEventQueue::GetSingleton()->AddButtonEvent(RE::INPUT_DEVICES::kMouse, my_key, 0.0, 0.0);
     set_allowed_events(2);
 
-    Hooks::add_debug_line("Input: right attack cancel");
+    Hooks::add_debug_line("Input: right attack cancel, reason: " + std::to_string(reason), true);
 
 }
 

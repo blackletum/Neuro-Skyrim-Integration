@@ -52,7 +52,7 @@ void right_attack();
 void left_attack_spell();
 void right_attack_spell();
 void left_attack_cancel();
-void right_attack_cancel();
+void right_attack_cancel(int reason = 0);
 
 void sprint();
 void unsprint();

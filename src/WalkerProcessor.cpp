@@ -6703,10 +6703,10 @@ namespace WalkerProcessor {
 
                             float dodge_direction_chance = (float)std::rand() / RAND_MAX;
 
-                            if (dodge_direction_chance < 1.0f / 3.0f && MiscThings::getbit(dodge_projectile_allowed_dirs, best_dir_adjacent1))
+                            if (dodge_direction_chance < 0.15f && MiscThings::getbit(dodge_projectile_allowed_dirs, best_dir_adjacent1))
                                 dodge_direction = best_dir_adjacent1;
                             else
-                                if (dodge_direction_chance < 2.0f / 3.0f && MiscThings::getbit(dodge_projectile_allowed_dirs, best_dir_adjacent2))
+                                if (dodge_direction_chance > 0.85f && MiscThings::getbit(dodge_projectile_allowed_dirs, best_dir_adjacent2))
                                     dodge_direction = best_dir_adjacent2;
                                 else
                                     dodge_direction = best_dir;
@@ -13127,11 +13127,12 @@ namespace WalkerProcessor {
                                     {
                                         if (can_power_attack && try_power_attack && !goto_attack_used)
                                         {
-                                            if (attack_action_time0 < get_attack_time(true) * 0.1f || attack_action_time0 > get_attack_time(true) * 0.9f)
+                                            if (attack_action_time0 < get_attack_time(true) * 0.2f || attack_action_time0 > get_attack_time(true) * 0.9f)
                                             {
                                                 right_attack();
                                                 if (try_dual_attack && dualhanding_two_weapons)
                                                     left_attack();
+
                                             }
                                             else
                                             {
@@ -13354,6 +13355,9 @@ namespace WalkerProcessor {
                             }
 
 
+                            //Hooks::add_debug_line("RIGHT ATTACK FINISHED" + MiscThings::get_timestamp_string(), true);
+
+
                             pause_post_attack = 0.0f;
 
                             attack_action_done = true;
@@ -13364,7 +13368,7 @@ namespace WalkerProcessor {
                                 left_attack_cancel();
 
                             attack_spell_cast_timeout = 0.0f;
-                            try_power_attack = false;
+                            
                             try_dual_attack = false;
 
                             gave_attacking_info = false;
@@ -13381,9 +13385,15 @@ namespace WalkerProcessor {
                             float choose_next_action = (float)std::rand() / RAND_MAX;
 
 
-                            float power_attack_chance = (float)std::rand() / RAND_MAX;
-                            if (power_attack_chance > 0.5)
-                                try_power_attack = true;
+                            if (try_power_attack)
+                                try_power_attack = false;
+                            else
+                            {
+                                float power_attack_chance = (float)std::rand() / RAND_MAX;
+                                if (power_attack_chance > 0.5)
+                                    try_power_attack = true;
+                            }
+
 
 
                             if (fight_versus_dangerous_mage_power_attack_if_possible)
@@ -13423,6 +13433,7 @@ namespace WalkerProcessor {
                                 if (!MiscThings::has_something_equipped(true) && (MiscThings::is_werewolf() || MiscThings::is_vampirelord()))
                                 {
                                     chance = 0.44f;
+
                                     if (choose_next_action < chance)
                                         attack_action = 1;
                                     else
@@ -13724,7 +13735,7 @@ namespace WalkerProcessor {
 
                                     if (can_power_attack && try_power_attack && !goto_attack_used)
                                     {
-                                        if (attack_action_time1 < get_attack_time(false) * 0.1f || attack_action_time1 > get_attack_time(false) * 0.9f)
+                                        if (attack_action_time1 < get_attack_time(false) * 0.2f || attack_action_time1 > get_attack_time(false) * 0.9f)
                                         {
                                             left_attack();
                                             if (try_dual_attack && dualhanding_two_weapons)
@@ -13976,7 +13987,7 @@ namespace WalkerProcessor {
                             if (dualhanding_two_weapons && try_dual_attack)
                                 right_attack_cancel();
 
-                            try_power_attack = false;
+
                             gave_attacking_info = false;
                             attack_spell_cast_timeout = 0.0f;
                             was_charging_ranged = false;
@@ -13989,9 +14000,15 @@ namespace WalkerProcessor {
 
                             float choose_next_action = (float)std::rand() / RAND_MAX;
 
-                            float power_attack_chance = (float)std::rand() / RAND_MAX;
-                            if (power_attack_chance > 0.5)
-                                try_power_attack = true;
+                            if (try_power_attack)
+                                try_power_attack = false;
+                            else
+                            {
+                                float power_attack_chance = (float)std::rand() / RAND_MAX;
+                                if (power_attack_chance > 0.5)
+                                    try_power_attack = true;
+                            }
+
 
                             if (fight_versus_dangerous_mage_power_attack_if_possible)
                                 try_power_attack = true;

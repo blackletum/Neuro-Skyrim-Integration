@@ -96,8 +96,6 @@
 
 //fix reanimate spells interrupting battle
 
-//some weird weapon half-attacks bug when it cancels attack before its finished (maybe some attack phase coincidence)
-
 //ults that are on cooldown should be tagged [On cooldown] - MAYBE NO
 
 
@@ -814,6 +812,9 @@ extern neurosdk_action ActionsList[];
 
 bool InitializeConnection()
 {
+    std::srand(static_cast<unsigned int>(std::time(nullptr)));
+
+
     m_neuroSocket.reset();
     m_neuroSocket = std::make_unique<neuro::NeuroSocket>();
 
