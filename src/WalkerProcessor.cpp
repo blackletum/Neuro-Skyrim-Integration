@@ -11800,7 +11800,7 @@ namespace WalkerProcessor {
 
     float get_spell_timeout(bool right)
     {
-        float result = 1.0f;
+        float result = 2.0f;
 
         auto player = RE::PlayerCharacter::GetSingleton();
         if (player)

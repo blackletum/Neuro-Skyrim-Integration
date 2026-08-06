@@ -4230,7 +4230,13 @@ namespace Observer {
 																std::string name = MiscThings::insert_object_into_list_custom_name("Small metal gate", a_ref);
 
 																if (activation == 0)
+																{
+																	if (a_ref->formID == 0x72434) //saartal pillars1
+																		quicksave();
+
 																	result.push_back("[ " + name + " opened]");
+																}
+																	
 
 																if (activation == 1)
 																	result.push_back("[ " + name + " closed]");
@@ -4242,7 +4248,13 @@ namespace Observer {
 																std::string name = MiscThings::insert_object_into_list_custom_name("Metal gate", a_ref);
 
 																if (activation == 0)
+																{
+																	if (a_ref->formID == 0x725b5) //saartal pillars2
+																		quicksave();
+
 																	result.push_back("[ " + name + " opened]");
+																}
+																	
 
 																if (activation == 1)
 																	result.push_back("[ " + name + " closed]");
@@ -4471,6 +4483,7 @@ namespace Observer {
 
 										if (old_state.pillar_face_code != new_state.pillar_face_code)
 										{
+											silent = true;
 											//if (new_state.pillar_face_code > 0 && new_state.pillar_face_code < 21)
 											//{
 											std::string pillar_name = MiscThings::get_stateless_info(a_ref);

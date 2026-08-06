@@ -12873,6 +12873,50 @@ namespace MiscThings {
 
             switch (object->formID)
             {
+                case (0x72434): //saartal 6 pillars puzzle 1, just in case player somehow doesnt detect some of them
+                {
+                    auto pillar1 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x723eb);
+                    auto pillar2 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x723ec);
+                    auto pillar3 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x723f8);
+                    auto pillar4 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x723f7);
+                    auto pillar5 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x723fe);
+                    auto pillar6 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x723fd);
+                    auto lever = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xf13b1);
+
+                    if (pillar1 && pillar2 && pillar3 && pillar4 && pillar5 && pillar6 && lever)
+                    {
+                        bool any_pillar_not_in_list = false;
+
+                        if (!MiscThings::is_object_in_the_list(pillar1) ||
+                            !MiscThings::is_object_in_the_list(pillar2) ||
+                            !MiscThings::is_object_in_the_list(pillar3) ||
+                            !MiscThings::is_object_in_the_list(pillar4) ||
+                            !MiscThings::is_object_in_the_list(pillar5) ||
+                            !MiscThings::is_object_in_the_list(pillar6) ||
+                            !MiscThings::is_object_in_the_list(lever)
+                            )
+                            any_pillar_not_in_list = true;
+
+                        if (any_pillar_not_in_list)
+                        {
+                            std::string text = MiscThings::insert_object_into_list_and_get_info(pillar1) + "\n";
+                            text += MiscThings::insert_object_into_list_and_get_info(pillar2) + "\n";
+                            text += MiscThings::insert_object_into_list_and_get_info(pillar3) + "\n";
+                            text += MiscThings::insert_object_into_list_and_get_info(pillar4) + "\n";
+                            text += MiscThings::insert_object_into_list_and_get_info(pillar5) + "\n";
+                            text += MiscThings::insert_object_into_list_and_get_info(pillar6) + "\n";
+                            text += MiscThings::insert_object_into_list_and_get_info(lever) + "\n";
+
+                            if (text != "")
+                                send_random_context("You see: " + text, false);
+                        }
+
+                    }
+
+                    break;
+                }
+
+
                 case (0x200618d):
                 {
                     auto handle = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x2006199); //redwater den first gate

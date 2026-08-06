@@ -84,9 +84,7 @@
 ///////////DO ALL THIS
 
 
-
 //add handling for solstheim prison escaping flag bug
-//work on saartal pillar puzzle (silent pillars)
 //friendly fire raycasting for aoe spells + interrupt cast if friend started blocking mid attack (ignore for followers)
 
 //container track all items for current session (maybe not worth, no money involved)
