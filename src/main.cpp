@@ -86,7 +86,6 @@
 
 
 
-
 //test tolfdir spellcasting, maybe improve it because sequence of follow-quest-cast is not intuitive (just autowalk to point and then cast after pause or hint that you need to follow quest to take position first)
 
 //add handling for solstheim prison escaping flag bug

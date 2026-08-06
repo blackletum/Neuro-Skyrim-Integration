@@ -13307,8 +13307,12 @@ namespace WalkerProcessor {
                             {
                                 if (!do_dodge_projectile || !is_melee_weapon(false))
                                 {
-                                    goto_attack_used = true;
-                                    goto attack_action_1; //add left while we doing this concentration spell
+                                    if (!(target_ref && !MiscThings::is_enemy_to_actor(target_ref)))
+                                    {
+                                        goto_attack_used = true;
+                                        goto attack_action_1; //add left while we doing this concentration spell
+                                    }
+
                                 }
                             }
                         }
@@ -13910,10 +13914,12 @@ namespace WalkerProcessor {
                                 {
                                     if (!do_dodge_projectile || !is_melee_weapon(true))
                                     {
-                                        goto_attack_used = true;
-                                        goto attack_action_0; //add right while we doing this concentration spell
+                                        if (!(target_ref && !MiscThings::is_enemy_to_actor(target_ref)))
+                                        {
+                                            goto_attack_used = true;
+                                            goto attack_action_0; //add right while we doing this concentration spell
+                                        }
                                     }
-
                                 }
                             }
 
@@ -20435,7 +20441,11 @@ namespace WalkerProcessor {
                                                                                     backup_interaction_time += dtime;
 
                                                                                     if (backup_interaction_time > 10.0f)
+                                                                                    {
+                                                                                        map_was_unregistered_by_follow_quest = false; //so it doesnt autoregister map while we are staring at some talking npc
                                                                                         reset_walker();
+                                                                                    }
+                                                                                        
 
                                                                                     lock_camera_onto_target(target_ref, dtime, 0.5f);
 
@@ -20594,7 +20604,11 @@ namespace WalkerProcessor {
                                                                                             backup_interaction_time += dtime;
 
                                                                                             if (backup_interaction_time > 10.0f)
+                                                                                            {
+                                                                                                map_was_unregistered_by_follow_quest = false; //so it doesnt autoregister map while we just wait for npc to finish his scene
                                                                                                 reset_walker();
+                                                                                            }
+                                                                                                
                                                                                         }
 
 
