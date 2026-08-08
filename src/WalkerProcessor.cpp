@@ -5521,6 +5521,39 @@ namespace WalkerProcessor {
 
 
 
+    bool has_ritual_spell_equipped()
+    {
+        auto player = RE::PlayerCharacter::GetSingleton();
+
+        if (!player)
+            return false;
+
+        std::string right_anim_name = "";
+        if (player->magicCasters[1] && player->magicCasters[1]->animationGraphManager && player->magicCasters[1]->animationGraphManager->variableCache.animationGraph)
+        {
+            right_anim_name = player->magicCasters[1]->animationGraphManager->variableCache.animationGraph->projectName.c_str();
+        }
+
+        if (right_anim_name.find("Ritual") != std::string::npos)
+        {
+            return true;
+        }
+
+        std::string left_anim_name = "";
+        if (player->magicCasters[0] && player->magicCasters[0]->animationGraphManager && player->magicCasters[0]->animationGraphManager->variableCache.animationGraph)
+        {
+            left_anim_name = player->magicCasters[0]->animationGraphManager->variableCache.animationGraph->projectName.c_str();
+        }
+
+        if (left_anim_name.find("Ritual") != std::string::npos)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+
     bool is_casting_walker2(bool right)
     {
         bool result = false;
@@ -11817,6 +11850,10 @@ namespace WalkerProcessor {
     {
         float result = 2.0f;
 
+
+        if (has_ritual_spell_equipped())
+            return 5.0f;
+
         auto player = RE::PlayerCharacter::GetSingleton();
         if (player)
         {
@@ -11851,6 +11888,11 @@ namespace WalkerProcessor {
         auto player = RE::PlayerCharacter::GetSingleton();
         if (player)
         {
+
+            if (has_ritual_spell_equipped())
+                return 3.6f;
+
+
             //auto left_spell = player->selectedSpells[0];
             //auto right_spell = player->selectedSpells[1];
             RE::MagicItem* spell = (RE::MagicItem*)MiscThings::get_hand_contents(right);
@@ -13106,7 +13148,7 @@ namespace WalkerProcessor {
 
                                 if (!skip_cast)
                                 {
-                                    if (is_concentration_spell(true) && !dualcast_condition)// && !dualcasting)
+                                    if ((is_concentration_spell(true) && !dualcast_condition) || has_ritual_spell_equipped())// && !dualcasting)
                                         right_attack_spell();
                                     else
                                     {
@@ -13760,7 +13802,7 @@ namespace WalkerProcessor {
 
                                     if (!skip_cast)
                                     {
-                                        if (is_concentration_spell(false) && !dualcast_condition)
+                                        if ((is_concentration_spell(false) && !dualcast_condition) || has_ritual_spell_equipped())
                                             left_attack_spell();
                                         else
                                         {
@@ -17006,7 +17048,7 @@ namespace WalkerProcessor {
 
 
 
-        if (!MiscThings::have_force_only_menu_open() && !RE::UI::GetSingleton()->IsMenuOpen(RE::TweenMenu::MENU_NAME) && !RE::UI::GetSingleton()->IsMenuOpen(RE::LevelUpMenu::MENU_NAME) && !RE::UI::GetSingleton()->IsMenuOpen(RE::StatsMenu::MENU_NAME))
+        if (!has_ritual_spell_equipped() && !MiscThings::have_force_only_menu_open() && !RE::UI::GetSingleton()->IsMenuOpen(RE::TweenMenu::MENU_NAME) && !RE::UI::GetSingleton()->IsMenuOpen(RE::LevelUpMenu::MENU_NAME) && !RE::UI::GetSingleton()->IsMenuOpen(RE::StatsMenu::MENU_NAME))
         {
             //dodging
 

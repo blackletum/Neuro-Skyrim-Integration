@@ -10,6 +10,7 @@ namespace WalkerProcessor {
 
 	void complete_visit_college_quest();
 
+	bool has_ritual_spell_equipped();
 
 	void notify_walker_to_stop_autolockpick_on_enemies();
 
