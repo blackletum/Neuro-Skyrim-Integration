@@ -11,6 +11,7 @@
 
 namespace Observer {
 
+	long long last_use_potion_timestamp = 0;
 
 	long long halt_potion_autouse_timestamp = 0; //dont reset this ever
 
@@ -1011,6 +1012,8 @@ namespace Observer {
 
 	void reset_observer()
 	{
+		last_use_potion_timestamp = 0;
+
 		tried_to_heal = false;
 		tried_to_heal_time = 0.0f;
 
@@ -5604,12 +5607,14 @@ namespace Observer {
 
 					if (inventory.find(item) == inventory.end() || inventory.find(item)->second.first <= 0)
 					{
-						auto info = MiscThings::insert_item_into_inventory_list_and_get_info(item);
+						std::string name = it->second.name;
+						removed_info += name + "\n";
+						//auto info = MiscThings::insert_item_into_inventory_list_and_get_info(item);
 
-						if (info.second != "")
-						{
-							removed_info += info.second + "\n";
-						}
+						//if (info.second != "")
+						//{
+						//	removed_info += info.second + "\n";
+						//}
 
 						it = p_inventory->erase(it);    // or "it = m.erase(it)" since C++11
 					}
@@ -6974,23 +6979,34 @@ namespace Observer {
 					//potions/food
 					bool want_health = MiscThings::player_hp_less_than(30) && WalkerProcessor::is_fighting();
 					bool want_mana = (float)mana / (float)max_mana < 0.4f && WalkerProcessor::is_fighting();
+					
 
-					if ((want_health || want_mana) && !MiscThings::is_werewolf() && !MiscThings::is_vampirelord())
+
+					float delta_potion = (double)(now - last_use_potion_timestamp) / 1000000000.0;
+
+					if (delta_potion > 2.0f)
 					{
-						auto inventory = MiscThings::get_filtered_inventory();
-
-						for (auto& [item, data] : inventory)
+						if ((want_health || want_mana) && !MiscThings::is_werewolf() && !MiscThings::is_vampirelord())
 						{
-							if (want_health && MiscThings::get_restore_value(item, RE::ActorValue::kHealth) > 10)
-							{
-								MiscThings::activate_inventory_object_by_refr(item);
-							}
+							auto inventory = MiscThings::get_filtered_inventory();
 
-							if (want_mana && MiscThings::get_restore_value(item, RE::ActorValue::kMagicka) > 10)
+							for (auto& [item, data] : inventory)
 							{
-								MiscThings::activate_inventory_object_by_refr(item);
-							}
+								if (want_health && data.first > 0 && MiscThings::get_restore_value(item, RE::ActorValue::kHealth) > 10)
+								{
+									MiscThings::activate_inventory_object_by_refr(item);
+									last_use_potion_timestamp = std::chrono::steady_clock::now().time_since_epoch().count();
+									break;
+								}
 
+								if (want_mana && data.first > 0 && MiscThings::get_restore_value(item, RE::ActorValue::kMagicka) > 10)
+								{
+									MiscThings::activate_inventory_object_by_refr(item);
+									last_use_potion_timestamp = std::chrono::steady_clock::now().time_since_epoch().count();
+									break;
+								}
+
+							}
 						}
 					}
 

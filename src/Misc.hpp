@@ -212,6 +212,7 @@ namespace MiscThings {
        // RE::InventoryEntryData* entry;
         int amount;
         int category;
+        std::string name;
         //int price; //TODO: replace with something useful (maybe type of item)
     };
 

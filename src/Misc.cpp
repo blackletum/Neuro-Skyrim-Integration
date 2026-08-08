@@ -25865,6 +25865,7 @@ namespace MiscThings {
             database_data.amount = quantity;
             database_data.object = data->GetObject();
             database_data.category = info.first;
+            database_data.name = data->GetDisplayName();
 
             inventory_items_list.insert({ new_id , database_data });
 
