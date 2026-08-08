@@ -866,6 +866,10 @@ namespace MiscThings {
             case (0x58f5e): //axe
             case (0x58f60): //bow
             case (0x401ce02): //dagger
+            case (0x424f9): //sword2
+            case (0x424f8): //axe2
+            case (0x424f7): //bow2
+            case (0x401ce03): //dagger2
                 return true;
             }
         }
@@ -25938,6 +25942,10 @@ namespace MiscThings {
                 case (0x58f5e): //axe
                 case (0x58f60): //bow
                 case (0x401ce02): //dagger
+                case (0x424f9): //sword2
+                case (0x424f8): //axe2
+                case (0x424f7): //bow2
+                case (0x401ce03): //dagger2
                     continue; 
                 }
             }
