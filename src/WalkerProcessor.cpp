@@ -13,6 +13,7 @@
 
 namespace WalkerProcessor {
 
+    long long last_attack_target_shout_info = 0;
 
     int friendly_fire_blocks = 0;
     int friendly_fire_blocks2 = 0;
@@ -12489,7 +12490,14 @@ namespace WalkerProcessor {
                             if (target_ref == parthurnax_target)
                                 lock_camera_onto_target(target_ref, 0.016); //this part is very bugged, must shout with precision
 
-                            send_random_context("You are using the shout: " + shout_name);
+                            auto now = std::chrono::steady_clock::now().time_since_epoch().count();
+                            float delta_shout_info = (double)(now - last_attack_target_shout_info) / 1000000000.0;
+                            if (delta_shout_info > 10.0f)
+                            {
+                                send_random_context("You are using the shout: " + shout_name);
+                                last_attack_target_shout_info = now;
+                            }
+                            
                             MiscThings::cast_spell_by_refr((RE::SpellItem*)shout_to_use);
 
                             if (target_ref && target_ref->formID == 0xdb9d7) //blackreach sun

@@ -94,7 +94,7 @@
 //word wall in saartal should not be visible until we beat the boss
 //some cooldown on spellcasting ("you are still casting last spell! wait a little")
 //equip spell both hands with some chance
-//shrink spell list, add manacost info, categorize by magic school
+//add manacost info for spells, somehow shrink description (or no)
 //some warning about visiting same interesting place shortly after it was already successfully visited (important: only after it was actually visited!)
 //some warning about being low on gold (maybe when below 300) - at the item buy choice force
 //maybe attempt to block dragon breath with ward spell (depending on how good it is - add a random chance)
