@@ -22182,7 +22182,16 @@ namespace MiscThings {
 
                         case (0x109630): //magic regen
                         {
-                            float coef = 0.2f;
+                            float coef = 0.22f;
+
+                            result += coef * magnitude;
+
+                            break;
+                        }
+
+                        case (0x109631): //reduce destruction cost
+                        {
+                            float coef = 1.0f;
 
                             result += coef * magnitude;
 
@@ -26358,6 +26367,57 @@ namespace MiscThings {
     
 
 
+    std::string get_spell_rank_info(RE::SpellItem* spell)
+    {
+        if (spell)
+        {
+            if (spell->formType == RE::FormType::Spell || spell->formType == RE::FormType::Scroll)
+            {
+                auto perk = spell->data.castingPerk;
+
+                if (perk)
+                {
+                    switch (perk->formID)
+                    {
+                    case(0xf2ca8):
+                    case(0xf2caa):
+                    case(0xf2ca6):
+                    case(0xf2ca9):
+                        return "[Novice]";
+
+                    case(0xc44bf):
+                    case(0xc44c7):
+                    case(0xc44b7):
+                    case(0xc44c3):
+                        return "[Apprentice]";
+
+                    case(0xc44c0):
+                    case(0xc44c8):
+                    case(0xc44b8):
+                    case(0xc44c4):
+                        return "[Adept]";
+
+                    case(0xc44c1):
+                    case(0xc44c9):
+                    case(0xc44b9):
+                    case(0xc44c5):
+                        return "[Expert]";
+
+                    case(0xc44c2):
+                    case(0xc44ca):
+                    case(0xc44ba):
+                    case(0xc44c6):
+                        return "[Master]";
+                    }
+                }
+            }
+        }
+
+        return "";
+    }
+
+
+
     std::string get_casting_perk_info(RE::SpellItem* spell)
     {
         if (spell)
@@ -26492,8 +26552,13 @@ namespace MiscThings {
         class MyVisitor : public RE::Actor::ForEachSpellVisitor
         {
         public:
-            std::string* active_spells;
-            std::string* passive_effects;
+            std::string* active_spells = nullptr;
+            std::string* passive_effects = nullptr;
+            std::string* destruction = nullptr;
+            std::string* restoration = nullptr;
+            std::string* alteration = nullptr;
+            std::string* illusion = nullptr;
+
             //std::string* shouts; //this doesnt work for shouts
             std::string* ults;
             int* max_id;
@@ -26506,7 +26571,7 @@ namespace MiscThings {
 
             RE::BSContainer::ForEachResult Visit(RE::SpellItem* a_spell) override {
                 //if (active_spells && passive_effects && shouts && player)// && player->HasSpell(a_spell))
-                if (active_spells && passive_effects && player && !is_werewolf_banned_spell(a_spell) && !is_vampirelord_banned_spell(a_spell))
+                if (active_spells && destruction && restoration && alteration && illusion && passive_effects && player && !is_werewolf_banned_spell(a_spell) && !is_vampirelord_banned_spell(a_spell))
                 {
                     std::string name = a_spell->GetFullName();
                     std::string description = "";
@@ -26548,8 +26613,8 @@ namespace MiscThings {
 
                             std::string equip_info = "";
                            
-                            std::string perk_info = get_casting_perk_info(a_spell);
-
+                            //std::string perk_info = get_casting_perk_info(a_spell);
+                            std::string rank_info = get_spell_rank_info(a_spell);
 
                             if (!right_equipped && !left_equipped)
                                 ;// equip_info = "[Unequipped]";
@@ -26583,8 +26648,53 @@ namespace MiscThings {
                                 if (range > 0.0f)
                                     range_info = "[Short range]";
 
+                            if (a_spell->data.castingPerk)
+                            {
+                                switch (a_spell->data.castingPerk->formID)
+                                {
+                                case(0xf2ca8):
+                                case(0xc44bf):
+                                case(0xc44c0):
+                                case(0xc44c1):
+                                case(0xc44c2):
+                                    *destruction += "[id " + std::to_string(i) + "]" + rank_info + range_info + equip_info + " " + name + " - " + description + "\n";
+                                    break;
 
-                            *active_spells += "[id " + std::to_string(i) + "]" + perk_info + range_info + equip_info + " " + name + " - " + description + "\n";
+                                case(0xf2caa):
+                                case(0xc44c7):
+                                case(0xc44c8):
+                                case(0xc44c9):
+                                case(0xc44ca):
+                                    *restoration += "[id " + std::to_string(i) + "]" + rank_info + range_info + equip_info + " " + name + " - " + description + "\n";
+                                    break;
+
+                                case(0xf2ca6):
+                                case(0xc44b7):
+                                case(0xc44b8):
+                                case(0xc44b9):
+                                case(0xc44ba):
+                                    *alteration += "[id " + std::to_string(i) + "]" + rank_info + range_info + equip_info + " " + name + " - " + description + "\n";
+                                    break;
+
+                                case(0xf2ca9):
+                                case(0xc44c3):
+                                case(0xc44c4):
+                                case(0xc44c5):
+                                case(0xc44c6):
+                                    *illusion += "[id " + std::to_string(i) + "]" + rank_info + range_info + equip_info + " " + name + " - " + description + "\n";
+                                    break;
+
+                                default:
+                                    *active_spells += "[id " + std::to_string(i) + "]" + rank_info + range_info + equip_info + " " + name + " - " + description + "\n";
+                                    break;
+                                }
+                            }
+                            else
+                            {
+                                *active_spells += "[id " + std::to_string(i) + "]" + rank_info + range_info + equip_info + " " + name + " - " + description + "\n";
+                            }
+
+                            
                             spells.insert({ i, {a_spell, nullptr } });
                             i++;
                             *max_id = i;
@@ -26636,12 +26746,22 @@ namespace MiscThings {
 
 
         std::string active_spells = "";
+        std::string destruction = "";
+        std::string restoration = "";
+        std::string alteration = "";
+        std::string illusion = "";
+
+
         std::string passive_effects = "";
         std::string shouts = "";
         std::string ults = "";
         int max_id = 0;
 
         visitor.active_spells = &active_spells;
+        visitor.destruction = &destruction;
+        visitor.restoration = &restoration;
+        visitor.alteration = &alteration;
+        visitor.illusion = &illusion;
         visitor.passive_effects = &passive_effects;
         //visitor.shouts = &shouts;
         visitor.ults = &ults;
@@ -26710,7 +26830,9 @@ namespace MiscThings {
                     name += " - " + words_text;
                 }
 
-                name += "[Words (unlocked/known/total): " + std::to_string(unlocked_words) + "/" + std::to_string(known_words) + "/" + std::to_string(max_words) + "]";
+                //name += "[Words (known/unlocked/total): " + std::to_string(unlocked_words) + "/" + std::to_string(known_words) + "/" + std::to_string(max_words) + "]";
+                //name = "[Words " + std::to_string(unlocked_words) + "/" + std::to_string(known_words) + "/" + std::to_string(max_words) + "] " + name;
+                name += "[Words: " + std::to_string(unlocked_words) + "/" + std::to_string(known_words) + "/" + std::to_string(max_words) + "]";
 
                 std::string description = "";
 
@@ -26749,11 +26871,32 @@ namespace MiscThings {
             });
     */
 
-        if (active_spells != "")
-            result_text += "Active spells:\n" + active_spells + "\n";
+
+        if (destruction != "" || restoration != "" || alteration != "" || illusion != "" || active_spells != "")
+        {
+            result_text += "Active spells:\n\n";
+
+            if (destruction != "")
+                result_text += "Destruction:\n" + destruction + "\n";
+
+            if (restoration != "")
+                result_text += "Restoration:\n" + restoration + "\n";
+
+            if (alteration != "")
+                result_text += "Alteration:\n" + alteration + "\n";
+
+            if (illusion != "")
+                result_text += "Illusion:\n" + illusion + "\n";
+
+            if (active_spells != "")
+                result_text += "Other:\n" + active_spells + "\n";
+
+        }
+
+
 
         if (shouts != "")
-            result_text += "Shouts:\n" + shouts + "\n";
+            result_text += "Shouts (Words [known/unlocked/total]):\n" + shouts + "\n";
 
         if (ults != "")
             result_text += "Special (ults, may be limited to 1 use per day):\n" + ults + "\n";
@@ -26763,6 +26906,80 @@ namespace MiscThings {
 
         result.first = true;
         result.second = result_text;
+
+        return result;
+    }
+
+
+    int get_spell_id_by_refr(RE::TESForm* spell)
+    {
+        if (spell)
+        {
+            auto get_spells_result = get_available_spells();
+
+            for (auto spell_from_list : spells)
+            {
+                if (spell_from_list.second.shout == spell || spell_from_list.second.spell == spell)
+                {
+                    return spell_from_list.first;
+                }
+            }
+        }
+
+
+        return -1;
+    }
+
+
+
+
+    std::string get_unlockable_shouts()
+    {
+        std::string result = "";
+
+        auto player = RE::PlayerCharacter::GetSingleton();
+        RE::TESNPC* player_npc = (RE::TESNPC*)RE::TESForm::LookupByID(0x7);
+
+        if (!player || !player_npc)
+            return "";
+
+
+        auto spellList = player_npc->GetSpellList();
+
+        auto shouts_pp = spellList->shouts;
+
+        int dragon_souls = player->GetActorValue(RE::ActorValue::kDragonSouls);
+
+        for (auto* shout_p : std::span(shouts_pp, spellList->numShouts))
+        {
+            if (shout_p)
+            {
+                int known_words = 0;
+                int unlocked_words = 0;
+                int max_words = 0;
+                //bool set_known_one = false;
+
+                for (auto variation : shout_p->variations)
+                {
+                    if (variation.word && (variation.word->formFlags & 65600) == 65600)
+                        unlocked_words++;
+
+                    if (variation.word && variation.word->GetKnown())
+                        known_words++;
+
+                    max_words++;
+                }
+
+                if (unlocked_words < known_words && dragon_souls > 0)
+                {
+                    std::string name = shout_p->GetFullName();
+                    int shout_id = get_spell_id_by_refr(shout_p);
+
+                    if (shout_id >= 0)
+                        result += "[id " + std::to_string(shout_id) + "] " + name + "; ";
+                }
+            }
+        }
 
         return result;
     }
@@ -26931,8 +27148,10 @@ namespace MiscThings {
                                 player_actor->UnlockWord(variation.word);
                                 player->SetActorValue(RE::ActorValue::kDragonSouls, -1);
 
+                                std::string shout_name = shout_p->GetFullName();
+
                                 result.first = true;
-                                result.second = "[Unlocked shout level]";
+                                result.second = "[Unlocked word for shout: " + shout_name + "]";
 
                                 break;
                             }
@@ -26947,12 +27166,28 @@ namespace MiscThings {
                         {
                             result.first = false;
                             result.second = "Already unlocked all levels of this shout. ";
+
+                            std::string advice = get_unlockable_shouts();
+
+                            if (advice != "")
+                            {
+                                advice = "Shouts you can unlock: " + advice;
+                                result.second += advice;
+                            }
                         }
                     }
                     else
                     {
                         result.first = false;
                         result.second = "You dont know new levels of this shout yet. ";
+
+                        std::string advice = get_unlockable_shouts();
+
+                        if (advice != "")
+                        {
+                            advice = "Shouts you can unlock: " + advice;
+                            result.second += advice;
+                        }
                     }
                 }
             }
@@ -26960,12 +27195,30 @@ namespace MiscThings {
             {
                 result.first = false;
                 result.second = "This spell ID is not a shout. ";
+
+                std::string advice = get_unlockable_shouts();
+
+                if (advice != "")
+                {
+                    advice = "Shouts you can unlock: " + advice;
+                    result.second += advice;
+                }
+                    
+
             }
         }
         else
         {
             result.first = false;
-            result.second = "Invalid shout ID. Use get_available_spells to get valid IDs.  ";
+            result.second = "Invalid shout ID. ";
+
+            std::string advice = get_unlockable_shouts();
+
+            if (advice != "")
+            {
+                advice = "Shouts you can unlock: " + advice;
+                result.second += advice;
+            }
         }
 
         return result;

@@ -563,6 +563,8 @@ namespace MiscThings {
 
     void reset_dragon_landing_vars();
 
+    int get_spell_id_by_refr(RE::TESForm* spell);
+    std::string get_unlockable_shouts();
 
     RE::TESForm* get_hand_contents(bool right);
     bool is_self_healing_spell(bool right);

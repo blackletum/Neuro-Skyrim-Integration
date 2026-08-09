@@ -86,7 +86,6 @@
 
 //add handling for solstheim prison escaping flag bug
 //try to improve sneak (it still sometimes tries to sneak when we are 100% visible)
-//nightvision cooldown? (if has buff - refuse to buff again)
 //fix reanimate spells interrupting battle + fix reanimate spells being endlessly "processing" if cast while having ritual restoration scroll equipped
 
 
@@ -96,7 +95,6 @@
 //some cooldown on spellcasting ("you are still casting last spell! wait a little")
 //equip spell both hands with some chance
 //shrink spell list, add manacost info, categorize by magic school
-//increase magic regen/destruction cost reduce enchantment value
 //some warning about visiting same interesting place shortly after it was already successfully visited (important: only after it was actually visited!)
 //some warning about being low on gold (maybe when below 300) - at the item buy choice force
 //maybe attempt to block dragon breath with ward spell (depending on how good it is - add a random chance)
