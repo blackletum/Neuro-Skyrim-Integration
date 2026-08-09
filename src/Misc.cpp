@@ -26716,7 +26716,7 @@ namespace MiscThings {
                                     if (does_spell_use_hand(a_spell))
                                         ult_type = "[Takes hand slot]";
                                     else
-                                        ult_type = "[Instant use]";
+                                        ult_type = "";// "[Instant use]";
 
                                     *ults += "[id " + std::to_string(i) + "] " + name + " - " + description + " " + ult_type + "\n";
                                     spells.insert({ i, {a_spell, nullptr } });
@@ -26732,6 +26732,15 @@ namespace MiscThings {
                         {
                             *passive_effects += "[DESEASE] " + name + " - " + description + "\n";
                             player_has_deseases_local = true;
+                        }
+                        else
+                        {
+                            switch (a_spell->formID)
+                            {
+                            case (0xed09c):
+                                *passive_effects += name + " - " + description + "\n"; //weakness to sunlight for some reason has no display object but is displayed
+                                break;
+                            }
                         }
 
                     }
