@@ -27306,6 +27306,68 @@ namespace MiscThings {
     }
 
 
+
+
+    bool is_cast_on_ground_spell(bool right)
+    {
+        bool result = false;
+
+        auto player = RE::PlayerCharacter::GetSingleton();
+        if (player)
+        {
+            RE::MagicItem* spell = (RE::MagicItem*)get_hand_contents(right);
+
+            if (spell)
+            {
+                if (spell->GetFormType() == RE::FormType::Spell || spell->GetFormType() == RE::FormType::Scroll)
+                {
+                    if (spell->GetSpellType() != RE::MagicSystem::SpellType::kEnchantment)
+                    {
+                        for (auto effect : spell->effects)
+                        {
+                            if (effect->baseEffect && effect->baseEffect->data.delivery == RE::MagicSystem::Delivery::kTargetLocation)
+                            {
+                                result = true;
+                                break;
+                            }
+                        }
+
+                    }
+                }
+                else
+                {
+                    if (spell->GetFormType() == RE::FormType::Weapon)
+                    {
+                        auto staff = (RE::TESObjectWEAP*)spell;
+
+                        if (staff->IsStaff())
+                        {
+                            auto ench = staff ? staff->As<RE::TESEnchantableForm>() : nullptr;
+
+                            if (ench && ench->formEnchanting && ench->amountofEnchantment != 0)
+                            {
+                                for (auto effect : ench->formEnchanting->effects)
+                                {
+                                    if (effect->baseEffect && effect->baseEffect->data.delivery == RE::MagicSystem::Delivery::kTargetLocation)
+                                    {
+                                        result = true;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return result;
+    }
+
+
+
+
+
+
     bool is_summon_spell(bool right)
     {
         bool result = false;

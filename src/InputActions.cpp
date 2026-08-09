@@ -1248,7 +1248,7 @@ bool make_long_cast_spell_hand(bool right, float dtime)
 
 
 
-        if (MiscThings::is_summon_spell(right))
+        if (MiscThings::is_summon_spell(right) || MiscThings::is_cast_on_ground_spell(right))
             look_down_for_summon(true);
 
         if (input_dualcasting)

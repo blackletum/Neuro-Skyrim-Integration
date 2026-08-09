@@ -544,6 +544,9 @@ namespace MiscThings {
     std::map<int, item_data>* get_p_inventory_items_list();
     int remove_item_from_inventory_list(RE::TESBoundObject* item);
 
+
+    
+
     float armor_damage_difference(RE::TESBoundObject* item, bool ignore_current = false);
 
     bool player_has_fishing_rod();
@@ -567,6 +570,8 @@ namespace MiscThings {
     bool is_reanimate_spell(RE::SpellItem* spell);
     bool is_reanimate_spell(bool right);
     bool player_has_summon();
+
+    bool is_cast_on_ground_spell(bool right);
 
     void delayed_equipper(float dtime);
     void reset_delayed_equipper();

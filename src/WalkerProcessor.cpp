@@ -4588,7 +4588,7 @@ namespace WalkerProcessor {
 
         //Hooks::add_debug_line("LOCK_CAMERA_CALLED", true);
 
-        if (input_wants_to_look_down() || (start_attacking && MiscThings::is_summon_spell(get_current_active_hand())))
+        if (input_wants_to_look_down() || (start_attacking && (MiscThings::is_summon_spell(get_current_active_hand()) || MiscThings::is_cast_on_ground_spell(get_current_active_hand()))))
             return false;
 
 
@@ -12288,7 +12288,7 @@ namespace WalkerProcessor {
         auto player = RE::PlayerCharacter::GetSingleton();
         if (player)
         {
-            if (MiscThings::is_summon_spell(right))
+            if (MiscThings::is_summon_spell(right) || MiscThings::is_cast_on_ground_spell(right))
                 return 30000.0f;
 
 
@@ -13010,7 +13010,7 @@ namespace WalkerProcessor {
                                 was_casting_spell_right = true;
 
 
-                            if (MiscThings::is_summon_spell(true))
+                            if (MiscThings::is_summon_spell(true) || MiscThings::is_cast_on_ground_spell(true))
                                 look_down_for_summon();
 
 
@@ -13161,7 +13161,7 @@ namespace WalkerProcessor {
                                     if (!MiscThings::is_self_cast_spell(true))
                                         was_casting_spell_right = true;
 
-                                    if (MiscThings::is_summon_spell(true))
+                                    if (MiscThings::is_summon_spell(true) || MiscThings::is_cast_on_ground_spell(true))
                                         look_down_for_summon();
 
 
@@ -13653,7 +13653,7 @@ namespace WalkerProcessor {
                                 if (!MiscThings::is_self_cast_spell(false))
                                     was_casting_spell_left = true;
 
-                                if (MiscThings::is_summon_spell(false))
+                                if (MiscThings::is_summon_spell(false) || MiscThings::is_cast_on_ground_spell(false))
                                     look_down_for_summon();
 
 
@@ -13815,7 +13815,7 @@ namespace WalkerProcessor {
                                         if (!MiscThings::is_self_cast_spell(false))
                                             was_casting_spell_left = true;
 
-                                        if (MiscThings::is_summon_spell(false))
+                                        if (MiscThings::is_summon_spell(false) || MiscThings::is_cast_on_ground_spell(false))
                                             look_down_for_summon();
 
                                         if (!MiscThings::is_offensive_spell(false))
