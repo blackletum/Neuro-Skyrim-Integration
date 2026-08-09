@@ -13,6 +13,7 @@
 
 namespace WalkerProcessor {
 
+    long long last_dodge_projectile_extra_dangerous_timestamp = 0;
     long long last_attack_target_shout_info = 0;
 
     int friendly_fire_blocks = 0;
@@ -17099,7 +17100,9 @@ namespace WalkerProcessor {
                 if (projectile_test.high_aoe)
                 {
                     dodge_projectile_extra_dangerous = true;
+                    last_dodge_projectile_extra_dangerous_timestamp = std::chrono::steady_clock::now().time_since_epoch().count();
                 }
+
 
 
                 if (!do_dodge_projectile)
@@ -17165,6 +17168,15 @@ namespace WalkerProcessor {
                 {
                     dodge_projectile_time = 0.0f;
                     do_dodge_projectile = false;
+                }
+            }
+            else
+            {
+                auto now = std::chrono::steady_clock::now().time_since_epoch().count();
+                float delta_dodge_projectile = (double)(now - last_dodge_projectile_extra_dangerous_timestamp) / 1000000000.0;
+                if (delta_dodge_projectile > 3.0f)
+                {
+                    dodge_projectile_extra_dangerous_last_direction = -1;
                 }
             }
         }
