@@ -5623,7 +5623,15 @@ namespace MiscThings {
                             nighttime_text = ". Some places might be unavailable at night";
 
 
-                        std::string force_text = "You are in " + get_settlement_name() + ". Choose a place to visit" + nighttime_text;
+                        std::string gold_amount_bonus = "";
+
+                        auto player_gold = MiscThings::get_player_gold();
+
+                        if (player_gold < 300)
+                            gold_amount_bonus = " (not much)";
+
+
+                        std::string force_text = "You are in " + get_settlement_name() + ". Choose a place to visit" + nighttime_text + ". You have " + std::to_string(player_gold) + " gold" + gold_amount_bonus;
 
                         unregister_all_actions();
 
