@@ -90,8 +90,6 @@
 
 
 //optimize everything
-//some cooldown on spellcasting ("you are still casting last spell! wait a little")
-//equip spell both hands with some chance
 //add manacost info for spells, somehow shrink description (or no)
 //some warning about visiting same interesting place shortly after it was already successfully visited (important: only after it was actually visited!)
 //some warning about being low on gold (maybe when below 300) - at the item buy choice force

@@ -28989,6 +28989,39 @@ namespace MiscThings {
                             WalkerProcessor::reset_attacking_inanimate_object_time();
 
                             equip_manager->EquipSpell(player_actor, spell, slot);
+
+
+                            bool dualcasting_no_mana = MiscThings::get_player_mana() < WalkerProcessor::get_spell_cost(right_hand) * 2.8f;
+
+
+                            if (!dualcasting_no_mana && !is_self_healing_spell(!right_hand) && has_spell_equipped(!right_hand))
+                            {
+                                //have mana for dualcast, other hand is also spell and its not self healing spell in other hand. equip this spell in both hands with some chance
+                                
+                                if (MiscThings::coinflip())
+                                {
+                                    auto other_slot = (RE::BGSEquipSlot*)RE::TESForm::LookupByID(0x00013F42);
+
+                                    if (!right_hand)
+                                    {
+                                        other_slot = (RE::BGSEquipSlot*)RE::TESForm::LookupByID(0x00013F42);
+                                    }
+                                    else
+                                    {
+                                        other_slot = (RE::BGSEquipSlot*)RE::TESForm::LookupByID(0x00013F43);
+                                    }
+
+
+                                    equip_manager->EquipSpell(player_actor, spell, other_slot);
+
+                                    equip_hand = " in both hands";
+                                }
+
+
+                            }
+
+
+
                             result.first = true;
                             if (spell->GetSpellType() == RE::MagicSystem::SpellType::kSpell)
                             {
