@@ -7,6 +7,7 @@ namespace WalkerProcessor {
 	void processor(float dtime);
 	void lower_processor(float dtime);
 
+	float get_spell_cost_full(RE::MagicItem* spell);
 
 	void complete_visit_college_quest();
 

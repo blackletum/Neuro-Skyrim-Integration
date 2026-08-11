@@ -11553,6 +11553,27 @@ namespace WalkerProcessor {
     }
 
 
+    float get_spell_cost_full(RE::MagicItem* spell)
+    {
+        float result = 0.0f;// 10000.0f;
+
+        auto player = RE::PlayerCharacter::GetSingleton();
+
+        if (player && spell)
+        {
+            if (spell->GetFormType() == RE::FormType::Scroll)
+                return 0.0f;
+
+            if (spell->formType == RE::FormType::Spell)
+            {
+                result = spell->CalculateMagickaCost(player);
+            }
+        }
+
+        return result;
+    }
+
+
 
     float get_spell_cost(RE::MagicItem* spell)
     {

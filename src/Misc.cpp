@@ -20224,6 +20224,9 @@ namespace MiscThings {
             if (!without_text_category)
                 result.second = "[Scroll]";
 
+
+            result.second += MiscThings::get_casting_perk_info((RE::SpellItem*)object);
+
             std::string equipped_text = "";
             if (object)
             {
@@ -20234,10 +20237,10 @@ namespace MiscThings {
             }
 
 
-            auto casting_perk = get_casting_perk_info((RE::SpellItem*)base_obj);
+            //auto casting_perk = get_casting_perk_info((RE::SpellItem*)base_obj);
 
             result.second += equipped_text;
-            result.second += casting_perk;
+            //result.second += casting_perk;
 
 
             result.first = 4;
@@ -26473,7 +26476,7 @@ namespace MiscThings {
     {
         if (spell)
         {
-            if (spell->formType == RE::FormType::Spell || spell->formType == RE::FormType::Scroll)
+            if (spell->formType == RE::FormType::Spell)
             {
                 auto perk = spell->data.castingPerk;
 
@@ -26483,6 +26486,72 @@ namespace MiscThings {
 
                     if (perk_name != "")
                         return "[" + perk_name + "]";
+                }
+            }
+            else
+            {
+                if (spell->formType == RE::FormType::Scroll)
+                {
+                    std::string school = "";
+                    std::string rank = "";
+
+
+                    for (auto effect : spell->effects)
+                    {
+                        if (effect && effect->baseEffect)
+                        {
+                            switch (effect->baseEffect->data.associatedSkill)
+                            {
+                            case (RE::ActorValue::kDestruction):
+                                school = "Destruction";
+                                break;
+
+                            case (RE::ActorValue::kAlteration):
+                                school = "Alteration";
+                                break;
+
+                            case (RE::ActorValue::kIllusion):
+                                school = "Illusion";
+                                break;
+
+                            case (RE::ActorValue::kRestoration):
+                                school = "Restoration";
+                                break;
+
+                            case (RE::ActorValue::kConjuration):
+                                school = "Conjuration";
+                                break;
+                            }
+
+                            switch (effect->baseEffect->data.minimumSkill)
+                            {
+                            case (0):
+                                rank = "Novice";
+                                break;
+                            case (25):
+                                rank = "Apprentice";
+                                break;
+                            case (50):
+                                rank = "Adept";
+                                break;
+                            case (75):
+                                rank = "Expert";
+                                break;
+                            case (100):
+                                rank = "Master";
+                                break;
+                            }
+
+
+                            if (rank != "" && school != "")
+                                return "[" + rank + " " + school + "]";
+                            else
+                            {
+                                rank = "";
+                                school = "";
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -26689,6 +26758,9 @@ namespace MiscThings {
                                         equip_info = "[Equipped in both hands]";
 
 
+
+                            std::string cost_info = "[Cost: " + std::to_string((int)WalkerProcessor::get_spell_cost_full(a_spell)) + " magicka]";
+
                             std::string range_info = "";
 
                             float range = MiscThings::get_spell_range(a_spell);
@@ -26708,7 +26780,7 @@ namespace MiscThings {
                                 case(0xc44c0):
                                 case(0xc44c1):
                                 case(0xc44c2):
-                                    *destruction += "[id " + std::to_string(i) + "]" + rank_info + range_info + equip_info + " " + name + " - " + description + "\n";
+                                    *destruction += "[id " + std::to_string(i) + "]" + rank_info + range_info + equip_info + cost_info + " " + name + " - " + description + "\n";
                                     break;
 
                                 case(0xf2caa):
@@ -26716,7 +26788,7 @@ namespace MiscThings {
                                 case(0xc44c8):
                                 case(0xc44c9):
                                 case(0xc44ca):
-                                    *restoration += "[id " + std::to_string(i) + "]" + rank_info + range_info + equip_info + " " + name + " - " + description + "\n";
+                                    *restoration += "[id " + std::to_string(i) + "]" + rank_info + range_info + equip_info + cost_info + " " + name + " - " + description + "\n";
                                     break;
 
                                 case(0xf2ca6):
@@ -26724,7 +26796,7 @@ namespace MiscThings {
                                 case(0xc44b8):
                                 case(0xc44b9):
                                 case(0xc44ba):
-                                    *alteration += "[id " + std::to_string(i) + "]" + rank_info + range_info + equip_info + " " + name + " - " + description + "\n";
+                                    *alteration += "[id " + std::to_string(i) + "]" + rank_info + range_info + equip_info + cost_info + " " + name + " - " + description + "\n";
                                     break;
 
                                 case(0xf2ca9):
@@ -26732,17 +26804,17 @@ namespace MiscThings {
                                 case(0xc44c4):
                                 case(0xc44c5):
                                 case(0xc44c6):
-                                    *illusion += "[id " + std::to_string(i) + "]" + rank_info + range_info + equip_info + " " + name + " - " + description + "\n";
+                                    *illusion += "[id " + std::to_string(i) + "]" + rank_info + range_info + equip_info + cost_info + " " + name + " - " + description + "\n";
                                     break;
 
                                 default:
-                                    *active_spells += "[id " + std::to_string(i) + "]" + rank_info + range_info + equip_info + " " + name + " - " + description + "\n";
+                                    *active_spells += "[id " + std::to_string(i) + "]" + rank_info + range_info + equip_info + cost_info + " " + name + " - " + description + "\n";
                                     break;
                                 }
                             }
                             else
                             {
-                                *active_spells += "[id " + std::to_string(i) + "]" + rank_info + range_info + equip_info + " " + name + " - " + description + "\n";
+                                *active_spells += "[id " + std::to_string(i) + "]" + rank_info + range_info + equip_info + cost_info + " " + name + " - " + description + "\n";
                             }
 
                             
