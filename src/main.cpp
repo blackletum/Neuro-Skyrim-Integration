@@ -90,7 +90,6 @@
 
 
 //optimize everything
-//some warning about visiting same interesting place shortly after it was already successfully visited (important: only after it was actually visited!)
 //some warning about being low on gold (maybe when below 300) - at the item buy choice force (its tricky because we can get below 300 while processing 500 transactions, so it probably needs to be interrupt-style force choice, asking if we want to continue buying anything at all)
 
 
@@ -2986,6 +2985,104 @@ bool visit_all_members4(std::vector<std::string>& results, const RE::GFxValue& i
 
     return found_something;
 }
+
+
+
+
+
+bool visit_all_members5(std::vector<std::string>& results, const RE::GFxValue& in, int depth, std::string current_path, uint64_t val_to_search, std::vector<std::string>& skip_problematic)
+{
+
+    union myValueUnion
+    {
+        double          number;
+        bool            boolean;
+        const char* string;
+        const char** managedString;
+        const wchar_t* wideString;
+        const wchar_t** managedWideString;
+        void* obj;
+    };
+
+
+
+
+    if (depth > 10)
+        return false;
+
+    bool found_something = false;
+
+    if (!in.IsNull())
+    {
+        in.VisitMembers([&](const char* name, const RE::GFxValue& a_value)
+            {
+
+                if (!a_value.IsNull())
+                {
+                    std::string name_str = name;
+                    std::string name_orig = name;
+
+                    bool dont_go_deeper = false;
+
+                    for (std::string problematic_name : skip_problematic)
+                    {
+                        if (name_str == problematic_name)
+                            dont_go_deeper = true;
+
+                    }
+
+                    if (!dont_go_deeper)
+                    {
+                        if (a_value.IsArray())
+                        {
+                            name_str += "[" + std::to_string(a_value.GetArraySize()) + "]";
+                        }
+
+
+                        if (a_value.IsObject())
+                        {
+
+                            auto object = ((myValueUnion*)((uint64_t)&a_value + 0x10))->number;
+
+                            if (object == val_to_search)
+                            {
+                                results.push_back(current_path + "." + name_str + " = " + std::to_string(object));
+                                found_something = true;
+                            }
+
+
+
+                            if (name_str != constraints && name_str != focusTarget)
+                            {
+                                if (visit_all_members5(results, a_value, depth + 1, current_path + "." + name_str, val_to_search, skip_problematic))
+                                {
+                                    //add_path_to_all_results(results, name);
+                                    found_something = true;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            //if (a_value.IsNumber())
+                            {
+                                uint64_t val = ((myValueUnion*)((uint64_t)&a_value + 0x10))->number;
+                                if (val == val_to_search)
+                                {
+                                    results.push_back(current_path + "." + name_str + " = " + std::to_string(val));
+                                    found_something = true;
+                                }
+                            }
+                        }
+                    }
+                }
+
+            });
+
+    }
+
+    return found_something;
+}
+
 
 
 

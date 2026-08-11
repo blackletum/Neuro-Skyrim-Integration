@@ -10,6 +10,23 @@ namespace BarterProcessor {
         buy
     };
 
+
+
+    struct trader_history {
+        std::string transaction_history_buy = "";
+        int transaction_history_total_gold_buy = 0;
+        std::string transaction_history_sell = "";
+        int transaction_history_total_gold_sell = 0;
+        long long last_transaction_history_timestamp = 0;
+    };
+
+
+    void remember_barter_transaction(RE::TESObjectREFR* trader, trader_history transaction_info);
+    std::string get_history_message(RE::TESObjectREFR* trader);
+    RE::TESObjectREFR* get_trader_ref();
+
+
+
     std::pair<bool, std::string> set_barter_type(int in_type);
 
     void processor(float dtime);

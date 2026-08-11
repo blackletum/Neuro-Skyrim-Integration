@@ -5407,6 +5407,15 @@ namespace MiscThings {
                             }
                         }
 
+                        std::string history = BarterProcessor::get_history_message(settlement_place.npc);
+
+                        if (history != "")
+                        {
+                            MiscThings::clean_controls_from_string(&history);
+                            place_name += "; " + history;
+                        }
+                            
+
 
                         options.push_back({ settlement_place.id, place_name });
                     }  

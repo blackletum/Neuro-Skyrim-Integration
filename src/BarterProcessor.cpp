@@ -14,11 +14,8 @@ namespace BarterProcessor {
 
   
 
-    std::string transaction_history_buy = "";
-    int transaction_history_total_gold_buy = 0;
-    std::string transaction_history_sell = "";
-    int transaction_history_total_gold_sell = 0;
-    long long last_transaction_history_timestamp = 0;
+    std::map<RE::TESObjectREFR*, trader_history> barter_history{};
+
 
     bool big_transaction_request_sent = false;
     bool big_transaction_choice_valid = false;
@@ -125,6 +122,96 @@ namespace BarterProcessor {
     };
 
     way_to_fill way{};
+
+
+
+
+
+    void remember_barter_transaction(RE::TESObjectREFR* trader, trader_history transaction_info)
+    {
+        if (!trader)
+            return;
+
+        auto history_entry = barter_history.find(trader);
+
+        if (history_entry != barter_history.end())
+        {
+            //update old
+
+            history_entry->second.last_transaction_history_timestamp = transaction_info.last_transaction_history_timestamp;
+            history_entry->second.transaction_history_buy += transaction_info.transaction_history_buy;
+            history_entry->second.transaction_history_sell += transaction_info.transaction_history_sell;
+            history_entry->second.transaction_history_total_gold_buy += transaction_info.transaction_history_total_gold_buy;
+            history_entry->second.transaction_history_total_gold_sell += transaction_info.transaction_history_total_gold_sell;
+
+        }
+        else
+        {
+            //create new
+
+            barter_history.insert({ trader, transaction_info });
+
+        }
+
+    }
+
+
+    std::string get_history_message(RE::TESObjectREFR* trader)
+    {
+        std::string result = "";
+
+        if (!trader)
+            return "";
+
+        auto history_entry = barter_history.find(trader);
+
+        if (history_entry != barter_history.end())
+        {
+            auto now = std::chrono::steady_clock::now().time_since_epoch().count();
+            float delta_transaction_history = (double)(now - history_entry->second.last_transaction_history_timestamp) / 1000000000.0;
+
+            if (delta_transaction_history > 900.0f)
+            {
+                barter_history.erase(trader);
+                //transaction_history_buy = "";
+                //transaction_history_sell = "";
+                //transaction_history_total_gold_buy = 0;
+                //transaction_history_total_gold_sell = 0;
+            }
+            else
+            {
+                if (history_entry->second.transaction_history_buy != "")
+                    result += "\nYou recently bought: " + history_entry->second.transaction_history_buy + " for total of " + std::to_string(history_entry->second.transaction_history_total_gold_buy) + " gold from this trader;";
+                if (history_entry->second.transaction_history_sell != "")
+                    result += "\nYou recently sold: " + history_entry->second.transaction_history_sell + " for total of " + std::to_string(history_entry->second.transaction_history_total_gold_sell) + " gold to this trader";
+
+            }
+        }
+        
+        return result;
+    }
+
+
+
+    RE::TESObjectREFR* get_trader_ref()
+    {
+
+        RE::UI* ui = RE::UI::GetSingleton();
+        if (ui)
+            if (const auto menu = ui->GetMenu<RE::BarterMenu>(); menu)
+            {
+                auto npc_handle = menu->GetTargetRefHandle();
+
+                RE::NiPointer<RE::TESObjectREFR> npc_refr_p{};
+
+                if (RE::LookupReferenceByHandle(npc_handle, npc_refr_p))
+                {
+                    return npc_refr_p.get();
+                }
+            }
+
+        return nullptr;
+    }
 
 
 
@@ -2706,24 +2793,9 @@ namespace BarterProcessor {
                                                 }
 
 
-                                                std::string history_message = "";
+                                                std::string history_message = get_history_message(get_trader_ref());
 
-                                                auto now = std::chrono::steady_clock::now().time_since_epoch().count();
-                                                float delta_transaction_history = (double)(now - last_transaction_history_timestamp) / 1000000000.0;
-
-                                                if (delta_transaction_history > 900.0f)
-                                                {
-                                                    transaction_history_buy = "";
-                                                    transaction_history_sell = "";
-                                                    transaction_history_total_gold_buy = 0;
-                                                    transaction_history_total_gold_sell = 0;
-                                                }
-
-                                                if (transaction_history_buy != "")
-                                                    history_message += "\nYou recently bought: " + transaction_history_buy + " for total of " + std::to_string(transaction_history_total_gold_buy) + " gold;";
-                                                if (transaction_history_sell != "")
-                                                    history_message += "\nYou recently sold: " + transaction_history_sell + " for total of " + std::to_string(transaction_history_total_gold_sell) + " gold;";
-
+                                                
 
 
                                                 if (force_choice(options, "You are bartering in Skyrim. " + get_gold_text() + history_message + ". Choose item to " + get_barter_type_text() + ". " + get_items_we_cant_buy_text(), force_type::barter_item_array))
@@ -2841,15 +2913,19 @@ namespace BarterProcessor {
                                                                         {
                                                                             if (type == barter_type::buy)
                                                                             {
-                                                                                transaction_history_buy += p_item_info->second.name + ", ";
-                                                                                transaction_history_total_gold_buy += p_item_info->second.price;
-                                                                                last_transaction_history_timestamp = std::chrono::steady_clock::now().time_since_epoch().count();
+                                                                                trader_history transaction_info{};
+                                                                                transaction_info.transaction_history_buy += p_item_info->second.name + ", ";
+                                                                                transaction_info.transaction_history_total_gold_buy += p_item_info->second.price;
+                                                                                transaction_info.last_transaction_history_timestamp = std::chrono::steady_clock::now().time_since_epoch().count();
+                                                                                remember_barter_transaction(get_trader_ref(), transaction_info);
                                                                             }
                                                                             else
                                                                             {
-                                                                                transaction_history_sell += p_item_info->second.name + ", ";
-                                                                                transaction_history_total_gold_sell += p_item_info->second.price;
-                                                                                last_transaction_history_timestamp = std::chrono::steady_clock::now().time_since_epoch().count();
+                                                                                trader_history transaction_info{};
+                                                                                transaction_info.transaction_history_sell += p_item_info->second.name + ", ";
+                                                                                transaction_info.transaction_history_total_gold_sell += p_item_info->second.price;
+                                                                                transaction_info.last_transaction_history_timestamp = std::chrono::steady_clock::now().time_since_epoch().count();
+                                                                                remember_barter_transaction(get_trader_ref(), transaction_info);
                                                                             }
                                                                         }
                                                                     }
@@ -3115,18 +3191,21 @@ namespace BarterProcessor {
                                                                         auto p_item_info = items_list.find(pos_to_id(item_choice));
                                                                         if (p_item_info != items_list.end())
                                                                         {
+                                                                            trader_history transaction_info{};
+
                                                                             if (type == barter_type::buy)
                                                                             {
-                                                                                transaction_history_buy += p_item_info->second.name + " x" + std::to_string(slider_choice) + ", ";
-                                                                                transaction_history_total_gold_buy += p_item_info->second.price * slider_choice;
+                                                                                transaction_info.transaction_history_buy += p_item_info->second.name + " x" + std::to_string(slider_choice) + ", ";
+                                                                                transaction_info.transaction_history_total_gold_buy += p_item_info->second.price * slider_choice;
                                                                             }
                                                                             else
                                                                             {
-                                                                                transaction_history_sell += p_item_info->second.name + " x" + std::to_string(slider_choice) + ", ";
-                                                                                transaction_history_total_gold_sell += p_item_info->second.price * slider_choice;
+                                                                                transaction_info.transaction_history_sell += p_item_info->second.name + " x" + std::to_string(slider_choice) + ", ";
+                                                                                transaction_info.transaction_history_total_gold_sell += p_item_info->second.price * slider_choice;
                                                                             }
 
-                                                                            last_transaction_history_timestamp = std::chrono::steady_clock::now().time_since_epoch().count();
+                                                                            transaction_info.last_transaction_history_timestamp = std::chrono::steady_clock::now().time_since_epoch().count();
+                                                                            remember_barter_transaction(get_trader_ref(), transaction_info);
                                                                         }
                                                                     }
                                                                     else
@@ -3138,18 +3217,20 @@ namespace BarterProcessor {
                                                                                 auto p_item_info = items_list.find(pos_to_id(item_choice));
                                                                                 if (p_item_info != items_list.end())
                                                                                 {
+                                                                                    trader_history transaction_info{};
                                                                                     if (type == barter_type::buy)
                                                                                     {
-                                                                                        transaction_history_buy += p_item_info->second.name + " x" + std::to_string(slider_choice) + ", ";
-                                                                                        transaction_history_total_gold_buy += p_item_info->second.price * slider_choice;
+                                                                                        transaction_info.transaction_history_buy += p_item_info->second.name + " x" + std::to_string(slider_choice) + ", ";
+                                                                                        transaction_info.transaction_history_total_gold_buy += p_item_info->second.price * slider_choice;
                                                                                     }
                                                                                     else
                                                                                     {
-                                                                                        transaction_history_sell += p_item_info->second.name + " x" + std::to_string(slider_choice) + ", ";
-                                                                                        transaction_history_total_gold_sell += p_item_info->second.price * slider_choice;
+                                                                                        transaction_info.transaction_history_sell += p_item_info->second.name + " x" + std::to_string(slider_choice) + ", ";
+                                                                                        transaction_info.transaction_history_total_gold_sell += p_item_info->second.price * slider_choice;
                                                                                     }
 
-                                                                                    last_transaction_history_timestamp = std::chrono::steady_clock::now().time_since_epoch().count();
+                                                                                    transaction_info.last_transaction_history_timestamp = std::chrono::steady_clock::now().time_since_epoch().count();
+                                                                                    remember_barter_transaction(get_trader_ref(), transaction_info);
                                                                                 }
                                                                             }
                                                                             else
@@ -3157,18 +3238,21 @@ namespace BarterProcessor {
                                                                                 auto p_item_info = items_list.find(pos_to_id(item_choice));
                                                                                 if (p_item_info != items_list.end())
                                                                                 {
+                                                                                    trader_history transaction_info{};
+
                                                                                     if (type == barter_type::buy)
                                                                                     {
-                                                                                        transaction_history_buy += p_item_info->second.name + ", ";
-                                                                                        transaction_history_total_gold_buy += p_item_info->second.price;
+                                                                                        transaction_info.transaction_history_buy += p_item_info->second.name + ", ";
+                                                                                        transaction_info.transaction_history_total_gold_buy += p_item_info->second.price;
                                                                                     }
                                                                                     else
                                                                                     {
-                                                                                        transaction_history_sell += p_item_info->second.name + ", ";
-                                                                                        transaction_history_total_gold_sell += p_item_info->second.price;
+                                                                                        transaction_info.transaction_history_sell += p_item_info->second.name + ", ";
+                                                                                        transaction_info.transaction_history_total_gold_sell += p_item_info->second.price;
                                                                                     }
 
-                                                                                    last_transaction_history_timestamp = std::chrono::steady_clock::now().time_since_epoch().count();
+                                                                                    transaction_info.last_transaction_history_timestamp = std::chrono::steady_clock::now().time_since_epoch().count();
+                                                                                    remember_barter_transaction(get_trader_ref(), transaction_info);
                                                                                 }
                                                                             }
                                                                         }
@@ -3916,7 +4000,7 @@ void debug_scan(float dtime)
             
 if (const auto ui = RE::UI::GetSingleton(); ui) {
 //if (const auto menu = ui->GetMenu<RE::LevelUpMenu>(); menu) {
-if (const auto menu = ui->GetMenu<RE::HUDMenu>(); menu) {
+if (const auto menu = ui->GetMenu<RE::BarterMenu>(); menu) {
                 if (menu->uiMovie)
                     if (menu->uiMovie->GetVariable(&var1, "_root"))
 
@@ -3988,7 +4072,7 @@ if (const auto menu = ui->GetMenu<RE::HUDMenu>(); menu) {
                             }
 
                             search_var = "meter";
-                            search_success = visit_all_members2(results, var1, &search_var, 0, "_root", skip_problematic, skip_problematic_path, "", "");
+                            //search_success = visit_all_members2(results, var1, &search_var, 0, "_root", skip_problematic, skip_problematic_path, "", "");
                             if (search_success)
                             {
                                 auto test = var1.GetType();
@@ -3996,7 +4080,7 @@ if (const auto menu = ui->GetMenu<RE::HUDMenu>(); menu) {
 
 
                             search_var = "stealth";
-                            search_success = visit_all_members2(results, var1, &search_var, 0, "_root", skip_problematic, skip_problematic_path, "", "");
+                            //search_success = visit_all_members2(results, var1, &search_var, 0, "_root", skip_problematic, skip_problematic_path, "", "");
                             if (search_success)
                             {
                                 auto test = var1.GetType();
@@ -4004,7 +4088,7 @@ if (const auto menu = ui->GetMenu<RE::HUDMenu>(); menu) {
 
 
                             search_var = "detection";
-                            search_success = visit_all_members2(results, var1, &search_var, 0, "_root", skip_problematic, skip_problematic_path, "", "");
+                            //search_success = visit_all_members2(results, var1, &search_var, 0, "_root", skip_problematic, skip_problematic_path, "", "");
                             if (search_success)
                             {
                                 auto test = var1.GetType();
@@ -4052,9 +4136,12 @@ if (const auto menu = ui->GetMenu<RE::HUDMenu>(); menu) {
                             }
                             */
 
+
+                            //104712
+
                             search_var = "ready to take";
                             //search_var = "Skin Tone";
-                            search_success = visit_all_members3(results, var1, &search_var, 0, "_root", search_var, skip_problematic);
+                            //search_success = visit_all_members3(results, var1, &search_var, 0, "_root", search_var, skip_problematic);
                             if (search_success)
                             {
                                 auto test = var1.GetType();
@@ -4070,6 +4157,22 @@ if (const auto menu = ui->GetMenu<RE::HUDMenu>(); menu) {
                             
                             
                            // search_success = visit_all_members3(results, var1, &search_var, 0, "_root", "NEW", skip_problematic);
+                            if (search_success)
+                            {
+                                auto test = var1.GetType();
+                            }
+
+                            uint64_t vendor_p = (uint64_t)RE::TESObjectREFR::LookupByID(0x19908); //calcelmo
+
+                            search_success = visit_all_members5(results, var1, 0, "_root", vendor_p, skip_problematic);
+                            if (search_success)
+                            {
+                                auto test = var1.GetType();
+                            }
+
+                            uint64_t vendor_p2 = 0x19908; //calcelmo
+
+                            search_success = visit_all_members5(results, var1, 0, "_root", vendor_p2, skip_problematic);
                             if (search_success)
                             {
                                 auto test = var1.GetType();
