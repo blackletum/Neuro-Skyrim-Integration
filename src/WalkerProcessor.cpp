@@ -7677,7 +7677,15 @@ namespace WalkerProcessor {
                             threshold2 = weird_threshold2;
                         }
 
-                        if (!MiscThings::is_cave_autoloader_door(target_ref) && !MiscThings::is_ore(target_ref) && !MiscThings::is_tree(target_ref) && !MiscThings::is_flora(target_ref) && !MiscThings::is_critter(target_ref) && !is_door(target_ref) && (bound_dif.x > 100.0f || bound_dif.y > 100.0f * (1 + MiscThings::is_on_horse() * 3.0f) * (1 + MiscThings::is_werewolf() * werewolf_coef_normal) * (1 + MiscThings::is_vampirelord() * vampirelord_coef_normal)))
+                        bool dont_use_bounds = false;
+
+                        auto base_obj = target_ref->GetBaseObject();
+
+                        if (base_obj && base_obj->formID == 0x5095e)//word of power large zone
+                            dont_use_bounds = true;
+
+
+                        if (!dont_use_bounds && !MiscThings::is_cave_autoloader_door(target_ref) && !MiscThings::is_ore(target_ref) && !MiscThings::is_tree(target_ref) && !MiscThings::is_flora(target_ref) && !MiscThings::is_critter(target_ref) && !is_door(target_ref) && (bound_dif.x > 100.0f || bound_dif.y > 100.0f * (1 + MiscThings::is_on_horse() * 3.0f) * (1 + MiscThings::is_werewolf() * werewolf_coef_normal) * (1 + MiscThings::is_vampirelord() * vampirelord_coef_normal)))
                         {
                             if (distance.Length() < (std::max(bound_dif.x, bound_dif.y) + threshold * (1 + MiscThings::is_on_horse() * 3.0f) * (1 + MiscThings::is_werewolf() * werewolf_coef_normal) * (1 + MiscThings::is_vampirelord() * vampirelord_coef_normal)))
                                 return true;

@@ -90,8 +90,6 @@
 
 
 //optimize everything
-//figure out what to do with last pillar puzzle
-//word wall in saartal should not be visible until we beat the boss
 //some cooldown on spellcasting ("you are still casting last spell! wait a little")
 //equip spell both hands with some chance
 //add manacost info for spells, somehow shrink description (or no)

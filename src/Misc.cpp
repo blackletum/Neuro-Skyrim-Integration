@@ -10952,6 +10952,9 @@ namespace MiscThings {
             if (pillar_check.find("Pillar"))
                 advice = "There are puzzle pillars nearby, interact with them until they are all in correct positions so lever opens the path";
 
+            //if (lever->formID == 0xf13b0) //saartal pillar puzzle 2 lever
+            //    advice += ". Looks like when you turn some of the pillars, "
+
 
             if (pillars_solved < pillars_need)
                 return " Something is wrong. The lever activated a trap instead of opening the door. " + advice;
@@ -11757,11 +11760,23 @@ namespace MiscThings {
                 }
 
 
+                if (trigger_zone_ref->formID == 0x70b56) //saartal word of power
+                {
+                    auto player = RE::PlayerCharacter::GetSingleton();
+                    if (player)
+                    {
+                        auto player_pos = player->GetPosition();
+
+                        if (!(player_pos.y < -4430.0f && player_pos.y > -6802.0f && player_pos.x < 1470.0f))
+                            return nullptr;
+                    }
+                }
+
                 return lookat_marker1;
             }
             
 
-            return (RE::TESObjectREFR*)(-1); //means its actually a wall but its inactiva
+            return (RE::TESObjectREFR*)(-1); //means its actually a wall but its inactive
         }
 
         
@@ -15031,6 +15046,16 @@ namespace MiscThings {
         case (0x200a8b8):
             return "[Ghost]";
 
+
+        //saartal puzzle pillar 2 pillars
+        case (0x725b9):
+            return "First";
+        case (0x725b8):
+            return "Second";
+        case (0x725b7):
+            return "Third";
+        case (0x725b6):
+            return "Fourth";
 
 
         }
@@ -21347,8 +21372,20 @@ namespace MiscThings {
             {
                 if (object_entry.second.object == refr)
                 {
-                    result = "[id " + std::to_string(object_entry.first) + "]" + get_object_stateless_info(refr);
-                    break;
+                    switch (refr->formID)
+                    {
+                        //saartal puzzle pillar 2 pillars
+                    case (0x725b9):
+                        return "[id " + std::to_string(object_entry.first) + "] First" + get_object_stateless_info(refr);
+                    case (0x725b8):
+                        return "[id " + std::to_string(object_entry.first) + "] Second" + get_object_stateless_info(refr);
+                    case (0x725b7):
+                        return "[id " + std::to_string(object_entry.first) + "] Third" + get_object_stateless_info(refr);
+                    case (0x725b6):
+                        return "[id " + std::to_string(object_entry.first) + "] Fourth" + get_object_stateless_info(refr);
+                    default:
+                        return "[id " + std::to_string(object_entry.first) + "]" + get_object_stateless_info(refr);
+                    }
                 }
             }
         }

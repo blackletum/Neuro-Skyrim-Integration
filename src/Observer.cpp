@@ -4486,7 +4486,7 @@ namespace Observer {
 
 										if (old_state.pillar_face_code != new_state.pillar_face_code)
 										{
-											silent = true;
+											
 											//if (new_state.pillar_face_code > 0 && new_state.pillar_face_code < 21)
 											//{
 											std::string pillar_name = MiscThings::get_stateless_info(a_ref);
@@ -4496,6 +4496,19 @@ namespace Observer {
 
 											//if (pillar_face_name != "")
 											//	solved_text = MiscThings::get_pillar_solved_text(a_ref);
+
+
+											switch (a_ref->formID)
+											{
+												//saartal puzzle pillar 2 pillars
+												case (0x725b9):
+												case (0x725b8):
+												case (0x725b7):
+												case (0x725b6):
+													silent = true;
+													break;
+											}
+
 
 											if (pillar_name != "" && pillar_face_name != "")
 												result.push_back(pillar_name + " turned to" + pillar_face_name + solved_text);
