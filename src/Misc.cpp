@@ -13,6 +13,10 @@
 namespace MiscThings {
 
 
+
+    long long last_spell_cast_timestamp = 0;
+
+
     int delayed_weapon_to_equip = -1;
     int delayed_spell_to_equip = -1;
     int delayed_spell_to_cast = -1;
@@ -63,6 +67,16 @@ namespace MiscThings {
     long long gave_interesting_notification_timestamp = 0;
     long long settlement_advice_timestamp = 0;
     
+
+    bool cast_spell_recently()
+    {
+        auto now = std::chrono::steady_clock::now().time_since_epoch().count();
+        float delta_cast = (double)(now - last_spell_cast_timestamp) / 1000000000.0;
+        if (delta_cast < 3.0f)
+            return true;
+
+        return false;
+    }
 
 
 
@@ -28281,12 +28295,33 @@ namespace MiscThings {
                                     result.second = "[Processing...]";
                                     delayed_spell_to_cast = id;
                                     delayed_spell_target = target_index;
+
+                                    last_spell_cast_timestamp = std::chrono::steady_clock::now().time_since_epoch().count();
+
                                     return result;
                                 }
 
 
+                                if (cast_spell_recently())
+                                {
+                                    result.first = false;
+                                    result.second = "You are still casting previous spell! Wait a little before casting new spell";
+                                    return result;
+                                }
+
                                 equip_manager->EquipSpell(player_actor, spell, slot);
                                 WalkerProcessor::reset_attacking_inanimate_object_time();
+                            }
+                            else
+                            {
+                                //already equipped
+                                ;
+                                if (cast_spell_recently())
+                                {
+                                    result.first = false;
+                                    result.second = "You are still casting previous spell! Wait a little before casting new spell";
+                                    return result;
+                                }
                             }
 
 
@@ -28309,6 +28344,13 @@ namespace MiscThings {
                                     if (MiscThings::is_self_cast_spell(right_hand))
                                         spell_target = nullptr; //just cast without any targets
 
+                                    if (MiscThings::is_self_healing_spell(right_hand) && MiscThings::player_hp_more_than(99.0f))
+                                    {
+                                        result.first = false;
+                                        result.second = "Your health is already full!";
+                                        return result;
+                                    }
+
 
                                     if (spell_target)
                                     {
@@ -28318,6 +28360,9 @@ namespace MiscThings {
                                             result.second = "[Processing...]";
                                             delayed_spell_to_cast = id;
                                             delayed_spell_target = target_index;
+
+                                            last_spell_cast_timestamp = std::chrono::steady_clock::now().time_since_epoch().count();
+
                                             return result;
                                         }
 
@@ -28325,6 +28370,8 @@ namespace MiscThings {
 
                                         if (!temp.first)
                                             return temp;
+
+                                        last_spell_cast_timestamp = std::chrono::steady_clock::now().time_since_epoch().count();
                                     }
                                     else
                                     {
@@ -28335,6 +28382,9 @@ namespace MiscThings {
                                             result.second = "[Processing...]";
                                             delayed_spell_to_cast = id;
                                             delayed_spell_target = target_index;
+
+                                            last_spell_cast_timestamp = std::chrono::steady_clock::now().time_since_epoch().count();
+
                                             return result;
                                         }
 
@@ -28351,6 +28401,7 @@ namespace MiscThings {
                                         else
                                             try_casting_hand(right_hand);
 
+                                        last_spell_cast_timestamp = std::chrono::steady_clock::now().time_since_epoch().count();
 
                                     }
                                         

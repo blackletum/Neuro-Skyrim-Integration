@@ -12,6 +12,7 @@ namespace MiscThings {
 
     bool player_has_deseases();
 
+    bool cast_spell_recently();
 
     void notify_walker_to_stop_autolockpick_on_enemies();
 
