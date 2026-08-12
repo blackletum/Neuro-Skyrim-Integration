@@ -5444,8 +5444,8 @@ namespace Observer {
 									if (left_hand_pre_brawl->GetFormType() == RE::FormType::Spell)
 										if (MiscThings::player_has_spell((RE::SpellItem*)left_hand_pre_brawl))
 											player_equip->EquipSpell(player, (RE::SpellItem*)left_hand_pre_brawl, left_slot);
-											
-								
+
+
 
 							if (right_hand_pre_brawl)
 								if (right_hand_pre_brawl->GetFormType() == RE::FormType::Weapon && right_hand_pre_brawl->GetFormID() != 0x1f4)
@@ -5457,7 +5457,7 @@ namespace Observer {
 									if (right_hand_pre_brawl->GetFormType() == RE::FormType::Spell)
 										if (MiscThings::player_has_spell((RE::SpellItem*)right_hand_pre_brawl))
 											player_equip->EquipSpell(player, (RE::SpellItem*)right_hand_pre_brawl, right_slot);
-										
+
 
 						}
 						else
@@ -5503,8 +5503,8 @@ namespace Observer {
 
 						bool stop_here = false;
 					}
-					
-					
+
+
 
 				}
 
@@ -5549,7 +5549,7 @@ namespace Observer {
 
 					first_inventory_scan_post_death = false;
 				}
-				
+
 
 
 				if (!player->IsDead())
@@ -5562,11 +5562,28 @@ namespace Observer {
 				}
 
 
-					
+
 				/////// ITEMS ADDED
 				std::string new_info = "";
 
 				RE::TESObjectREFR::InventoryItemMap inventory = MiscThings::get_filtered_inventory();
+
+
+				std::map<RE::TESBoundObject*, int> my_object_list_map{};
+
+				auto p_inventory = MiscThings::get_p_inventory_items_list();
+
+				if (!p_inventory)
+					return;
+
+
+				for (auto my_inventory_entry : *p_inventory)
+				{
+					my_object_list_map.insert({ my_inventory_entry.second.object, 0 });
+				}
+
+
+
 
 				bool had_something_better = false;
 				for (auto& [item, data] : inventory)
@@ -5588,7 +5605,7 @@ namespace Observer {
 					}
 
 
-					if (!MiscThings::is_inventory_item_in_the_list(item))
+					if (!MiscThings::is_inventory_item_in_the_list_fast(item, &my_object_list_map))
 					{
 						auto info = MiscThings::insert_item_into_inventory_list_and_get_info(item);
 
@@ -5602,7 +5619,7 @@ namespace Observer {
 								info.second += " - Better than your current gear";
 								had_something_better = true;
 							}
-								
+
 
 						new_info += info.second + "\n";
 					}
@@ -5625,7 +5642,7 @@ namespace Observer {
 
 				///// ITEMS REMOVED
 
-				auto p_inventory = MiscThings::get_p_inventory_items_list();
+				//auto p_inventory = MiscThings::get_p_inventory_items_list();
 
 				std::string removed_info = "";
 
@@ -5662,7 +5679,7 @@ namespace Observer {
 						message = MiscThings::fix_book_description(message);
 						send_random_context(message);
 					}
-						
+
 				}
 
 

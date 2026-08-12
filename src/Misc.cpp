@@ -5015,7 +5015,7 @@ namespace MiscThings {
             if (settlement_worldspace != settlements.end() && settlement_worldspace->first)
                 return true;
 
-            if (player_cell)
+            if (!player_worldspace && player_cell)
             {
                 switch (player_cell->formID)
                 {
@@ -5573,7 +5573,7 @@ namespace MiscThings {
 
     void settlement_places_processor(float dtime)
     {
-        if (settlement_places_processor_timer > 0.5f)
+        if (settlement_places_processor_timer > 1.0f)
         {
 
             
@@ -15776,7 +15776,7 @@ namespace MiscThings {
             if (const auto menu = ui->GetMenu<RE::HUDMenu>(); menu)
                 if (menu->uiMovie)
                 {
-                    for (int i = 0; i < 100; i++)
+                    for (int i = 0; i < 20; i++)
                     {
                         std::string num = std::to_string(i);
 
@@ -25983,6 +25983,17 @@ namespace MiscThings {
     }
 
 
+    bool is_inventory_item_in_the_list_fast(RE::TESBoundObject* item, std::map<RE::TESBoundObject*, int>* my_inventory_map)
+    {
+        if (inventory_valid)
+        {
+            return my_inventory_map->find(item) != my_inventory_map->end();
+        }
+        return false;
+    }
+
+
+
     std::pair<bool, std::string> GetInventory(bool force_weight_value_info)
     {
         std::pair<bool, std::string> result{};
@@ -29431,116 +29442,120 @@ namespace MiscThings {
             auto controller = actor_refr->combatController;
 
             auto player = RE::PlayerCharacter::GetSingleton();
-            auto player_ref = player->AsReference();
-            auto player_actor = (RE::Actor*)player_ref;
-
+            //auto player_ref = player->AsReference();
+            //auto player_actor = (RE::Actor*)player_ref;
 
             if (controller)
             {
                 auto target_handle = controller->targetHandle;
                 auto target_ref = RE::TESObjectREFR::LookupByHandle(target_handle.native_handle());
 
-                if (actor_refr->race->fullName != "Dragon Race" || is_fighting_dragons_allowed())
-                {
-                    if (target_ref && target_ref.get() == player_ref)
-                        return true;
-                    else
-                    {
-                        auto is_enemy = actor_refr->GetFactionReaction(player_actor);
+                //dragon race
+                if (actor_refr->race->formID == 0x12e82 && !is_fighting_dragons_allowed())
+                    return false;
 
-                        if (is_enemy == RE::FIGHT_REACTION::kEnemy)
-                        {
-                            if (controller->startedCombat)
-                                return true;
-                        }
+
+
+
+                if (target_ref && target_ref.get() == player)
+                    return true;
+                else
+                {
+                    auto is_enemy = actor_refr->GetFactionReaction(player);
+
+                    if (is_enemy == RE::FIGHT_REACTION::kEnemy)
+                    {
+                        if (controller->startedCombat)
+                            return true;
                     }
                 }
+
             }
             //else
             //{
-                if (!only_fighting && (WalkerProcessor::is_sneak_on() || weapon_independent || WalkerProcessor::has_bow_equipped(WalkerProcessor::get_current_active_hand()) || WalkerProcessor::has_crossbow_equipped(WalkerProcessor::get_current_active_hand())))
+            if (!only_fighting && (WalkerProcessor::is_sneak_on() || weapon_independent || WalkerProcessor::has_bow_equipped(WalkerProcessor::get_current_active_hand()) || WalkerProcessor::has_crossbow_equipped(WalkerProcessor::get_current_active_hand())))
+            {
+                bool aggressive = false;
+
+                auto base_object = actor_refr->GetBaseObject();
+
+                if (base_object)
                 {
-                    bool aggressive = false;
+                    auto npc = (RE::TESNPC*)base_object;
 
-                    auto base_object = actor_refr->GetBaseObject();
+                    bool aggression_check = false;
 
-                    if (base_object)
+
+
+                    //i think aggression1 is human aggression and aggression2 is animal aggression
+
+                    bool aggro_radius_check = false;
+                    bool aggression_level_check = false;
+                    if (npc->aiData.aggroRadiusBehaviour)
                     {
-                        auto npc = (RE::TESNPC*)base_object;
+                        //bool aggro_radius_started = false;
 
-                        bool aggression_check = false;
+                        //if (actor_refr->currentProcess && actor_refr->currentProcess->high)
+                        //    aggro_radius_started = actor_refr->currentProcess->high->aggroRadiusStarted;
 
+                        bool range_check = (npc->aiData.aggroRadius[2] + 1500) > player->GetDistance(actor_refr);
 
+                        aggro_radius_check = range_check;//&& aggro_radius_started;
 
-                        //i think aggression1 is human aggression and aggression2 is animal aggression
+                    }
+                    else
+                    {
+                        int aggression_level = actor_refr->GetActorValue(RE::ActorValue::kAggression);
 
-                        bool aggro_radius_check = false;
-                        bool aggression_level_check = false;
-                        if (npc->aiData.aggroRadiusBehaviour)
-                        {
-                            //bool aggro_radius_started = false;
-
-                            //if (actor_refr->currentProcess && actor_refr->currentProcess->high)
-                            //    aggro_radius_started = actor_refr->currentProcess->high->aggroRadiusStarted;
-
-                            bool range_check = (npc->aiData.aggroRadius[2] + 1500) > player->GetDistance(actor_refr);
-
-                            aggro_radius_check = range_check;//&& aggro_radius_started;
-
-                        }
-                        else
-                        {
-                            int aggression_level = actor_refr->GetActorValue(RE::ActorValue::kAggression);
-
-                            if (aggression_level > 1)
-                                aggression_level_check = true;
+                        if (aggression_level > 1)
+                            aggression_level_check = true;
 
 
-                            aggression_level_check &= npc->aiData.aggression2 || npc->aiData.aggression1;
-                        }
-
-
-
-
-
-                        //no aggression flags - not aggressive
-                        //aggression1 - "aggressive"
-                        //aggression2 - "very aggressive" (level independent?)
-                        //aggression1+2 - "frenzied" 
-
-                        //even if not aggressive, can have aggro-radius that makes them aggro in radius, while aggression level is 0 and both aggression flags are 0
-
-
-                        if (aggro_radius_check || aggression_level_check)
-                            aggressive = true;
-
-                        bool confident = npc->aiData.confidence1 || npc->aiData.confidence2 || npc->aiData.confidence3; //without confidence it will just run away from fight => not enemy
-
-                        aggressive = aggressive && confident;
-
-
-
-                        //maybe its agression-level dependent if its aggression1 and independent if aggression2?
-                        
-                        aggression_check = aggressive && actor_refr->IsHostileToActor(player_actor); //must be hostile to actor from this function
-                        
-
-                        
-
-                        //auto is_enemy = actor_refr->GetFactionReaction(player_actor); //this one is bs
-
-
-                        return aggression_check;
+                        aggression_level_check &= npc->aiData.aggression2 || npc->aiData.aggression1;
                     }
 
 
-                    //if (is_enemy == RE::FIGHT_REACTION::kEnemy)
-                    //{
-                    //    
-                    //}
 
 
+
+                    //no aggression flags - not aggressive
+                    //aggression1 - "aggressive"
+                    //aggression2 - "very aggressive" (level independent?)
+                    //aggression1+2 - "frenzied" 
+
+                    //even if not aggressive, can have aggro-radius that makes them aggro in radius, while aggression level is 0 and both aggression flags are 0
+
+
+                    if (aggro_radius_check || aggression_level_check)
+                        aggressive = true;
+
+                    bool confident = npc->aiData.confidence1 || npc->aiData.confidence2 || npc->aiData.confidence3; //without confidence it will just run away from fight => not enemy
+
+                    aggressive = aggressive && confident;
+
+
+
+                    //maybe its agression-level dependent if its aggression1 and independent if aggression2?
+
+                    aggression_check = aggressive && actor_refr->IsHostileToActor(player); //must be hostile to actor from this function
+
+
+
+
+                    //auto is_enemy = actor_refr->GetFactionReaction(player_actor); //this one is bs
+
+
+                    return aggression_check;
                 }
+
+
+                //if (is_enemy == RE::FIGHT_REACTION::kEnemy)
+                //{
+                //    
+                //}
+
+
+            }
 
             //}
         }
@@ -29837,6 +29852,9 @@ namespace MiscThings {
 
     bool is_slaughterfish(RE::Actor* actor)
     {
+        return actor && actor->GetBaseObject() && actor->GetBaseObject()->formID == 0x23ab8;
+
+        /*
         if (actor && actor->IsActor())
         {
             std::string name = actor->GetDisplayFullName();
@@ -29844,7 +29862,9 @@ namespace MiscThings {
             if (name == "Slaughterfish")
                 return true;
         }
+
         return false;
+        */
     }
 
 
@@ -29861,6 +29881,7 @@ namespace MiscThings {
         auto player_ref = player->AsReference();
         auto player_actor = (RE::Actor*)player_ref;
         auto player_cell = player->GetParentCell();
+        auto player_pos = player->GetPosition();
 
         auto control_map = RE::ControlMap::GetSingleton();
         bool can_walk = control_map->enabledControls.any(RE::UserEvents::USER_EVENT_FLAG::kMovement);
@@ -29871,7 +29892,7 @@ namespace MiscThings {
         if (!can_walk && !can_look)
             return result;
 
-        if (MiscThings::in_madman_head() && player->GetPositionX() < -3000.0f)
+        if (MiscThings::in_madman_head() && player_pos.x < -3000.0f)
             return result;
 
 
@@ -29880,18 +29901,22 @@ namespace MiscThings {
         //if (player_cell && player_cell->IsInteriorCell())
         //    range = 5000.0f;
 
+
+        bool katariah_condition = MiscThings::kataria_exists() && !MiscThings::is_object_inside_of_kataria(player);
+        bool snow_veil_gate_condition = player_cell && player_cell->formID == 0x15208 && !(player_pos.x > 4027.3f && player_pos.y < 2224.7f);
+
+
         RE::TES::GetSingleton()->ForEachReferenceInRange(player_ref, 9000.0f,
             //player->GetParentCell()->ForEachReferenceInRange(player->GetPosition(), 3000.0,
             [&](RE::TESObjectREFR* a_ref) {
 
                 if (a_ref && a_ref->IsActor())
                 {
-                    if (player_cell && player_cell->formID == 0x15208)
+                    if (snow_veil_gate_condition)
                     {
                         auto object_pos = a_ref->GetPosition();
-                        auto player_pos = player->GetPosition();
-
-                        if (object_pos.x > 4027.3f && object_pos.y < 2224.7f && !(player_pos.x > 4027.3f && player_pos.y < 2224.7f))
+                        
+                        if (object_pos.x > 4027.3f && object_pos.y < 2224.7f)
                         {
                             auto gate2 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x5584c);
                             if (gate2 && MiscThings::two_state_activator_state(gate2) == 1)
@@ -29899,13 +29924,14 @@ namespace MiscThings {
                         }
                     }
 
-                    if (MiscThings::kataria_exists() && MiscThings::is_object_inside_of_kataria(a_ref) && !MiscThings::is_object_inside_of_kataria(player))
+                    if (katariah_condition && MiscThings::is_object_inside_of_kataria(a_ref))
                         return RE::BSContainer::ForEachResult::kContinue; //skip kataria sailors if we escaped. this ship is cursed
 
 
                     if (is_slaughterfish((RE::Actor*)a_ref))
                         return RE::BSContainer::ForEachResult::kContinue;
 
+                    
 
                     if (is_enemy_to_actor(a_ref, only_fighting) && (!raycastable_only || raycastable(a_ref, range, false)))
                     {
@@ -29937,7 +29963,7 @@ namespace MiscThings {
                 return RE::BSContainer::ForEachResult::kContinue;
             });
 
-        auto player_pos = player_ref->GetPosition();
+        //auto player_pos = player_ref->GetPosition();
 
 
         std::sort(result.begin(), result.end(), [&](RE::Actor* left, RE::Actor* right) {

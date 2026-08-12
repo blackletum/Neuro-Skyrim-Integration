@@ -190,7 +190,11 @@ bool API_CONTROL_CRAFTING = false;
 
 bool do_debug_scan = false;
 bool debug_info = false;
+bool debug_info2 = false; //just update text, for manual debug_text modifications (without add_line stuff)
 bool debug_info_only_specific = true;
+
+std::vector<long long> debug_time_spent{};
+
 
 bool autolook_at_speakers_on_afk = true;
 bool count_ephemeral_force = true;
@@ -1453,6 +1457,8 @@ namespace Hooks {
                 RE::ConsoleLog::GetSingleton()->Print("LOADING MENU WAS OPENED");
 
 
+                debug_time_spent.clear();
+
 
                 loading_menu_lock = true;
 
@@ -1738,6 +1744,14 @@ namespace Hooks {
 
     int max_debug_size = 30;
 
+
+    void set_debug_text(std::string text)
+    {
+        debug_text = text;
+    }
+
+
+
     void add_debug_line(std::string line, bool specific)
     {
         if (!debug_info)
@@ -1770,9 +1784,11 @@ namespace Hooks {
 
     }
 
+
+
     void update_debug_text()
     {
-        if (!debug_info)
+        if (!debug_info && !debug_info2)
             return;
 
         RE::GFxValue Menu_mc = GetMenu_mc(RE::HUDMenu::MENU_NAME);
@@ -1841,7 +1857,7 @@ namespace Hooks {
             }
             else
             {
-                if (!one_shot && debug_info)
+                if (!one_shot && (debug_info || debug_info2))
                 {
                     if (a_message.type.get() == RE::UI_MESSAGE_TYPE::kUpdate)
                     {
@@ -2483,6 +2499,80 @@ private:
             const auto ui = RE::UI::GetSingleton();
             if (ui && !ui->IsMenuOpen(RE::Console::MENU_NAME) && !loading_menu_lock)
             {
+                /*
+                if (std::size(debug_time_spent) == 0)
+                {
+                    for (int i = 0; i < 28; i++)
+                        debug_time_spent.push_back(0);
+                }
+
+
+                std::string debug_performance_text = "";
+                long long debug_time_start = std::chrono::steady_clock::now().time_since_epoch().count();
+
+                Observer::cleanup_invalid_objects(dtime); if (debug_info2) { debug_time_spent.at(0) += (std::chrono::steady_clock::now().time_since_epoch().count() - debug_time_start); debug_time_start = std::chrono::steady_clock::now().time_since_epoch().count(); }
+
+                MiscThings::save_loader(dtime); if (debug_info2) { debug_time_spent.at(1) += (std::chrono::steady_clock::now().time_since_epoch().count() - debug_time_start); debug_time_start = std::chrono::steady_clock::now().time_since_epoch().count(); }
+
+                //if (do_debug_scan) debug_scan(dtime); if (debug_info2) { debug_time_spent.at(0) += (std::chrono::steady_clock::now().time_since_epoch().count() - debug_time_start); debug_time_start = std::chrono::steady_clock::now().time_since_epoch().count(); }
+                BarterProcessor::processor(dtime); if (debug_info2) { debug_time_spent.at(2) += (std::chrono::steady_clock::now().time_since_epoch().count() - debug_time_start); debug_time_start = std::chrono::steady_clock::now().time_since_epoch().count(); }
+                LockpickProcessor::processor(dtime); if (debug_info2) { debug_time_spent.at(3) += (std::chrono::steady_clock::now().time_since_epoch().count() - debug_time_start); debug_time_start = std::chrono::steady_clock::now().time_since_epoch().count(); }
+                LevelupProcessor::processor(dtime); if (debug_info2) { debug_time_spent.at(4) += (std::chrono::steady_clock::now().time_since_epoch().count() - debug_time_start); debug_time_start = std::chrono::steady_clock::now().time_since_epoch().count(); }
+                PerksProcessor::processor(dtime); if (debug_info2) { debug_time_spent.at(5) += (std::chrono::steady_clock::now().time_since_epoch().count() - debug_time_start); debug_time_start = std::chrono::steady_clock::now().time_since_epoch().count(); }
+                AlchemyProcessor::processor(dtime); if (debug_info2) { debug_time_spent.at(6) += (std::chrono::steady_clock::now().time_since_epoch().count() - debug_time_start); debug_time_start = std::chrono::steady_clock::now().time_since_epoch().count(); }
+                EnchantProcessor::processor(dtime); if (debug_info2) { debug_time_spent.at(7) += (std::chrono::steady_clock::now().time_since_epoch().count() - debug_time_start); debug_time_start = std::chrono::steady_clock::now().time_since_epoch().count(); }
+                SmithingProcessor::processor(dtime); if (debug_info2) { debug_time_spent.at(8) += (std::chrono::steady_clock::now().time_since_epoch().count() - debug_time_start); debug_time_start = std::chrono::steady_clock::now().time_since_epoch().count(); }
+                MapProcessor::processor(dtime); if (debug_info2) { debug_time_spent.at(9) += (std::chrono::steady_clock::now().time_since_epoch().count() - debug_time_start); debug_time_start = std::chrono::steady_clock::now().time_since_epoch().count(); }
+                ContainerProcessor::processor(dtime); if (debug_info2) { debug_time_spent.at(10) += (std::chrono::steady_clock::now().time_since_epoch().count() - debug_time_start); debug_time_start = std::chrono::steady_clock::now().time_since_epoch().count(); }
+                GiftProcessor::processor(dtime); if (debug_info2) { debug_time_spent.at(11) += (std::chrono::steady_clock::now().time_since_epoch().count() - debug_time_start); debug_time_start = std::chrono::steady_clock::now().time_since_epoch().count(); }
+                RandomMessageBoxProcessor::processor(dtime); if (debug_info2) { debug_time_spent.at(12) += (std::chrono::steady_clock::now().time_since_epoch().count() - debug_time_start); debug_time_start = std::chrono::steady_clock::now().time_since_epoch().count(); }
+
+
+                Observer::detect_threats(dtime); if (debug_info2) { debug_time_spent.at(13) += (std::chrono::steady_clock::now().time_since_epoch().count() - debug_time_start); debug_time_start = std::chrono::steady_clock::now().time_since_epoch().count();}
+                Observer::detect_interesting_objects(dtime); if (debug_info2) { debug_time_spent.at(14) += (std::chrono::steady_clock::now().time_since_epoch().count() - debug_time_start); debug_time_start = std::chrono::steady_clock::now().time_since_epoch().count(); }
+                Observer::detect_events(dtime); if (debug_info2) { debug_time_spent.at(15) += (std::chrono::steady_clock::now().time_since_epoch().count() - debug_time_start); debug_time_start = std::chrono::steady_clock::now().time_since_epoch().count(); }
+                Observer::inventory_monitor(dtime); if (debug_info2) { debug_time_spent.at(16) += (std::chrono::steady_clock::now().time_since_epoch().count() - debug_time_start); debug_time_start = std::chrono::steady_clock::now().time_since_epoch().count(); }
+                Observer::player_state_monitor(dtime); if (debug_info2) { debug_time_spent.at(17) += (std::chrono::steady_clock::now().time_since_epoch().count() - debug_time_start); debug_time_start = std::chrono::steady_clock::now().time_since_epoch().count(); }
+                Observer::detect_locations(dtime); if (debug_info2) { debug_time_spent.at(18) += (std::chrono::steady_clock::now().time_since_epoch().count() - debug_time_start); debug_time_start = std::chrono::steady_clock::now().time_since_epoch().count(); }
+                Observer::timed_quest_puzzles_processor(dtime); if (debug_info2) { debug_time_spent.at(19) += (std::chrono::steady_clock::now().time_since_epoch().count() - debug_time_start); debug_time_start = std::chrono::steady_clock::now().time_since_epoch().count(); }
+
+
+                RaceProcessor::processor(dtime); if (debug_info2) { debug_time_spent.at(20) += (std::chrono::steady_clock::now().time_since_epoch().count() - debug_time_start); debug_time_start = std::chrono::steady_clock::now().time_since_epoch().count(); }
+
+                MiscThings::notifications(); if (debug_info2) { debug_time_spent.at(21) += (std::chrono::steady_clock::now().time_since_epoch().count() - debug_time_start); debug_time_start = std::chrono::steady_clock::now().time_since_epoch().count(); }
+                MiscThings::settlement_places_processor(dtime); if (debug_info2) { debug_time_spent.at(22) += (std::chrono::steady_clock::now().time_since_epoch().count() - debug_time_start); debug_time_start = std::chrono::steady_clock::now().time_since_epoch().count(); }
+
+                SleepWaitProcessor::processor(dtime); if (debug_info2) { debug_time_spent.at(23) += (std::chrono::steady_clock::now().time_since_epoch().count() - debug_time_start); debug_time_start = std::chrono::steady_clock::now().time_since_epoch().count(); }
+                BookProcessor::processor(dtime); if (debug_info2) { debug_time_spent.at(24) += (std::chrono::steady_clock::now().time_since_epoch().count() - debug_time_start); debug_time_start = std::chrono::steady_clock::now().time_since_epoch().count(); }
+                TrainingProcessor::processor(dtime); if (debug_info2) { debug_time_spent.at(25) += (std::chrono::steady_clock::now().time_since_epoch().count() - debug_time_start); debug_time_start = std::chrono::steady_clock::now().time_since_epoch().count(); }
+
+
+                WalkerProcessor::lower_processor(dtime); if (debug_info2) { debug_time_spent.at(26) += (std::chrono::steady_clock::now().time_since_epoch().count() - debug_time_start); debug_time_start = std::chrono::steady_clock::now().time_since_epoch().count(); }
+
+
+                send_delayed_messages(dtime); if (debug_info2) { debug_time_spent.at(27) += (std::chrono::steady_clock::now().time_since_epoch().count() - debug_time_start); debug_time_start = std::chrono::steady_clock::now().time_since_epoch().count(); }
+
+                long long debug2_sum = 0;
+
+                for (auto debug2_entry : debug_time_spent)
+                {
+                    debug2_sum += debug2_entry;
+                }
+
+                int debug2_int = 0;
+                for (auto debug2_entry : debug_time_spent)
+                {
+                    debug_performance_text += std::to_string(debug2_int) + ": " + std::to_string((double)debug2_entry / (double)debug2_sum * 100.0) + "%\n";
+
+                    debug2_int++;
+                }
+
+                Hooks::set_debug_text(debug_performance_text);
+                */
+
+                //////////////////////////////////////////////
+                /////////// NORMAL
+                
                 Observer::cleanup_invalid_objects(dtime);
 
                 MiscThings::save_loader(dtime);
@@ -2499,6 +2589,7 @@ private:
                 ContainerProcessor::processor(dtime);
                 GiftProcessor::processor(dtime);
                 RandomMessageBoxProcessor::processor(dtime);
+
 
                 Observer::detect_threats(dtime); //uses pause. must be here
                 Observer::detect_interesting_objects(dtime);
@@ -2523,7 +2614,7 @@ private:
                 
 
                 send_delayed_messages(dtime);
-                ;
+                
 
 
                 if (context_chars_sent > 50000)

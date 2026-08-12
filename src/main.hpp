@@ -55,6 +55,7 @@ void unregister_all_actions2();
 
 namespace Hooks {
 	void add_debug_line(std::string line, bool specific = false);
+	void set_debug_text(std::string text);
 	void update_debug_text();
 }
 
