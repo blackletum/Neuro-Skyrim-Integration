@@ -91,7 +91,6 @@
 
 //optimize everything
 //some warning about being low on gold (maybe when below 300) - at the item buy choice force (its tricky because we can get below 300 while processing 500 transactions, so it probably needs to be interrupt-style force choice, asking if we want to continue buying anything at all)
-//swimming info
 //test trade history more
 
 //maybe attempt to block dragon breath with ward spell (depending on how good it is - add a random chance)

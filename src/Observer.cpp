@@ -11,6 +11,13 @@
 
 namespace Observer {
 
+
+	bool was_swimming = false;
+	float swimming_time = 0.0f;
+	float not_swimming_time = 0.0f;
+
+
+
 	long long last_use_potion_timestamp = 0;
 
 	long long halt_potion_autouse_timestamp = 0; //dont reset this ever
@@ -1012,6 +1019,10 @@ namespace Observer {
 
 	void reset_observer()
 	{
+		was_swimming = false;
+		swimming_time = 0.0f;
+		not_swimming_time = 0.0f;
+
 		last_use_potion_timestamp = 0;
 
 		tried_to_heal = false;
@@ -5685,6 +5696,9 @@ namespace Observer {
 	{
 		auto player = RE::PlayerCharacter::GetSingleton();
 
+		if (!player)
+			return;
+
 		RE::TESObjectREFR* test_stone = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xc6bbd);
 
 		if (test_stone && !test_stone->IsDisabled())
@@ -5823,6 +5837,9 @@ namespace Observer {
 				{
 					first_cycle = false;
 					//auto threshold_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("MQ101");
+
+
+					was_swimming = player->IsSwimming();
 
 					if (threshold_quest)
 					{
@@ -6303,6 +6320,66 @@ namespace Observer {
 				}
 
 				old_oxygen_status = no_oxygen;
+
+
+
+
+
+				//swimming info
+
+
+				bool is_swimming = player->IsSwimming();
+
+				if (was_swimming)
+				{
+					if (!is_swimming)
+					{
+						if (not_swimming_time > 0.99f)
+						{
+							was_swimming = false;
+							not_swimming_time = 0.0f;
+							swimming_time = 0.0f;
+							send_random_context("You got out of water", true);
+						}
+						else
+							not_swimming_time += 0.5f;
+					}
+					else
+					{
+						not_swimming_time = 0.0f;
+						swimming_time = 0.0f;
+					}
+						
+				}
+				else
+				{
+					if (is_swimming)
+					{
+						if (swimming_time > 0.99f)
+						{
+							was_swimming = true;
+							not_swimming_time = 0.0f;
+							swimming_time = 0.0f;
+							send_random_context("You get into water and swim", true);
+						}
+						else
+						{
+							swimming_time += 0.5f;
+						}
+					}
+					else
+					{
+						not_swimming_time = 0.0f;
+						swimming_time = 0.0f;
+					}
+				}
+
+
+
+
+
+
+
 
 
 				//hit events
