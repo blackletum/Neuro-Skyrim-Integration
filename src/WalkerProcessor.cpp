@@ -600,6 +600,40 @@ namespace WalkerProcessor {
 
 
 
+    //bool had_whirlwind_sprint_effect = false;
+    bool repath_if_walking = false;
+    bool pre_repath_if_walking = false;
+    long long pre_repath_timestamp = 0;
+
+
+    //bool player_is_whirlwind_sprinting()
+    //{
+    //    return false;
+    //}
+
+    /* //doesnt work. 
+    bool player_is_whirlwind_sprinting()
+    {
+        auto player = RE::PlayerCharacter::GetSingleton();
+
+        if (!player)
+            return -1;
+
+        auto effect_list = player->GetActiveEffectList();
+
+        for (auto effect_entry : *effect_list)
+        {
+            auto effect = effect_entry->effect;
+
+            if (effect && effect->baseEffect && (effect->baseEffect->formID == 0x2f7b9 || effect->baseEffect->formID == 0x4372f || effect->baseEffect->formID == 0x43730))
+                return true;
+            
+        }
+
+        return false;
+    }
+    */
+
 
     std::string get_quest_journal_description_if_never_shown(RE::TESQuest* quest)
     {
@@ -2389,6 +2423,22 @@ namespace WalkerProcessor {
             }
 
 
+            static void myScriptEffectFinish(RE::ScriptEffect* a_scriptEffect)
+            {
+                if (a_scriptEffect && a_scriptEffect->effect && a_scriptEffect->effect->baseEffect && (a_scriptEffect->effect->baseEffect->formID == 0x2f7b9 || a_scriptEffect->effect->baseEffect->formID == 0x4372f || a_scriptEffect->effect->baseEffect->formID == 0x43730))
+                {
+                    if (path_valid && !using_custom_path)
+                    {
+                        pre_repath_timestamp = std::chrono::steady_clock::now().time_since_epoch().count();
+                        pre_repath_if_walking = true;
+                    }
+                        
+                }
+
+                return originalScriptEffectFinish(a_scriptEffect);
+            }
+
+
 
             //22151
             /*
@@ -2420,11 +2470,18 @@ namespace WalkerProcessor {
             static inline REL::Relocation<decltype(myFinish)> originalFinish;
 
 
+
+            static inline REL::Relocation<decltype(myScriptEffectFinish)> originalScriptEffectFinish;
+
+
             //REL::ID(21910)
 
 
             static inline void Install() { 
                 originalStart = REL::Relocation<std::uintptr_t>(RE::VTABLE_GuideEffect[0]).write_vfunc(0x14, myStart);
+
+                originalScriptEffectFinish = REL::Relocation<std::uintptr_t>(RE::VTABLE_ScriptEffect[0]).write_vfunc(0x15, myScriptEffectFinish);
+
                 //originalFinish = REL::Relocation<std::uintptr_t>(RE::VTABLE_GuideEffect[0]).write_vfunc(0x15, myFinish); 
 
                 //originalActivate = REL::Relocation<std::uintptr_t>(RE::VTABLE_TESBoundObject[0]).write_vfunc(0x37, myActivate);
@@ -3549,6 +3606,15 @@ namespace WalkerProcessor {
                     right();
                 }
             }
+
+
+
+            RE::NiPoint3 down = { 0.0f, 0.0f, -1.0f };
+            auto mulY_noY_test = camera_dirY * down;
+
+            if ((mulY_noY_test > 0.75f && mouse_y < 0.0f) || (mulY_noY_test < -0.75f && mouse_y > 0.0f))
+                mouse_y = 0.0f;
+
 
 
             //mouse_mouse_x_y(mouse_x, -mouse_y);
@@ -5782,7 +5848,11 @@ namespace WalkerProcessor {
 
     bool cast_pathfinding(float dtime)
     {
-        
+        repath_if_walking = false;
+        pre_repath_if_walking = false;
+        pre_repath_timestamp = 0;
+
+
         auto control_map = RE::ControlMap::GetSingleton();
         bool can_walk = control_map->enabledControls.any(RE::UserEvents::USER_EVENT_FLAG::kMovement);
 
@@ -5853,6 +5923,12 @@ namespace WalkerProcessor {
 
     void reset_walker()
     {
+        //had_whirlwind_sprint_effect = false;
+        repath_if_walking = false;
+        pre_repath_if_walking = false;
+        pre_repath_timestamp = 0;
+
+
         friendly_fire_blocks = 0;
         friendly_fire_blocks2 = 0;
 
@@ -6363,6 +6439,11 @@ namespace WalkerProcessor {
 
     void walk_again()
     {
+        repath_if_walking = false;
+        pre_repath_if_walking = false;
+        pre_repath_timestamp = 0;
+
+
         //if (!using_custom_path)
         {
 
@@ -17913,6 +17994,39 @@ namespace WalkerProcessor {
                     
 
 
+                if (pre_repath_if_walking)
+                {
+                    auto now = std::chrono::steady_clock::now().time_since_epoch().count();
+                    float delta_repath = (double)(now - pre_repath_timestamp) / 1000000000.0;
+                    if (delta_repath > 1.0f)
+                    {
+                        pre_repath_if_walking = false;
+                        pre_repath_timestamp = 0;
+                        repath_if_walking = true;
+                    }
+                }
+
+
+                //now target ref is probably valid
+
+
+                //bool whirlwind_sprinting = player_is_whirlwind_sprinting();
+
+                //if (!whirlwind_sprinting && had_whirlwind_sprint_effect)
+                //{
+                //    repath_if_walking = true;
+                //}
+                //else
+                //    repath_if_walking = false;
+
+                //had_whirlwind_sprint_effect = whirlwind_sprinting;
+
+
+
+
+
+
+
                 //if (target_ref)
                 //   Hooks::add_debug_line(std::to_string(player->GetDistance(target_ref)), true);
 
@@ -20199,6 +20313,14 @@ namespace WalkerProcessor {
                                     {
                                         if (path_valid)
                                         {
+
+                                            if (repath_if_walking && !using_custom_path)
+                                            {
+                                                walk_again();
+                                                return;
+                                            }
+
+
                                             if (!silly_walk_mode)
                                                 walk_to_point(dtime);
                                             use_last_point_of_last_path = false;
@@ -20209,6 +20331,12 @@ namespace WalkerProcessor {
                                         {
                                             if (!detect_stuck(dtime))
                                             {
+                                                if (repath_if_walking && !using_custom_path)
+                                                {
+                                                    walk_again();
+                                                    return;
+                                                }
+
                                                 walk_to_point(dtime);
                                                 //cast_pathfinding(dtime); //rebuild path
                                                 make_clairvoyance_cast = true;
@@ -20266,7 +20394,15 @@ namespace WalkerProcessor {
 
                                             if (current_path_point < std::size(path))
                                                 if (!silly_walk_mode)
+                                                {
+                                                    if (repath_if_walking && !using_custom_path)
+                                                    {
+                                                        walk_again();
+                                                        return;
+                                                    }
                                                     walk_to_point(dtime);
+                                                }
+                                                    
 
                                         }
                                         else
@@ -21720,6 +21856,13 @@ namespace WalkerProcessor {
                                                     if (almost_stuck()) //basically no blocker but stuck - maybe terrain. will also trigger on pole-type doors though
                                                         if (MiscThings::jumpable_ramp_ahead())
                                                             jump();
+                                                }
+
+
+                                                if (repath_if_walking && !using_custom_path)
+                                                {
+                                                    walk_again();
+                                                    return;
                                                 }
 
                                                 walk_to_point(dtime);

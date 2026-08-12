@@ -2100,7 +2100,7 @@ namespace Observer {
 								}
 
 
-								std::string name = a_ref->GetDisplayFullName();
+								//std::string name = a_ref->GetDisplayFullName();
 
 								//if (name.find("Ghostly") != std::string::npos)
 								//	bool stop_here = false;
@@ -2257,7 +2257,7 @@ namespace Observer {
 
 
 									std::string name = a_ref->GetName();
-									std::string player_name = RE::PlayerCharacter::GetSingleton()->GetName();
+									//std::string player_name = RE::PlayerCharacter::GetSingleton()->GetName();
 
 
 									//if (name.find("Crumbling") != std::string::npos)
