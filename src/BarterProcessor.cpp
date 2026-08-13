@@ -905,7 +905,21 @@ namespace BarterProcessor {
                         }
 
                         //not enough gold, skip
-                        return process_next_item();
+                        //return process_next_item();
+
+                        std::string item_name = items_list.find(pos_to_id(item_choice)) != items_list.end() ? items_list.find(pos_to_id(item_choice))->second.name : "this item";
+
+                        std::string message = "";
+                        if (type == barter_type::buy)
+                            message = "You cannot afford " + item_name + " anymore";
+                        else
+                            message = "Trader cannot afford " + item_name + " anymore";
+
+                        send_random_context(message, false);
+
+                        back_to_items();
+                        return true;
+
                     }
                 }
                 else
