@@ -2946,8 +2946,15 @@ namespace MiscThings {
                     if (dlc1vq07_quest->currentStage == 132)
                         return 200.0f;
                 }
+                break;
 
             }
+
+            case (0xc7312): //thieves guild entrance, exit pull lever
+            {
+                return 150.0f;
+            }
+
             }
         }
 
@@ -4460,46 +4467,31 @@ namespace MiscThings {
 
     //form is settlement/cell. for worlds check if player is inside, for cells check if player is within some range
     //std::map<RE::TESForm*, interesting_places> settlements{};
-    std::map<RE::TESForm*, interesting_places> settlements{};
-    
-    //RE::TESObjectREFR* trader;
-    //RE::TESObjectREFR* tavern;
-    //RE::TESObjectREFR* alchemist;
-    //RE::TESObjectREFR* blacksmith;
-    //RE::TESObjectREFR* jarl;
-    //RE::TESObjectREFR* court_wizard;
-    //RE::TESObjectREFR* church;
-
-
-
-    //TODO: if civil war progressess Jarl may become invalid because his position was replaced with someone else and and Jarl could be sent to prison in Solitude. It will still lead to him. Need to fix this
-    void fill_settlements()
+    const std::map<uint32_t, interesting_places> settlements =
     {
-        settlements =
-        {
 
-            //mage college
+        //mage college
 {
-    RE::TESForm::LookupByID(0x0001380e), //hall of elements, special checks for other locations in other places
+    0x0001380e, //hall of elements, special checks for other locations in other places
     {
         "College of Winterhold",
 
         {
-                //wrapped them like alchemists so it does not add [Buys everything] tag
-            {0x1c1a5, 3, "Faralda [Master of Destruction]", 1}, //
-            {0x1c1a6, 3, "Drevis [Master of Illusion]", 2}, //
-            {0x1c1a7, 3, "Phinis [Master of Conjuration]", 3}, //
-            {0x1c1a8, 3, "Colette [Master of Restoration]", 4}, //
-            {0x1c1a1, 3, "Tolfdir [Master of Alteration]", 5}, //
-        }
-
+            //wrapped them like alchemists so it does not add [Buys everything] tag
+        {0x1c1a5, 3, "Faralda [Master of Destruction]", 1}, //
+        {0x1c1a6, 3, "Drevis [Master of Illusion]", 2}, //
+        {0x1c1a7, 3, "Phinis [Master of Conjuration]", 3}, //
+        {0x1c1a8, 3, "Colette [Master of Restoration]", 4}, //
+        {0x1c1a1, 3, "Tolfdir [Master of Alteration]", 5}, //
     }
+
+}
 },
 
 
 //winterhold
 {
-    RE::TESForm::LookupByID(0x8ea2),
+    0x8ea2,
     {
         "Winterhold",
 
@@ -4515,7 +4507,7 @@ namespace MiscThings {
 
 //windhelm
 {
-    RE::TESForm::LookupByID(0x1691d),
+    0x1691d,
     {
         "Windhelm",
         {
@@ -4533,11 +4525,11 @@ namespace MiscThings {
 
 //riften
 {
-RE::TESForm::LookupByID(0x16bb4),
+0x16bb4,
 {
     "Riften",
     {
-        {0xb882a, 1, "Trader (Tonila, Thieves guild)", 1}, //trader
+        {0xb882a, 1, "Trader (Tonilia, Thieves guild)", 1}, //trader
         {0x4e0b3, 1, "Trader (Grelka)", 2}, //trader
         {0x19dd0, 1, "Trader (Pawned Prawn)", 3}, //trader
         {0x19ddc, 1, "Trader (Brand-Shei)", 4}, //trader
@@ -4556,7 +4548,7 @@ RE::TESForm::LookupByID(0x16bb4),
 
 //riverwood
 {
-    RE::TESForm::LookupByID(0x9731),
+    0x9731,
     {
         "Riverwood",
         {
@@ -4571,7 +4563,7 @@ RE::TESForm::LookupByID(0x16bb4),
 
 //falkreath
 {
-    RE::TESForm::LookupByID(0x9c80),
+    0x9c80,
     {
         "Falkreath",
         {
@@ -4590,7 +4582,7 @@ RE::TESForm::LookupByID(0x16bb4),
 
 //markarth
 {
-    RE::TESForm::LookupByID(0x16d71),
+    0x16d71,
     {
         "Markarth",
         {
@@ -4609,7 +4601,7 @@ RE::TESForm::LookupByID(0x16bb4),
 
 //solitude
 {
-    RE::TESForm::LookupByID(0x37edf),
+    0x37edf,
     {
         "Solitude",
         {
@@ -4628,7 +4620,7 @@ RE::TESForm::LookupByID(0x16bb4),
 
 //morthal
 {
-    RE::TESForm::LookupByID(0x939d),
+    0x939d,
     {
         "Morthal",
         {
@@ -4643,7 +4635,7 @@ RE::TESForm::LookupByID(0x16bb4),
 
 //dawnstar
         {
-            RE::TESForm::LookupByID(0x8eb5),
+            0x8eb5,
             {
                 "Dawnstar",
                 {
@@ -4657,31 +4649,46 @@ RE::TESForm::LookupByID(0x16bb4),
         },
 
 
-            //whiterun
+        //whiterun
+{
+    0x1a26f,
     {
-        RE::TESForm::LookupByID(0x1a26f),
+        "Whiterun",
         {
-            "Whiterun",
-            {
-                {0x1a672, 1, "Trader", 1}, //trader
-                {0x1a66e, 2, "Tavern [Provides bed, jobs and food/booze]", 2}, //tavern
-                {0x1a681, 2, "Hunting shop [Sells bows and arrows]", 3}, //tavern
-                {0x1a66d, 3, "Alchemist [Provides potions and ingredients. Probably has alchemist table]", 4}, //alchemist
-                {0x1a67c, 4, "Blacksmith [Weapons, armor, materials for crafting. Might have crafting workbenches around]", 5}, //blacksmith
-                //{0xd15b0, 4, "Blacksmith (Warmaiden's)", 6}, //blacksmith
-                {0x1a677, 5, "Jarl", 6}, //jarl
-                {0x1a67e, 6, "Wizard", 7}, //wizard
-                {0x1a700, 7, "Church [Has shrines]", 8}, //church
-                {0x1a6f9, 8, "Breezehome [your house]", 9 }, //house
-                {0xA2C94, 9, "Lydia [your friend]", 10 } //lydia
-
-            }
+            {0x1a672, 1, "Trader", 1}, //trader
+            {0x1a66e, 2, "Tavern [Provides bed, jobs and food/booze]", 2}, //tavern
+            {0x1a681, 2, "Hunting shop [Sells bows and arrows]", 3}, //tavern
+            {0x1a66d, 3, "Alchemist [Provides potions and ingredients. Probably has alchemist table]", 4}, //alchemist
+            {0x1a67c, 4, "Blacksmith [Weapons, armor, materials for crafting. Might have crafting workbenches around]", 5}, //blacksmith
+            //{0xd15b0, 4, "Blacksmith (Warmaiden's)", 6}, //blacksmith
+            {0x1a677, 5, "Jarl", 6}, //jarl
+            {0x1a67e, 6, "Wizard", 7}, //wizard
+            {0x1a700, 7, "Church [Has shrines]", 8}, //church
+            {0x1a6f9, 8, "Breezehome [your house]", 9 }, //house
+            {0xA2C94, 9, "Lydia [your friend]", 10 } //lydia
 
         }
-    },
 
-        };
     }
+},
+
+    };
+    
+    //RE::TESObjectREFR* trader;
+    //RE::TESObjectREFR* tavern;
+    //RE::TESObjectREFR* alchemist;
+    //RE::TESObjectREFR* blacksmith;
+    //RE::TESObjectREFR* jarl;
+    //RE::TESObjectREFR* court_wizard;
+    //RE::TESObjectREFR* church;
+
+
+
+    //TODO: if civil war progressess Jarl may become invalid because his position was replaced with someone else and and Jarl could be sent to prison in Solitude. It will still lead to him. Need to fix this
+   // void fill_settlements()
+   //{
+    //    settlements 
+    //}
 
 
 
@@ -4792,7 +4799,7 @@ RE::TESForm::LookupByID(0x16bb4),
         
         //if (std::size(settlements) < 2)
 
-        fill_settlements();
+        //fill_settlements();
 
 
         if (college_of_winterhold_settlement_condition())
@@ -4806,12 +4813,13 @@ RE::TESForm::LookupByID(0x16bb4),
             float min_dist = FLT_MAX;
             RE::TESForm* best_key = nullptr;
 
-            for (auto settlement : settlements)
+            for (auto& settlement : settlements)
             {
-                if (settlement.first)
+                auto key_raw = RE::TESForm::LookupByID(settlement.first);
+                if (key_raw)
                 {
-                    auto key_type = settlement.first->GetFormType();
-                    auto key = (RE::TESObjectCELL*)settlement.first;
+                    auto key_type = key_raw->GetFormType();
+                    auto key = (RE::TESObjectCELL*)key_raw;
                     if (key_type == RE::FormType::Cell && key && key->formID != 0x0001380e)
                     {
                         if (player_cell && player_cell->GetCoordinates() && key->GetCoordinates())
@@ -4841,10 +4849,10 @@ RE::TESForm::LookupByID(0x16bb4),
         {
             if (player_worldspace)
             {
-                auto settlement_worldspace = settlements.find(player_worldspace);
+                auto settlement_worldspace = settlements.find(player_worldspace->formID);
 
                 if (settlement_worldspace != settlements.end())
-                    return settlement_worldspace->first;
+                    return RE::TESForm::LookupByID(settlement_worldspace->first);
             }
             else
             {
@@ -4862,10 +4870,10 @@ RE::TESForm::LookupByID(0x16bb4),
                     case (0x165b7):
                     case (0x165a8):
                     {
-                        auto settlement_worldspace = settlements.find(RE::TESForm::LookupByID(0x1a26f));
+                        auto settlement_worldspace = settlements.find(0x1a26f);
 
                         if (settlement_worldspace != settlements.end())
-                            return settlement_worldspace->first;
+                            return RE::TESForm::LookupByID(settlement_worldspace->first);
 
                         break;
                     }
@@ -4876,10 +4884,10 @@ RE::TESForm::LookupByID(0x16bb4),
                     case (0x16dff):
                     case (0x16df6):
                     {
-                        auto settlement_worldspace = settlements.find(RE::TESForm::LookupByID(0x16d71));
+                        auto settlement_worldspace = settlements.find(0x16d71);
 
                         if (settlement_worldspace != settlements.end())
-                            return settlement_worldspace->first;
+                            return RE::TESForm::LookupByID(settlement_worldspace->first);
 
                         break;
                     }
@@ -4892,10 +4900,10 @@ RE::TESForm::LookupByID(0x16bb4),
                     //case (0x16786):
                     case (0x16782):
                     {
-                        auto settlement_worldspace = settlements.find(RE::TESForm::LookupByID(0x1691d));
+                        auto settlement_worldspace = settlements.find(0x1691d);
 
                         if (settlement_worldspace != settlements.end())
-                            return settlement_worldspace->first;
+                            return RE::TESForm::LookupByID(settlement_worldspace->first);
 
                         break;
                     }
@@ -4907,10 +4915,10 @@ RE::TESForm::LookupByID(0x16bb4),
                     case (0x16a11):
                     //case (0x16a02):
                     {
-                        auto settlement_worldspace = settlements.find(RE::TESForm::LookupByID(0x37edf));
+                        auto settlement_worldspace = settlements.find(0x37edf);
 
                         if (settlement_worldspace != settlements.end())
-                            return settlement_worldspace->first;
+                            return RE::TESForm::LookupByID(settlement_worldspace->first);
 
                         break;
                     }
@@ -4926,10 +4934,10 @@ RE::TESForm::LookupByID(0x16bb4),
                     case (0x16bcf):
                         //case (0x16a02):
                     {
-                        auto settlement_worldspace = settlements.find(RE::TESForm::LookupByID(0x16bb4));
+                        auto settlement_worldspace = settlements.find(0x16bb4);
 
                         if (settlement_worldspace != settlements.end())
-                            return settlement_worldspace->first;
+                            return RE::TESForm::LookupByID(settlement_worldspace->first);
 
                         break;
                     }
@@ -4962,7 +4970,7 @@ RE::TESForm::LookupByID(0x16bb4),
 
         //if (std::size(settlements) < 2)
 
-        fill_settlements();
+        //fill_settlements();
 
 
         if (college_of_winterhold_settlement_condition())
@@ -4975,12 +4983,13 @@ RE::TESForm::LookupByID(0x16bb4),
             float min_dist = FLT_MAX;
             RE::TESForm* best_key = nullptr;
 
-            for (auto settlement : settlements)
+            for (auto& settlement : settlements)
             {
-                if (settlement.first)
+                auto key_raw = RE::TESForm::LookupByID(settlement.first);
+                if (key_raw)
                 {
-                    auto key_type = settlement.first->GetFormType();
-                    auto key = (RE::TESObjectCELL*)settlement.first;
+                    auto key_type = key_raw->GetFormType();
+                    auto key = (RE::TESObjectCELL*)key_raw;
                     if (key_type == RE::FormType::Cell && key && key->formID != 0x0001380e) //college of winterhold has special check
                     {
                         if (player_cell && player_cell->GetCoordinates() && key->GetCoordinates())
@@ -5008,50 +5017,55 @@ RE::TESForm::LookupByID(0x16bb4),
         }
         else
         {
-            auto settlement_worldspace = settlements.find(player_worldspace);
-
-            if (settlement_worldspace != settlements.end() && settlement_worldspace->first)
-                return true;
-
-            if (!player_worldspace && player_cell)
+            if (player_worldspace)
             {
-                switch (player_cell->formID)
-                {
-                case (0x165a3): //whiterun palace1
-                case (0x80c6a): //whiterun palace2
-                case (0x16df2): //markarth palace
-                case (0x1677c): //windhelm palace
-                case (0x97299): //windhelm palace
-                case (0x16a04): //solitude palace
+                auto settlement_worldspace = settlements.find(player_worldspace->formID);
 
-                    //new
-
-                //case (0x165a7):
-                case (0x1605e):
-                case (0x165b6):
-                case (0x165b3):
-                case (0x165b7):
-                case (0x165a8):
-                case (0x16789):
-                case (0x1678c):
-                //case (0x16786):
-                case (0x16782):
-                case (0x16bdf):
-                case (0x16bce):
-                case (0x16bd9):
-                case (0x16bd2):
-                case (0x16bd0): //tg
-                case (0x16bcf): //tg
-                case (0x16dfe):
-                case (0x16dff):
-                case (0x16df6):
-                case (0x16a0e):
-                case (0x16a10):
-                case (0x16a0f):
-                case (0x16a11):
-                //case (0x16a02):
-
+                if (settlement_worldspace != settlements.end())
                     return true;
+            }
+            else
+            {
+                if (player_cell)
+                {
+                    switch (player_cell->formID)
+                    {
+                    case (0x165a3): //whiterun palace1
+                    case (0x80c6a): //whiterun palace2
+                    case (0x16df2): //markarth palace
+                    case (0x1677c): //windhelm palace
+                    case (0x97299): //windhelm palace
+                    case (0x16a04): //solitude palace
+
+                        //new
+
+                    //case (0x165a7):
+                    case (0x1605e):
+                    case (0x165b6):
+                    case (0x165b3):
+                    case (0x165b7):
+                    case (0x165a8):
+                    case (0x16789):
+                    case (0x1678c):
+                        //case (0x16786):
+                    case (0x16782):
+                    case (0x16bdf):
+                    case (0x16bce):
+                    case (0x16bd9):
+                    case (0x16bd2):
+                    case (0x16bd0): //tg
+                    case (0x16bcf): //tg
+                    case (0x16dfe):
+                    case (0x16dff):
+                    case (0x16df6):
+                    case (0x16a0e):
+                    case (0x16a10):
+                    case (0x16a0f):
+                    case (0x16a11):
+                        //case (0x16a02):
+
+                        return true;
+                    }
                 }
             }
         }
@@ -5071,7 +5085,7 @@ RE::TESForm::LookupByID(0x16bb4),
 
         //if (std::size(settlements) < 2)
 
-        fill_settlements();
+        //fill_settlements();
 
         if (college_of_winterhold_settlement_condition())
             return false;
@@ -5083,12 +5097,13 @@ RE::TESForm::LookupByID(0x16bb4),
             float min_dist = FLT_MAX;
             RE::TESForm* best_key = nullptr;
 
-            for (auto settlement : settlements)
+            for (auto& settlement : settlements)
             {
-                if (settlement.first)
+                auto key_raw = RE::TESForm::LookupByID(settlement.first);
+                if (key_raw)
                 {
-                    auto key_type = settlement.first->GetFormType();
-                    auto key = (RE::TESObjectCELL*)settlement.first;
+                    auto key_type = key_raw->GetFormType();
+                    auto key = (RE::TESObjectCELL*)key_raw;
                     if (key_type == RE::FormType::Cell && key && key->formID != 0x0001380e)
                     {
                         if (player_cell && player_cell->GetCoordinates() && key->GetCoordinates())
@@ -5115,53 +5130,60 @@ RE::TESForm::LookupByID(0x16bb4),
         }
         else
         {
-            auto settlement_worldspace = settlements.find(player_worldspace);
-
-            if (settlement_worldspace != settlements.end() && settlement_worldspace->first)
-                return false;
-
-            if (!player_worldspace && player_cell)
+            if (player_worldspace)
             {
-                switch (player_cell->formID)
-                {
-                case (0x165a3): //whiterun palace1
-                case (0x80c6a): //whiterun palace2
-                case (0x16df2): //markarth palace
-                case (0x1677c): //windhelm palace
-                case (0x97299): //windhelm palace
-                case (0x16a04): //solitude palace
+                auto settlement_worldspace = settlements.find(player_worldspace->formID);
 
-
-                    //new
-
-                //case (0x165a7):
-                case (0x1605e):
-                case (0x165b6):
-                case (0x165b3):
-                case (0x165b7):
-                case (0x165a8):
-                case (0x16789):
-                case (0x1678c):
-                //case (0x16786):
-                case (0x16782):
-                case (0x16bdf):
-                case (0x16bce):
-                case (0x16bd9):
-                case (0x16bd2):
-                case (0x16bd0): //tg
-                case (0x16bcf): //tg
-                case (0x16dfe):
-                case (0x16dff):
-                case (0x16df6):
-                case (0x16a0e):
-                case (0x16a10):
-                case (0x16a0f):
-                case (0x16a11):
-                //case (0x16a02):
-
+                if (settlement_worldspace != settlements.end())
                     return false;
+            }
+            else
+            {
+                if (player_cell)
+                {
+                    switch (player_cell->formID)
+                    {
+                    case (0x165a3): //whiterun palace1
+                    case (0x80c6a): //whiterun palace2
+                    case (0x16df2): //markarth palace
+                    case (0x1677c): //windhelm palace
+                    case (0x97299): //windhelm palace
+                    case (0x16a04): //solitude palace
+
+
+                        //new
+
+                    //case (0x165a7):
+                    case (0x1605e):
+                    case (0x165b6):
+                    case (0x165b3):
+                    case (0x165b7):
+                    case (0x165a8):
+                    case (0x16789):
+                    case (0x1678c):
+                        //case (0x16786):
+                    case (0x16782):
+                    case (0x16bdf):
+                    case (0x16bce):
+                    case (0x16bd9):
+                    case (0x16bd2):
+                    case (0x16bd0): //tg
+                    case (0x16bcf): //tg
+                    case (0x16dfe):
+                    case (0x16dff):
+                    case (0x16df6):
+                    case (0x16a0e):
+                    case (0x16a10):
+                    case (0x16a0f):
+                    case (0x16a11):
+                        //case (0x16a02):
+
+                        return false;
+                    }
                 }
             }
+
+            
 
         }
 
@@ -5181,9 +5203,9 @@ RE::TESForm::LookupByID(0x16bb4),
 
         if (key)
         {
-            auto settlement = settlements.find(key);
+            auto settlement = settlements.find(key->formID);
 
-            if (settlement != settlements.end() && settlement->first)
+            if (settlement != settlements.end())
             {
                 return settlement->second.settlement_name;
             }
@@ -5372,7 +5394,7 @@ RE::TESForm::LookupByID(0x16bb4),
 
         if (key)
         {
-            auto settlement = settlements.find(key);
+            auto settlement = settlements.find(key->formID);
 
             if (settlement != settlements.end())
             {
@@ -5477,7 +5499,7 @@ RE::TESForm::LookupByID(0x16bb4),
     }
 
 
-    float settlement_places_processor_timer = 0.0f;
+    float settlement_places_processor_timer = -0.375f;
 
     
     void reset_settlement()
@@ -5495,7 +5517,7 @@ RE::TESForm::LookupByID(0x16bb4),
 
         if (key)
         {
-            auto settlement = settlements.find(key);
+            auto settlement = settlements.find(key->formID);
 
             if (settlement != settlements.end())
             {

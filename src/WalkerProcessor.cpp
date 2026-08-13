@@ -7722,7 +7722,7 @@ namespace WalkerProcessor {
                         }
                             
 
-                        if (target_ref && target_ref->formID == 0x3fb00)
+                        if (target_ref && (target_ref->formID == 0x3fb00 || target_ref->formID == 0xc730a))
                             dont_use_bounds_for_close_enough = true;
 
                         if (!dont_use_bounds_for_close_enough && !MiscThings::is_cave_autoloader_door(target_ref))
@@ -19151,7 +19151,7 @@ namespace WalkerProcessor {
                             auto riften_mausoleum_redirect_button = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xc730a);
                             auto thief_guild_hatch = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x2d2dd);
 
-                            if (generic_redirect_active || (target_ref == thief_guild_hatch && thief_guild_hatch) || (target_ref == riften_mausoleum_redirect_button && riften_mausoleum_redirect_button) || (target_ref == redirect_chain && redirect_chain) || (target_ref == redirect_ysgramor_chain && redirect_ysgramor_chain) || (target_ref == redirect_ysgramor_statue && redirect_ysgramor_statue) || (target_ref == mushroom_lift_up && mushroom_lift_up) || (target_ref == mushroom_lift_down && mushroom_lift_down) || (target_ref == redirect_forsworn && redirect_forsworn))
+                            if (target_before_generic_redirect && (generic_redirect_active || (target_ref == thief_guild_hatch && thief_guild_hatch) || (target_ref == riften_mausoleum_redirect_button && riften_mausoleum_redirect_button) || (target_ref == redirect_chain && redirect_chain) || (target_ref == redirect_ysgramor_chain && redirect_ysgramor_chain) || (target_ref == redirect_ysgramor_statue && redirect_ysgramor_statue) || (target_ref == mushroom_lift_up && mushroom_lift_up) || (target_ref == mushroom_lift_down && mushroom_lift_down) || (target_ref == redirect_forsworn && redirect_forsworn)))
                             {
                                 //check for cancel
                                 if (!redirect_ref)

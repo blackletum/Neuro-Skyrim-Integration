@@ -44,6 +44,11 @@ target("Neuro-Skyrim-Integration")
         description = "Skyrim integration for Neuro-Sama"
     })
 
+	  if is_mode("releasedbg") then
+		  set_optimize("fastest")
+	  end
+
+
     -- add src files
     add_files("src/**.cpp") 
     add_headerfiles("src/**.h", "src/**.hpp")

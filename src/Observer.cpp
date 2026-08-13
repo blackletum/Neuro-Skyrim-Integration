@@ -1290,27 +1290,29 @@ namespace Observer {
 				dont_check_threats_timer -= dtime;
 			else
 			{
-				bool first_detected_threat_is_valid = false;
 
-				if (first_detected_threat && MiscThings::is_object_still_valid(first_detected_threat) && first_detected_threat->IsActor() && !first_detected_threat->IsDead())
-					first_detected_threat_is_valid = true;
+				//wait a little then notify if there are threats
 
-				auto attackers = MiscThings::get_player_attackers(true, nullptr, false, 5000.0f); //initially trigger with 5k max
+				float threshold = 0.5f;
 
-				if ((std::size(attackers) > 0 || first_detected_threat_is_valid) && !dont_check_threats)
+				if (WalkerProcessor::is_sneak_on())
+					threshold = 0.1f;
+
+				if (detect_threats_time > threshold || player_was_hit || (threats_response_choice_valid && !action_taken))
 				{
-					no_threats_timer = 0.0f;
-					if (!WalkerProcessor::is_fighting() && !MiscThings::have_force_only_menu_open())
+					detect_threats_time = 0.0f;
+
+					bool first_detected_threat_is_valid = false;
+
+					if (first_detected_threat && MiscThings::is_object_still_valid(first_detected_threat) && first_detected_threat->IsActor() && !first_detected_threat->IsDead())
+						first_detected_threat_is_valid = true;
+
+					auto attackers = MiscThings::get_player_attackers(true, nullptr, false, 5000.0f); //initially trigger with 5k max
+
+					if ((std::size(attackers) > 0 || first_detected_threat_is_valid) && !dont_check_threats)
 					{
-						//wait a little then notify
-
-						float threshold = 1.0f;
-
-						if (WalkerProcessor::is_sneak_on())
-							threshold = 0.1f;
-
-
-						if (detect_threats_time > threshold || player_was_hit)
+						no_threats_timer = 0.0f;
+						if (!WalkerProcessor::is_fighting() && !MiscThings::have_force_only_menu_open())
 						{
 
 							if (!threats_response_request_sent)
@@ -1329,7 +1331,7 @@ namespace Observer {
 										first_detected_threat = attacker;
 										first = false;
 									}
-										
+
 
 
 									attacked_by += MiscThings::insert_object_into_list_and_get_info(attacker);
@@ -1435,16 +1437,16 @@ namespace Observer {
 
 												auto now = std::chrono::steady_clock::now().time_since_epoch().count();
 												float delta_death = (double)(now - last_actual_death_timestamp) / 1000000000.0;
-												
+
 												if (delta_death > 300.0f)
 												{
 													message += "[You will not have much progress in the game if you keep running away from fights every time]";
 												}
 												else
 													runaway_in_a_row = 0;
-												
+
 											}
-												
+
 
 											send_random_context(message);
 											action_taken = true;
@@ -1502,28 +1504,31 @@ namespace Observer {
 									}
 									else
 									{
-										threat_active_time += dtime;
+										threat_active_time += 0.5f;//dtime;
 									}
 								}
 							}
-						}
-						else
-						{
-							detect_threats_time += dtime;
+
 						}
 					}
+					else
+					{
+						if (no_threats_timer > 10.0f)
+						{
+							if (!WalkerProcessor::is_running_away())
+								reset_threats();
+						}
+						else
+							no_threats_timer += 0.5f;// dtime;
+
+					}
+
 				}
 				else
 				{
-					if (no_threats_timer > 10.0f)
-					{
-						if (!WalkerProcessor::is_running_away())
-							reset_threats();
-					}
-					else
-						no_threats_timer += dtime;
-					
+					detect_threats_time += dtime;
 				}
+
 			}
 		}
 
@@ -3331,19 +3336,19 @@ namespace Observer {
 
 						if (a_ref)
 						{
-							auto base_obj = a_ref->GetBaseObject();
-							auto base_type = base_obj->GetFormType();
+							//auto base_obj = a_ref->GetBaseObject();
+							//auto base_type = base_obj->GetFormType();
 
 
 
 
 
 							//if (base_type == RE::FormType::Static || base_type == RE::FormType::Hazard)
-							if (base_type == RE::FormType::Hazard)
-								return RE::BSContainer::ForEachResult::kContinue;
+							//if (base_type == RE::FormType::Hazard)
+							//	return RE::BSContainer::ForEachResult::kContinue;
 
-							if (base_type == RE::FormType::Static)
-								return RE::BSContainer::ForEachResult::kContinue;
+							//if (base_type == RE::FormType::Static)
+							//	return RE::BSContainer::ForEachResult::kContinue;
 
 
 							if (a_ref->IsActor())
@@ -3676,8 +3681,8 @@ namespace Observer {
 							}
 							else
 							{
-								auto base_object = a_ref->GetBaseObject();
-								auto base_type = base_object->GetFormType();
+								auto base_obj = a_ref->GetBaseObject();
+								auto base_type = base_obj->GetFormType();
 
 
 								auto test_refr = RE::TESObjectREFR::LookupByID(0x945b8);
@@ -3685,7 +3690,8 @@ namespace Observer {
 								if (a_ref == test_refr)
 									bool break_here = false;
 
-								if (true || base_type == RE::FormType::Activator || base_type == RE::FormType::Door)
+								//if (true || base_type == RE::FormType::Activator || base_type == RE::FormType::Door)
+								if (base_type != RE::FormType::Static && base_type != RE::FormType::Hazard)
 								{
 									if (objects_to_track.find(a_ref) == objects_to_track.end())
 									{
@@ -3726,7 +3732,7 @@ namespace Observer {
 										{
 											if (old_state.action_flags != new_state.action_flags)
 											{
-												auto door = (RE::TESObjectDOOR*)base_object;
+												auto door = (RE::TESObjectDOOR*)base_obj;
 												std::string model = door->GetModel();
 
 												if (model.find("DLC2DwemerWaterGate") != std::string::npos)
@@ -5307,8 +5313,9 @@ namespace Observer {
 
 		if (observers_green_light && !MiscThings::have_force_only_menu_open() && player_worldspace == tamriel_worldspace)
 		{
-			if (detect_locations_timer > 30.0f && !(MiscThings::is_intro() || MiscThings::is_intro2()))
+			if (detect_locations_timer > 29.123f && !(MiscThings::is_intro() || MiscThings::is_intro2()))
 			{
+				detect_locations_timer = 0.0f;
 				auto player = RE::PlayerCharacter::GetSingleton();
 
 				RE::BSTArray<RE::ObjectRefHandle> map_markers = player->currentMapMarkers;
