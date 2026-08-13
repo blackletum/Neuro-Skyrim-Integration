@@ -40,6 +40,8 @@ namespace BarterProcessor {
     std::pair<bool, std::string> set_vendor_not_enough_gold_choice(int choice);
     std::pair<bool, std::string> set_big_transaction_choice(int choice);
     std::pair<bool, std::string> set_slider_big_transaction_choice(int choice);
+    std::pair<bool, std::string> set_spent_a_lot_choice(int choice);
+
 
     bool quit_menu();
     bool back_to_categories();

@@ -1473,6 +1473,8 @@ bool neuro::NeuroSocket::Tick(float dtime) //const neurosdk_message_action_t& aC
                         case force_type::confirm_item_drop:
                             command_result = MiscThings::set_item_drop_choice_id(json.id); break;
 
+                        case force_type::barter_spent_a_lot:
+                            command_result = BarterProcessor::set_spent_a_lot_choice(json.id); break;
 
 
                         default:

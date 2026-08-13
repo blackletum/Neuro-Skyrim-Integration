@@ -17,6 +17,10 @@ namespace BarterProcessor {
     std::map<RE::TESObjectREFR*, trader_history> barter_history{};
 
 
+    bool spent_a_lot_request_sent = false;
+    bool spent_a_lot_choice_valid = false;
+    int spent_a_lot_choice = 0;
+
     bool big_transaction_request_sent = false;
     bool big_transaction_choice_valid = false;
     int big_transaction_choice = 0;
@@ -154,6 +158,42 @@ namespace BarterProcessor {
         }
 
     }
+
+
+
+    int get_history_gold_spent(RE::TESObjectREFR* trader)
+    {
+        std::string result = "";
+
+        if (!trader)
+            return 0;
+
+        auto history_entry = barter_history.find(trader);
+
+        if (history_entry != barter_history.end())
+        {
+            auto now = std::chrono::steady_clock::now().time_since_epoch().count();
+            float delta_transaction_history = (double)(now - history_entry->second.last_transaction_history_timestamp) / 1000000000.0;
+
+            if (delta_transaction_history > 900.0f)
+            {
+                barter_history.erase(trader);
+                //transaction_history_buy = "";
+                //transaction_history_sell = "";
+                //transaction_history_total_gold_buy = 0;
+                //transaction_history_total_gold_sell = 0;
+            }
+            else
+            {
+   
+                if (history_entry->second.transaction_history_sell != "")
+                    return history_entry->second.transaction_history_total_gold_buy;
+            }
+        }
+
+        return 0;
+    }
+
 
 
     std::string get_history_message(RE::TESObjectREFR* trader)
@@ -421,6 +461,8 @@ namespace BarterProcessor {
         big_transaction_request_sent = false;
         big_transaction_choice_valid = false;
 
+
+
         slider_big_transaction_request_sent = false;
         slider_big_transaction_choice_valid = false;
         slider_big_transaction_choice = 0;
@@ -442,6 +484,9 @@ namespace BarterProcessor {
 
     bool barter_reset()
     {
+        spent_a_lot_request_sent = false;
+        spent_a_lot_choice_valid = false;
+        spent_a_lot_choice = 0;
 
         barter_reset_categories_selection();
         barter_reset_items_selection();
@@ -655,6 +700,38 @@ namespace BarterProcessor {
         }
         return result;
     }
+
+
+
+
+    std::pair<bool, std::string> set_spent_a_lot_choice(int choice)
+    {
+        std::pair<bool, std::string> result{};
+
+        auto ui = RE::UI::GetSingleton();
+        if (!ui->IsMenuOpen(RE::BarterMenu::MENU_NAME))
+        {
+            result.first = true;
+            result.second = "[Error]";
+            return result;
+        }
+
+
+        if (choice == 0 || choice == 1)
+        {
+            spent_a_lot_choice = choice;
+            spent_a_lot_choice_valid = true;
+            result.first = true;
+            result.second = "[Processing...]";
+        }
+        else
+        {
+            result.first = false;
+            result.second = "Invalid choice ID";
+        }
+        return result;
+    }
+
 
 
 
@@ -963,6 +1040,11 @@ namespace BarterProcessor {
         {
             result.first = true;
             result.second = "[Processing...]";
+
+            //reset low on gold confirmation
+            spent_a_lot_request_sent = false;
+            spent_a_lot_choice_valid = false;
+            spent_a_lot_choice = 0;
         }
         else
         {
@@ -2852,9 +2934,74 @@ namespace BarterProcessor {
                                                     }
                                                     else
                                                     {
+
+                                                        //low on gold or spent a lot continue barter confirmation
+                                                        if (type == BarterProcessor::barter_type::buy && !item_confirming && !slider_confirming && !item_confirmed)
+                                                        {
+                                                            auto p_item_info = items_list.find(pos_to_id(item_choice));
+
+                                                            if (p_item_info != items_list.end())
+                                                            {
+
+                                                                int player_gold = MiscThings::get_player_gold();
+                                                                int gold_spent_total = get_history_gold_spent(get_trader_ref());
+
+                                                                bool low_on_gold = player_gold < 300;
+                                                                bool spent_a_lot = gold_spent_total > 300 && player_gold < gold_spent_total;
+
+                                                                //so uhhh if we are below 300 gold or we spent half of our money
+                                                                //resets on each new item list choice. so if player agrees, continue till the end
+                                                                //this can trigger in the middle of player's list processing, so if a lot of items were thrown into list to buy and we got low on gold/spent a lot in total, this asks for confirmation to proceed
+                                                                if ((low_on_gold || spent_a_lot) && !is_lockpick(p_item_info->second.name))
+                                                                {
+                                                                    if (spent_a_lot_choice_valid)
+                                                                    {
+                                                                        if (spent_a_lot_choice)
+                                                                        {
+                                                                            ;// fall through down
+                                                                        }
+                                                                        else
+                                                                        {
+                                                                            quit_menu(); //quit barter
+                                                                            return;
+                                                                        }
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        if (!spent_a_lot_request_sent)
+                                                                        {
+
+                                                                            std::string player_gold_text = std::to_string(MiscThings::get_player_gold());
+
+                                                                            std::string advice = "";
+
+                                                                            if (low_on_gold)
+                                                                                advice = ". You are low on gold (" + player_gold_text + " gold)";
+
+                                                                            if (spent_a_lot)
+                                                                                advice += ". You spent a lot recently (" + std::to_string(gold_spent_total) + " gold)";
+
+
+                                                                            if (force_choice({ {0, "No"}, {1, "Yes"} }, ".." + advice + ". Are you sure you want to keep trading?", force_type::barter_spent_a_lot))
+                                                                                spent_a_lot_request_sent = true;
+
+                                                                            return;
+
+                                                                        }
+                                                                        else
+                                                                            return; //wait for response
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+
+
+
+
+
                                                         //check the price, ask for confirmation if its high
 
-                                                        if (type == BarterProcessor::barter_type::buy && !(slider_big_transaction_request_sent || slider_big_transaction_choice_valid))
+                                                        if (type == BarterProcessor::barter_type::buy && !(slider_big_transaction_request_sent || slider_big_transaction_choice_valid) && !item_confirming && !slider_confirming && !item_confirmed)
                                                         {
                                                             auto p_item_info = items_list.find(pos_to_id(item_choice));
 
