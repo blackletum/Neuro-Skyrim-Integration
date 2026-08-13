@@ -4459,8 +4459,8 @@ namespace MiscThings {
 
 
     //form is settlement/cell. for worlds check if player is inside, for cells check if player is within some range
+    //std::map<RE::TESForm*, interesting_places> settlements{};
     std::map<RE::TESForm*, interesting_places> settlements{};
-
     
     //RE::TESObjectREFR* trader;
     //RE::TESObjectREFR* tavern;
@@ -4469,7 +4469,6 @@ namespace MiscThings {
     //RE::TESObjectREFR* jarl;
     //RE::TESObjectREFR* court_wizard;
     //RE::TESObjectREFR* church;
-
 
 
 
@@ -4487,175 +4486,175 @@ namespace MiscThings {
 
         {
                 //wrapped them like alchemists so it does not add [Buys everything] tag
-            {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1c1a5), 3, "Faralda [Master of Destruction]", 1}, //
-            {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1c1a6), 3, "Drevis [Master of Illusion]", 2}, //
-            {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1c1a7), 3, "Phinis [Master of Conjuration]", 3}, //
-            {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1c1a8), 3, "Colette [Master of Restoration]", 4}, //
-            {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1c1a1), 3, "Tolfdir [Master of Alteration]", 5}, //
+            {0x1c1a5, 3, "Faralda [Master of Destruction]", 1}, //
+            {0x1c1a6, 3, "Drevis [Master of Illusion]", 2}, //
+            {0x1c1a7, 3, "Phinis [Master of Conjuration]", 3}, //
+            {0x1c1a8, 3, "Colette [Master of Restoration]", 4}, //
+            {0x1c1a1, 3, "Tolfdir [Master of Alteration]", 5}, //
         }
 
     }
 },
 
 
-            //winterhold
+//winterhold
+{
+    RE::TESForm::LookupByID(0x8ea2),
+    {
+        "Winterhold",
+
         {
-            RE::TESForm::LookupByID(0x8ea2),
+            {0x1c18c, 1, "Trader", 1}, //trader
+            {0x1c18d, 2, "Tavern [Provides bed, jobs and food/booze]", 2}, //tavern
+            {0x1c1b5, 5, "Jarl", 3} //jarl
+
+        }
+
+    }
+},
+
+//windhelm
+{
+    RE::TESForm::LookupByID(0x1691d),
+    {
+        "Windhelm",
+        {
+            {0x1b11c, 1, "Trader (Niranye)", 1}, //trader
+            {0x1b123, 1, "Trader (Sadri's Used Wares)", 1}, //trader
+            {0x1b118, 2, "Tavern [Provides bed, jobs and food/booze]", 2}, //tavern
+            {0x1b115, 3, "Alchemist [Provides potions and ingredients. Probably has alchemist table]", 3}, //alchemist
+            {0x1b135, 4, "Blacksmith [Weapons, armor, materials for crafting. Might have crafting workbenches around]", 4}, //blacksmith
+            {0x1b131, 5, "Jarl", 5}, //jarl
+            {0x1b132, 6, "Wizard", 6}, //wizard
+            {0x16962, 7, "Church [Has shrines]", 7} //church
+        }
+    }
+},
+
+//riften
+{
+RE::TESForm::LookupByID(0x16bb4),
+{
+    "Riften",
+    {
+        {0xb882a, 1, "Trader (Tonila, Thieves guild)", 1}, //trader
+        {0x4e0b3, 1, "Trader (Grelka)", 2}, //trader
+        {0x19dd0, 1, "Trader (Pawned Prawn)", 3}, //trader
+        {0x19ddc, 1, "Trader (Brand-Shei)", 4}, //trader
+        {0x21ea6, 1, "Trader (Madesi) [Jewelry]", 5}, //trader
+        //{0xb882a, 1, "Thieves Guild Trader", 5}, //tavern //this needs some crazy risky walker enhancements
+        {0x19dc8, 2, "Tavern [Provides bed, jobs and food/booze]", 6}, //tavern
+        {0x19dfc, 3, "Alchemist [Provides potions and ingredients. Probably has alchemist table]", 7}, //alchemist
+        {0x19df1, 4, "Blacksmith [Weapons, materials for crafting. Might have crafting workbenches around]", 8}, //blacksmith
+        {0x19dea, 5, "Jarl", 9}, //jarl
+        {0x19df0, 6, "Wizard", 10}, //wizard
+        {0x4227b, 7, "Church [Has shrines]", 11} //church
+    }
+
+}
+},
+
+//riverwood
+{
+    RE::TESForm::LookupByID(0x9731),
+    {
+        "Riverwood",
+        {
+            {0x13487, 1, "Trader", 1}, //trader
+            {0x13486, 2, "Tavern [Provides bed, jobs and food/booze]", 2}, //tavern
+            {0x13482, 4, "Blacksmith [Weapons, armor, materials for crafting. Might have crafting workbenches around]", 3} //blacksmith
+        }
+
+
+    }
+},
+
+//falkreath
+{
+    RE::TESForm::LookupByID(0x9c80),
+    {
+        "Falkreath",
+        {
+            {0x1981e, 1, "Trader", 1}, //trader
+            {0x3a198, 2, "Tavern [Provides bed, jobs and food/booze]", 2}, //tavern
+            {0x3a19b, 3, "Alchemist [Provides potions and ingredients. Probably has alchemist table]", 3}, //alchemist
+            {0x3a19f, 4, "Blacksmith [Weapons, armor, materials for crafting. Might have crafting workbenches around]", 4}, //blacksmith
+            {0x19822, 5, "Jarl", 5}, //jarl
+            {0x1b132, 6, "Wizard", 6}, //wizard
+            {0x17766, 7, "Church [Has shrines]", 7} //church
+        }
+
+
+    }
+},
+
+//markarth
+{
+    RE::TESForm::LookupByID(0x16d71),
+    {
+        "Markarth",
+        {
+            {0x198ea, 1, "Trader", 1}, //trader
+            {0x198ec, 2, "Tavern [Provides bed, jobs and food/booze]", 2}, //tavern
+            {0x198f7, 3, "Alchemist [Provides potions and ingredients. Probably has alchemist table]", 3}, //alchemist
+            {0x19906, 4, "Blacksmith [Weapons, armor, materials for crafting. Might have crafting workbenches around]", 4}, //blacksmith
+            {0x19903, 5, "Jarl", 5}, //jarl
+            {0x19908, 6, "Wizard", 6}, //wizard
+            {0x16e3e, 7, "Church [Has shrines]", 7} //church
+        }
+
+
+    }
+},
+
+//solitude
+{
+    RE::TESForm::LookupByID(0x37edf),
+    {
+        "Solitude",
+        {
+        {0x198c9, 1, "Trader", 1}, //trader
+        {0x198a0, 2, "Tavern [Provides bed, jobs and food/booze]", 2}, //tavern
+        {0x198d2, 3, "Alchemist [Provides potions and ingredients. Probably has alchemist table]", 3}, //alchemist
+        {0x198d8, 4, "Blacksmith [Weapons, armor, materials for crafting. Might have crafting workbenches around]", 4}, //blacksmith
+        {0x198c1, 5, "Jarl", 5}, //jarl
+        {0x198c5, 6, "Wizard", 6}, //wizard
+        {0x37f3e, 7, "Church [Has shrines]", 7} //church
+        }
+
+
+    }
+},
+
+//morthal
+{
+    RE::TESForm::LookupByID(0x939d),
+    {
+        "Morthal",
+        {
+        {0x1aa62, 2, "Tavern [Provides bed, jobs and food/booze]", 1}, //tavern
+        {0x1aa61, 3, "Alchemist [Provides potions and ingredients. Probably has alchemist table]", 2}, //alchemist
+        {0x1aa66, 5, "Jarl", 3}, //jarl
+        {0x1aa5e, 6, "Wizard", 4 } //wizard
+        }
+
+    }
+},
+
+//dawnstar
+        {
+            RE::TESForm::LookupByID(0x8eb5),
             {
-                "Winterhold",
-
+                "Dawnstar",
                 {
-                    {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1c18c), 1, "Trader", 1}, //trader
-                    {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1c18d), 2, "Tavern [Provides bed, jobs and food/booze]", 2}, //tavern
-                    {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1c1b5), 5, "Jarl", 3} //jarl
-
+                    {0x1a6c8, 2, "Tavern [Provides bed, jobs and food/booze]", 1}, //tavern
+                    {0x1a6b5, 3, "Alchemist [Provides potions and ingredients. Probably has alchemist table]", 2}, //alchemist
+                    {0x1a6be, 4, "Blacksmith [Weapons, armor, materials for crafting. Might have crafting workbenches around]", 3}, //blacksmith
+                    {0x1a6c0, 5, "Jarl", 4} //jarl
                 }
 
             }
         },
-
-            //windhelm
-            {
-                RE::TESForm::LookupByID(0x1691d),
-                {
-                    "Windhelm",
-                    {
-                        {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1b11c), 1, "Trader (Niranye)", 1}, //trader
-                        {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1b123), 1, "Trader (Sadri's Used Wares)", 1}, //trader
-                        {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1b118), 2, "Tavern [Provides bed, jobs and food/booze]", 2}, //tavern
-                        {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1b115), 3, "Alchemist [Provides potions and ingredients. Probably has alchemist table]", 3}, //alchemist
-                        {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1b135), 4, "Blacksmith [Weapons, armor, materials for crafting. Might have crafting workbenches around]", 4}, //blacksmith
-                        {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1b131), 5, "Jarl", 5}, //jarl
-                        {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1b132), 6, "Wizard", 6}, //wizard
-                        {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x16962), 7, "Church [Has shrines]", 7} //church
-                    }
-                }
-            },
-
-            //riften
-        {
-        RE::TESForm::LookupByID(0x16bb4),
-        {
-            "Riften",
-            {
-                {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xb882a), 1, "Trader (Tonila, Thieves guild)", 1}, //trader
-                {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4e0b3), 1, "Trader (Grelka)", 2}, //trader
-                {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x19dd0), 1, "Trader (Pawned Prawn)", 3}, //trader
-                {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x19ddc), 1, "Trader (Brand-Shei)", 4}, //trader
-                {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x21ea6), 1, "Trader (Madesi) [Jewelry]", 5}, //trader
-                //{(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xb882a), 1, "Thieves Guild Trader", 5}, //tavern //this needs some crazy risky walker enhancements
-                {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x19dc8), 2, "Tavern [Provides bed, jobs and food/booze]", 6}, //tavern
-                {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x19dfc), 3, "Alchemist [Provides potions and ingredients. Probably has alchemist table]", 7}, //alchemist
-                {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x19df1), 4, "Blacksmith [Weapons, materials for crafting. Might have crafting workbenches around]", 8}, //blacksmith
-                {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x19dea), 5, "Jarl", 9}, //jarl
-                {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x19df0), 6, "Wizard", 10}, //wizard
-                {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4227b), 7, "Church [Has shrines]", 11} //church
-            }
-
-        }
-    },
-
-            //riverwood
-            {
-                RE::TESForm::LookupByID(0x9731),
-                {
-                    "Riverwood",
-                    {
-                        {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x13487), 1, "Trader", 1}, //trader
-                        {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x13486), 2, "Tavern [Provides bed, jobs and food/booze]", 2}, //tavern
-                        {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x13482), 4, "Blacksmith [Weapons, armor, materials for crafting. Might have crafting workbenches around]", 3} //blacksmith
-                    }
-
-
-                }
-            },
-
-            //falkreath
-            {
-                RE::TESForm::LookupByID(0x9c80),
-                {
-                    "Falkreath",
-                    {
-                        {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1981e), 1, "Trader", 1}, //trader
-                        {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x3a198), 2, "Tavern [Provides bed, jobs and food/booze]", 2}, //tavern
-                        {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x3a19b), 3, "Alchemist [Provides potions and ingredients. Probably has alchemist table]", 3}, //alchemist
-                        {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x3a19f), 4, "Blacksmith [Weapons, armor, materials for crafting. Might have crafting workbenches around]", 4}, //blacksmith
-                        {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x19822), 5, "Jarl", 5}, //jarl
-                        {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1b132), 6, "Wizard", 6}, //wizard
-                        {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x17766), 7, "Church [Has shrines]", 7} //church
-                    }
-
-
-                }
-            },
-
-            //markarth
-            {
-                RE::TESForm::LookupByID(0x16d71),
-                {
-                    "Markarth",
-                    {
-                        {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x198ea), 1, "Trader", 1}, //trader
-                        {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x198ec), 2, "Tavern [Provides bed, jobs and food/booze]", 2}, //tavern
-                        {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x198f7), 3, "Alchemist [Provides potions and ingredients. Probably has alchemist table]", 3}, //alchemist
-                        {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x19906), 4, "Blacksmith [Weapons, armor, materials for crafting. Might have crafting workbenches around]", 4}, //blacksmith
-                        {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x19903), 5, "Jarl", 5}, //jarl
-                        {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x19908), 6, "Wizard", 6}, //wizard
-                        {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x16e3e), 7, "Church [Has shrines]", 7} //church
-                    }
-
-                    
-                }
-            },
-
-            //solitude
-            {
-                RE::TESForm::LookupByID(0x37edf),
-                {
-                    "Solitude",
-                    {
-                    {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x198c9), 1, "Trader", 1}, //trader
-                    {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x198a0), 2, "Tavern [Provides bed, jobs and food/booze]", 2}, //tavern
-                    {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x198d2), 3, "Alchemist [Provides potions and ingredients. Probably has alchemist table]", 3}, //alchemist
-                    {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x198d8), 4, "Blacksmith [Weapons, armor, materials for crafting. Might have crafting workbenches around]", 4}, //blacksmith
-                    {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x198c1), 5, "Jarl", 5}, //jarl
-                    {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x198c5), 6, "Wizard", 6}, //wizard
-                    {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x37f3e), 7, "Church [Has shrines]", 7} //church
-                    }
-
-
-                }
-            },
-
-            //morthal
-            {
-                RE::TESForm::LookupByID(0x939d),
-                {
-                    "Morthal",
-                    {
-                    {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1aa62), 2, "Tavern [Provides bed, jobs and food/booze]", 1}, //tavern
-                    {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1aa61), 3, "Alchemist [Provides potions and ingredients. Probably has alchemist table]", 2}, //alchemist
-                    {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1aa66), 5, "Jarl", 3}, //jarl
-                    {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1aa5e), 6, "Wizard", 4 } //wizard
-                    }
-
-                }
-            },
-
-            //dawnstar
-                    {
-                        RE::TESForm::LookupByID(0x8eb5),
-                        {
-                            "Dawnstar",
-                            {
-                                {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1a6c8), 2, "Tavern [Provides bed, jobs and food/booze]", 1}, //tavern
-                                {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1a6b5), 3, "Alchemist [Provides potions and ingredients. Probably has alchemist table]", 2}, //alchemist
-                                {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1a6be), 4, "Blacksmith [Weapons, armor, materials for crafting. Might have crafting workbenches around]", 3}, //blacksmith
-                                {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1a6c0), 5, "Jarl", 4} //jarl
-                            }
-
-                        }
-                    },
 
 
             //whiterun
@@ -4664,18 +4663,18 @@ namespace MiscThings {
         {
             "Whiterun",
             {
-                {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1a672), 1, "Trader", 1}, //trader
-                {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1a66e), 2, "Tavern [Provides bed, jobs and food/booze]", 2}, //tavern
-                {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1a681), 2, "Hunting shop [Sells bows and arrows]", 3}, //tavern
-                {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1a66d), 3, "Alchemist [Provides potions and ingredients. Probably has alchemist table]", 4}, //alchemist
-                {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1a67c), 4, "Blacksmith [Weapons, armor, materials for crafting. Might have crafting workbenches around]", 5}, //blacksmith
-                //{(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xd15b0), 4, "Blacksmith (Warmaiden's)", 6}, //blacksmith
-                {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1a677), 5, "Jarl", 6}, //jarl
-                {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1a67e), 6, "Wizard", 7}, //wizard
-                {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1a700), 7, "Church [Has shrines]", 8}, //church
-                {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1a6f9), 8, "Breezehome [your house]", 9 }, //house
-                {(RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xA2C94), 9, "Lydia [your friend]", 10 } //lydia
-                
+                {0x1a672, 1, "Trader", 1}, //trader
+                {0x1a66e, 2, "Tavern [Provides bed, jobs and food/booze]", 2}, //tavern
+                {0x1a681, 2, "Hunting shop [Sells bows and arrows]", 3}, //tavern
+                {0x1a66d, 3, "Alchemist [Provides potions and ingredients. Probably has alchemist table]", 4}, //alchemist
+                {0x1a67c, 4, "Blacksmith [Weapons, armor, materials for crafting. Might have crafting workbenches around]", 5}, //blacksmith
+                //{0xd15b0, 4, "Blacksmith (Warmaiden's)", 6}, //blacksmith
+                {0x1a677, 5, "Jarl", 6}, //jarl
+                {0x1a67e, 6, "Wizard", 7}, //wizard
+                {0x1a700, 7, "Church [Has shrines]", 8}, //church
+                {0x1a6f9, 8, "Breezehome [your house]", 9 }, //house
+                {0xA2C94, 9, "Lydia [your friend]", 10 } //lydia
+
             }
 
         }
@@ -4683,7 +4682,6 @@ namespace MiscThings {
 
         };
     }
-
 
 
 
@@ -5122,7 +5120,7 @@ namespace MiscThings {
             if (settlement_worldspace != settlements.end() && settlement_worldspace->first)
                 return false;
 
-            if (player_cell)
+            if (!player_worldspace && player_cell)
             {
                 switch (player_cell->formID)
                 {
@@ -5380,34 +5378,37 @@ namespace MiscThings {
             {
                 for (auto settlement_place : settlement->second.places)
                 {
-                    if (is_settlement_place_valid(settlement_place.npc, settlement_place.type))
+
+                    auto place_refr = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(settlement_place.npc);
+
+                    if (is_settlement_place_valid(place_refr, settlement_place.type))
                     {
                         std::string place_name = settlement_place.name;
 
                         if (settlement_place.type == 1) //traders
                         {
-                            if (MiscThings::get_picks_amount_int() < 50 && trader_has_lockpicks(settlement_place.npc))
+                            if (MiscThings::get_picks_amount_int() < 50 && trader_has_lockpicks(place_refr))
                             {
-                                if (settlement_place.npc && settlement_place.npc->formID == 0xb882a)
+                                if (settlement_place.npc == 0xb882a)
                                     place_name += " [Buys everything, sells lockpicks]";
                                 else
                                     place_name += " [Buys everything, has some lockpicks]";
                             }
                             else
-                                if (settlement_place.npc && settlement_place.npc->formID != 0x21ea6) //madesi
+                                if (settlement_place.npc != 0x21ea6) //madesi
                                     place_name += " [Buys everything]";
                                 
                         }
 
                         if (settlement_place.type == 6) //wizards
                         {
-                            if (wizard_has_unknown_spells(settlement_place.npc))
+                            if (wizard_has_unknown_spells(place_refr))
                             {
                                 place_name += " [Sells spells]";
                             }
                         }
 
-                        std::string history = BarterProcessor::get_history_message(settlement_place.npc);
+                        std::string history = BarterProcessor::get_history_message(place_refr);
 
                         if (history != "")
                         {
@@ -5511,9 +5512,11 @@ namespace MiscThings {
                 {
                     if (settlement_place.id == id)
                     {
-                        if (is_settlement_place_valid(settlement_place.npc, settlement_place.type))
+                        auto place_refr = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(settlement_place.npc);
+
+                        if (is_settlement_place_valid(place_refr, settlement_place.type))
                         {
-                            WalkerProcessor::walk_to_object_by_refr(settlement_place.npc, 1);
+                            WalkerProcessor::walk_to_object_by_refr(place_refr, 1);
                             result.first = true;
                             result.second = "Started walking to " + settlement_place.name + "...";
                             register_allowed_actions();

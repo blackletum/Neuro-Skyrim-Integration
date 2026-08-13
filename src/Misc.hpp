@@ -119,7 +119,7 @@ namespace MiscThings {
     bool object_inside_of_windhelm_redirect_box(RE::TESObjectREFR* object);
 
     struct interesting_place {
-        RE::TESObjectREFR* npc;
+        uint32_t npc;
         int type;
         std::string name;
         int id;

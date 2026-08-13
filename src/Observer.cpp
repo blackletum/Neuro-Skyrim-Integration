@@ -81,7 +81,7 @@ namespace Observer {
 
 	float no_threats_timer = 0.0f;
 
-	float detect_threats_time = 0.0f;
+	float detect_threats_time = -0.125f;
 	bool threats_response_request_sent = false;
 	int threats_response_choice_valid = false;
 	int threats_response_choice = -1;
@@ -89,7 +89,7 @@ namespace Observer {
 	bool pause_was_made = false;
 
 	float dont_check_threats_timer = 0.0f;
-	float detect_interesting_time = 0.0f;
+	float detect_interesting_time = 0.125f;
 	float detect_interesting_spit_results_time = 0.0f;
 	float detect_events_time = 0.0f;
 	float state_monitor_timer = 0.0f;
@@ -140,7 +140,7 @@ namespace Observer {
 
 	bool player_monitor_finished = false;
 
-	float inventory_monitor_timer = 0.0f;
+	float inventory_monitor_timer = -0.250f;
 
 
 	bool old_objects_around_valid = false;
@@ -1051,7 +1051,7 @@ namespace Observer {
 			player_hit_info.clear();
 
 		dont_check_threats_timer = 0.0f;
-		detect_interesting_time = 0.0f;
+		detect_interesting_time = 0.125f;
 		detect_events_time = 0.0f;
 		state_monitor_timer = 0.0f;
 		state_monitor_subtimer = 0.0f;
@@ -1089,7 +1089,7 @@ namespace Observer {
 		player_monitor_finished = false;
 
 
-		inventory_monitor_timer = 0.0f;
+		inventory_monitor_timer = -0.250f;
 
 		last_health_value = 0.0f;
 		last_stamina_value = 0.0f;
