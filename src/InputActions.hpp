@@ -55,6 +55,7 @@ void left_attack_cancel();
 void right_attack_cancel(int reason = 0);
 
 void sprint();
+void sprint2();
 void unsprint();
 
 void confirm_fast();

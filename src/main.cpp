@@ -3325,9 +3325,8 @@ class MyHook {
         auto player_ref = player->AsReference();
         auto player_actor = (RE::Actor*)player_ref;
 
+        /*
         auto test_controls = RE::PlayerControls::GetSingleton();
-
-
         auto attack_state = player_actor->GetAttackState();
 
         if (attack_state != last_attack_state)
@@ -3335,7 +3334,7 @@ class MyHook {
             last_attack_state = attack_state;
             track_attack.push_back(attack_state);
         }
-
+        
 
         if (false)
         {
@@ -3472,7 +3471,7 @@ class MyHook {
         }
         
         
-
+        
         
 
 
@@ -3502,12 +3501,12 @@ class MyHook {
         }
 
        
-        auto perk_tree = RE::ActorValueList::GetSingleton()->actorValues;
+        //auto perk_tree = RE::ActorValueList::GetSingleton()->actorValues;
 
-        auto test = RE::ActorValueList::GetSingleton()->GetActorValueInfo(RE::ActorValue::kSneak);
+        //auto test = RE::ActorValueList::GetSingleton()->GetActorValueInfo(RE::ActorValue::kSneak);
 
         //right_attack();
-   
+        */
         
         _Update(a, dtime);
 

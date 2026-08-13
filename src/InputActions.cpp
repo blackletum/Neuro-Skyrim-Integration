@@ -931,6 +931,17 @@ void sprint()
 }
 
 
+void sprint2()
+{
+
+    int32_t my_key = RE::ControlMap::GetSingleton()->GetMappedKey(RE::UserEvents::GetSingleton()->sprint, RE::INPUT_DEVICES::kKeyboard);
+    RE::BSInputEventQueue::GetSingleton()->AddButtonEvent(RE::INPUT_DEVICES::kKeyboard, my_key, 0.0, 0.0);
+
+    Hooks::add_debug_line("Input: sprint2");
+}
+
+
+
 
 void unsprint()
 {
@@ -989,7 +1000,7 @@ void walk_forward()
     RE::BSInputEventQueue::GetSingleton()->AddButtonEvent(RE::INPUT_DEVICES::kKeyboard, my_key, 1.0, 0.0);
 
 
-    Hooks::add_debug_line("Input: walk forward");
+    Hooks::add_debug_line("Input: walk forward", true);
 }
 
 
@@ -1506,13 +1517,14 @@ void input_processor(float dtime)
 
     if (launch_sprint)
     {
-        if (!MiscThings::is_player_swimming() && launch_sprint_time < 0.1f)
+        if (!MiscThings::is_player_swimming() && launch_sprint_time < 0.05f)
         {
             launch_sprint_time += dtime;
             sprint();
         }
         else
         {
+            //sprint2();
             launch_sprint = false;
             launch_sprint_time = 0.0f;
         }  
