@@ -13,6 +13,8 @@
 namespace MiscThings {
 
 
+    float notifications_timer = -0.175f;
+
 
     long long last_spell_cast_timestamp = 0;
 
@@ -12839,9 +12841,6 @@ namespace MiscThings {
         return false;
     }
 
-
-
-
     std::string get_blocking_object_name(RE::TESObjectREFR* a_ref)
     {
         if (!a_ref)
@@ -15578,6 +15577,8 @@ namespace MiscThings {
 
     void reset_parthurnax_friendly_fire()
     {
+        notifications_timer = 0.0f;
+
         reset_double_confirm(); //since its called only on saveloads
         reset_replace_twohanded_weapon();
 
@@ -15656,7 +15657,7 @@ namespace MiscThings {
     std::string paarthurnax_different_message = "";
 
 
-    void notifications()
+    void notifications(float dtime)
     {
 
         if (parthurnax_friendly_fire_confirm)
@@ -15730,117 +15731,51 @@ namespace MiscThings {
         }
 
 
+        if (notifications_timer > 0.2f)
+        {
+            notifications_timer = 0.0f;
 
-        RE::GFxValue var1;
-        RE::UI* ui = RE::UI::GetSingleton();
-        if (ui)
-            if (const auto menu = ui->GetMenu<RE::HUDMenu>(); menu)
-                if (menu->uiMovie)
-                    if (menu->uiMovie->GetVariable(&var1, "_root.HUDMovieBaseInstance.QuestUpdateBaseInstance.AnimatedLetter_mc.QuestName"))
-                        if (!var1.IsNull() && var1.IsString())
-                        {
-                            std::string var_string = var1.GetString();
-
-                            if (old_quest_notification != var_string)
-                            {
-                                old_quest_notification = var_string;
-
-                                if (var_string.find("STARTED: ") == 0)
-                                {
-                                    if (var_string.find("SOVNGARDE") != std::string::npos)
-                                        WalkerProcessor::look_up(0.25f);
-
-
-                                    var_string = "Quest started: " + insert_quest_into_list_and_get_info(var_string.substr(9, var_string.length() - 9));
-                                    WalkerProcessor::test_new_very_close_quest();
-
-
-                                }
-                                    
-                                if (var_string.find("COMPLETED: ") == 0)
-                                {
-                                    if (var_string.find("DRAGONSLAYER") != std::string::npos)
-                                        WalkerProcessor::look_up(0.25f);
-
-                                    var_string = "Quest completed: " + insert_quest_into_list_and_get_info(var_string.substr(9, var_string.length() - 9));
-
-
-                                    if (var_string == "Quest completed: : THE SILVER HAND")
-                                    {
-                                        RE::TESObjectREFR* blocker_1 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x706424d);
-
-                                        if (blocker_1)
-                                        {
-                                            auto old_pos = blocker_1->GetPosition();
-                                            old_pos.z += 1000.0f;
-                                            MiscThings::SetPosition_moveto(blocker_1, old_pos);
-                                        }
-                                    }
-
-                                    if (var_string == "Quest completed: : PIECES OF THE PAST")
-                                    {
-                                        quicksave(); //daedras are kinda strong and doing all dialogues again is lame
-                                    }
-
-                                    WalkerProcessor::test_new_very_close_quest();
-                                }
-                                    
-
-                                if (var_string.find("DRAGON SOUL ABSORBED") != std::string::npos || var_string.find("WORD OF POWER LEARNED") != std::string::npos)
-                                {
-                                    if (player_has_shouts_to_unlock())
-                                        register_unlock_shout_action();
-                                }
-
-                                send_random_context("[" + var_string + "]", false);
-                            }
-                        }
-
-
-        if (ui)
-            if (const auto menu = ui->GetMenu<RE::HUDMenu>(); menu)
-                if (menu->uiMovie)
-                {
-                    for (int i = 0; i < 20; i++)
+            RE::GFxValue var1;
+            RE::UI* ui = RE::UI::GetSingleton();
+            if (ui)
+                if (const auto menu = ui->GetMenu<RE::HUDMenu>(); menu)
+                    if (menu->uiMovie)
                     {
-                        std::string num = std::to_string(i);
 
-                        std::string path = "_root.HUDMovieBaseInstance.QuestUpdateBaseInstance.objective" + num + ".ObjectiveTextFieldInstance.TextFieldInstance.text";
-                        if (menu->uiMovie->GetVariable(&var1, path.c_str()))
-                        {
+                        //LARGE MESSAGES MIDDLE
+
+                        if (menu->uiMovie->GetVariable(&var1, "_root.HUDMovieBaseInstance.QuestUpdateBaseInstance.AnimatedLetter_mc.QuestName"))
                             if (!var1.IsNull() && var1.IsString())
                             {
                                 std::string var_string = var1.GetString();
 
-                                bool was_before = false;
-                                bool send_it = false;
-
-                                for (auto old_subquest_notification : old_subquest_notification_vector)
+                                if (old_quest_notification != var_string)
                                 {
-                                    if (old_subquest_notification == var_string)
+                                    old_quest_notification = var_string;
+
+                                    if (var_string.find("STARTED: ") == 0)
                                     {
-                                        was_before = true;
-                                        break;
-                                    }
-                                }
-
-                                if (!was_before)
-                                {
-                                    old_subquest_notification_vector.push_back(var_string);
-                                    send_it = true;
-                                }
+                                        if (var_string.find("SOVNGARDE") != std::string::npos)
+                                            WalkerProcessor::look_up(0.25f);
 
 
-                                if (send_it)
-                                {
-                                    if (var_string.find("Completed") == 0 || var_string.find("Failed") == 0)
-                                    {
-                                        var_string = "Subquest " + var_string;
+                                        var_string = "Quest started: " + insert_quest_into_list_and_get_info(var_string.substr(9, var_string.length() - 9));
                                         WalkerProcessor::test_new_very_close_quest();
 
-                                        if (var_string == "Subquest Completed: Kill Cicero")
+
+                                    }
+
+                                    if (var_string.find("COMPLETED: ") == 0)
+                                    {
+                                        if (var_string.find("DRAGONSLAYER") != std::string::npos)
+                                            WalkerProcessor::look_up(0.25f);
+
+                                        var_string = "Quest completed: " + insert_quest_into_list_and_get_info(var_string.substr(9, var_string.length() - 9));
+
+
+                                        if (var_string == "Quest completed: : THE SILVER HAND")
                                         {
-                                            RE::TESObjectREFR* blocker_1 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x702f7ed);
+                                            RE::TESObjectREFR* blocker_1 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x706424d);
 
                                             if (blocker_1)
                                             {
@@ -15848,266 +15783,301 @@ namespace MiscThings {
                                                 old_pos.z += 1000.0f;
                                                 MiscThings::SetPosition_moveto(blocker_1, old_pos);
                                             }
-
-                                            auto dawnstar_cutter = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x702f7ec);
-                                            if (dawnstar_cutter)
-                                            {
-                                                MiscThings::SetPosition_moveto(dawnstar_cutter, { 1913.8124, 4435.2495, 7040.7354 }); //+1000 z coordinate so it doesnt block
-                                            }
-                                                
                                         }
 
-                                        //remove navcut for this dlc1 darkfall cave
-                                        if (var_string == "Subquest Completed: Locate Auriel's Bow")
+                                        if (var_string == "Quest completed: : PIECES OF THE PAST")
                                         {
-                                            RE::TESObjectREFR* blocker_1 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x7112a48);
-
-                                            if (blocker_1)
-                                            {
-                                                auto old_pos = blocker_1->GetPosition();
-                                                old_pos.z += 2000.0f;
-                                                MiscThings::SetPosition_moveto(blocker_1, old_pos);
-                                            }
-
+                                            quicksave(); //daedras are kinda strong and doing all dialogues again is lame
                                         }
 
-                                        if (var_string == "Subquest Completed: Enter the column of light and read the Elder Scroll (Blood)")
-                                            send_random_context("The Elder Scrolls you read gave you a vision of the world map... with something marked on it", false);
-
-                                        if (var_string == "Subquest Completed: Gather bark from a Canticle Tree")
-                                            MiscThings::reveal_moths();
-
-                                        if (var_string == "Subquest Completed: Investigate the moondial")
-                                        {
-                                            send_random_context("The moondial mechanism started rotating, revealing the spiral staircase leading under it", false);
-                                        }
-
-
-                                        if (false && var_string == "Subquest Completed: Open the Drawbridge")
-                                        {
-                                            WalkerProcessor::put_follow_quest_on_cooldown();
-                                        }
-
-
-
-                                    }  
-                                    else
-                                    {
-                                        var_string = "New subquest: " + insert_quest_into_list_and_get_info(var_string);
                                         WalkerProcessor::test_new_very_close_quest();
-
-                                        if (var_string.find("Accept ") != std::string::npos && var_string.find(" surrender") != std::string::npos)
-                                            WalkerProcessor::reset_walker(); //stop fight
                                     }
-                                        
-                                    var_string = MiscThings::remove_aliases(var_string);
-                                    var_string = MiscThings::fix_book_description(var_string);
+
+
+                                    if (var_string.find("DRAGON SOUL ABSORBED") != std::string::npos || var_string.find("WORD OF POWER LEARNED") != std::string::npos)
+                                    {
+                                        if (player_has_shouts_to_unlock())
+                                            register_unlock_shout_action();
+                                    }
 
                                     send_random_context("[" + var_string + "]", false);
                                 }
-
-
                             }
-                        }
 
-                      //_root.HUDMovieBaseInstance.QuestUpdateBaseInstance.objective2.ObjectiveTextFieldInstance.TextFieldInstance.text = Enter the Keep with Hadvar or Ralof
-                    }
-                    
-                    /*
-                    if (menu->uiMovie->GetVariable(&var1, "_root.HUDMovieBaseInstance.QuestUpdateBaseInstance.objective0.ObjectiveTextFieldInstance.TextFieldInstance.text"))
-                    {
-                        if (!var1.IsNull() && var1.IsString())
+
+
+
+                        //OBJECTIVES MIDDLE
+
+
+                        for (int i = 0; i < 20; i++)
                         {
-                            std::string var_string = var1.GetString();
-
-                            if (old_subquest_notification != var_string)
+                            std::string path = "_root.HUDMovieBaseInstance.QuestUpdateBaseInstance.objective" + std::to_string(i) + ".ObjectiveTextFieldInstance.TextFieldInstance.text";
+                            if (menu->uiMovie->GetVariable(&var1, path.c_str()))
                             {
-                                old_subquest_notification = var_string;
-
-                                if (var_string.find("Completed") == 0 || var_string.find("Failed") == 0)
-                                    var_string = "Subquest " + var_string;
-                                else
-                                    var_string = "New subquest: " + insert_quest_into_list_and_get_info(var_string);
-
-                                send_random_context("[" + var_string + "]");
-                            }
-                        }
-                    }
-                    else
-                    {
-                        if (menu->uiMovie->GetVariable(&var1, "_root.HUDMovieBaseInstance.QuestUpdateBaseInstance.objective1.ObjectiveTextFieldInstance.TextFieldInstance.text"))
-                            if (!var1.IsNull() && var1.IsString())
-                            {
-                                std::string var_string = var1.GetString();
-
-                                if (old_subquest_notification1 != var_string)
+                                if (!var1.IsNull() && var1.IsString())
                                 {
-                                    old_subquest_notification1 = var_string;
+                                    std::string var_string = var1.GetString();
 
-                                    if (var_string.find("Completed") == 0 || var_string.find("Failed") == 0)
-                                        var_string = "Subquest " + var_string;
-                                    else
-                                        var_string = "New subquest: " + insert_quest_into_list_and_get_info(var_string);
+                                    bool was_before = false;
 
-                                    send_random_context("[" + var_string + "]");
+                                    for (auto old_subquest_notification : old_subquest_notification_vector)
+                                    {
+                                        if (old_subquest_notification == var_string)
+                                        {
+                                            was_before = true;
+                                            break;
+                                        }
+                                    }
+
+                                    if (!was_before)
+                                    {
+                                        old_subquest_notification_vector.push_back(var_string);
+
+
+                                        if (var_string.find("Completed") == 0 || var_string.find("Failed") == 0)
+                                        {
+                                            var_string = "Subquest " + var_string;
+                                            WalkerProcessor::test_new_very_close_quest();
+
+                                            if (var_string == "Subquest Completed: Kill Cicero")
+                                            {
+                                                RE::TESObjectREFR* blocker_1 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x702f7ed);
+
+                                                if (blocker_1)
+                                                {
+                                                    auto old_pos = blocker_1->GetPosition();
+                                                    old_pos.z += 1000.0f;
+                                                    MiscThings::SetPosition_moveto(blocker_1, old_pos);
+                                                }
+
+                                                auto dawnstar_cutter = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x702f7ec);
+                                                if (dawnstar_cutter)
+                                                {
+                                                    MiscThings::SetPosition_moveto(dawnstar_cutter, { 1913.8124, 4435.2495, 7040.7354 }); //+1000 z coordinate so it doesnt block
+                                                }
+
+                                            }
+
+                                            //remove navcut for this dlc1 darkfall cave
+                                            if (var_string == "Subquest Completed: Locate Auriel's Bow")
+                                            {
+                                                RE::TESObjectREFR* blocker_1 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x7112a48);
+
+                                                if (blocker_1)
+                                                {
+                                                    auto old_pos = blocker_1->GetPosition();
+                                                    old_pos.z += 2000.0f;
+                                                    MiscThings::SetPosition_moveto(blocker_1, old_pos);
+                                                }
+
+                                            }
+
+                                            if (var_string == "Subquest Completed: Enter the column of light and read the Elder Scroll (Blood)")
+                                                send_random_context("The Elder Scrolls you read gave you a vision of the world map... with something marked on it", false);
+
+                                            if (var_string == "Subquest Completed: Gather bark from a Canticle Tree")
+                                                MiscThings::reveal_moths();
+
+                                            if (var_string == "Subquest Completed: Investigate the moondial")
+                                            {
+                                                send_random_context("The moondial mechanism started rotating, revealing the spiral staircase leading under it", false);
+                                            }
+
+
+                                            if (false && var_string == "Subquest Completed: Open the Drawbridge")
+                                            {
+                                                WalkerProcessor::put_follow_quest_on_cooldown();
+                                            }
+
+
+
+                                        }
+                                        else
+                                        {
+                                            var_string = "New subquest: " + insert_quest_into_list_and_get_info(var_string);
+                                            WalkerProcessor::test_new_very_close_quest();
+
+                                            if (var_string.find("Accept ") != std::string::npos && var_string.find(" surrender") != std::string::npos)
+                                                WalkerProcessor::reset_walker(); //stop fight
+                                        }
+
+                                        var_string = MiscThings::remove_aliases(var_string);
+                                        var_string = MiscThings::fix_book_description(var_string);
+
+                                        send_random_context("[" + var_string + "]", false);
+
+                                    }
+
                                 }
                             }
-                    }
-                    */
-                }
-                    
+
+                            //_root.HUDMovieBaseInstance.QuestUpdateBaseInstance.objective2.ObjectiveTextFieldInstance.TextFieldInstance.text = Enter the Keep with Hadvar or Ralof
+                        }
 
 
 
-        if (ui)
-            if (const auto menu = ui->GetMenu<RE::HUDMenu>(); menu)
-                if (menu->uiMovie)
-                    if (menu->uiMovie->GetVariable(&var1, "_root.HUDMovieBaseInstance.MessagesInstance.ShownMessageArray"))
-                        if (var1.IsArray())
-                        {
-                            int size = var1.GetArraySize();
-                            if (size > 0)
+                        //TOPLEFT MESSAGES
+
+                        if (menu->uiMovie->GetVariable(&var1, "_root.HUDMovieBaseInstance.MessagesInstance.ShownMessageArray"))
+                            if (var1.IsArray())
                             {
-                                RE::GFxValue subvar;
-                                RE::GFxValue subvar2;
-                                if (var1.GetElement(0, &subvar)) //size-1 or 0? idk the order..
-                                    if (subvar.GetMember("TextFieldClip", &subvar))
-                                        if (subvar.GetMember("tf1", &subvar))
-                                            if (subvar.GetMember("text", &subvar2))
-                                                if (subvar2.IsString())
-                                                {
-                                                    std::string result_string = subvar2.GetString();
-
-                                                    if (result_string == "No arrows equipped.")
+                                int size = var1.GetArraySize();
+                                if (size > 0)
+                                {
+                                    RE::GFxValue subvar;
+                                    RE::GFxValue subvar2;
+                                    if (var1.GetElement(0, &subvar)) //size-1 or 0? idk the order..
+                                        if (subvar.GetMember("TextFieldClip", &subvar))
+                                            if (subvar.GetMember("tf1", &subvar))
+                                                if (subvar.GetMember("text", &subvar2))
+                                                    if (subvar2.IsString())
                                                     {
-                                                        if (MiscThings::equip_ammo(false))
-                                                            return;
-                                                    }
+                                                        std::string result_string = subvar2.GetString();
 
-
-                                                    if (result_string == "No bolts equipped.")
-                                                    {
-                                                        if (MiscThings::equip_ammo(true))
-                                                            return;
-                                                    }
-
-                                                    if (result_string.find("No direct path seen") != std::string::npos)
-                                                    {
-                                                        subvar2.SetString("");
-                                                        subvar.SetMember("text", subvar2);
-                                                        return;
-                                                    }
-
-                                                    if (result_string != old_topleft_notification)
-                                                    {
-                                                        old_topleft_notification = result_string;
-                                                        if (result_string != "Autosaving..." && result_string != "Quicksaving..." && result_string != "Quickloading..." && result_string.find("is too powerful") == std::string::npos)
+                                                        if (result_string != old_topleft_notification)
                                                         {
+                                                            old_topleft_notification = result_string;
 
-                                                            if (result_string == "Your vampire blood boils in the sunlight.")
+
+                                                            if (result_string == "No arrows equipped.")
                                                             {
-                                                                auto now = std::chrono::steady_clock::now().time_since_epoch().count();
-                                                                float delta_message = (double)(now - last_bloodboil_message_timestamp) / 1000000000.0;
-
-                                                                if (delta_message > 3600.0f)
-                                                                {
-                                                                    send_random_context("[" + result_string + "]", true);
-                                                                    last_bloodboil_message_timestamp = now;
-                                                                    return;
-                                                                }
-                                                                else
-                                                                    return;
-                                                            }
-
-                                                            if (result_string == "Someone else is using this.")
-                                                            {
-                                                                //dont send it if walker is actively interacting with it
-                                                                if (WalkerProcessor::interacting_with_workbench())
+                                                                if (MiscThings::equip_ammo(false))
                                                                     return;
                                                             }
 
 
-                                                            if (result_string == "Heart consumed, werewolf perk progress increased")
+                                                            if (result_string == "No bolts equipped.")
                                                             {
-                                                                WalkerProcessor::reset_backup_pickup();
-                                                            }
-
-                                                            if (result_string == "You are carrying too much to be able to run.")
-                                                            {
-                                                                //when turning back into human from werewolf it falsely sends this message even though we are not overencumbered
-                                                                if (MiscThings::player_overencumbered_by() <= 0.0f)
+                                                                if (MiscThings::equip_ammo(true))
                                                                     return;
                                                             }
 
-
-                                                            if (result_string.find("You must raise the bar to open this door.") != std::string::npos)
+                                                            if (result_string.find("No direct path seen") != std::string::npos)
                                                             {
-                                                                WalkerProcessor::reset_walker();
-                                                                Observer::detect_interesting_objects(0.016, true); //these bars are hard to raycast for some reason so just scan around no restrictions
-                                                            }
-
-                                                            if (result_string.find("This door is barred from the other side.") != std::string::npos)
-                                                            {
-                                                                WalkerProcessor::reset_walker();
-                                                            }
-
-
-                                                            if (result_string.find("item has insufficient charge") != std::string::npos)
-                                                            {
-                                                                auto temp_tesult = MiscThings::use_random_soulgem();
-
-                                                                if (temp_tesult.first)
-                                                                    send_random_context(temp_tesult.second);
-
+                                                                subvar2.SetString("");
+                                                                subvar.SetMember("text", subvar2);
                                                                 return;
                                                             }
+
+
+                                                            if (result_string != "Autosaving..." && result_string != "Quicksaving..." && result_string != "Quickloading..." && result_string.find("is too powerful") == std::string::npos)
+                                                            {
+
+                                                                if (result_string == "Your vampire blood boils in the sunlight.")
+                                                                {
+                                                                    auto now = std::chrono::steady_clock::now().time_since_epoch().count();
+                                                                    float delta_message = (double)(now - last_bloodboil_message_timestamp) / 1000000000.0;
+
+                                                                    if (delta_message > 3600.0f)
+                                                                    {
+                                                                        send_random_context("[" + result_string + "]", true);
+                                                                        last_bloodboil_message_timestamp = now;
+                                                                        return;
+                                                                    }
+                                                                    else
+                                                                        return;
+                                                                }
+
+                                                                if (result_string == "Someone else is using this.")
+                                                                {
+                                                                    //dont send it if walker is actively interacting with it
+                                                                    if (WalkerProcessor::interacting_with_workbench())
+                                                                        return;
+                                                                }
+
+
+                                                                if (result_string == "Heart consumed, werewolf perk progress increased")
+                                                                {
+                                                                    WalkerProcessor::reset_backup_pickup();
+                                                                }
+
+                                                                if (result_string == "You are carrying too much to be able to run.")
+                                                                {
+                                                                    //when turning back into human from werewolf it falsely sends this message even though we are not overencumbered
+                                                                    if (MiscThings::player_overencumbered_by() <= 0.0f)
+                                                                        return;
+                                                                }
+
+
+                                                                if (result_string.find("You must raise the bar to open this door.") != std::string::npos)
+                                                                {
+                                                                    WalkerProcessor::reset_walker();
+                                                                    Observer::detect_interesting_objects(0.016, true); //these bars are hard to raycast for some reason so just scan around no restrictions
+                                                                }
+
+                                                                if (result_string.find("This door is barred from the other side.") != std::string::npos)
+                                                                {
+                                                                    WalkerProcessor::reset_walker();
+                                                                }
+
+
+                                                                if (result_string.find("item has insufficient charge") != std::string::npos)
+                                                                {
+                                                                    auto temp_tesult = MiscThings::use_random_soulgem();
+
+                                                                    if (temp_tesult.first)
+                                                                        send_random_context(temp_tesult.second);
+
+                                                                    return;
+                                                                }
                                                                 //result_string = "Weapon's enchantment charge depleted. Use soulgems to charge it";
 
-                                                            if (result_string.find("has already caught you") != std::string::npos)
-                                                                WalkerProcessor::reset_walker();
+                                                                if (result_string.find("has already caught you") != std::string::npos)
+                                                                    WalkerProcessor::reset_walker();
 
-                                                            if (WalkerProcessor::is_pickpocketing() && result_string == "This person is busy.")
-                                                            {
-                                                                WalkerProcessor::reset_walker();
-
-                                                                result_string += " Pickpocketing cancelled";
-                                                            }
-
-
-                                                            if (result_string.find("hands are bound") != std::string::npos)
-                                                                if (MiscThings::is_intro())
-                                                                    result_string += ". Wait for the game to progress. ";
-                                                                else
+                                                                if (WalkerProcessor::is_pickpocketing() && result_string == "This person is busy.")
                                                                 {
-                                                                    std::string bonus = ". You probably need to follow some quest right now. ";
-                                                                    auto threshold_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("MQ101");
-                                                                    if (threshold_quest)
-                                                                        if (threshold_quest->GetCurrentStageID() > 200)
-                                                                            bonus = ". You need someone to help you untie your hands. Try walking to someone. ";
+                                                                    WalkerProcessor::reset_walker();
 
-                                                                    result_string += bonus;
+                                                                    result_string += " Pickpocketing cancelled";
                                                                 }
-                                                                   
-                                                            bool silent = false;
-
-                                                            if (result_string.find("Critical Strike on") != std::string::npos)
-                                                                silent = true;
 
 
-                                                            if (result_string.find("You need the Diamond Claw to activate the keyhole") != std::string::npos)
-                                                            {
-                                                                result_string += " You see something shiny in the pockets of that draugr neaby...";
+                                                                if (result_string.find("hands are bound") != std::string::npos)
+                                                                    if (MiscThings::is_intro())
+                                                                        result_string += ". Wait for the game to progress. ";
+                                                                    else
+                                                                    {
+                                                                        std::string bonus = ". You probably need to follow some quest right now. ";
+                                                                        auto threshold_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("MQ101");
+                                                                        if (threshold_quest)
+                                                                            if (threshold_quest->GetCurrentStageID() > 200)
+                                                                                bonus = ". You need someone to help you untie your hands. Try walking to someone. ";
+
+                                                                        result_string += bonus;
+                                                                    }
+
+                                                                bool silent = false;
+
+                                                                if (result_string.find("Critical Strike on") != std::string::npos)
+                                                                    silent = true;
+
+
+                                                                if (result_string.find("You need the Diamond Claw to activate the keyhole") != std::string::npos)
+                                                                {
+                                                                    result_string += " You see something shiny in the pockets of that draugr neaby...";
+                                                                }
+
+
+                                                                send_random_context("[" + result_string + "]", silent);
                                                             }
-
-
-                                                            send_random_context("[" + result_string + "]", silent);
                                                         }
                                                     }
-                                                }
+                                }
+                                else
+                                    old_topleft_notification = "";
                             }
-                            else
-                                old_topleft_notification = "";
-                        }
+
+
+
+                    }
+        }
+        else
+            notifications_timer += dtime;
+        
+                    
+                    
     }
 
 
@@ -16555,7 +16525,8 @@ namespace MiscThings {
 
                     RE::NiPoint3 object_angles = object->data.angle;
                     RE::NiPoint3 rotated_shift_vector = rotate_vector_by_angles(base_shift_vector, object_angles);
-                    result = rotated_shift_vector;
+                    return rotated_shift_vector;
+
                 }
             }
             else
@@ -16586,9 +16557,16 @@ namespace MiscThings {
                 */
 
 
-                auto saartal_fx = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x106bba);
 
-                if (saartal_fx && object == saartal_fx)
+                switch (object->formID)
+                {
+
+                case (0x123):
+                {
+                    ;
+                }
+
+                case (0x106bba): //saartal fx
                 {
                     RE::NiPoint3 object_angles = object->data.angle;
                     RE::NiPoint3 base_shift_vector = { 100.0f, 0.0f, 40.0f };
@@ -16597,10 +16575,7 @@ namespace MiscThings {
                     return result;
                 }
 
-
-                auto whiterun_bridge_1 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x6bbfd);
-                
-                if (whiterun_bridge_1 && object == whiterun_bridge_1)
+                case (0x6bbfd): //whiterun bridge1
                 {
                     RE::NiPoint3 object_angles = object->data.angle;
                     RE::NiPoint3 base_shift_vector = { 0.0f, 0.0f, -80.0f };
@@ -16609,9 +16584,8 @@ namespace MiscThings {
                     return result;
                 }
 
-                auto whiterun_bridge_2 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x6bbff);
 
-                if (whiterun_bridge_2 && object == whiterun_bridge_2)
+                case (0x6bbff): //whiterun bridge2
                 {
                     RE::NiPoint3 object_angles = object->data.angle;
                     RE::NiPoint3 base_shift_vector = { -3.0f, 5.0f, -80.0f };
@@ -16621,10 +16595,7 @@ namespace MiscThings {
                 }
 
 
-
-                auto odawing_marker = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x46efb);
-
-                if (odawing_marker && object == odawing_marker)
+                case (0x46efb): //odawing marker
                 {
                     auto base_obj = object->GetBaseObject();
                     if (base_obj && base_obj->GetFormType() == RE::FormType::Static)
@@ -16636,12 +16607,9 @@ namespace MiscThings {
                         result = rotated_shift_vector;
                         return result;
                     }
-
+                    break;
                 }
 
-
-                switch (object->formID)
-                {
 
                 case (0xdb9d7): //blackreach sun
                 {
@@ -16757,7 +16725,7 @@ namespace MiscThings {
                         {
                             RE::NiPoint3 base_shift_vector = { 0.0f, 65.0f, 50.0f };
                             RE::NiPoint3 rotated_shift_vector = rotate_vector_by_angles(base_shift_vector, object_angles);
-                            result = rotated_shift_vector;
+                            return  rotated_shift_vector;
                         }
 
 
@@ -16766,7 +16734,7 @@ namespace MiscThings {
                         {
                             RE::NiPoint3 base_shift_vector = { 0.0f, 30.0f, 65.0f };
                             RE::NiPoint3 rotated_shift_vector = rotate_vector_by_angles(base_shift_vector, object_angles);
-                            result = rotated_shift_vector;
+                            return rotated_shift_vector;
                         }
 
 
@@ -16774,35 +16742,35 @@ namespace MiscThings {
                         {
                             RE::NiPoint3 base_shift_vector = { -120.0f, 90.0f, 70.0f };
                             RE::NiPoint3 rotated_shift_vector = rotate_vector_by_angles(base_shift_vector, object_angles);
-                            result = rotated_shift_vector;
+                            return rotated_shift_vector;
                         }
 
                         if (model.find("BlacksmithForgeMarker") != std::string::npos) //exclude markers. for some reason their model state is not 0 even though the model doesnt exist
                         {
                             RE::NiPoint3 base_shift_vector = { 0.0f, 120.0f, 30.0f };
                             RE::NiPoint3 rotated_shift_vector = rotate_vector_by_angles(base_shift_vector, object_angles);
-                            result = rotated_shift_vector;
+                            return rotated_shift_vector;
                         }
 
                         if (model.find("BlacksmithSharpeningWheel") != std::string::npos) //exclude markers. for some reason their model state is not 0 even though the model doesnt exist
                         {
                             RE::NiPoint3 base_shift_vector = { 0.0f, 100.0f, 30.0f };
                             RE::NiPoint3 rotated_shift_vector = rotate_vector_by_angles(base_shift_vector, object_angles);
-                            result = rotated_shift_vector;
+                            return rotated_shift_vector;
                         }
 
                         if (model.find("TanningRackMarker") != std::string::npos) //exclude markers. for some reason their model state is not 0 even though the model doesnt exist
                         {
                             RE::NiPoint3 base_shift_vector = { 0.0f, 80.0f, 40.0f };
                             RE::NiPoint3 rotated_shift_vector = rotate_vector_by_angles(base_shift_vector, object_angles);
-                            result = rotated_shift_vector;
+                            return rotated_shift_vector;
                         }
 
                         if (model.find("BlacksmithWorkbench") != std::string::npos) //exclude markers. for some reason their model state is not 0 even though the model doesnt exist
                         {
                             RE::NiPoint3 base_shift_vector = { 0.0f, 80.0f, 40.0f };
                             RE::NiPoint3 rotated_shift_vector = rotate_vector_by_angles(base_shift_vector, object_angles);
-                            result = rotated_shift_vector;
+                            return  rotated_shift_vector;
                         }
 
                         if (model.find("AlchemyWorkbench") != std::string::npos) //exclude markers. for some reason their model state is not 0 even though the model doesnt exist
@@ -16810,7 +16778,7 @@ namespace MiscThings {
                             RE::NiPoint3 base_shift_vector = { 0.0f, 40.0f, 55.0f };
                             //RE::NiPoint3 base_shift_vector = { 0.0f, 0.0f, 1.0f };
                             RE::NiPoint3 rotated_shift_vector = rotate_vector_by_angles(base_shift_vector, object_angles);
-                            result = rotated_shift_vector;
+                            return  rotated_shift_vector;
                         }
 
                         if (model.find("AlchemyWorkstation") != std::string::npos) //exclude markers. for some reason their model state is not 0 even though the model doesnt exist
@@ -16819,14 +16787,14 @@ namespace MiscThings {
                             //RE::NiPoint3 base_shift_vector = { 10.0f, 55.0f, 75.0f };
                             //RE::NiPoint3 base_shift_vector = { 0.0f, 0.0f, 1.0f };
                             RE::NiPoint3 rotated_shift_vector = rotate_vector_by_angles(base_shift_vector, object_angles);
-                            result = rotated_shift_vector;
+                            return  rotated_shift_vector;
                         }
 
                         if (model.find("EnchantingWorkStation") != std::string::npos) //exclude markers. for some reason their model state is not 0 even though the model doesnt exist
                         {
                             RE::NiPoint3 base_shift_vector = { 0.0f, 40.0f, 57.5f };
                             RE::NiPoint3 rotated_shift_vector = rotate_vector_by_angles(base_shift_vector, object_angles);
-                            result = rotated_shift_vector;
+                            return  rotated_shift_vector;
                         }
 
 
@@ -16835,35 +16803,35 @@ namespace MiscThings {
                         {
                             RE::NiPoint3 base_shift_vector = { 0.0f, 40.0f, 55.0f };
                             RE::NiPoint3 rotated_shift_vector = rotate_vector_by_angles(base_shift_vector, object_angles);
-                            result = rotated_shift_vector;
+                            return  rotated_shift_vector;
                         }
                         //LeverAnimatingMetal
                         if (model.find("LeverAnimating") != std::string::npos) //exclude markers. for some reason their model state is not 0 even though the model doesnt exist
                         {
                             RE::NiPoint3 base_shift_vector = { 15.0f, 90.0f, 0.0f };
                             RE::NiPoint3 rotated_shift_vector = rotate_vector_by_angles(base_shift_vector, object_angles);
-                            result = rotated_shift_vector;
+                            return  rotated_shift_vector;
                         }
 
                         if (model.find("GenPullChainAnim01") != std::string::npos) //exclude markers. for some reason their model state is not 0 even though the model doesnt exist
                         {
                             RE::NiPoint3 base_shift_vector = { 0.0f, 40.0f, 100.0f };
                             RE::NiPoint3 rotated_shift_vector = rotate_vector_by_angles(base_shift_vector, object_angles);
-                            result = rotated_shift_vector;
+                            return  rotated_shift_vector;
                         }
 
                         if (model.find("CartFurnPassanger01") != std::string::npos)
                         {
                             RE::NiPoint3 base_shift_vector = { 0.0f, 50.0f, 90.0f };
                             RE::NiPoint3 rotated_shift_vector = rotate_vector_by_angles(base_shift_vector, object_angles);
-                            result = rotated_shift_vector;
+                            return  rotated_shift_vector;
                         }
 
                         if (model.find("CookingPot") != std::string::npos)
                         {
                             RE::NiPoint3 base_shift_vector = { 0.0f, 50.0f, 45.0f };
                             RE::NiPoint3 rotated_shift_vector = rotate_vector_by_angles(base_shift_vector, object_angles);
-                            result = rotated_shift_vector;
+                            return  rotated_shift_vector;
                         }
 
                     }
@@ -16874,13 +16842,13 @@ namespace MiscThings {
                         if (object->formID == 0xab105) //ysgramor statue for wuutrad
                         {
                             RE::NiPoint3 base_shift_vector = { 0.0f, 0.0f, 150.0f };
-                            result = base_shift_vector;
+                            return  base_shift_vector;
                         }
 
                         if (object->formID == 0x58302) //witch head fire bucket
                         {
                             RE::NiPoint3 base_shift_vector = { 0.0f, 0.0f, 100.0f };
-                            result = base_shift_vector;
+                            return  base_shift_vector;
                         }
 
 
@@ -16893,14 +16861,14 @@ namespace MiscThings {
                         {
                             RE::NiPoint3 base_shift_vector = { 0.0f, 0.0f, 70.0f };
                             RE::NiPoint3 rotated_shift_vector = rotate_vector_by_angles(base_shift_vector, object_angles);
-                            result = rotated_shift_vector;
+                            return  rotated_shift_vector;
                         }
 
                         if (model.find("ApoRewardAct01") != std::string::npos) //exclude markers. for some reason their model state is not 0 even though the model doesnt exist
                         {
                             RE::NiPoint3 base_shift_vector = { -63.0f, 0.0f, 133.0f };
                             RE::NiPoint3 rotated_shift_vector = rotate_vector_by_angles(base_shift_vector, object_angles);
-                            result = rotated_shift_vector;
+                            return  rotated_shift_vector;
                         }
 
 
@@ -16908,14 +16876,14 @@ namespace MiscThings {
                         {
                             RE::NiPoint3 base_shift_vector = { 0.0f, 15.0f, 148.0f };
                             RE::NiPoint3 rotated_shift_vector = rotate_vector_by_angles(base_shift_vector, object_angles);
-                            result = rotated_shift_vector;
+                            return  rotated_shift_vector;
                         }
 
                         if (model.find("ApoRewardAct03") != std::string::npos) //exclude markers. for some reason their model state is not 0 even though the model doesnt exist
                         {
                             RE::NiPoint3 base_shift_vector = { 63.0f, 0.0f, 133.0f };
                             RE::NiPoint3 rotated_shift_vector = rotate_vector_by_angles(base_shift_vector, object_angles);
-                            result = rotated_shift_vector;
+                            return  rotated_shift_vector;
                         }
 
 
@@ -16940,7 +16908,7 @@ namespace MiscThings {
 
                             RE::NiPoint3 base_shift_vector = { 0.0f, y_shift, 65.0f };
                             RE::NiPoint3 rotated_shift_vector = rotate_vector_by_angles(base_shift_vector, object_angles);
-                            result = rotated_shift_vector;
+                            return  rotated_shift_vector;
                         }
 
                         if (model.find("ApoScryeTrigger") != std::string::npos) //exclude markers. for some reason their model state is not 0 even though the model doesnt exist
@@ -16948,7 +16916,7 @@ namespace MiscThings {
                             RE::NiPoint3 base_shift_vector = { 0.0f, 0.0f, 75.0f };
                             base_shift_vector *= object->GetScale();
                             RE::NiPoint3 rotated_shift_vector = rotate_vector_by_angles(base_shift_vector, object_angles);
-                            result = rotated_shift_vector;
+                            return  rotated_shift_vector;
                         }
 
                         if (model.find("CrystalPedestal") != std::string::npos) //exclude markers. for some reason their model state is not 0 even though the model doesnt exist
@@ -16956,7 +16924,7 @@ namespace MiscThings {
                             RE::NiPoint3 base_shift_vector = { 0.0f, 0.0f, 60.0f };
                             base_shift_vector *= object->GetScale();
                             RE::NiPoint3 rotated_shift_vector = rotate_vector_by_angles(base_shift_vector, object_angles);
-                            result = rotated_shift_vector;
+                            return  rotated_shift_vector;
                         }
 
 
@@ -16965,7 +16933,7 @@ namespace MiscThings {
                             RE::NiPoint3 base_shift_vector = { 0.0f, 0.0f, 200.0f };
                             base_shift_vector *= object->GetScale();
                             RE::NiPoint3 rotated_shift_vector = rotate_vector_by_angles(base_shift_vector, object_angles);
-                            result = rotated_shift_vector;
+                            return  rotated_shift_vector;
                         }
 
 
@@ -16975,35 +16943,35 @@ namespace MiscThings {
                         {
                             RE::NiPoint3 base_shift_vector = { 0.0f, 0.0f, 50.0f };
                             RE::NiPoint3 rotated_shift_vector = rotate_vector_by_angles(base_shift_vector, object_angles);
-                            result = rotated_shift_vector;
+                            return  rotated_shift_vector;
                         }
 
                         if (model.find("MetalLever01") != std::string::npos) //exclude markers. for some reason their model state is not 0 even though the model doesnt exist
                         {
                             RE::NiPoint3 base_shift_vector = { 0.0f, 0.0f, 10.0f };
                             RE::NiPoint3 rotated_shift_vector = rotate_vector_by_angles(base_shift_vector, object_angles);
-                            result = rotated_shift_vector;
+                            return  rotated_shift_vector;
                         }
 
                         if (model.find("DoorDeadBolt01") != std::string::npos) //exclude markers. for some reason their model state is not 0 even though the model doesnt exist
                         {
                             RE::NiPoint3 base_shift_vector = { 0.0f, 5.0f, 75.0f };
                             RE::NiPoint3 rotated_shift_vector = rotate_vector_by_angles(base_shift_vector, object_angles);
-                            result = rotated_shift_vector;
+                            return  rotated_shift_vector;
                         }
 
                         if (model.find("MeaderyBrewer01Act") != std::string::npos) //exclude markers. for some reason their model state is not 0 even though the model doesnt exist
                         {
                             RE::NiPoint3 base_shift_vector = { 0.0f, 0.0f, 300.0f };
                             RE::NiPoint3 rotated_shift_vector = rotate_vector_by_angles(base_shift_vector, object_angles);
-                            result = rotated_shift_vector;
+                            return rotated_shift_vector;
                         }
 
                         if (model.find("NorSecRmSmDoorSm02") != std::string::npos) //exclude markers. for some reason their model state is not 0 even though the model doesnt exist
                         {
                             RE::NiPoint3 base_shift_vector = { -100.0f, 0.0f, 140.0f };
                             RE::NiPoint3 rotated_shift_vector = rotate_vector_by_angles(base_shift_vector, object_angles);
-                            result = rotated_shift_vector;
+                            return rotated_shift_vector;
                         }
 
                         if (model.find("RTMercerRamp01") != std::string::npos) //exclude markers. for some reason their model state is not 0 even though the model doesnt exist
@@ -17014,7 +16982,7 @@ namespace MiscThings {
                             {
                                 auto actual_position = actual_position_marker->GetPosition();
                                 auto shit_position = object->GetPosition();
-                                result = actual_position - shit_position;
+                                return  actual_position - shit_position;
 
                             }
                         }
@@ -17023,7 +16991,7 @@ namespace MiscThings {
                         {
                             RE::NiPoint3 base_shift_vector = { 0.0f, 10.0f, -10.0f };
                             RE::NiPoint3 rotated_shift_vector = rotate_vector_by_angles(base_shift_vector, object_angles);
-                            result = rotated_shift_vector;
+                            return  rotated_shift_vector;
                         }
 
                         if (model.find("GenPullChain01") != std::string::npos) //exclude markers. for some reason their model state is not 0 even though the model doesnt exist
@@ -17031,7 +16999,7 @@ namespace MiscThings {
                             //RE::NiPoint3 base_shift_vector = { 0.0f, 40.0f, 100.0f };
                             RE::NiPoint3 base_shift_vector = { 0.0f, 0.0f, -5.0f };
                             RE::NiPoint3 rotated_shift_vector = rotate_vector_by_angles(base_shift_vector, object_angles);
-                            result = rotated_shift_vector;
+                            return  rotated_shift_vector;
                         }
 
                         //PuzzleDoorSmallWheel02
@@ -17042,35 +17010,35 @@ namespace MiscThings {
                         {
                             RE::NiPoint3 base_shift_vector = { -10.0f, 0.0f, 107.0f };
                             RE::NiPoint3 rotated_shift_vector = rotate_vector_by_angles(base_shift_vector, object_angles);
-                            result = rotated_shift_vector;
+                            return  rotated_shift_vector;
                         }
 
                         if (model.find("PuzzleDoorMediumWheel") != std::string::npos) //exclude markers. for some reason their model state is not 0 even though the model doesnt exist
                         {
                             RE::NiPoint3 base_shift_vector = { -10.0f, 0.0f, 127.0f };
                             RE::NiPoint3 rotated_shift_vector = rotate_vector_by_angles(base_shift_vector, object_angles);
-                            result = rotated_shift_vector;
+                            return  rotated_shift_vector;
                         }
 
                         if (model.find("PuzzleDoorLargeWheel") != std::string::npos) //exclude markers. for some reason their model state is not 0 even though the model doesnt exist
                         {
                             RE::NiPoint3 base_shift_vector = { -10.0f, 0.0f, 153.0f };
                             RE::NiPoint3 rotated_shift_vector = rotate_vector_by_angles(base_shift_vector, object_angles);
-                            result = rotated_shift_vector;
+                            return  rotated_shift_vector;
                         }
 
                         if (model.find("PuzzleDoorKeyHole") != std::string::npos) //exclude markers. for some reason their model state is not 0 even though the model doesnt exist
                         {
                             RE::NiPoint3 base_shift_vector = { -10.0f, 0.0f, 80.0f };
                             RE::NiPoint3 rotated_shift_vector = rotate_vector_by_angles(base_shift_vector, object_angles);
-                            result = rotated_shift_vector;
+                            return  rotated_shift_vector;
                         }
 
                         if (model.find("PuzzleDoorKeyHoleIvory") != std::string::npos) //exclude markers. for some reason their model state is not 0 even though the model doesnt exist
                         {
                             RE::NiPoint3 base_shift_vector = { -10.0f, 0.0f, 80.0f };
                             RE::NiPoint3 rotated_shift_vector = rotate_vector_by_angles(base_shift_vector, object_angles);
-                            result = rotated_shift_vector;
+                            return  rotated_shift_vector;
                         }
 
 
@@ -17085,7 +17053,7 @@ namespace MiscThings {
                             {
                                 RE::NiPoint3 base_shift_vector = { 0.0f, 0.0f, 1.0f };
                                 RE::NiPoint3 rotated_shift_vector = rotate_vector_by_angles(base_shift_vector, object_angles);
-                                result = rotated_shift_vector;
+                                return  rotated_shift_vector;
                             }
                             else
                             {
@@ -17093,7 +17061,7 @@ namespace MiscThings {
                                 base_shift_vector = base_shift_vector * object->GetScale();
 
                                 RE::NiPoint3 rotated_shift_vector = rotate_vector_by_angles(base_shift_vector, object_angles);
-                                result = rotated_shift_vector;
+                                return  rotated_shift_vector;
                             }
 
 
@@ -17103,21 +17071,21 @@ namespace MiscThings {
                         {
                             RE::NiPoint3 base_shift_vector = { 1.0f, 1.0f, 1.0f };
                             RE::NiPoint3 rotated_shift_vector = rotate_vector_by_angles(base_shift_vector, object_angles);
-                            result = rotated_shift_vector;
+                            return  rotated_shift_vector;
                         }
 
                         if (model.find("DweLever01") != std::string::npos)
                         {
                             RE::NiPoint3 base_shift_vector = { 1.0f, 1.0f, 1.0f };
                             RE::NiPoint3 rotated_shift_vector = rotate_vector_by_angles(base_shift_vector, object_angles);
-                            result = rotated_shift_vector;
+                            return  rotated_shift_vector;
                         }
 
                         if (model.find("DweLever02") != std::string::npos)
                         {
                             RE::NiPoint3 base_shift_vector = { 15.0f, 7.5f, 90.0f };
                             RE::NiPoint3 rotated_shift_vector = rotate_vector_by_angles(base_shift_vector, object_angles);
-                            result = rotated_shift_vector;
+                            return  rotated_shift_vector;
                         }
 
 
@@ -17125,7 +17093,7 @@ namespace MiscThings {
                         {
                             RE::NiPoint3 base_shift_vector = { 0.0f, 0.0f, 120.0f };
                             RE::NiPoint3 rotated_shift_vector = rotate_vector_by_angles(base_shift_vector, object_angles);
-                            result = rotated_shift_vector;
+                            return  rotated_shift_vector;
                         }
 
 
@@ -17133,14 +17101,14 @@ namespace MiscThings {
                         {
                             RE::NiPoint3 base_shift_vector = { -200.0f, 0.0f, 120.0f };
                             RE::NiPoint3 rotated_shift_vector = rotate_vector_by_angles(base_shift_vector, object_angles);
-                            result = rotated_shift_vector;
+                            return  rotated_shift_vector;
                         }
 
                         if (model.find("FXspiderWebKitDoorSpecial") != std::string::npos) //exclude markers. for some reason their model state is not 0 even though the model doesnt exist
                         {
                             RE::NiPoint3 base_shift_vector = { 0.0f, 0.0f, 140.0f };
                             RE::NiPoint3 rotated_shift_vector = rotate_vector_by_angles(base_shift_vector, object_angles);
-                            result = rotated_shift_vector;
+                            return  rotated_shift_vector;
                         }
 
 
@@ -17148,7 +17116,7 @@ namespace MiscThings {
                         {
                             RE::NiPoint3 base_shift_vector = { -100.0f, 0.0f, 120.0f };
                             RE::NiPoint3 rotated_shift_vector = rotate_vector_by_angles(base_shift_vector, object_angles);
-                            result = rotated_shift_vector;
+                            return  rotated_shift_vector;
                         }
 
 
@@ -17156,7 +17124,7 @@ namespace MiscThings {
                         {
                             RE::NiPoint3 base_shift_vector = { 0.0f, 0.0f, 70.0f };
                             RE::NiPoint3 rotated_shift_vector = rotate_vector_by_angles(base_shift_vector, object_angles);
-                            result = rotated_shift_vector;
+                            return rotated_shift_vector;
                         }
 
 
@@ -17164,14 +17132,14 @@ namespace MiscThings {
                         {
                             RE::NiPoint3 base_shift_vector = { 0.0f, 0.0f, 70.0f };
                             RE::NiPoint3 rotated_shift_vector = rotate_vector_by_angles(base_shift_vector, object_angles);
-                            result = rotated_shift_vector;
+                            return  rotated_shift_vector;
                         }
 
                         if (model.find("DweAstrolabeHub01") != std::string::npos)
                         {
                             RE::NiPoint3 base_shift_vector = { 0.0f, 0.0f, 550.0f };
                             RE::NiPoint3 rotated_shift_vector = rotate_vector_by_angles(base_shift_vector, object_angles);
-                            result = rotated_shift_vector;
+                            return  rotated_shift_vector;
                         }
 
 
@@ -17179,7 +17147,7 @@ namespace MiscThings {
                         {
                             RE::NiPoint3 base_shift_vector = { 0.0f, 0.0f, 550.0f };
                             RE::NiPoint3 rotated_shift_vector = rotate_vector_by_angles(base_shift_vector, object_angles);
-                            result = rotated_shift_vector;
+                            return  rotated_shift_vector;
                         }
 
 
@@ -17187,7 +17155,7 @@ namespace MiscThings {
                         {
                             RE::NiPoint3 base_shift_vector = { -330.0f, 0.0f, 180.0f };
                             RE::NiPoint3 rotated_shift_vector = rotate_vector_by_angles(base_shift_vector, object_angles);
-                            result = rotated_shift_vector;
+                            return  rotated_shift_vector;
                         }
 
 
@@ -17205,14 +17173,14 @@ namespace MiscThings {
                         {
                             RE::NiPoint3 base_shift_vector = { 0.0f, 0.0f, 220.0f };
                             RE::NiPoint3 rotated_shift_vector = rotate_vector_by_angles(base_shift_vector, object_angles);
-                            result = rotated_shift_vector;
+                            return  rotated_shift_vector;
                         }
 
                         if (model.find("SEWayShrinePortal01") != std::string::npos) //dlc1 wayshrine portals
                         {
                             RE::NiPoint3 base_shift_vector = { 0.0f, 205.0f, 100.0f };
                             RE::NiPoint3 rotated_shift_vector = rotate_vector_by_angles(base_shift_vector, object_angles);
-                            result = rotated_shift_vector;
+                            return  rotated_shift_vector;
                         }
 
 
@@ -17220,28 +17188,28 @@ namespace MiscThings {
                         {
                             RE::NiPoint3 base_shift_vector = { 0.0f, 0.0f, 1.0f };
                             RE::NiPoint3 rotated_shift_vector = rotate_vector_by_angles(base_shift_vector, object_angles);
-                            result = rotated_shift_vector;
+                            return  rotated_shift_vector;
                         }
 
                         if (model.find("WRUnderforgedoor01") != std::string::npos) //exclude markers. for some reason their model state is not 0 even though the model doesnt exist
                         {
                             RE::NiPoint3 base_shift_vector = { 0.0f, -80.0f, 140.0f };
                             RE::NiPoint3 rotated_shift_vector = rotate_vector_by_angles(base_shift_vector, object_angles);
-                            result = rotated_shift_vector;
+                            return  rotated_shift_vector;
                         }
 
                         if (model.find("WRSkyForge01Door01") != std::string::npos) //exclude markers. for some reason their model state is not 0 even though the model doesnt exist
                         {
                             RE::NiPoint3 base_shift_vector = { 0.0f, 0.0f, 1.0f };
                             RE::NiPoint3 rotated_shift_vector = rotate_vector_by_angles(base_shift_vector, object_angles);
-                            result = rotated_shift_vector;
+                            return  rotated_shift_vector;
                         }
 
                         if (model.find("TrapdoorLadder01") != std::string::npos) //exclude markers. for some reason their model state is not 0 even though the model doesnt exist
                         {
                             RE::NiPoint3 base_shift_vector = { 0.0f, -30.0f, 170.0f };
                             RE::NiPoint3 rotated_shift_vector = rotate_vector_by_angles(base_shift_vector, object_angles);
-                            result = rotated_shift_vector;
+                            return  rotated_shift_vector;
                         }
 
 
@@ -17249,7 +17217,7 @@ namespace MiscThings {
                         {
                             RE::NiPoint3 base_shift_vector = { 0.0f, 0.0f, -100.0f };
                             RE::NiPoint3 rotated_shift_vector = rotate_vector_by_angles(base_shift_vector, object_angles);
-                            result = rotated_shift_vector;
+                            return  rotated_shift_vector;
                         }
 
 
@@ -17257,7 +17225,7 @@ namespace MiscThings {
                         {
                             RE::NiPoint3 base_shift_vector = { 0.0f, 0.0f, -500.0f };
                             RE::NiPoint3 rotated_shift_vector = rotate_vector_by_angles(base_shift_vector, object_angles);
-                            result = rotated_shift_vector;
+                            return  rotated_shift_vector;
                         }
 
 
@@ -17265,49 +17233,49 @@ namespace MiscThings {
                         {
                             RE::NiPoint3 base_shift_vector = { -50.0f, 0.0f, 100.0f };
                             RE::NiPoint3 rotated_shift_vector = rotate_vector_by_angles(base_shift_vector, object_angles);
-                            result = rotated_shift_vector;
+                            return  rotated_shift_vector;
                         }
 
                         if (model.find("WRPrisonCellFloorGrate01Door") != std::string::npos) //exclude markers. for some reason their model state is not 0 even though the model doesnt exist
                         {
                             RE::NiPoint3 base_shift_vector = { 0.0f, 0.0f, 1.0f };
                             RE::NiPoint3 rotated_shift_vector = rotate_vector_by_angles(base_shift_vector, object_angles);
-                            result = rotated_shift_vector;
+                            return  rotated_shift_vector;
                         }
 
                         if (model.find("WRCastleDoor01") != std::string::npos) //exclude markers. for some reason their model state is not 0 even though the model doesnt exist
                         {
                             RE::NiPoint3 base_shift_vector = { -30.0f, 0.0f, -30.0f };
                             RE::NiPoint3 rotated_shift_vector = rotate_vector_by_angles(base_shift_vector, object_angles);
-                            result = rotated_shift_vector;
+                            return  rotated_shift_vector;
                         }
 
                         if (model.find("ImpJailDoor01") != std::string::npos) //exclude markers. for some reason their model state is not 0 even though the model doesnt exist
                         {
                             RE::NiPoint3 base_shift_vector = { 95.0f, 0.0f, 110.0f };
                             RE::NiPoint3 rotated_shift_vector = rotate_vector_by_angles(base_shift_vector, object_angles);
-                            result = rotated_shift_vector;
+                            return  rotated_shift_vector;
                         }
 
                         if (model.find("TrapHingeTrigger01") != std::string::npos)
                         {
                             RE::NiPoint3 base_shift_vector = { 0.0f, 0.0f, 34.0f };
                             RE::NiPoint3 rotated_shift_vector = rotate_vector_by_angles(base_shift_vector, object_angles);
-                            result = rotated_shift_vector;
+                            return  rotated_shift_vector;
                         }
 
                         if (model.find("MetalCageDoor01") != std::string::npos)
                         {
                             RE::NiPoint3 base_shift_vector = { -12.0f, 0.0f, 0.0f };
                             RE::NiPoint3 rotated_shift_vector = rotate_vector_by_angles(base_shift_vector, object_angles);
-                            result = rotated_shift_vector;
+                            return rotated_shift_vector;
                         }
 
                         if (model.find("ImpWoodDoorSingle01") != std::string::npos)
                         {
                             RE::NiPoint3 base_shift_vector = { 55.0f, 0.0f, 100.0f };
                             RE::NiPoint3 rotated_shift_vector = rotate_vector_by_angles(base_shift_vector, object_angles);
-                            result = rotated_shift_vector;
+                            return  rotated_shift_vector;
                         }
 
 
@@ -17315,14 +17283,14 @@ namespace MiscThings {
                         {
                             RE::NiPoint3 base_shift_vector = { 0.0f, 250.0f, 100.0f };
                             RE::NiPoint3 rotated_shift_vector = rotate_vector_by_angles(base_shift_vector, object_angles);
-                            result = rotated_shift_vector;
+                            return  rotated_shift_vector;
                         }
 
                         if (model.find("MetalCageLongGate01") != std::string::npos)
                         {
                             RE::NiPoint3 base_shift_vector = { -20.0f, 100.0f, 70.0f };
                             RE::NiPoint3 rotated_shift_vector = rotate_vector_by_angles(base_shift_vector, object_angles);
-                            result = rotated_shift_vector;
+                            return  rotated_shift_vector;
                         }
 
 
@@ -17330,7 +17298,7 @@ namespace MiscThings {
                         {
                             RE::NiPoint3 base_shift_vector = { 0.0f, 0.0f, 100.0f };
                             RE::NiPoint3 rotated_shift_vector = rotate_vector_by_angles(base_shift_vector, object_angles);
-                            result = rotated_shift_vector;
+                            return  rotated_shift_vector;
                         }
 
                         
@@ -17338,35 +17306,35 @@ namespace MiscThings {
                         {
                             RE::NiPoint3 base_shift_vector = { -150.0f, 0.0f, 100.0f };
                             RE::NiPoint3 rotated_shift_vector = rotate_vector_by_angles(base_shift_vector, object_angles);
-                            result = rotated_shift_vector;
+                            return  rotated_shift_vector;
                         }
 
                         if (model.find("Ruins_LargeDoor01") != std::string::npos)
                         {
                             RE::NiPoint3 base_shift_vector = { 0.0f, 0.0f, 180.0f };
                             RE::NiPoint3 rotated_shift_vector = rotate_vector_by_angles(base_shift_vector, object_angles);
-                            result = rotated_shift_vector;
+                            return  rotated_shift_vector;
                         }
 
                         if (model.find("WRDoorMainGate01") != std::string::npos)
                         {
                             RE::NiPoint3 base_shift_vector = { 0.0f, 0.0f, 20.0f };
                             RE::NiPoint3 rotated_shift_vector = rotate_vector_by_angles(base_shift_vector, object_angles);
-                            result = rotated_shift_vector;
+                            return  rotated_shift_vector;
                         }
 
                         if (model.find("WRShackDoor01") != std::string::npos)
                         {
                             RE::NiPoint3 base_shift_vector = { 0.0f, 0.0f, 1.0f };
                             RE::NiPoint3 rotated_shift_vector = rotate_vector_by_angles(base_shift_vector, object_angles);
-                            result = rotated_shift_vector;
+                            return  rotated_shift_vector;
                         }
 
                         if (model.find("ShipTrapdoor01") != std::string::npos)
                         {
                             RE::NiPoint3 base_shift_vector = { 0.0f, 0.0f, 1.0f };
                             RE::NiPoint3 rotated_shift_vector = rotate_vector_by_angles(base_shift_vector, object_angles);
-                            result = rotated_shift_vector;
+                            return  rotated_shift_vector;
                         }
 
                         /*
@@ -17382,7 +17350,7 @@ namespace MiscThings {
                         {
                             RE::NiPoint3 base_shift_vector = { 0.0f, 0.0f, 120.0f };
                             RE::NiPoint3 rotated_shift_vector = rotate_vector_by_angles(base_shift_vector, object_angles);
-                            result = rotated_shift_vector;
+                            return  rotated_shift_vector;
                         }
 
                         //if (model.find("DwemerLargeDoorLoad01") != std::string::npos)
@@ -17390,7 +17358,7 @@ namespace MiscThings {
                         {
                             RE::NiPoint3 base_shift_vector = { 0.0f, 0.0f, 120.0f };
                             RE::NiPoint3 rotated_shift_vector = rotate_vector_by_angles(base_shift_vector, object_angles);
-                            result = rotated_shift_vector;
+                            return  rotated_shift_vector;
                         }
 
                         //if (model.find("DwemerSmallDoorLoad01") != std::string::npos)
@@ -17398,7 +17366,7 @@ namespace MiscThings {
                         {
                             RE::NiPoint3 base_shift_vector = { 0.0f, 0.0f, 120.0f };
                             RE::NiPoint3 rotated_shift_vector = rotate_vector_by_angles(base_shift_vector, object_angles);
-                            result = rotated_shift_vector;
+                            return rotated_shift_vector;
                         }
 
                         //if (model.find("DweFacadeLiftLeverLoadUp01") != std::string::npos)
@@ -17406,56 +17374,56 @@ namespace MiscThings {
                         {
                             RE::NiPoint3 base_shift_vector = { 0.0f, 0.0f, 1.0f };
                             RE::NiPoint3 rotated_shift_vector = rotate_vector_by_angles(base_shift_vector, object_angles);
-                            result = rotated_shift_vector;
+                            return  rotated_shift_vector;
                         }
 
                         if (model.find("SOVDoorShort") != std::string::npos)
                         {
                             RE::NiPoint3 base_shift_vector = { 0.0f, 0.0f, -200.0f };
                             RE::NiPoint3 rotated_shift_vector = rotate_vector_by_angles(base_shift_vector, object_angles);
-                            result = rotated_shift_vector;
+                            return  rotated_shift_vector;
                         }
 
                         if (model.find("SOVDoorTall") != std::string::npos)
                         {
                             RE::NiPoint3 base_shift_vector = { 0.0f, 0.0f, -200.0f };
                             RE::NiPoint3 rotated_shift_vector = rotate_vector_by_angles(base_shift_vector, object_angles);
-                            result = rotated_shift_vector;
+                            return  rotated_shift_vector;
                         }
 
                         if (model.find("MarketStallDoor") != std::string::npos)
                         {
                             RE::NiPoint3 base_shift_vector = { 0.0f, -45.0f, 20.0f };
                             RE::NiPoint3 rotated_shift_vector = rotate_vector_by_angles(base_shift_vector, object_angles);
-                            result = rotated_shift_vector;
+                            return rotated_shift_vector;
                         }
 
                         if (model.find("SGateDoor") != std::string::npos)
                         {
                             RE::NiPoint3 base_shift_vector = { 0.0f, 60.0f, -70.0f };
                             RE::NiPoint3 rotated_shift_vector = rotate_vector_by_angles(base_shift_vector, object_angles);
-                            result = rotated_shift_vector;
+                            return rotated_shift_vector;
                         }
 
                         if (model.find("RRJailGrate01") != std::string::npos)
                         {
                             RE::NiPoint3 base_shift_vector = { 0.0f, 160.0f, 6.0f }; //thats a very weird shift
                             RE::NiPoint3 rotated_shift_vector = rotate_vector_by_angles(base_shift_vector, object_angles);
-                            result = rotated_shift_vector;
+                            return  rotated_shift_vector;
                         }
 
                         if (model.find("RiftenRWHallSewerHole") != std::string::npos)
                         {
                             RE::NiPoint3 base_shift_vector = { 0.0f, 0.0f, 1.0f };
                             RE::NiPoint3 rotated_shift_vector = rotate_vector_by_angles(base_shift_vector, object_angles);
-                            result = rotated_shift_vector;
+                            return rotated_shift_vector;
                         }
 
                         if (model.find("WinterholdTrapdoor01") != std::string::npos)
                         {
                             RE::NiPoint3 base_shift_vector = { 0.0f, 0.0f, 1.0f };
                             RE::NiPoint3 rotated_shift_vector = rotate_vector_by_angles(base_shift_vector, object_angles);
-                            result = rotated_shift_vector;
+                            return rotated_shift_vector;
                         }
 
 
@@ -21588,7 +21556,7 @@ namespace MiscThings {
             if (extra_anim)
             {
                 auto extra_anim_graph = (RE::ExtraAnimGraphManager*)extra_anim;
-                if (extra_anim_graph->animGraphMgr)
+                if (extra_anim_graph->animGraphMgr && extra_anim_graph->animGraphMgr->variableCache.animationGraph)
                 {
                     if (extra_anim_graph->animGraphMgr->variableCache.animationGraph->projectName == "NorRetractableBridge01")
                     {

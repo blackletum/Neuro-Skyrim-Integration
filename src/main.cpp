@@ -89,7 +89,6 @@
 //fix reanimate spells interrupting battle + fix reanimate spells being endlessly "processing" if cast while having ritual restoration scroll equipped
 
 
-//optimize everything
 //some warning about being low on gold (maybe when below 300) - at the item buy choice force (its tricky because we can get below 300 while processing 500 transactions, so it probably needs to be interrupt-style force choice, asking if we want to continue buying anything at all)
 //test trade history more
 
@@ -2506,6 +2505,12 @@ private:
                         debug_time_spent.push_back(0);
                 }
 
+                
+                for (int i = 0; i < 28; i++)
+                {
+                    debug_time_spent.at(i) = 0;
+                }
+                
 
                 std::string debug_performance_text = "";
                 long long debug_time_start = std::chrono::steady_clock::now().time_since_epoch().count();
@@ -2528,7 +2533,7 @@ private:
                 RandomMessageBoxProcessor::processor(dtime); if (debug_info2) { debug_time_spent.at(12) += (std::chrono::steady_clock::now().time_since_epoch().count() - debug_time_start); debug_time_start = std::chrono::steady_clock::now().time_since_epoch().count(); }
 
 
-                Observer::detect_threats(dtime); if (debug_info2) { debug_time_spent.at(13) += (std::chrono::steady_clock::now().time_since_epoch().count() - debug_time_start); debug_time_start = std::chrono::steady_clock::now().time_since_epoch().count();}
+                Observer::detect_threats(dtime); if (debug_info2) { debug_time_spent.at(13) += (std::chrono::steady_clock::now().time_since_epoch().count() - debug_time_start); debug_time_start = std::chrono::steady_clock::now().time_since_epoch().count(); }
                 Observer::detect_interesting_objects(dtime); if (debug_info2) { debug_time_spent.at(14) += (std::chrono::steady_clock::now().time_since_epoch().count() - debug_time_start); debug_time_start = std::chrono::steady_clock::now().time_since_epoch().count(); }
                 Observer::detect_events(dtime); if (debug_info2) { debug_time_spent.at(15) += (std::chrono::steady_clock::now().time_since_epoch().count() - debug_time_start); debug_time_start = std::chrono::steady_clock::now().time_since_epoch().count(); }
                 Observer::inventory_monitor(dtime); if (debug_info2) { debug_time_spent.at(16) += (std::chrono::steady_clock::now().time_since_epoch().count() - debug_time_start); debug_time_start = std::chrono::steady_clock::now().time_since_epoch().count(); }
@@ -2539,7 +2544,7 @@ private:
 
                 RaceProcessor::processor(dtime); if (debug_info2) { debug_time_spent.at(20) += (std::chrono::steady_clock::now().time_since_epoch().count() - debug_time_start); debug_time_start = std::chrono::steady_clock::now().time_since_epoch().count(); }
 
-                MiscThings::notifications(); if (debug_info2) { debug_time_spent.at(21) += (std::chrono::steady_clock::now().time_since_epoch().count() - debug_time_start); debug_time_start = std::chrono::steady_clock::now().time_since_epoch().count(); }
+                MiscThings::notifications(dtime); if (debug_info2) { debug_time_spent.at(21) += (std::chrono::steady_clock::now().time_since_epoch().count() - debug_time_start); debug_time_start = std::chrono::steady_clock::now().time_since_epoch().count(); }
                 MiscThings::settlement_places_processor(dtime); if (debug_info2) { debug_time_spent.at(22) += (std::chrono::steady_clock::now().time_since_epoch().count() - debug_time_start); debug_time_start = std::chrono::steady_clock::now().time_since_epoch().count(); }
 
                 SleepWaitProcessor::processor(dtime); if (debug_info2) { debug_time_spent.at(23) += (std::chrono::steady_clock::now().time_since_epoch().count() - debug_time_start); debug_time_start = std::chrono::steady_clock::now().time_since_epoch().count(); }
@@ -2567,12 +2572,13 @@ private:
                     debug2_int++;
                 }
 
-                Hooks::set_debug_text(debug_performance_text);
-                */
+                if (debug_info2)
+                    Hooks::set_debug_text(debug_performance_text);
 
+                */
                 //////////////////////////////////////////////
                 /////////// NORMAL
-                
+
                 Observer::cleanup_invalid_objects(dtime);
 
                 MiscThings::save_loader(dtime);
@@ -2598,11 +2604,11 @@ private:
                 Observer::player_state_monitor(dtime);
                 Observer::detect_locations(dtime);
                 Observer::timed_quest_puzzles_processor(dtime);
-                
+
 
                 RaceProcessor::processor(dtime);
 
-                MiscThings::notifications();
+                MiscThings::notifications(dtime);
                 MiscThings::settlement_places_processor(dtime);
 
                 SleepWaitProcessor::processor(dtime);
@@ -2611,7 +2617,7 @@ private:
 
 
                 WalkerProcessor::lower_processor(dtime);
-                
+
 
                 send_delayed_messages(dtime);
                 ;
@@ -2622,6 +2628,8 @@ private:
                     context_chars_sent = 0;
                     m_neuroSocket->SendGreeting();
                 }
+                
+
             }
             else
             {

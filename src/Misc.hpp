@@ -340,7 +340,7 @@ namespace MiscThings {
 
     bool player_escaping_jail();
 
-    void notifications();
+    void notifications(float dtime);
     void update_old_topleft_nofification(std::string new_notif);
 
     bool is_object_in_the_list(RE::TESObjectREFR* object);

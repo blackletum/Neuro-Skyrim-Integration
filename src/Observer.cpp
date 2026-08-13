@@ -167,6 +167,11 @@ namespace Observer {
 
 
 	std::map<RE::TESObjectREFR*, std::string> interesting_buffer{};
+	std::vector<RE::ObjectRefHandle> raw_object_list{};
+	std::vector<RE::ObjectRefHandle> raw_event_object_list{};
+
+	bool detect_events_send_result_silent = false;
+	std::vector<std::string> detect_events_result{};
 
 
 	int active_puzzle = -1;
@@ -1108,6 +1113,10 @@ namespace Observer {
 
 		detect_interesting_spit_results_time = 0.0f;
 		interesting_buffer.clear();
+		raw_object_list.clear();
+		raw_event_object_list.clear();
+		detect_events_send_result_silent = false;
+		detect_events_result.clear();
 
 		object_cleanup_timer = 0.0f;
 
@@ -2042,6 +2051,7 @@ namespace Observer {
 
 
 
+
 	void detect_interesting_objects(float dtime, bool ignore_raycast, float special_range)
 	{
 		if (observers_green_light && !MiscThings::have_force_only_menu_open())
@@ -2058,8 +2068,26 @@ namespace Observer {
 					no_spam_time += dtime;
 			}
 
-			if (ignore_raycast || detect_interesting_time > 0.5f || (first_cycle2 && detect_interesting_time > 2.0f))
+
+
+			auto player = RE::PlayerCharacter::GetSingleton();
+			auto player_ref = player->AsReference();
+			auto player_actor = (RE::Actor*)player_ref;
+
+			float scan_distance = 4000.0f;
+			auto player_cell = player->GetParentCell();
+			if (player_cell && player_cell->IsInteriorCell())
+				scan_distance = 3000.0f;
+
+			bool frozen_falmers_condition = player_cell && player_cell->formID == 0x200384f;
+
+
+
+
+			if (ignore_raycast || (detect_interesting_time > 0.5f && std::size(raw_object_list) <= 0) || (first_cycle2 && detect_interesting_time > 2.0f))
 			{
+				//Hooks::add_debug_line("OBJECT SCANNER TRIGGERED, DTIME: " + std::to_string(detect_interesting_time), true);
+
 				if (first_cycle2)
 					first_cycle2 = false;
 
@@ -2067,919 +2095,15 @@ namespace Observer {
 
 				detect_interesting_time = 0.0f;
 				
-				auto player = RE::PlayerCharacter::GetSingleton();
-				auto player_ref = player->AsReference();
-				auto player_actor = (RE::Actor*)player_ref;
-
-				float scan_distance = 4000.0f;
-				auto player_cell = player->GetParentCell();
-				if (player_cell && player_cell->IsInteriorCell())
-					scan_distance = 3000.0f;
-
 				if (!player->IsDead())
 				{
-
-
-					//decided to try another way (use different collision mask in raycast function)
-					//bool super_ignore_raycast = false;
-					//if (MiscThings::in_madman_head())
-					//{
-					//	ignore_raycast = true;
-					//	super_ignore_raycast = true;
-					//}
-						
-
-					bool frozen_falmers_condition = player_cell && player_cell->formID == 0x200384f;
-
-
-
-					std::map<RE::FormType, int> dbg_test{};
-
-
 					RE::TES::GetSingleton()->ForEachReferenceInRange(player_ref, 4000.0f,
 						//player->GetParentCell()->ForEachReferenceInRange(player->GetPosition(), 3000.0,
 						[&](RE::TESObjectREFR* a_ref) {
 
-							if (a_ref)
-							{
-								auto base_obj = a_ref->GetBaseObject();
-								RE::FormType base_type{};
-
-								if (base_obj)
-								{
-									base_type = base_obj->GetFormType();
-									bool debug_type = true;
-								}
-								else
-								{
-									bool no_base_object = true;
-								}
-
-
-								//std::string name = a_ref->GetDisplayFullName();
-
-								//if (name.find("Ghostly") != std::string::npos)
-								//	bool stop_here = false;
-								//auto pos111 = dbg_test.find(base_type);
-
-								//if (pos111 != dbg_test.end())
-								//	pos111->second++;
-								//else
-								//	dbg_test.insert({ base_type, 1 });
-
-
-								if (base_type == RE::FormType::Hazard)
-									return RE::BSContainer::ForEachResult::kContinue;
-
-
-								if (frozen_falmers_condition)
-								{
-									if (!MiscThings::is_object_in_the_list(a_ref))
-									{
-										std::string name = get_frozen_falmer_name(a_ref);
-
-										if (name != "") //raycast embedded into name function
-										{
-											std::string info = MiscThings::insert_object_into_list_custom_name(name, a_ref);
-											if (info != "")
-												interesting_buffer.insert_or_assign(a_ref, info);
-										}
-									}
-								}
-
-								if (base_type == RE::FormType::Static)
-									return RE::BSContainer::ForEachResult::kContinue;
-
-
-
-								if (a_ref->formID == 0xab105) //ysgramor statue
-								{
-									if (!MiscThings::is_object_in_the_list(a_ref) && MiscThings::raycastable(a_ref, 1000.0f))
-									{
-										std::string info = MiscThings::insert_object_into_list_custom_name("Ysgramor Statue", a_ref);
-										if (info != "")
-											interesting_buffer.insert_or_assign(a_ref, info);
-									}
-								}
-
-								auto saartal_orb = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x51aec);
-
-								if (a_ref == saartal_orb)
-								{
-									if (!MiscThings::is_object_in_the_list(a_ref) && player_ref->GetDistance(a_ref) < 1800.0f)
-									{
-										std::string info = MiscThings::insert_object_into_list_custom_name("Huge Glowing Spinning Magical Orb", a_ref);
-										if (info != "")
-											interesting_buffer.insert_or_assign(a_ref, info);
-									}
-								}
-
-
-								if (base_type == RE::FormType::Activator)
-								{
-									if (!MiscThings::is_object_in_the_list(a_ref))
-									{
-										if (a_ref->formID == 0x430a3) //timewound
-										{
-											auto mq206 = (RE::TESQuest*)RE::TESForm::LookupByEditorID("MQ206");
-											if (mq206 && mq206->GetCurrentStageID() < 10)
-												return RE::BSContainer::ForEachResult::kContinue; //too soon
-										}
-
-
-
-										auto word_of_power = MiscThings::get_word_of_power(a_ref);
-
-										if (word_of_power && word_of_power != (RE::TESObjectREFR*)(-1) && MiscThings::is_object_valid(a_ref))
-										{
-											std::string info = MiscThings::insert_object_into_list_custom_name("Word of Power, calling for you", a_ref);
-											if (info != "")
-												interesting_buffer.insert_or_assign(a_ref, info);
-										}
-									}
-									else
-									{
-										auto word_of_power = MiscThings::get_word_of_power(a_ref);
-
-										if (word_of_power && word_of_power != (RE::TESObjectREFR*)(-1))
-										{
-											if (!WalkerProcessor::is_fighting() && !WalkerProcessor::is_walking_important_path() && !Observer::threat_response_choice_pending())
-											{
-												if (player_ref->GetDistance(a_ref) < 2000.0f)
-												{
-													auto notification_info = objects_for_extra_notification.find(a_ref);
-
-													auto now = std::chrono::steady_clock::now().time_since_epoch().count();
-
-													if (notification_info == objects_for_extra_notification.end())
-													{
-														//new
-														objects_for_extra_notification.insert({ a_ref, {true, now} });
-
-														std::string info = MiscThings::insert_object_into_list_custom_name("Word of Power, calling for you", a_ref);
-
-														if (info != "")
-															send_random_context("You hear something... " + info, true);
-													}
-													else
-													{
-														//already exists but we want repetitive notification
-														float delta_info = (double)(now - notification_info->second.second) / 1000000000.0;
-
-														if (delta_info > 15.0f)
-														{
-															notification_info->second.second = now;
-
-															std::string info = MiscThings::insert_object_into_list_custom_name("Word of Power, calling for you", a_ref);
-
-															if (info != "")
-																send_random_context("You hear something... " + info, false);
-														}
-													}
-												}
-											}
-										}
-									}
-
-								}
-
-								auto distance = player_ref->GetDistance(a_ref);
-
-
-
-
-								if (distance <= scan_distance)
-								{
-									
-									//RE::BSString result_string = "";
-									//RE::TESNPC* player_npc = RE::TESForm::LookupByID(0x7)->As<RE::TESNPC>();
-									//player_npc->GetActivateText(a_ref, result_string);
-									//std::string result_string_actual_string = result_string.c_str();
-									//if (result_string_actual_string.find("Carriage") != std::string::npos)
-									//{
-									//	bool stop_here = false;
-									//}
-									
-
-
-
-									bool jail_distance_met = distance < 500.0f;
-									bool serving_jail = MiscThings::is_serving_jail();
-
-									bool jail_condition_raycastable = serving_jail && jail_distance_met && MiscThings::raycastable(a_ref, 500.0f, false);
-									bool jail_condition_all = serving_jail && jail_distance_met;
-
-
-
-
-									std::string name = a_ref->GetName();
-									//std::string player_name = RE::PlayerCharacter::GetSingleton()->GetName();
-
-
-									//if (name.find("Crumbling") != std::string::npos)
-									//{
-									//	bool stop_here = false;
-									//}
-
-
-
-
-									if (!MiscThings::is_object_valid(a_ref))
-										return RE::BSContainer::ForEachResult::kContinue;
-
-
-																					//player
-									if (name[0] != '\0' && std::size(name) > 1 && a_ref->formID != 0x14 && name != "Sit")
-									{
-
-										if (MiscThings::has_digits(name))
-											return RE::BSContainer::ForEachResult::kContinue;
-
-										if (a_ref->AsReference()->modelState == 0)
-											return RE::BSContainer::ForEachResult::kContinue; //skip objects without world model
-
-
-										if (base_type == RE::FormType::Activator)
-										{
-											auto test = (RE::TESObjectACTI*)base_obj;
-											std::string model = test->GetModel();
-											if (model.find("Marker_LinkMarker") != std::string::npos) //exclude markers. for some reason their model state is not 0 even though the model doesnt exist
-												return RE::BSContainer::ForEachResult::kContinue;
-
-											//little flags
-											if (model.find("MapFlag") != std::string::npos) //exclude markers. for some reason their model state is not 0 even though the model doesnt exist
-												return RE::BSContainer::ForEachResult::kContinue;
-										}
-
-
-
-										if (name.find("not be visible") != std::string::npos) //"This should not be visible [Furniture]"
-											return RE::BSContainer::ForEachResult::kContinue;
-
-										if (name.find("Do Not Delete") != std::string::npos)
-											return RE::BSContainer::ForEachResult::kContinue;
-
-										if (name.find("nvisible") != std::string::npos && name.find("arker") != std::string::npos)
-											return RE::BSContainer::ForEachResult::kContinue;
-
-										if (name.find("default") != std::string::npos)
-											return RE::BSContainer::ForEachResult::kContinue;
-
-
-
-										if (auto extra = a_ref->extraList.GetByType(RE::ExtraDataType::kItemDropper); extra)
-										{
-											auto extra_dropper = (RE::ExtraItemDropper*)extra;
-
-											if (extra_dropper && extra_dropper->dropper && extra_dropper->dropper.get())
-											{
-												auto dropper = extra_dropper->dropper.get().get();
-
-												if (dropper)
-												{
-													if (dropper->IsActor())
-													{
-														return RE::BSContainer::ForEachResult::kContinue; //exclude dropped items, they have weird position.
-													}
-												}
-											}
-										}
-
-
-										if (a_ref->AsReference()->IsActor())
-										{
-
-											if (!MiscThings::is_object_in_the_list(a_ref) && ((a_ref->GetDistance(player_ref) < 150.0f && a_ref->formID != 0x2002b74) || ((MiscThings::is_carriage_driver(a_ref) && a_ref->GetDistance(player_ref) < 1300.0f) || MiscThings::raycastable(a_ref, scan_distance))))
-											{
-												std::string info = MiscThings::insert_object_into_list_and_get_info(a_ref);
-												if (info != "")
-												{
-													if (MiscThings::is_carriage_driver(a_ref))
-														send_random_context("You see: " + info, false);
-													else
-														interesting_buffer.insert_or_assign(a_ref, info);
-												}
-
-											}
-
-										}
-
-
-										if (base_type == RE::FormType::Door)
-										{
-											if (!MiscThings::is_object_in_the_list(a_ref))
-											{
-												auto door = (RE::TESObjectDOOR*)base_obj;
-												std::string model = door->GetModel();
-												//dlc1 boat-to-castle-door
-												if (a_ref->formID == 0x2002887 || a_ref->formID == 0x20028b6 || model.find("LoadMarker") != std::string::npos)
-												{
-													if (distance < 1000.0f)
-													{
-														std::string info = MiscThings::insert_object_into_list_and_get_info(a_ref);
-														if (info != "")
-															interesting_buffer.insert_or_assign(a_ref, info);
-													}
-												}
-												else
-												{
-													if (jail_condition_all || ignore_raycast || MiscThings::raycastable(a_ref, scan_distance))
-													{
-														std::string info = MiscThings::insert_object_into_list_and_get_info(a_ref);
-														if (info != "")
-															interesting_buffer.insert_or_assign(a_ref, info);
-													}
-												}
-											}
-
-										}
-
-
-
-										if (base_type == RE::FormType::Activator)
-										{
-											if (!MiscThings::is_object_in_the_list(a_ref))
-											{
-												float scan_distance_norm = scan_distance;
-												if (a_ref == RE::TESObjectREFR::LookupByID(0xC3B29))
-													scan_distance = 130.0f;
-
-												bool local_ignore_raycast = false;
-
-												auto object_acti = (RE::TESObjectACTI*)base_obj;
-
-												std::string model = object_acti->GetModel();
-
-												model = MiscThings::lowercase_string(model);
-
-												if (model.find("effects\\ashpile") != std::string::npos || model.find("effects\\dlc2ashspawnpile") != std::string::npos|| model.find("aporewardact") != std::string::npos)
-												{
-													local_ignore_raycast = true;
-												}
-
-												if (a_ref->formID == 0x200f7f4)
-													local_ignore_raycast = true;
-
-
-												if (name.find("Nirnroot") != std::string::npos || name.find("Ashpile") != std::string::npos || (MiscThings::is_critter(a_ref) && distance < 2000.0f))
-													local_ignore_raycast = true;
-
-												if (jail_condition_all || local_ignore_raycast || ignore_raycast || MiscThings::raycastable(a_ref, scan_distance, false))
-												{
-													std::string info = MiscThings::insert_object_into_list_and_get_info(a_ref);
-
-
-													if (info != "" && MiscThings::is_object_valid(a_ref))
-													{
-
-														bool fiftyfifty = ((float)std::rand() / RAND_MAX) > 0.5f;
-														auto riverwood_fishing = RE::TESObjectREFR::LookupByID(0x0500081e);
-
-														//if (fiftyfifty && MiscThings::raycastable(a_ref, 1000.0f, true) && name.find("Fishing Supplies") != std::string::npos && !WalkerProcessor::is_fighting() && !WalkerProcessor::is_walking_important_path() && (MiscThings::player_has_fishing_rod() || a_ref == riverwood_fishing))
-														if (fiftyfifty && name.find("Fishing Supplies") != std::string::npos && !WalkerProcessor::is_fighting() && !WalkerProcessor::is_walking_important_path() && (MiscThings::player_has_fishing_rod() || a_ref == riverwood_fishing))
-														{
-															WalkerProcessor::look_at_object_by_refr(a_ref, true, 1.0f);
-															send_random_context("You see: " + info, false);
-														}
-														else
-														{
-															if (a_ref->formID == 0xbe4c7) //mzinchaleft puzzle
-															{
-																std::string info = "";
-
-																info += MiscThings::insert_object_into_list_custom_name(" Dwemer metal pole gate", (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xbe492)) + "\n";
-																info += MiscThings::insert_object_into_list_custom_name(" Dwemer metal pole gate", (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x63cf1)) + "\n";
-																info += MiscThings::insert_object_into_list_custom_name(" Dwemer metal pole gate", (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x63d08)) + "\n";
-																//info += MiscThings::insert_object_into_list_custom_name(" Dwemer metal pole gate", (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x63cfa)) + "\n";
-																info += MiscThings::insert_object_into_list_custom_name(" Dwemer metal pole gate", (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xbe4c0)) + "\n";
-																info += MiscThings::insert_object_into_list_custom_name(" Dwemer metal pole gate", (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xbe498)) + "\n";
-																info += MiscThings::insert_object_into_list_custom_name(" Dwemer metal pole gate", (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xbe4b5)) + "\n";
-
-																info += MiscThings::insert_object_into_list_and_get_info((RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xbe4c7)) + "\n";
-																info += MiscThings::insert_object_into_list_and_get_info((RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xbe4cf)) + "\n";
-																info += MiscThings::insert_object_into_list_and_get_info((RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xbe4c8)) + "\n";
-																info += MiscThings::insert_object_into_list_and_get_info((RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xbe4ca)) + "\n";
-																info += MiscThings::insert_object_into_list_and_get_info((RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xbe4cb)) + "\n";
-																info += MiscThings::insert_object_into_list_and_get_info((RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xc061c)) + "\n";
-
-																send_random_context("Looks like its a dwemer puzzle... you see: " + info, false);
-
-															}
-															else
-															{
-																interesting_buffer.insert_or_assign(a_ref, info);
-															}
-														}
-													}
-
-												}
-
-												scan_distance = scan_distance_norm;
-											}
-										}
-
-										if (base_type == RE::FormType::Furniture) //pullchains/levers
-										{
-											auto furniture = (RE::TESFurniture*)base_obj;
-											auto workbenchtype = furniture->workBenchData.benchType;
-											if (workbenchtype == RE::TESFurniture::WorkBenchData::BenchType::kNone)
-											{
-												if (furniture->HasKeywordString("ActivatorLever") || furniture->HasKeywordString("isPullChain"))
-												{
-													if (!MiscThings::is_object_in_the_list(a_ref) && (jail_condition_all || ignore_raycast || MiscThings::raycastable(a_ref, scan_distance)))
-													{
-														std::string info = MiscThings::insert_object_into_list_and_get_info(a_ref);
-														if (info != "")
-															interesting_buffer.insert_or_assign(a_ref, info);
-													}
-												}
-											}
-										}
-
-
-
-										if (a_ref->GetDistance(player_ref) < 1200.0f)
-										{
-											//and now with smaller range
-
-											if (base_type == RE::FormType::Container)
-											{
-												if (!MiscThings::is_object_in_the_list(a_ref) && (jail_condition_raycastable || ignore_raycast || MiscThings::raycastable(a_ref, 1000.0f)))
-												{
-													std::string info = MiscThings::insert_object_into_list_and_get_info(a_ref);
-													if (info != "")
-													{
-														if (info.find("Large Treasure") != std::string::npos)
-														{
-															RE::TESObjectREFR* klimmek_chest = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x9c614);
-
-															if (klimmek_chest == a_ref)
-															{
-																auto klimmek_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("FreeformIvarstead04");
-																if (klimmek_quest)
-																{
-																	auto klimmek_stage = klimmek_quest->GetCurrentStageID();
-
-																	if (klimmek_stage != 20 || !MiscThings::is_container_empty(a_ref))
-																		return RE::BSContainer::ForEachResult::kContinue;
-																}
-															}
-
-
-
-															if (!WalkerProcessor::is_fighting() && !WalkerProcessor::is_walking_important_path() && !MiscThings::is_container_empty(a_ref))
-															{
-																WalkerProcessor::look_at_object_by_refr(a_ref, true, 1.0f);
-																send_random_context("You see: " + info, false); //large chests are not silent and immidiate 
-															}
-															else
-															{
-																if (!MiscThings::is_container_empty(a_ref))
-																	interesting_buffer.insert_or_assign(a_ref, info);
-															}
-														}
-														else
-														{
-															if (!MiscThings::is_container_empty(a_ref))
-																interesting_buffer.insert_or_assign(a_ref, info);
-														}
-
-													}
-
-												}
-											}
-
-											if (base_obj && !MiscThings::is_serving_jail())
-											{
-												bool is_harvestable = false;
-
-												if (base_type == RE::FormType::Tree)
-												{
-													auto tree_form = (RE::TESObjectTREE*)base_obj;
-
-													auto test_flags = a_ref->AsReference()->GetFormFlags();
-
-													bool already_harvested = false;
-
-													if (test_flags & RE::TESObjectREFR::RecordFlags::kHarvested) //THIS FLAG IS POTENTIALLY INCORRECT.
-														already_harvested = true;
-
-													if (test_flags & 2048) //this is potentially only one we need here
-														already_harvested = true;
-
-
-
-
-													if (tree_form->produceItem && !already_harvested)
-														is_harvestable = true;
-												}
-
-												if (base_type == RE::FormType::Flora)
-												{
-													auto tree_form = (RE::TESFlora*)base_obj;
-
-													auto test_flags = a_ref->AsReference()->GetFormFlags();
-													bool already_harvested = false;
-													if (test_flags & RE::TESObjectREFR::RecordFlags::kHarvested) //THIS FLAG IS POTENTIALLY INCORRECT.
-														already_harvested = true;
-
-													if (tree_form->produceItem && !already_harvested)
-														is_harvestable = true;
-												}
-
-
-												if (is_harvestable)
-												{
-													if (!MiscThings::is_object_in_the_list(a_ref))
-													{
-														std::string temp_name = a_ref->GetDisplayFullName();
-
-														if (temp_name.find("Coin Purse") != std::string::npos)
-														{
-															if (ignore_raycast || MiscThings::raycastable(a_ref, 3000.0f, false))
-															{
-																std::string info = MiscThings::insert_object_into_list_and_get_info(a_ref);
-																if (info != "")
-																{
-																	if (MiscThings::get_player_gold() < 100)
-																	{
-																		if (!WalkerProcessor::is_fighting() && !WalkerProcessor::is_walking_important_path())
-																			WalkerProcessor::reset_walker();
-
-																		send_random_context("You see: " + info, false); //coin purses are not silent when we are broke so they dont end up with 0 gold for too long
-																	}
-																	else
-																	{
-																		interesting_buffer.insert_or_assign(a_ref, info);
-
-																	}
-																}
-															}
-														}
-														else
-														{
-															std::string info = MiscThings::insert_object_into_list_and_get_info(a_ref);
-															if (info != "")
-															{
-																interesting_buffer.insert_or_assign(a_ref, info);
-															}
-														}
-
-
-
-													}
-												}
-											}
-
-											if (base_type == RE::FormType::Furniture) //workbenches and beds
-											{
-												bool this_isnt_a_furniture = false;
-												auto furniture = (RE::TESFurniture*)base_obj;
-												auto workbenchtype = furniture->workBenchData.benchType;
-												if (workbenchtype != RE::TESFurniture::WorkBenchData::BenchType::kNone)
-												{
-													if (!MiscThings::is_object_in_the_list(a_ref) && (jail_condition_raycastable || ignore_raycast || MiscThings::raycastable(a_ref, 1000.0f, false)))
-													{
-														std::string info = MiscThings::insert_object_into_list_and_get_info(a_ref);
-														if (info != "")
-															interesting_buffer.insert_or_assign(a_ref, info);
-													}
-												}
-												else
-												{
-													if (furniture->furnFlags.any(RE::TESFurniture::ActiveMarker::kCanSleep))
-													{
-														bool player_owned = false;
-
-														auto owner_extra = (RE::ExtraOwnership*)a_ref->extraList.GetByType(RE::ExtraDataType::kOwnership);
-
-														if (owner_extra)
-														{
-															if (owner_extra->owner)
-															{
-																if (owner_extra->owner->GetFormID() == 0x7)
-																	player_owned = true;
-															}
-														}
-
-
-														if (!MiscThings::is_object_in_the_list(a_ref) && (jail_condition_raycastable || ignore_raycast || player_owned || MiscThings::raycastable(a_ref, 1000.0f, false)))
-														{
-															std::string info = MiscThings::insert_object_into_list_and_get_info(a_ref);
-															if (info != "")
-															{
-																if (player_owned)
-																	send_random_context("You see: " + info, false);
-																else
-																	interesting_buffer.insert_or_assign(a_ref, info);
-															}
-																
-														}
-													}
-													else
-													{
-														if (a_ref->formID == 0xaa033) //jorwaskr chair
-														{
-															if (!MiscThings::is_object_in_the_list(a_ref) && (jail_condition_raycastable || ignore_raycast || MiscThings::raycastable(a_ref, 1000.0f, false)))
-															{
-																std::string info = MiscThings::insert_object_into_list_and_get_info(a_ref);
-																if (info != "")
-																{
-																	interesting_buffer.insert_or_assign(a_ref, info);
-																}
-
-															}
-														}
-
-														if (a_ref->formID == 0x2006892) //dawnguard first cave puzzle button
-														{
-															if (!MiscThings::is_object_in_the_list(a_ref) && (jail_condition_raycastable || ignore_raycast || MiscThings::raycastable(a_ref, 2000.0f, false)))
-															{
-																std::string info = MiscThings::insert_object_into_list_and_get_info(a_ref);
-																if (info != "")
-																{
-																	interesting_buffer.insert_or_assign(a_ref, info);
-																}
-
-															}
-														}
-													}
-
-												}
-											}
-
-											float inventory_range = 500.0f;
-
-											if (special_range > 0.0f)
-												inventory_range = special_range;
-
-											if (a_ref->GetDistance(player_ref) < inventory_range)
-											{
-												if (base_obj->IsInventoryObject())
-												{
-													if (!MiscThings::is_object_in_the_list(a_ref))
-													{
-														std::string info = MiscThings::insert_object_into_list_and_get_info(a_ref);
-														if (info != "")
-															interesting_buffer.insert_or_assign(a_ref, info);
-													}
-												}
-											}
-
-
-										}
-
-									}
-									else
-									{
-										//nameless things that still have to be tracked.
-										//FXspiderWebKitDoorSpecial - normal
-										//FXspiderWebKitDoorSpecialDest - destroyed
-
-
-										if (!MiscThings::is_intro())
-										{
-											if (a_ref->IsActor() && a_ref != player_ref)
-											{
-												//may be ghost targets of greybeards
-
-												if (!MiscThings::is_object_in_the_list(a_ref))
-													if (a_ref->GetDistance(player_ref) < 200.0f || (jail_condition_raycastable || ignore_raycast || MiscThings::raycastable(a_ref, 5000.0f, false)))
-													{
-														auto actor = (RE::Actor*)a_ref;
-														auto npc = (RE::TESNPC*)a_ref->data.objectReference;
-
-														auto model3d = actor->GetCurrent3D();
-
-
-														//no name = ghost (i guess)
-														// 
-														//if (actor->IsGhost())
-														{
-															std::string info = MiscThings::insert_object_into_list_custom_name(" Ghost", a_ref);
-															if (info != "")
-															{
-																//give it immidiately
-																send_random_context("You see: " + info, false);
-
-
-																auto ghost_shouting_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("MQ105");
-
-																if (ghost_shouting_quest)
-																{
-																	int quest_stage = ghost_shouting_quest->GetCurrentStageID();
-
-																	if (quest_stage == 85 || quest_stage == 80)
-																	{
-																		active_puzzle = 1;
-																		puzzle_target = a_ref;
-																	}
-																}
-
-															}
-															//interesting_buffer.insert_or_assign(a_ref, info);
-														}
-													}
-
-											}
-										}
-										
-
-										 //looks like this is useless, both bugged and not bugged barricades have exact same properties everywhere
-										/*
-										if (base_type == RE::FormType::Activator)
-										{
-											auto static_obj = (RE::TESObjectACTI*)base_obj;
-
-											std::string model = static_obj->GetModel();
-
-											if (model.find("StockadeBarricade") != std::string::npos)
-											{
-												auto linked = MiscThings::get_linked_ref(a_ref);
-
-												if (linked && !linked->IsDisabled())
-												{
-													bool has_collision = a_ref->HasCollision();
-													
-													auto test_3d = a_ref->Get3D();
-
-													RE::CFilter cFilter_info_obj{};
-													//test_3d->GetCollisionObject()
-
-													//RE::CFilter cFilter_info_player{};
-													//player->GetCollisionFilterInfo(cFilter_info);
-
-
-													auto object_p = MiscThings::General::Script::GetObject(a_ref, "StockadeBarricade01ActivatorScript");
-
-													if (object_p)
-													{
-														std::string state = "";
-														state = object_p->currentState;
-
-														RE::BSFixedString prop_name = "::NewStage_var";
-														auto int1 = MiscThings::General::Script::GetVariable<int>(object_p, prop_name);
-
-														prop_name = "::OldStage_var";
-														auto int2 = MiscThings::General::Script::GetVariable<int>(object_p, prop_name);
-
-
-													
-														auto extralist = &a_ref->extraList;
-														auto extra_swap = extralist->GetByType(RE::ExtraDataType::kObjectHealth);
-
-														float health = -100.0f;
-
-														if (extra_swap)
-														{
-															auto extra_health = (RE::ExtraObjectHealth*)extra_swap;
-
-															if (extra_health)
-																health = extra_health->health;
-															else
-																health = -200.0f;
-														}
-														else
-															health = -300.0f;
-
-
-														bool stop_here = false;
-													}
-
-
-
-
-													auto player_col_layer = player->Get3D()->GetCollisionLayer();
-
-													if (!has_collision)
-													{
-														linked->Disable();
-													}
-												}
-											}
-										}
-										*/
-
-
-
-
-										if (base_obj && (base_obj->formFlags & RE::TESForm::RecordFlags::kDestructible))
-										{
-											base_type = base_obj->GetFormType();
-
-											if (base_type == RE::FormType::Activator)
-											{
-												auto static_obj = (RE::TESObjectACTI*)base_obj;
-
-												std::string model = static_obj->GetModel();
-
-												if (model.find("FXspiderWebKitDoorSpecial") != std::string::npos)
-												{
-													if (a_ref->GetDistance(player_ref) < 300.0f)
-													{
-														if (!MiscThings::is_object_in_the_list(a_ref))
-														{
-															std::string info = MiscThings::insert_object_into_list_custom_name("[Destructible] Cobweb", a_ref);
-															if (info != "")
-																interesting_buffer.insert_or_assign(a_ref, info);
-														}
-													}
-												}
-
-
-												if (model.find("BeeHive01.nif") != std::string::npos)
-												{
-													if (a_ref->GetDistance(player_ref) < 600.0f)
-													{
-														if (!MiscThings::is_object_in_the_list(a_ref))
-														{
-															std::string info = MiscThings::insert_object_into_list_custom_name("[Flammable] Big beehive ", a_ref);
-															if (info != "")
-																interesting_buffer.insert_or_assign(a_ref, info);
-														}
-													}
-												}
-
-
-												if (model.find("TG01DwemerUrn") != std::string::npos)
-												{
-													if (a_ref->GetDistance(player_ref) < 300.0f)
-													{
-														if (!MiscThings::is_object_in_the_list(a_ref))
-														{
-															std::string info = MiscThings::insert_object_into_list_custom_name("[Destructible] Dwemer Urn", a_ref);
-															if (info != "")
-																interesting_buffer.insert_or_assign(a_ref, info);
-														}
-													}
-												}
-
-
-												if (model.find("StockadeBarricade") != std::string::npos)
-												{
-													if (a_ref->GetDistance(player_ref) < 300.0f)
-													{
-														auto linked = MiscThings::get_linked_ref(a_ref);
-
-														if (linked && !linked->IsDisabled())
-														{
-															if (!MiscThings::is_object_in_the_list(a_ref))
-															{
-																std::string info = MiscThings::insert_object_into_list_custom_name("[Destructible] Barricade", a_ref);
-																if (info != "")
-																	interesting_buffer.insert_or_assign(a_ref, info);
-															}
-														}
-													}
-												}
-
-											}
-										}
-
-										RE::TESObjectREFR* mage_force_field_2 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x10d99d);
-
-										if (a_ref == mage_force_field_2 && mage_force_field_2)
-										{
-											RE::TESObjectREFR* redirect_marker = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x7029a57);
-											if (!MiscThings::is_object_in_the_list(a_ref))
-											{
-												std::string info = MiscThings::insert_object_into_list_custom_name("Large Magical Force Field around entire College", a_ref);
-												if (info != "")
-													interesting_buffer.insert_or_assign(a_ref, info);
-											}
-										}
-
-
-										RE::TESObjectREFR* mage_force_field_1 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xf0ea9);
-
-										if (a_ref == mage_force_field_1 && mage_force_field_1)
-										{
-											RE::TESObjectREFR* redirect_marker = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x7029a57);
-											if (!MiscThings::is_object_in_the_list(a_ref))
-											{
-												std::string info = MiscThings::insert_object_into_list_custom_name("Magical Force Field", a_ref);
-												if (info != "")
-													interesting_buffer.insert_or_assign(a_ref, info);
-											}
-										}
-
-
-
-
-
-									}
-								}
-							}
-
-							
-
+							raw_object_list.push_back(a_ref->GetHandle());
 							return RE::BSContainer::ForEachResult::kContinue;
 						});
-
-
-					
-
-
 
 				}
 
@@ -2987,6 +2111,844 @@ namespace Observer {
 			else
 				detect_interesting_time += dtime;
 
+
+
+			//processing, in small batches
+
+			if (!player->IsDead())
+			{
+				for (int i = 0; i < 200; i++)
+				{
+					auto raw_size = std::size(raw_object_list);
+					if (raw_size > 0)
+					{
+						auto a_ref_h = raw_object_list.at(raw_size - 1);
+
+
+						if (a_ref_h && a_ref_h.get() && a_ref_h.get().get())
+						{
+							auto a_ref = a_ref_h.get().get();
+
+							auto base_obj = a_ref->GetBaseObject();
+							auto base_type = base_obj->GetFormType();
+
+
+							if (base_type == RE::FormType::Hazard)
+							{
+								raw_object_list.pop_back();
+								continue;
+							}
+
+
+							if (frozen_falmers_condition)
+							{
+								if (!MiscThings::is_object_in_the_list(a_ref))
+								{
+									std::string name = get_frozen_falmer_name(a_ref);
+
+									if (name != "") //raycast embedded into name function
+									{
+										std::string info = MiscThings::insert_object_into_list_custom_name(name, a_ref);
+										if (info != "")
+											interesting_buffer.insert_or_assign(a_ref, info);
+									}
+								}
+							}
+
+							if (base_type == RE::FormType::Static)
+							{
+								raw_object_list.pop_back();
+								continue;
+							}
+
+
+
+							if (a_ref->formID == 0xab105) //ysgramor statue
+							{
+								if (!MiscThings::is_object_in_the_list(a_ref) && MiscThings::raycastable(a_ref, 1000.0f))
+								{
+									std::string info = MiscThings::insert_object_into_list_custom_name("Ysgramor Statue", a_ref);
+									if (info != "")
+										interesting_buffer.insert_or_assign(a_ref, info);
+								}
+							}
+
+							if (a_ref->formID == 0x51aec) //saartal orb
+							{
+								if (!MiscThings::is_object_in_the_list(a_ref) && player_ref->GetDistance(a_ref) < 1800.0f)
+								{
+									std::string info = MiscThings::insert_object_into_list_custom_name("Huge Glowing Spinning Magical Orb", a_ref);
+									if (info != "")
+										interesting_buffer.insert_or_assign(a_ref, info);
+
+
+									raw_object_list.pop_back();
+									continue;
+
+								}
+							}
+
+
+							if (base_type == RE::FormType::Activator)
+							{
+								if (!MiscThings::is_object_in_the_list(a_ref))
+								{
+									if (a_ref->formID == 0x430a3) //timewound
+									{
+										auto mq206 = (RE::TESQuest*)RE::TESForm::LookupByEditorID("MQ206");
+										if (mq206 && mq206->GetCurrentStageID() < 10)
+										{//too soon
+											raw_object_list.pop_back();
+											continue;
+										} 
+									}
+
+
+
+									auto word_of_power = MiscThings::get_word_of_power(a_ref);
+
+									if (word_of_power && word_of_power != (RE::TESObjectREFR*)(-1) && MiscThings::is_object_valid(a_ref))
+									{
+										std::string info = MiscThings::insert_object_into_list_custom_name("Word of Power, calling for you", a_ref);
+										if (info != "")
+											interesting_buffer.insert_or_assign(a_ref, info);
+									}
+								}
+								else
+								{
+									auto word_of_power = MiscThings::get_word_of_power(a_ref);
+
+									if (word_of_power && word_of_power != (RE::TESObjectREFR*)(-1))
+									{
+										if (!WalkerProcessor::is_fighting() && !WalkerProcessor::is_walking_important_path() && !Observer::threat_response_choice_pending())
+										{
+											if (player_ref->GetDistance(a_ref) < 2000.0f)
+											{
+												auto notification_info = objects_for_extra_notification.find(a_ref);
+
+												auto now = std::chrono::steady_clock::now().time_since_epoch().count();
+
+												if (notification_info == objects_for_extra_notification.end())
+												{
+													//new
+													objects_for_extra_notification.insert({ a_ref, {true, now} });
+
+													std::string info = MiscThings::insert_object_into_list_custom_name("Word of Power, calling for you", a_ref);
+
+													if (info != "")
+														send_random_context("You hear something... " + info, true);
+												}
+												else
+												{
+													//already exists but we want repetitive notification
+													float delta_info = (double)(now - notification_info->second.second) / 1000000000.0;
+
+													if (delta_info > 15.0f)
+													{
+														notification_info->second.second = now;
+
+														std::string info = MiscThings::insert_object_into_list_custom_name("Word of Power, calling for you", a_ref);
+
+														if (info != "")
+															send_random_context("You hear something... " + info, false);
+													}
+												}
+											}
+										}
+									}
+								}
+
+							}
+
+							auto distance = player_ref->GetDistance(a_ref);
+
+
+
+
+							if (distance <= scan_distance)
+							{
+
+								//RE::BSString result_string = "";
+								//RE::TESNPC* player_npc = RE::TESForm::LookupByID(0x7)->As<RE::TESNPC>();
+								//player_npc->GetActivateText(a_ref, result_string);
+								//std::string result_string_actual_string = result_string.c_str();
+								//if (result_string_actual_string.find("Carriage") != std::string::npos)
+								//{
+								//	bool stop_here = false;
+								//}
+
+
+
+
+								bool jail_distance_met = distance < 500.0f;
+								bool serving_jail = MiscThings::is_serving_jail();
+
+								bool jail_condition_raycastable = serving_jail && jail_distance_met && MiscThings::raycastable(a_ref, 500.0f, false);
+								bool jail_condition_all = serving_jail && jail_distance_met;
+
+
+
+								if (!MiscThings::is_object_valid(a_ref))
+								{
+									raw_object_list.pop_back();
+									continue;
+								}
+
+								std::string name = a_ref->GetName();
+								//std::string player_name = RE::PlayerCharacter::GetSingleton()->GetName();
+
+
+								//if (name.find("Crumbling") != std::string::npos)
+								//{
+								//	bool stop_here = false;
+								//}
+
+																				//player
+								if (name[0] != '\0' && std::size(name) > 1 && a_ref->formID != 0x14 && name != "Sit")
+								{
+
+									if (MiscThings::has_digits(name))
+									{
+										raw_object_list.pop_back();
+										continue;
+									}
+
+									if (a_ref->AsReference()->modelState == 0)
+									{
+										raw_object_list.pop_back();
+										continue;
+									} //skip objects without world model
+
+
+									if (base_type == RE::FormType::Activator)
+									{
+										auto test = (RE::TESObjectACTI*)base_obj;
+										std::string model = test->GetModel();
+										if (model.find("Marker_LinkMarker") != std::string::npos) //exclude markers. for some reason their model state is not 0 even though the model doesnt exist
+										{
+											raw_object_list.pop_back();
+											continue;
+										}
+
+										//little flags
+										if (model.find("MapFlag") != std::string::npos) //exclude markers. for some reason their model state is not 0 even though the model doesnt exist
+										{
+											raw_object_list.pop_back();
+											continue;
+										}
+									}
+
+
+
+									if (name.find("not be visible") != std::string::npos) //"This should not be visible [Furniture]"
+									{
+										raw_object_list.pop_back();
+										continue;
+									}
+
+									if (name.find("Do Not Delete") != std::string::npos)
+									{
+										raw_object_list.pop_back();
+										continue;
+									}
+
+									if (name.find("nvisible") != std::string::npos && name.find("arker") != std::string::npos)
+									{
+										raw_object_list.pop_back();
+										continue;
+									}
+
+									if (name.find("default") != std::string::npos)
+									{
+										raw_object_list.pop_back();
+										continue;
+									}
+
+
+
+									if (auto extra = a_ref->extraList.GetByType(RE::ExtraDataType::kItemDropper); extra)
+									{
+										auto extra_dropper = (RE::ExtraItemDropper*)extra;
+
+										if (extra_dropper && extra_dropper->dropper && extra_dropper->dropper.get())
+										{
+											auto dropper = extra_dropper->dropper.get().get();
+
+											if (dropper)
+											{
+												if (dropper->IsActor())
+												{
+
+													raw_object_list.pop_back();
+													continue;
+													//exclude dropped items, they have weird position.
+												}
+											}
+										}
+									}
+
+
+									if (a_ref->AsReference()->IsActor())
+									{
+
+										if (!MiscThings::is_object_in_the_list(a_ref) && ((a_ref->GetDistance(player_ref) < 150.0f && a_ref->formID != 0x2002b74) || ((MiscThings::is_carriage_driver(a_ref) && a_ref->GetDistance(player_ref) < 1300.0f) || MiscThings::raycastable(a_ref, scan_distance))))
+										{
+											std::string info = MiscThings::insert_object_into_list_and_get_info(a_ref);
+											if (info != "")
+											{
+												if (MiscThings::is_carriage_driver(a_ref))
+													send_random_context("You see: " + info, false);
+												else
+													interesting_buffer.insert_or_assign(a_ref, info);
+											}
+
+										}
+
+									}
+
+
+									if (base_type == RE::FormType::Door)
+									{
+										if (!MiscThings::is_object_in_the_list(a_ref))
+										{
+											auto door = (RE::TESObjectDOOR*)base_obj;
+											std::string model = door->GetModel();
+											//dlc1 boat-to-castle-door
+											if (a_ref->formID == 0x2002887 || a_ref->formID == 0x20028b6 || model.find("LoadMarker") != std::string::npos)
+											{
+												if (distance < 1000.0f)
+												{
+													std::string info = MiscThings::insert_object_into_list_and_get_info(a_ref);
+													if (info != "")
+														interesting_buffer.insert_or_assign(a_ref, info);
+												}
+											}
+											else
+											{
+												if (jail_condition_all || ignore_raycast || MiscThings::raycastable(a_ref, scan_distance))
+												{
+													std::string info = MiscThings::insert_object_into_list_and_get_info(a_ref);
+													if (info != "")
+														interesting_buffer.insert_or_assign(a_ref, info);
+												}
+											}
+										}
+
+									}
+
+
+
+									if (base_type == RE::FormType::Activator)
+									{
+										if (!MiscThings::is_object_in_the_list(a_ref))
+										{
+											float scan_distance_norm = scan_distance;
+											if (a_ref == RE::TESObjectREFR::LookupByID(0xC3B29))
+												scan_distance = 130.0f;
+
+											bool local_ignore_raycast = false;
+
+											auto object_acti = (RE::TESObjectACTI*)base_obj;
+
+											std::string model = object_acti->GetModel();
+
+											model = MiscThings::lowercase_string(model);
+
+											if (model.find("effects\\ashpile") != std::string::npos || model.find("effects\\dlc2ashspawnpile") != std::string::npos || model.find("aporewardact") != std::string::npos)
+											{
+												local_ignore_raycast = true;
+											}
+
+											if (a_ref->formID == 0x200f7f4)
+												local_ignore_raycast = true;
+
+
+											if (name.find("Nirnroot") != std::string::npos || name.find("Ashpile") != std::string::npos || (MiscThings::is_critter(a_ref) && distance < 2000.0f))
+												local_ignore_raycast = true;
+
+											if (jail_condition_all || local_ignore_raycast || ignore_raycast || MiscThings::raycastable(a_ref, scan_distance, false))
+											{
+												std::string info = MiscThings::insert_object_into_list_and_get_info(a_ref);
+
+
+												if (info != "" && MiscThings::is_object_valid(a_ref))
+												{
+
+													bool fiftyfifty = ((float)std::rand() / RAND_MAX) > 0.5f;
+													auto riverwood_fishing = RE::TESObjectREFR::LookupByID(0x0500081e);
+
+													//if (fiftyfifty && MiscThings::raycastable(a_ref, 1000.0f, true) && name.find("Fishing Supplies") != std::string::npos && !WalkerProcessor::is_fighting() && !WalkerProcessor::is_walking_important_path() && (MiscThings::player_has_fishing_rod() || a_ref == riverwood_fishing))
+													if (fiftyfifty && name.find("Fishing Supplies") != std::string::npos && !WalkerProcessor::is_fighting() && !WalkerProcessor::is_walking_important_path() && (MiscThings::player_has_fishing_rod() || a_ref == riverwood_fishing))
+													{
+														WalkerProcessor::look_at_object_by_refr(a_ref, true, 1.0f);
+														send_random_context("You see: " + info, false);
+													}
+													else
+													{
+														if (a_ref->formID == 0xbe4c7) //mzinchaleft puzzle
+														{
+															std::string info = "";
+
+															info += MiscThings::insert_object_into_list_custom_name(" Dwemer metal pole gate", (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xbe492)) + "\n";
+															info += MiscThings::insert_object_into_list_custom_name(" Dwemer metal pole gate", (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x63cf1)) + "\n";
+															info += MiscThings::insert_object_into_list_custom_name(" Dwemer metal pole gate", (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x63d08)) + "\n";
+															//info += MiscThings::insert_object_into_list_custom_name(" Dwemer metal pole gate", (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x63cfa)) + "\n";
+															info += MiscThings::insert_object_into_list_custom_name(" Dwemer metal pole gate", (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xbe4c0)) + "\n";
+															info += MiscThings::insert_object_into_list_custom_name(" Dwemer metal pole gate", (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xbe498)) + "\n";
+															info += MiscThings::insert_object_into_list_custom_name(" Dwemer metal pole gate", (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xbe4b5)) + "\n";
+
+															info += MiscThings::insert_object_into_list_and_get_info((RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xbe4c7)) + "\n";
+															info += MiscThings::insert_object_into_list_and_get_info((RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xbe4cf)) + "\n";
+															info += MiscThings::insert_object_into_list_and_get_info((RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xbe4c8)) + "\n";
+															info += MiscThings::insert_object_into_list_and_get_info((RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xbe4ca)) + "\n";
+															info += MiscThings::insert_object_into_list_and_get_info((RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xbe4cb)) + "\n";
+															info += MiscThings::insert_object_into_list_and_get_info((RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xc061c)) + "\n";
+
+															send_random_context("Looks like its a dwemer puzzle... you see: " + info, false);
+
+														}
+														else
+														{
+															interesting_buffer.insert_or_assign(a_ref, info);
+														}
+													}
+												}
+
+											}
+
+											scan_distance = scan_distance_norm;
+										}
+									}
+
+									if (base_type == RE::FormType::Furniture) //pullchains/levers
+									{
+										auto furniture = (RE::TESFurniture*)base_obj;
+										auto workbenchtype = furniture->workBenchData.benchType;
+										if (workbenchtype == RE::TESFurniture::WorkBenchData::BenchType::kNone)
+										{
+											if (furniture->HasKeywordString("ActivatorLever") || furniture->HasKeywordString("isPullChain"))
+											{
+												if (!MiscThings::is_object_in_the_list(a_ref) && (jail_condition_all || ignore_raycast || MiscThings::raycastable(a_ref, scan_distance)))
+												{
+													std::string info = MiscThings::insert_object_into_list_and_get_info(a_ref);
+													if (info != "")
+														interesting_buffer.insert_or_assign(a_ref, info);
+												}
+											}
+										}
+									}
+
+
+
+									if (a_ref->GetDistance(player_ref) < 1200.0f)
+									{
+										//and now with smaller range
+
+										if (base_type == RE::FormType::Container)
+										{
+											if (!MiscThings::is_object_in_the_list(a_ref) && (jail_condition_raycastable || ignore_raycast || MiscThings::raycastable(a_ref, 1000.0f)))
+											{
+												std::string info = MiscThings::insert_object_into_list_and_get_info(a_ref);
+												if (info != "")
+												{
+													if (info.find("Large Treasure") != std::string::npos)
+													{
+														RE::TESObjectREFR* klimmek_chest = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x9c614);
+
+														if (klimmek_chest == a_ref)
+														{
+															auto klimmek_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("FreeformIvarstead04");
+															if (klimmek_quest)
+															{
+																auto klimmek_stage = klimmek_quest->GetCurrentStageID();
+
+																if (klimmek_stage != 20 || !MiscThings::is_container_empty(a_ref))
+																{
+																	raw_object_list.pop_back();
+																	continue;
+																}
+															}
+														}
+
+
+
+														if (!WalkerProcessor::is_fighting() && !WalkerProcessor::is_walking_important_path() && !MiscThings::is_container_empty(a_ref))
+														{
+															WalkerProcessor::look_at_object_by_refr(a_ref, true, 1.0f);
+															send_random_context("You see: " + info, false); //large chests are not silent and immidiate 
+														}
+														else
+														{
+															if (!MiscThings::is_container_empty(a_ref))
+																interesting_buffer.insert_or_assign(a_ref, info);
+														}
+													}
+													else
+													{
+														if (!MiscThings::is_container_empty(a_ref))
+															interesting_buffer.insert_or_assign(a_ref, info);
+													}
+
+												}
+
+											}
+										}
+
+										if (base_obj && !MiscThings::is_serving_jail())
+										{
+											bool is_harvestable = false;
+
+											if (base_type == RE::FormType::Tree)
+											{
+												auto tree_form = (RE::TESObjectTREE*)base_obj;
+
+												auto test_flags = a_ref->AsReference()->GetFormFlags();
+
+												bool already_harvested = false;
+
+												if (test_flags & RE::TESObjectREFR::RecordFlags::kHarvested) //THIS FLAG IS POTENTIALLY INCORRECT.
+													already_harvested = true;
+
+												if (test_flags & 2048) //this is potentially only one we need here
+													already_harvested = true;
+
+
+
+
+												if (tree_form->produceItem && !already_harvested)
+													is_harvestable = true;
+											}
+
+											if (base_type == RE::FormType::Flora)
+											{
+												auto tree_form = (RE::TESFlora*)base_obj;
+
+												auto test_flags = a_ref->AsReference()->GetFormFlags();
+												bool already_harvested = false;
+												if (test_flags & RE::TESObjectREFR::RecordFlags::kHarvested) //THIS FLAG IS POTENTIALLY INCORRECT.
+													already_harvested = true;
+
+												if (tree_form->produceItem && !already_harvested)
+													is_harvestable = true;
+											}
+
+
+											if (is_harvestable)
+											{
+												if (!MiscThings::is_object_in_the_list(a_ref))
+												{
+													std::string temp_name = a_ref->GetDisplayFullName();
+
+													if (temp_name.find("Coin Purse") != std::string::npos)
+													{
+														if (ignore_raycast || MiscThings::raycastable(a_ref, 3000.0f, false))
+														{
+															std::string info = MiscThings::insert_object_into_list_and_get_info(a_ref);
+															if (info != "")
+															{
+																if (MiscThings::get_player_gold() < 100)
+																{
+																	if (!WalkerProcessor::is_fighting() && !WalkerProcessor::is_walking_important_path())
+																		WalkerProcessor::reset_walker();
+
+																	send_random_context("You see: " + info, false); //coin purses are not silent when we are broke so they dont end up with 0 gold for too long
+																}
+																else
+																{
+																	interesting_buffer.insert_or_assign(a_ref, info);
+
+																}
+															}
+														}
+													}
+													else
+													{
+														std::string info = MiscThings::insert_object_into_list_and_get_info(a_ref);
+														if (info != "")
+														{
+															interesting_buffer.insert_or_assign(a_ref, info);
+														}
+													}
+
+
+
+												}
+											}
+										}
+
+										if (base_type == RE::FormType::Furniture) //workbenches and beds
+										{
+											bool this_isnt_a_furniture = false;
+											auto furniture = (RE::TESFurniture*)base_obj;
+											auto workbenchtype = furniture->workBenchData.benchType;
+											if (workbenchtype != RE::TESFurniture::WorkBenchData::BenchType::kNone)
+											{
+												if (!MiscThings::is_object_in_the_list(a_ref) && (jail_condition_raycastable || ignore_raycast || MiscThings::raycastable(a_ref, 1000.0f, false)))
+												{
+													std::string info = MiscThings::insert_object_into_list_and_get_info(a_ref);
+													if (info != "")
+														interesting_buffer.insert_or_assign(a_ref, info);
+												}
+											}
+											else
+											{
+												if (furniture->furnFlags.any(RE::TESFurniture::ActiveMarker::kCanSleep))
+												{
+													bool player_owned = false;
+
+													auto owner_extra = (RE::ExtraOwnership*)a_ref->extraList.GetByType(RE::ExtraDataType::kOwnership);
+
+													if (owner_extra)
+													{
+														if (owner_extra->owner)
+														{
+															if (owner_extra->owner->GetFormID() == 0x7)
+																player_owned = true;
+														}
+													}
+
+
+													if (!MiscThings::is_object_in_the_list(a_ref) && (jail_condition_raycastable || ignore_raycast || player_owned || MiscThings::raycastable(a_ref, 1000.0f, false)))
+													{
+														std::string info = MiscThings::insert_object_into_list_and_get_info(a_ref);
+														if (info != "")
+														{
+															if (player_owned)
+																send_random_context("You see: " + info, false);
+															else
+																interesting_buffer.insert_or_assign(a_ref, info);
+														}
+
+													}
+												}
+												else
+												{
+													if (a_ref->formID == 0xaa033) //jorwaskr chair
+													{
+														if (!MiscThings::is_object_in_the_list(a_ref) && (jail_condition_raycastable || ignore_raycast || MiscThings::raycastable(a_ref, 1000.0f, false)))
+														{
+															std::string info = MiscThings::insert_object_into_list_and_get_info(a_ref);
+															if (info != "")
+															{
+																interesting_buffer.insert_or_assign(a_ref, info);
+															}
+
+														}
+													}
+
+													if (a_ref->formID == 0x2006892) //dawnguard first cave puzzle button
+													{
+														if (!MiscThings::is_object_in_the_list(a_ref) && (jail_condition_raycastable || ignore_raycast || MiscThings::raycastable(a_ref, 2000.0f, false)))
+														{
+															std::string info = MiscThings::insert_object_into_list_and_get_info(a_ref);
+															if (info != "")
+															{
+																interesting_buffer.insert_or_assign(a_ref, info);
+															}
+
+														}
+													}
+												}
+
+											}
+										}
+
+										float inventory_range = 500.0f;
+
+										if (special_range > 0.0f)
+											inventory_range = special_range;
+
+										if (a_ref->GetDistance(player_ref) < inventory_range)
+										{
+											if (base_obj->IsInventoryObject())
+											{
+												if (!MiscThings::is_object_in_the_list(a_ref))
+												{
+													std::string info = MiscThings::insert_object_into_list_and_get_info(a_ref);
+													if (info != "")
+														interesting_buffer.insert_or_assign(a_ref, info);
+												}
+											}
+										}
+
+
+									}
+
+								}
+								else
+								{
+									//nameless things that still have to be tracked.
+									//FXspiderWebKitDoorSpecial - normal
+									//FXspiderWebKitDoorSpecialDest - destroyed
+
+
+									if (!MiscThings::is_intro())
+									{
+										if (a_ref->IsActor() && a_ref != player_ref)
+										{
+											//may be ghost targets of greybeards
+
+											if (!MiscThings::is_object_in_the_list(a_ref))
+												if (a_ref->GetDistance(player_ref) < 200.0f || (jail_condition_raycastable || ignore_raycast || MiscThings::raycastable(a_ref, 5000.0f, false)))
+												{
+													auto actor = (RE::Actor*)a_ref;
+													auto npc = (RE::TESNPC*)a_ref->data.objectReference;
+
+													auto model3d = actor->GetCurrent3D();
+
+
+													//no name = ghost (i guess)
+													// 
+													//if (actor->IsGhost())
+													{
+														std::string info = MiscThings::insert_object_into_list_custom_name(" Ghost", a_ref);
+														if (info != "")
+														{
+															//give it immidiately
+															send_random_context("You see: " + info, false);
+
+
+															auto ghost_shouting_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("MQ105");
+
+															if (ghost_shouting_quest)
+															{
+																int quest_stage = ghost_shouting_quest->GetCurrentStageID();
+
+																if (quest_stage == 85 || quest_stage == 80)
+																{
+																	active_puzzle = 1;
+																	puzzle_target = a_ref;
+																}
+															}
+
+														}
+														//interesting_buffer.insert_or_assign(a_ref, info);
+													}
+												}
+
+										}
+									}
+
+
+									if (base_obj && (base_obj->formFlags & RE::TESForm::RecordFlags::kDestructible))
+									{
+										base_type = base_obj->GetFormType();
+
+										if (base_type == RE::FormType::Activator)
+										{
+											auto static_obj = (RE::TESObjectACTI*)base_obj;
+
+											std::string model = static_obj->GetModel();
+
+											if (model.find("FXspiderWebKitDoorSpecial") != std::string::npos)
+											{
+												if (a_ref->GetDistance(player_ref) < 300.0f)
+												{
+													if (!MiscThings::is_object_in_the_list(a_ref))
+													{
+														std::string info = MiscThings::insert_object_into_list_custom_name("[Destructible] Cobweb", a_ref);
+														if (info != "")
+															interesting_buffer.insert_or_assign(a_ref, info);
+													}
+												}
+											}
+
+
+											if (model.find("BeeHive01.nif") != std::string::npos)
+											{
+												if (a_ref->GetDistance(player_ref) < 600.0f)
+												{
+													if (!MiscThings::is_object_in_the_list(a_ref))
+													{
+														std::string info = MiscThings::insert_object_into_list_custom_name("[Flammable] Big beehive ", a_ref);
+														if (info != "")
+															interesting_buffer.insert_or_assign(a_ref, info);
+													}
+												}
+											}
+
+
+											if (model.find("TG01DwemerUrn") != std::string::npos)
+											{
+												if (a_ref->GetDistance(player_ref) < 300.0f)
+												{
+													if (!MiscThings::is_object_in_the_list(a_ref))
+													{
+														std::string info = MiscThings::insert_object_into_list_custom_name("[Destructible] Dwemer Urn", a_ref);
+														if (info != "")
+															interesting_buffer.insert_or_assign(a_ref, info);
+													}
+												}
+											}
+
+
+											if (model.find("StockadeBarricade") != std::string::npos)
+											{
+												if (a_ref->GetDistance(player_ref) < 300.0f)
+												{
+													auto linked = MiscThings::get_linked_ref(a_ref);
+
+													if (linked && !linked->IsDisabled())
+													{
+														if (!MiscThings::is_object_in_the_list(a_ref))
+														{
+															std::string info = MiscThings::insert_object_into_list_custom_name("[Destructible] Barricade", a_ref);
+															if (info != "")
+																interesting_buffer.insert_or_assign(a_ref, info);
+														}
+													}
+												}
+											}
+
+										}
+									}
+
+									RE::TESObjectREFR* mage_force_field_2 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x10d99d);
+
+									if (a_ref == mage_force_field_2 && mage_force_field_2)
+									{
+										RE::TESObjectREFR* redirect_marker = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x7029a57);
+										if (!MiscThings::is_object_in_the_list(a_ref))
+										{
+											std::string info = MiscThings::insert_object_into_list_custom_name("Large Magical Force Field around entire College", a_ref);
+											if (info != "")
+												interesting_buffer.insert_or_assign(a_ref, info);
+										}
+									}
+
+
+									RE::TESObjectREFR* mage_force_field_1 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xf0ea9);
+
+									if (a_ref == mage_force_field_1 && mage_force_field_1)
+									{
+										RE::TESObjectREFR* redirect_marker = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x7029a57);
+										if (!MiscThings::is_object_in_the_list(a_ref))
+										{
+											std::string info = MiscThings::insert_object_into_list_custom_name("Magical Force Field", a_ref);
+											if (info != "")
+												interesting_buffer.insert_or_assign(a_ref, info);
+										}
+									}
+
+
+
+
+
+								}
+							}
+						}
+
+
+						//[[[[ processing ]]]]
+
+						raw_object_list.pop_back();
+					}
+					else
+						break;
+				}
+
+
+			}
 
 			if (detect_interesting_spit_results_time > 5.0f)
 			{
@@ -3250,19 +3212,25 @@ namespace Observer {
 	{
 		if (observers_green_light)
 		{
-			if (detect_events_time > 0.1f)
+
+			
+			auto player = RE::PlayerCharacter::GetSingleton();
+			auto player_ref = player->AsReference();
+			auto player_actor = (RE::Actor*)player_ref;
+
+			float scan_distance = 2000.0f;
+			auto player_cell = player->GetParentCell();
+			if (player_cell && player_cell->IsInteriorCell())
+				scan_distance = 2000.0f;
+
+
+
+
+			if (detect_events_time > 0.1f && std::size(raw_event_object_list) <= 0)
 			{
+				//Hooks::add_debug_line("DETECT EVENTS TRIGGERED, TIME DELTA: " + std::to_string(detect_events_time), true);
+
 				detect_events_time = 0.0f;
-				std::vector<std::string> result{};
-				auto player = RE::PlayerCharacter::GetSingleton();
-				auto player_ref = player->AsReference();
-				auto player_actor = (RE::Actor*)player_ref;
-
-				float scan_distance = 2000.0f;
-				auto player_cell = player->GetParentCell();
-				if (player_cell && player_cell->IsInteriorCell())
-					scan_distance = 2000.0f;
-
 
 
 				auto carriage_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("DialogueCarriageSystem");
@@ -3325,46 +3293,60 @@ namespace Observer {
 
 				//if (std::size(objects_to_track) > 5000)
 				//	objects_to_track.clear();
-
-				bool silent = false;
-
-				
-
+	
+				/*
 				RE::TES::GetSingleton()->ForEachReferenceInRange(player_ref, scan_distance,
 					//player->GetParentCell()->ForEachReferenceInRange(player->GetPosition(), 3000.0,
 					[&](RE::TESObjectREFR* a_ref) {
 
-						if (a_ref)
+						raw_event_object_list.push_back(a_ref);
+						
+
+						return RE::BSContainer::ForEachResult::kContinue;
+					});
+*/
+
+
+				RE::TES::GetSingleton()->ForEachReferenceInRange(player_ref, 20000.0f, //999999.0 is too much
+					//player->GetParentCell()->ForEachReferenceInRange(player->GetPosition(), 3000.0,
+					[&](RE::TESObjectREFR* a_ref) {
+
+						raw_event_object_list.push_back(a_ref->GetHandle());
+						
+						return RE::BSContainer::ForEachResult::kContinue;
+					});
+
+
+
+			}
+			else
+				detect_events_time += dtime;
+
+
+
+			//now process in small batches
+
+
+
+			for (int i = 0; i < 200; i++)
+			{
+				auto raw_size = std::size(raw_event_object_list);
+				if (raw_size > 0)
+				{
+					auto a_ref_h = raw_event_object_list.at(raw_size - 1);
+
+
+					if (a_ref_h && a_ref_h.get() && a_ref_h.get().get())
+					{
+						auto a_ref = a_ref_h.get().get();
+
+						if (player->GetDistance(a_ref) < scan_distance)
 						{
-							//auto base_obj = a_ref->GetBaseObject();
-							//auto base_type = base_obj->GetFormType();
-
-
-
-
-
-							//if (base_type == RE::FormType::Static || base_type == RE::FormType::Hazard)
-							//if (base_type == RE::FormType::Hazard)
-							//	return RE::BSContainer::ForEachResult::kContinue;
-
-							//if (base_type == RE::FormType::Static)
-							//	return RE::BSContainer::ForEachResult::kContinue;
-
+							//distance < scan_distance
 
 							if (a_ref->IsActor())
 							{
-								//std::string name1 = a_ref->GetDisplayFullName();
-								//if (name1 == "Headsman")
-								//{
-								//	bool headsman_found = true;
-								//}
-
-
 								auto actor_ref = (RE::Actor*)a_ref;
-
-								//actor_ref->currentProcess->high.
-
-
 
 								if (objects_to_track.find(a_ref) == objects_to_track.end())
 								{
@@ -3419,12 +3401,12 @@ namespace Observer {
 										if (new_state.pillar_face_code)
 										{
 											std::string message_text = "[" + actor_name + " became invulnerable!]";
-											result.push_back(message_text);
+											detect_events_result.push_back(message_text);
 										}
 										else
 										{
 											std::string message_text = "[" + actor_name + " became vulnerable!]";
-											result.push_back(message_text);
+											detect_events_result.push_back(message_text);
 										}
 									}
 
@@ -3458,7 +3440,7 @@ namespace Observer {
 											if (new_race_name != "")
 											{
 												std::string message_text = "[" + actor_name + " turned into " + new_race_name + "!]";
-												result.push_back(message_text);
+												detect_events_result.push_back(message_text);
 											}
 										}
 									}
@@ -3489,7 +3471,10 @@ namespace Observer {
 
 
 													if (MiscThings::is_intro2() && killer_actor == a_ref && actor_ref->race->fullName == "Dragon Race")
-														return RE::BSContainer::ForEachResult::kContinue; //alduin kills himself during helgen attack for some reason. skip it
+													{
+														raw_event_object_list.pop_back();
+														continue;
+													} //alduin kills himself during helgen attack for some reason. skip it
 
 													if (killer_actor)
 													{
@@ -3510,8 +3495,8 @@ namespace Observer {
 
 											if (!dont_add)
 											{
-												silent = true;
-												result.push_back(message_text);
+												detect_events_send_result_silent = true;
+												detect_events_result.push_back(message_text);
 											}
 
 										}
@@ -3536,8 +3521,8 @@ namespace Observer {
 
 										if (message_text != "")
 										{
-											silent = true;
-											result.push_back(message_text);
+											detect_events_send_result_silent = true;
+											detect_events_result.push_back(message_text);
 										}
 
 
@@ -3557,8 +3542,8 @@ namespace Observer {
 
 											if (zombie_name != "")
 											{
-												silent = true;
-												result.push_back(message_text);
+												detect_events_send_result_silent = true;
+												detect_events_result.push_back(message_text);
 											}
 										}
 
@@ -3581,8 +3566,8 @@ namespace Observer {
 
 											if (victim_name != "")
 											{
-												silent = true;
-												result.push_back(message_text);
+												detect_events_send_result_silent = true;
+												detect_events_result.push_back(message_text);
 											}
 
 										}
@@ -3623,10 +3608,16 @@ namespace Observer {
 
 														if (target_base_type == RE::FormType::Furniture)
 														{
-															return RE::BSContainer::ForEachResult::kContinue;
+															{
+																raw_event_object_list.pop_back();
+																continue;
+															}
 
 															if (target_refr == a_ref)
-																return RE::BSContainer::ForEachResult::kContinue; //alduin kills himself during helgen attack for some reason. skip it
+															{
+																raw_event_object_list.pop_back();
+																continue;
+															} //alduin kills himself during helgen attack for some reason. skip it
 
 															if (actor_ref->race->fullName == "Dragon Race" && target_refr->IsActor())
 																interaction_name = " killed "; //when dragon interacts with actor it means he eats them or something like that
@@ -3642,27 +3633,36 @@ namespace Observer {
 																{
 																	//chair
 																	if (new_target) //THIS IS WRONG WAY OF DOING IT. only stood up makes sense
-																		return RE::BSContainer::ForEachResult::kContinue; //interaction_name = " sat on ";
+																	{
+																		raw_event_object_list.pop_back();
+																		continue;
+																	} //interaction_name = " sat on ";
 																	else
 																		interaction_name = " stood up from ";
 																}
 																else
 																{
 																	if (new_target)
-																		return RE::BSContainer::ForEachResult::kContinue;
+																	{
+																		raw_event_object_list.pop_back();
+																		continue;
+																	}
 																}
 															}
 															else
 															{
 																if (new_target)
-																	return RE::BSContainer::ForEachResult::kContinue;
+																{
+																	raw_event_object_list.pop_back();
+																	continue;
+																}
 															}
 
 															std::string message = "[" + actor_name + interaction_name + target_name;
 															if (!a_ref->IsDead())
 															{
-																silent = true;
-																result.push_back(message);
+																detect_events_send_result_silent = true;
+																detect_events_result.push_back(message);
 															}
 
 														}
@@ -3710,7 +3710,7 @@ namespace Observer {
 										//	action_data = static_cast<int>(*extra_action->action);
 										//}
 
-										state = { 0, 0, 0, activation, pillar_face, trap_firing, destructible_state, 0, 0, 0};
+										state = { 0, 0, 0, activation, pillar_face, trap_firing, destructible_state, 0, 0, 0 };
 
 										objects_to_track.insert({ a_ref, state });
 									}
@@ -3725,7 +3725,7 @@ namespace Observer {
 										int activation = MiscThings::two_state_activator_state(a_ref);
 										int destructible_state = MiscThings::get_destructible_state(a_ref);
 
-										old_object_state new_state = { 0, 0, 0, activation, pillar_face, trap_firing, destructible_state, 0, 0, 0};
+										old_object_state new_state = { 0, 0, 0, activation, pillar_face, trap_firing, destructible_state, 0, 0, 0 };
 
 
 										if (base_type == RE::FormType::Door)// && a_ref->GetDisplayFullName() == "")
@@ -3740,10 +3740,10 @@ namespace Observer {
 													std::string name = MiscThings::insert_object_into_list_custom_name("Dwemer Door Seal", a_ref);
 
 													if (activation == 1)
-														result.push_back("[ " + name + " closed]");
+														detect_events_result.push_back("[ " + name + " closed]");
 
 													if (activation == 0)
-														result.push_back("[ " + name + " opened]");
+														detect_events_result.push_back("[ " + name + " opened]");
 												}
 
 												if (model.find("CaveGSecretDoor") != std::string::npos)
@@ -3752,34 +3752,34 @@ namespace Observer {
 
 													if (old_state.action_flags == 2)
 														if (activation == 0)
-															result.push_back("[ " + name + " opened]");
+															detect_events_result.push_back("[ " + name + " opened]");
 
 													if (old_state.action_flags == 3)
 														if (activation == 1)
-															result.push_back("[ " + name + " closed]");
+															detect_events_result.push_back("[ " + name + " closed]");
 
 													if (old_state.action_flags == 1)
 														if (activation == 2)
-															result.push_back("[ " + name + " is opening...]");
+															detect_events_result.push_back("[ " + name + " is opening...]");
 
 													if (old_state.action_flags == 0)
 														if (activation == 3)
-															result.push_back("[ " + name + " is closing...]");
+															detect_events_result.push_back("[ " + name + " is closing...]");
 												}
 
 												if (model.find("DwePtnDoor01") != std::string::npos)
 												{
 													std::string name = MiscThings::insert_object_into_list_custom_name("Dwemer metal gate", a_ref);
 
-													if (std::size(result) == 0 || result.at(std::size(result) - 1).find("Dwemer metal gate") == std::string::npos)
+													if (std::size(detect_events_result) == 0 || detect_events_result.at(std::size(detect_events_result) - 1).find("Dwemer metal gate") == std::string::npos)
 													{
 														if (old_state.action_flags == 3)
 															if (activation == 1)
-																result.push_back("[ " + name + " closed]");
+																detect_events_result.push_back("[ " + name + " closed]");
 
 														if (old_state.action_flags == 2)
 															if (activation == 0)
-																result.push_back("[ " + name + " opened]");
+																detect_events_result.push_back("[ " + name + " opened]");
 													}
 												}
 
@@ -3789,10 +3789,10 @@ namespace Observer {
 													std::string name = MiscThings::insert_object_into_list_custom_name("Nordic metal floor gate", a_ref);
 
 													if (activation == 1)
-														result.push_back("[ " + name + " closed]");
+														detect_events_result.push_back("[ " + name + " closed]");
 
 													if (activation == 0)
-														result.push_back("[ " + name + " opened]");
+														detect_events_result.push_back("[ " + name + " opened]");
 												}
 
 
@@ -3840,7 +3840,7 @@ namespace Observer {
 												if (a_ref->formID == 0x403a358)
 												{
 													if (activation == 0)
-														result.push_back("The puzzle is solved! New book appeared on the central pedestal");
+														detect_events_result.push_back("The puzzle is solved! New book appeared on the central pedestal");
 												}
 
 
@@ -3878,7 +3878,7 @@ namespace Observer {
 													{
 														std::string name = MiscThings::insert_object_into_list_custom_name("Magical Ice Door", a_ref);
 														if (name != "")
-															result.push_back("[ " + name + " opened]");
+															detect_events_result.push_back("[ " + name + " opened]");
 													}
 												}
 
@@ -3890,7 +3890,7 @@ namespace Observer {
 													{
 														std::string name = MiscThings::insert_object_into_list_custom_name("Magical Fire Door", a_ref);
 														if (name != "")
-															result.push_back("[ " + name + " opened]");
+															detect_events_result.push_back("[ " + name + " opened]");
 													}
 												}
 
@@ -3901,17 +3901,17 @@ namespace Observer {
 													if (extra_anim)
 													{
 														auto extra_anim_graph = (RE::ExtraAnimGraphManager*)extra_anim;
-														if (extra_anim_graph->animGraphMgr)
+														if (extra_anim_graph->animGraphMgr && extra_anim_graph->animGraphMgr->variableCache.animationGraph)
 														{
 															if (extra_anim_graph->animGraphMgr->variableCache.animationGraph->projectName == "RTMercerRamp01")
 															{
 																std::string name = MiscThings::insert_object_into_list_custom_name("Ramp Mechanism", a_ref);
 
 																if (activation == 0)
-																	result.push_back("[ " + name + " opened]");
+																	detect_events_result.push_back("[ " + name + " opened]");
 
 																if (activation == 1)
-																	result.push_back("[ " + name + " closed]");
+																	detect_events_result.push_back("[ " + name + " closed]");
 															}
 
 
@@ -3920,10 +3920,10 @@ namespace Observer {
 																std::string name = MiscThings::insert_object_into_list_custom_name("Metal Gate", a_ref);
 
 																if (activation == 1)
-																	result.push_back("[ " + name + " closed]");
+																	detect_events_result.push_back("[ " + name + " closed]");
 
 																if (activation == 0)
-																	result.push_back("[ " + name + " opened]");
+																	detect_events_result.push_back("[ " + name + " opened]");
 															}
 
 
@@ -3935,14 +3935,14 @@ namespace Observer {
 
 																	if (activation == 0)
 																	{
-																		result.push_back("[ " + name + " closed]");
+																		detect_events_result.push_back("[ " + name + " closed]");
 																		no_spam = true;
 																	}
 
 
 																	if (activation == 1)
 																	{
-																		result.push_back("[ " + name + " opened]");
+																		detect_events_result.push_back("[ " + name + " opened]");
 																		no_spam = true;
 																	}
 
@@ -3955,10 +3955,10 @@ namespace Observer {
 																std::string name = MiscThings::insert_object_into_list_custom_name("Secret Castle Wall Door", a_ref);
 
 																if (activation == 0)
-																	result.push_back("[ " + name + " opened]");
+																	detect_events_result.push_back("[ " + name + " opened]");
 
 																if (activation == 1)
-																	result.push_back("[ " + name + " closed]");
+																	detect_events_result.push_back("[ " + name + " closed]");
 															}
 
 
@@ -3968,21 +3968,21 @@ namespace Observer {
 																std::string name = MiscThings::insert_object_into_list_custom_name("Rotating Stone Door", a_ref);
 
 																if (activation == 0)
-																	result.push_back("[ " + name + " opened]");
+																	detect_events_result.push_back("[ " + name + " opened]");
 
 																if (activation == 1)
-																	result.push_back("[ " + name + " closed]");
+																	detect_events_result.push_back("[ " + name + " closed]");
 															}
-															
+
 															if (extra_anim_graph->animGraphMgr->variableCache.animationGraph->projectName == "TrapNorPlatformStairs01")
 															{
 																std::string name = MiscThings::insert_object_into_list_custom_name("Secret Sliding Staircase", a_ref);
 
 																if (activation == 0)
-																	result.push_back("[ " + name + " slided up]");
+																	detect_events_result.push_back("[ " + name + " slided up]");
 
 																if (activation == 1)
-																	result.push_back("[ " + name + " slided down]");
+																	detect_events_result.push_back("[ " + name + " slided down]");
 															}
 
 															//the problem with these - they are default 2 state activators. to properly set it up so 0 is open (lowered) and 1 is closed (raised) - need to invert it in two_state_activator function
@@ -3993,10 +3993,10 @@ namespace Observer {
 																std::string name = MiscThings::insert_object_into_list_custom_name("Large wooden bridge", a_ref);
 
 																if (activation == 0)
-																	result.push_back("[ " + name + " raised]");
+																	detect_events_result.push_back("[ " + name + " raised]");
 
 																if (activation == 1)
-																	result.push_back("[ " + name + " lowered]");
+																	detect_events_result.push_back("[ " + name + " lowered]");
 															}
 
 															if (extra_anim_graph->animGraphMgr->variableCache.animationGraph->projectName == "ApoBendingBridge01")
@@ -4004,10 +4004,10 @@ namespace Observer {
 																std::string name = MiscThings::insert_object_into_list_custom_name("Apocrypha Bridge", a_ref);
 
 																if (activation == 0)
-																	result.push_back("[ " + name + " unrolled]");
+																	detect_events_result.push_back("[ " + name + " unrolled]");
 
 																if (activation == 1)
-																	result.push_back("[ " + name + " rolled up]");
+																	detect_events_result.push_back("[ " + name + " rolled up]");
 															}
 
 															if (extra_anim_graph->animGraphMgr->variableCache.animationGraph->projectName == "ApoScryeTrigger01")
@@ -4015,10 +4015,10 @@ namespace Observer {
 																std::string name = MiscThings::insert_object_into_list_and_get_info(a_ref);
 
 																if (activation == 0)
-																	result.push_back("[ " + name + " closed]");
+																	detect_events_result.push_back("[ " + name + " closed]");
 
 																if (activation == 1)
-																	result.push_back("[ " + name + " opened]");
+																	detect_events_result.push_back("[ " + name + " opened]");
 															}
 
 
@@ -4027,10 +4027,10 @@ namespace Observer {
 																std::string name = MiscThings::insert_object_into_list_custom_name("Dwemer Metal Bridge", a_ref);
 
 																if (activation == 0)
-																	result.push_back("[ " + name + " raised]");
+																	detect_events_result.push_back("[ " + name + " raised]");
 
 																if (activation == 1)
-																	result.push_back("[ " + name + " lowered]");
+																	detect_events_result.push_back("[ " + name + " lowered]");
 
 															}
 
@@ -4040,10 +4040,10 @@ namespace Observer {
 																std::string name = MiscThings::insert_object_into_list_custom_name("Dwemer Stone Stairs", a_ref);
 
 																if (activation == 0)
-																	result.push_back("[ " + name + " raised]");
+																	detect_events_result.push_back("[ " + name + " raised]");
 
 																if (activation == 1)
-																	result.push_back("[ " + name + " lowered]");
+																	detect_events_result.push_back("[ " + name + " lowered]");
 															}
 
 
@@ -4064,7 +4064,7 @@ namespace Observer {
 																	if (!no_spam)
 																	{
 																		std::string name = MiscThings::insert_object_into_list_custom_name("Pole Gate", a_ref);
-																		result.push_back("[ " + name + " closed]");
+																		detect_events_result.push_back("[ " + name + " closed]");
 																		no_spam = true;
 																	}
 																}
@@ -4083,7 +4083,7 @@ namespace Observer {
 																	if (!no_spam)
 																	{
 																		std::string name = MiscThings::insert_object_into_list_custom_name("Pole Gate", a_ref);
-																		result.push_back("[ " + name + " opened]");
+																		detect_events_result.push_back("[ " + name + " opened]");
 																		no_spam = true;
 																	}
 
@@ -4098,10 +4098,10 @@ namespace Observer {
 																std::string name = MiscThings::insert_object_into_list_and_get_info(a_ref);
 
 																if (activation == 1)
-																	result.push_back("[You insert Blank Lexicon Cube into " + name + " stand...]");
+																	detect_events_result.push_back("[You insert Blank Lexicon Cube into " + name + " stand...]");
 
 																if (activation == -1)
-																	result.push_back("[You take Blank Lexicon Cube out of " + name + " stand...]");
+																	detect_events_result.push_back("[You take Blank Lexicon Cube out of " + name + " stand...]");
 
 															}
 
@@ -4111,10 +4111,10 @@ namespace Observer {
 																std::string name = MiscThings::insert_object_into_list_and_get_info(a_ref);
 
 																//if (activation == 1)
-																//	result.push_back("[You insert Blank Lexicon Cube into " + name + " stand...]");
+																//	detect_events_result.push_back("[You insert Blank Lexicon Cube into " + name + " stand...]");
 
 																if (activation == -1)
-																	result.push_back("[You take Enscribed Lexicon Cube out of " + name + " stand...]");
+																	detect_events_result.push_back("[You take Enscribed Lexicon Cube out of " + name + " stand...]");
 
 															}
 
@@ -4128,12 +4128,12 @@ namespace Observer {
 
 																if (activation != 0)
 																{
-																	result.push_back("[" + name + " turned to position " + std::to_string(activation) + "...]" + MiscThings::get_pillar_solved_text(a_ref));
+																	detect_events_result.push_back("[" + name + " turned to position " + std::to_string(activation) + "...]" + MiscThings::get_pillar_solved_text(a_ref));
 																}
 																else
 																{
-																	silent = true;
-																	result.push_back("[" + name + " started rotating...");
+																	detect_events_send_result_silent = true;
+																	detect_events_result.push_back("[" + name + " started rotating...");
 																	WalkerProcessor::look_at_object_by_refr(a_ref, true, 0.25f);
 																}
 
@@ -4147,12 +4147,12 @@ namespace Observer {
 
 																if (activation == 10)
 																{
-																	silent = true;
-																	result.push_back("[" + name + " started rotating...]");
+																	detect_events_send_result_silent = true;
+																	detect_events_result.push_back("[" + name + " started rotating...]");
 																	WalkerProcessor::look_at_object_by_refr(a_ref, true, 0.25f);
 																}
 																else
-																	result.push_back("[" + name + " stopped rotating, now it is in a new position]");
+																	detect_events_result.push_back("[" + name + " stopped rotating, now it is in a new position]");
 
 															}
 
@@ -4162,19 +4162,19 @@ namespace Observer {
 
 																if (activation == 10)
 																{
-																	silent = true;
-																	result.push_back("[" + name + " started rotating...]");
+																	detect_events_send_result_silent = true;
+																	detect_events_result.push_back("[" + name + " started rotating...]");
 																	WalkerProcessor::look_at_object_by_refr(a_ref, true);
 																}
 																else
 																	if (activation == 20)
 																	{
-																		result.push_back("[" + name + " stopped moving... the mechanism lowered some big crystal capsule from the ceiling. The capsule opens... and you see some shining scroll inside]");
+																		detect_events_result.push_back("[" + name + " stopped moving... the mechanism lowered some big crystal capsule from the ceiling. The capsule opens... and you see some shining scroll inside]");
 																		auto elder_scroll_pickup = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x88268);
 																		WalkerProcessor::look_at_object_by_refr(elder_scroll_pickup, true);
 																	}
 																	else
-																		result.push_back("[" + name + " stopped rotating, now it is in a new position]");
+																		detect_events_result.push_back("[" + name + " stopped rotating, now it is in a new position]");
 
 															}
 
@@ -4186,10 +4186,10 @@ namespace Observer {
 																std::string name = MiscThings::insert_object_into_list_and_get_info(a_ref);
 
 																if (old_state.action_flags == 1)
-																	result.push_back("[" + name + " opened, now it can be pressed]");
+																	detect_events_result.push_back("[" + name + " opened, now it can be pressed]");
 
 																if (activation == 1)
-																	result.push_back("[" + name + " closed, now it cannot be pressed]");
+																	detect_events_result.push_back("[" + name + " closed, now it cannot be pressed]");
 
 															}
 
@@ -4203,7 +4203,7 @@ namespace Observer {
 
 
 																if (activation == 0)
-																	result.push_back("[ " + name + " closed]");
+																	detect_events_result.push_back("[ " + name + " closed]");
 
 																if (activation == 1)
 																{
@@ -4214,7 +4214,7 @@ namespace Observer {
 																		quicksave();
 
 
-																	result.push_back("[ " + name + " opened]");
+																	detect_events_result.push_back("[ " + name + " opened]");
 																}
 
 															}
@@ -4226,10 +4226,10 @@ namespace Observer {
 																std::string name = MiscThings::insert_object_into_list_custom_name("Secret cave wall door", a_ref);
 
 																if (activation == 1)
-																	result.push_back("[ " + name + " closed]");
+																	detect_events_result.push_back("[ " + name + " closed]");
 
 																if (activation == 0)
-																	result.push_back("[ " + name + " opened]");
+																	detect_events_result.push_back("[ " + name + " opened]");
 															}
 
 															if (anim_name == "ImpPortcullisSmall01")
@@ -4237,10 +4237,10 @@ namespace Observer {
 																std::string name = MiscThings::insert_object_into_list_custom_name("Heavy wooden gate", a_ref);
 
 																if (activation == 0)
-																	result.push_back("[ " + name + " opened]");
+																	detect_events_result.push_back("[ " + name + " opened]");
 
 																if (activation == 1)
-																	result.push_back("[ " + name + " closed]");
+																	detect_events_result.push_back("[ " + name + " closed]");
 															}
 
 															//
@@ -4254,12 +4254,12 @@ namespace Observer {
 																	if (a_ref->formID == 0x72434) //saartal pillars1
 																		quicksave();
 
-																	result.push_back("[ " + name + " opened]");
+																	detect_events_result.push_back("[ " + name + " opened]");
 																}
-																	
+
 
 																if (activation == 1)
-																	result.push_back("[ " + name + " closed]");
+																	detect_events_result.push_back("[ " + name + " closed]");
 															}
 
 
@@ -4272,12 +4272,12 @@ namespace Observer {
 																	if (a_ref->formID == 0x725b5) //saartal pillars2
 																		quicksave();
 
-																	result.push_back("[ " + name + " opened]");
+																	detect_events_result.push_back("[ " + name + " opened]");
 																}
-																	
+
 
 																if (activation == 1)
-																	result.push_back("[ " + name + " closed]");
+																	detect_events_result.push_back("[ " + name + " closed]");
 															}
 
 															if (anim_name == "SarcophagusTopOpen")
@@ -4286,7 +4286,7 @@ namespace Observer {
 																if (activation == 1)
 																{
 																	if (name != "") //this is meant for destructible wall in solitude prison. TODO: maybe describe actual sacrophagus, some of them really do have passages behind. But this triggers for every draugr sarcophagus opening so probably no
-																		result.push_back("[ " + name + " crumbles and reveals the passage behind it]");
+																		detect_events_result.push_back("[ " + name + " crumbles and reveals the passage behind it]");
 																}
 
 															}
@@ -4295,13 +4295,13 @@ namespace Observer {
 															{
 																std::string name = MiscThings::insert_object_into_list_custom_name("Secret Sliding Altar Door", a_ref);
 
-																silent = true;
+																detect_events_send_result_silent = true;
 
 																if (activation == 0)
-																	result.push_back("[ " + name + " opened]");
+																	detect_events_result.push_back("[ " + name + " opened]");
 
 																if (activation == 1)
-																	result.push_back("[ " + name + " closed]");
+																	detect_events_result.push_back("[ " + name + " closed]");
 															}
 
 
@@ -4313,14 +4313,14 @@ namespace Observer {
 
 																	if (activation == 0)
 																	{
-																		result.push_back("[ " + name + " opened]");
+																		detect_events_result.push_back("[ " + name + " opened]");
 																		no_spam = true;
 																	}
 
 
 																	if (activation == 1)
 																	{
-																		result.push_back("[ " + name + " closed]");
+																		detect_events_result.push_back("[ " + name + " closed]");
 																		no_spam = true;
 																	}
 
@@ -4352,14 +4352,14 @@ namespace Observer {
 
 																	if (activation == 0)
 																	{
-																		result.push_back("[ " + name + " opened]");
+																		detect_events_result.push_back("[ " + name + " opened]");
 																		no_spam = true;
 																	}
 
 
 																	if (activation == 1)
 																	{
-																		result.push_back("[ " + name + " closed]");
+																		detect_events_result.push_back("[ " + name + " closed]");
 																		no_spam = true;
 																	}
 																}
@@ -4427,7 +4427,7 @@ namespace Observer {
 
 																	if (activation == 0)
 																	{
-																		result.push_back("[ " + name + " opened]");
+																		detect_events_result.push_back("[ " + name + " opened]");
 																		no_spam = true;
 
 
@@ -4449,7 +4449,7 @@ namespace Observer {
 
 																	if (activation == 1)
 																	{
-																		result.push_back("[ " + name + " closed]");
+																		detect_events_result.push_back("[ " + name + " closed]");
 																		no_spam = true;
 																	}
 
@@ -4462,10 +4462,10 @@ namespace Observer {
 																std::string name = MiscThings::insert_object_into_list_custom_name("Elder Tree Roots", a_ref);
 
 																if (activation == 0)
-																	result.push_back("[ " + name + " lifted]");
+																	detect_events_result.push_back("[ " + name + " lifted]");
 
 																if (activation == 1)
-																	result.push_back("[ " + name + " fell, blocking the path]");
+																	detect_events_result.push_back("[ " + name + " fell, blocking the path]");
 															}
 
 															if (anim_name.find("PuzzleDoorKeyHole") != std::string::npos)// && anim_name.find("PuzzleDoorKeyHoleIvory") == std::string::npos)
@@ -4473,20 +4473,20 @@ namespace Observer {
 																std::string name = MiscThings::insert_object_into_list_custom_name("[Puzzle door] Ancient Nordic Door", a_ref);
 
 																//if (activation == 0)
-																//	result.push_back("[" + name + " 0]");
+																//	detect_events_result.push_back("[" + name + " 0]");
 
 																if (activation == 1)
-																	result.push_back("[" + name + " is opening...]");
+																	detect_events_result.push_back("[" + name + " is opening...]");
 
 																//if (activation == 2)
-																//	result.push_back("[" + name + " 2]");
+																//	detect_events_result.push_back("[" + name + " 2]");
 
 
 																//if (activation == 3)
-																//	result.push_back("[" + name + " 3]");
+																//	detect_events_result.push_back("[" + name + " 3]");
 
 																if (activation == 4)
-																	result.push_back("[" + name + " didn't move... Seems like the puzzle rings on it must be rotated in correct positions for the key to work]");
+																	detect_events_result.push_back("[" + name + " didn't move... Seems like the puzzle rings on it must be rotated in correct positions for the key to work]");
 															}
 															//
 
@@ -4503,7 +4503,7 @@ namespace Observer {
 
 										if (old_state.pillar_face_code != new_state.pillar_face_code)
 										{
-											
+
 											//if (new_state.pillar_face_code > 0 && new_state.pillar_face_code < 21)
 											//{
 											std::string pillar_name = MiscThings::get_stateless_info(a_ref);
@@ -4518,21 +4518,21 @@ namespace Observer {
 											switch (a_ref->formID)
 											{
 												//saartal puzzle pillar 2 pillars
-												case (0x725b9):
-												case (0x725b8):
-												case (0x725b7):
-												case (0x725b6):
-													silent = true;
-													break;
+											case (0x725b9):
+											case (0x725b8):
+											case (0x725b7):
+											case (0x725b6):
+												detect_events_send_result_silent = true;
+												break;
 											}
 
 
 											if (pillar_name != "" && pillar_face_name != "")
-												result.push_back(pillar_name + " turned to" + pillar_face_name + solved_text);
+												detect_events_result.push_back(pillar_name + " turned to" + pillar_face_name + solved_text);
 											else
 											{
 												if (new_state.pillar_face_code == 999 && a_ref->formID == 0x2003e8f) //one of serana's braziers in her tomb
-													result.push_back("[Purple Magic appears... all Braziers moved to Outer positions, the floor formed a circular staircase, revealing the Stone Monolith beneath it...");
+													detect_events_result.push_back("[Purple Magic appears... all Braziers moved to Outer positions, the floor formed a circular staircase, revealing the Stone Monolith beneath it...");
 											}
 											//}
 										}
@@ -4547,8 +4547,8 @@ namespace Observer {
 												{
 													last_periodic_info = now;
 													std::string name = MiscThings::insert_object_into_list_custom_name("Trap swinging blade", a_ref);
-													result.push_back("[ " + name + " swinged!]");
-													silent = true;
+													detect_events_result.push_back("[ " + name + " swinged!]");
+													detect_events_send_result_silent = true;
 												}
 											}
 										}
@@ -4558,8 +4558,8 @@ namespace Observer {
 										{
 											if (new_state.trap_firing == 1)
 											{
-												if (std::size(result) == 0 || result.at(std::size(result) - 1) != "[Dart trap triggered!]")
-													result.push_back("[Dart trap triggered!]");
+												if (std::size(detect_events_result) == 0 || detect_events_result.at(std::size(detect_events_result) - 1) != "[Dart trap triggered!]")
+													detect_events_result.push_back("[Dart trap triggered!]");
 											}
 
 											if (new_state.trap_firing == 2)
@@ -4568,15 +4568,15 @@ namespace Observer {
 
 												std::string activator_name = get_trap_activator_name(a_ref);
 
-												silent = true;
+												detect_events_send_result_silent = true;
 
 												if (activator_name == "")
 												{
-													result.push_back("[ " + name + " was triggered!]");
+													detect_events_result.push_back("[ " + name + " was triggered!]");
 												}
 												else
 												{
-													result.push_back("[" + activator_name + " triggered " + name + "!]");
+													detect_events_result.push_back("[" + activator_name + " triggered " + name + "!]");
 												}
 
 												auto magequest_plate = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xaf341);
@@ -4592,44 +4592,44 @@ namespace Observer {
 											if (new_state.trap_firing == 3)
 											{
 												std::string name = MiscThings::insert_object_into_list_custom_name("Trap swinging wall", a_ref);
-												result.push_back("[ " + name + " launched!]");
+												detect_events_result.push_back("[ " + name + " launched!]");
 											}
 
 
 											if (new_state.trap_firing == 4)
 											{
 												std::string name = MiscThings::insert_object_into_list_custom_name("Trap swinging wall", a_ref);
-												result.push_back("[ " + name + " went back]");
+												detect_events_result.push_back("[ " + name + " went back]");
 											}
 
 											if (new_state.trap_firing == 5)
 											{
 												std::string name = MiscThings::insert_object_into_list_custom_name("Trap swinging blade", a_ref);
-												result.push_back("[ " + name + " deactivated]");
+												detect_events_result.push_back("[ " + name + " deactivated]");
 											}
 
 											if (new_state.trap_firing == 6)
 											{
 												std::string name = MiscThings::insert_object_into_list_custom_name("Trap swinging blade", a_ref);
-												result.push_back("[ " + name + " started swinging!]");
+												detect_events_result.push_back("[ " + name + " started swinging!]");
 											}
 
 											if (new_state.trap_firing == 7)
 											{
 												std::string name = MiscThings::insert_object_into_list_custom_name("Trap oil lamp", a_ref);
-												result.push_back("[ " + name + " fell down and exploded!]");
+												detect_events_result.push_back("[ " + name + " fell down and exploded!]");
 											}
 
 											if (new_state.trap_firing == 8)
 											{
 												std::string name = MiscThings::insert_object_into_list_custom_name("Oil on the floor", a_ref);
-												result.push_back("[ " + name + " started burning]");
+												detect_events_result.push_back("[ " + name + " started burning]");
 											}
 
 											if (new_state.trap_firing == 9)
 											{
-												if (std::size(result) == 0 || result.at(std::size(result) - 1) != "[Boulders fall from the ceiling!]")
-													result.push_back("[Boulders fall from the ceiling!]");
+												if (std::size(detect_events_result) == 0 || detect_events_result.at(std::size(detect_events_result) - 1) != "[Boulders fall from the ceiling!]")
+													detect_events_result.push_back("[Boulders fall from the ceiling!]");
 											}
 
 											if (new_state.trap_firing == 10)
@@ -4639,9 +4639,9 @@ namespace Observer {
 												std::string activator_name = get_trap_activator_name(a_ref);
 
 												if (activator_name != "")
-													result.push_back("[" + activator_name + " triggered " + name + "!]");
+													detect_events_result.push_back("[" + activator_name + " triggered " + name + "!]");
 												else
-													result.push_back("[ " + name + " was triggered!]");
+													detect_events_result.push_back("[ " + name + " was triggered!]");
 											}
 
 
@@ -4652,16 +4652,16 @@ namespace Observer {
 												std::string activator_name = get_trap_activator_name(a_ref);
 
 												if (activator_name != "")
-													result.push_back("[" + activator_name + " triggered " + name + "!]");
+													detect_events_result.push_back("[" + activator_name + " triggered " + name + "!]");
 												else
-													result.push_back("[ " + name + " was triggered!]");
+													detect_events_result.push_back("[ " + name + " was triggered!]");
 											}
 
 
 											if (new_state.trap_firing == 12)
 											{
 												std::string name = MiscThings::insert_object_into_list_and_get_info(a_ref);
-												result.push_back("[ " + name + " was rearmed]");
+												detect_events_result.push_back("[ " + name + " was rearmed]");
 											}
 
 
@@ -4674,12 +4674,12 @@ namespace Observer {
 
 													if (model.find("TrapSkullRam0") != std::string::npos)
 													{
-														result.push_back("[Mammoth skull on a rope swings!]");
+														detect_events_result.push_back("[Mammoth skull on a rope swings!]");
 													}
 
 													if (model.find("TrapMace01") != std::string::npos)
 													{
-														result.push_back("[Mace on a rope swings!]");
+														detect_events_result.push_back("[Mace on a rope swings!]");
 													}
 												}
 											}
@@ -4688,32 +4688,32 @@ namespace Observer {
 											if (new_state.trap_firing == 14)
 											{
 												std::string name = MiscThings::insert_object_into_list_and_get_info(a_ref);
-												result.push_back("[ " + name + " was triggered!]");
+												detect_events_result.push_back("[ " + name + " was triggered!]");
 											}
 
 
 											if (new_state.trap_firing == 15)
 											{
 												std::string name = MiscThings::insert_object_into_list_and_get_info(a_ref);
-												result.push_back("[ " + name + " was disarmed]");
+												detect_events_result.push_back("[ " + name + " was disarmed]");
 											}
 
 											if (new_state.trap_firing == 16)
 											{
-												result.push_back("[Battering ram log swings from the ceiling!]");
+												detect_events_result.push_back("[Battering ram log swings from the ceiling!]");
 											}
 
 											if (new_state.trap_firing == 17)
 											{
 												std::string name = MiscThings::insert_object_into_list_custom_name("Strange Wall", a_ref);
-												result.push_back(name + " starged glowing...");
+												detect_events_result.push_back(name + " starged glowing...");
 											}
 
 											if (new_state.trap_firing == 18)
 											{
 												std::string name = MiscThings::insert_object_into_list_custom_name("Strange Wall", a_ref);
 
-												result.push_back(name + " stopped glowing...");
+												detect_events_result.push_back(name + " stopped glowing...");
 											}
 											//only when close.
 
@@ -4722,31 +4722,31 @@ namespace Observer {
 											if (new_state.trap_firing == 19)
 											{
 												std::string name = MiscThings::insert_object_into_list_and_get_info(a_ref);
-												
-												result.push_back(name + " activated and the crystal inside of it released white laser beam... it opened a door");
+
+												detect_events_result.push_back(name + " activated and the crystal inside of it released white laser beam... it opened a door");
 											}
 
 
 											if (new_state.trap_firing == 20)
 											{
 												std::string name = MiscThings::insert_object_into_list_custom_name("Fireplace", a_ref);
-												silent = true;
-												result.push_back("[ " + name + " went out]");
+												detect_events_send_result_silent = true;
+												detect_events_result.push_back("[ " + name + " went out]");
 											}
 
 											if (new_state.trap_firing == 21)
 											{
 												std::string name = MiscThings::insert_object_into_list_custom_name("Fireplace", a_ref);
-												silent = true;
-												result.push_back("[ " + name + " is lit by itself]");
+												detect_events_send_result_silent = true;
+												detect_events_result.push_back("[ " + name + " is lit by itself]");
 											}
 
 
 											if (new_state.trap_firing == 22)
 											{
 												std::string name = MiscThings::insert_object_into_list_custom_name("Stone Wayshrine Structure", a_ref);
-												silent = false;
-												result.push_back("[ " + name + " emerges from the ground]");
+												detect_events_send_result_silent = false;
+												detect_events_result.push_back("[ " + name + " emerges from the ground]");
 											}
 
 										}
@@ -4757,35 +4757,35 @@ namespace Observer {
 											{
 												std::string name = MiscThings::insert_object_into_list_custom_name("[Destructible] Cobweb", a_ref);
 
-												result.push_back(name + " was destroyed");
+												detect_events_result.push_back(name + " was destroyed");
 											}
 
 											if (new_state.destructible_state == 2)
 											{
 												std::string name = MiscThings::insert_object_into_list_custom_name("[Destructible] Barricade", a_ref);
 
-												result.push_back(name + " was destroyed");
+												detect_events_result.push_back(name + " was destroyed");
 											}
 
 											if (new_state.destructible_state == 3)
 											{
 												std::string name = MiscThings::insert_object_into_list_custom_name("[Destructible] Dwemer Urn", a_ref);
 
-												result.push_back(name + " was destroyed");
+												detect_events_result.push_back(name + " was destroyed");
 											}
 
 											if (new_state.destructible_state == 4)
 											{
 												std::string name = MiscThings::insert_object_into_list_custom_name("[Flammable] Big beehive", a_ref);
 
-												result.push_back(name + " is on fire");
+												detect_events_result.push_back(name + " is on fire");
 											}
 
 											if (new_state.destructible_state == 200)
 											{
 												std::string name = MiscThings::insert_object_into_list_custom_name("Wooden Bridge", a_ref);
 
-												result.push_back(name + " breaks and you fall down the pit, into the water stream! It carries you somewhere through the cave very fast...");
+												detect_events_result.push_back(name + " breaks and you fall down the pit, into the water stream! It carries you somewhere through the cave very fast...");
 												WalkerProcessor::reset_walker();
 											}
 										}
@@ -4795,19 +4795,9 @@ namespace Observer {
 								}
 							}
 						}
-						
-
-						return RE::BSContainer::ForEachResult::kContinue;
-					});
-
-
-
-				RE::TES::GetSingleton()->ForEachReferenceInRange(player_ref, 20000.0f, //999999.0 is too much
-					//player->GetParentCell()->ForEachReferenceInRange(player->GetPosition(), 3000.0,
-					[&](RE::TESObjectREFR* a_ref) {
-
-						if (a_ref)
+						else
 						{
+							//distance between scan distance and 20000.0f
 
 							if (a_ref->formID == 0xdb9d7) //blackreach sun
 							{
@@ -4850,7 +4840,7 @@ namespace Observer {
 
 										if (old_state.action_flags != new_state.action_flags)
 										{
-											silent = true;
+											detect_events_send_result_silent = true;
 
 											std::string in_the_distance = "";
 
@@ -4861,22 +4851,22 @@ namespace Observer {
 											{
 												std::string name = MiscThings::insert_object_into_list_and_get_info(a_ref);
 												std::string action = " is flying";
-												if (result.empty() && name != "")
-													result.push_back("[" + name + action + in_the_distance + "]");
+												if (detect_events_result.empty() && name != "")
+													detect_events_result.push_back("[" + name + action + in_the_distance + "]");
 											}
 
 											if (new_state.action_flags & (int)RE::FLY_STATE::kLanding)
 											{
 												std::string name = MiscThings::insert_object_into_list_and_get_info(a_ref);
 												std::string action = " is landing";
-												if (result.empty() && name != "")
-													result.push_back("[" + name + action + in_the_distance + "]");
+												if (detect_events_result.empty() && name != "")
+													detect_events_result.push_back("[" + name + action + in_the_distance + "]");
 											}
 
 											if (new_state.action_flags & (int)RE::FLY_STATE::kHovering)
 											{
 												std::string name = MiscThings::insert_object_into_list_and_get_info(a_ref);
-												if (result.empty() && name != "")
+												if (detect_events_result.empty() && name != "")
 													std::string action = " is hovering";
 
 											}
@@ -4885,15 +4875,15 @@ namespace Observer {
 											{
 												std::string name = MiscThings::insert_object_into_list_and_get_info(a_ref);
 												std::string action = " takes off";
-												if (result.empty() && name != "")
-													result.push_back("[" + name + action + in_the_distance + "]");
+												if (detect_events_result.empty() && name != "")
+													detect_events_result.push_back("[" + name + action + in_the_distance + "]");
 											}
 
 											if (new_state.action_flags & (int)RE::FLY_STATE::kPerching)
 											{
 												std::string name = MiscThings::insert_object_into_list_and_get_info(a_ref);
 												std::string action = " is perching";
-												//result.push_back("[" + name + action + "]"); //looks like perching randomly comes with other types making no sense
+												//detect_events_result.push_back("[" + name + action + "]"); //looks like perching randomly comes with other types making no sense
 											}
 
 										}
@@ -4902,29 +4892,32 @@ namespace Observer {
 								}
 							}
 						}
+					}
 						
 
-						return RE::BSContainer::ForEachResult::kContinue;
-					});
+					raw_event_object_list.pop_back();
+				}
+				else
+					break;
+			}
 
 
 
-				if (std::size(result) > 0)
+			if (std::size(detect_events_result) > 0 && std::size(raw_event_object_list) <= 0)
+			{
+				std::string message = "";
+				for (auto result_entry : detect_events_result)
 				{
-					std::string message = "";
-					for (auto result_entry : result)
-					{
-						message += result_entry + "\n";
-					}
-
-					send_random_context(message, silent);
-
+					message += result_entry + "\n";
 				}
 
+				send_random_context(message, detect_events_send_result_silent);
+
+				detect_events_send_result_silent = false;
+				detect_events_result.clear();
 
 			}
-			else
-				detect_events_time += dtime;
+
 		}
 
 	}

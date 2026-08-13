@@ -2620,9 +2620,11 @@ namespace BarterProcessor {
 
         RE::UI* ui = RE::UI::GetSingleton();
 
+        if (!ui)
+            return;
+
         in_barter = ui->IsMenuOpen(RE::BarterMenu::MENU_NAME);
 
-        auto menu = ui->GetMenu<RE::BarterMenu>();
 
         if (true)//barter_processor_timer > 0.02f)
         {
@@ -2630,6 +2632,9 @@ namespace BarterProcessor {
 
             if (in_barter)
             {
+                auto menu = ui->GetMenu<RE::BarterMenu>();
+
+
                 WalkerProcessor::reset_walker();
 
                 if (barter_type_defined)
