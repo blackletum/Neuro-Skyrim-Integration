@@ -1963,7 +1963,7 @@ namespace Observer {
 				bool frozen_falmers_condition = player_cell && player_cell->formID == 0x200384f;
 
 
-				std::unordered_map<RE::TESObjectREFR*, int> current_objects{};
+				std::map<RE::TESObjectREFR*, int> current_objects{};
 
 				RE::TES::GetSingleton()->ForEachReferenceInRange(player, 30000.0,
 					[&](RE::TESObjectREFR* a_ref) {
