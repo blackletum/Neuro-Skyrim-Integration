@@ -17115,7 +17115,7 @@ namespace WalkerProcessor {
 
         lock_camera_used_this_cycle = false;
 
-        Hooks::add_debug_line("walker_processor called", true);
+        //Hooks::add_debug_line("walker_processor called", true);
 
 
         if (target_ref)

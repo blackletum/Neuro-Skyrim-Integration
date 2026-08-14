@@ -2086,7 +2086,7 @@ namespace Observer {
 
 			if (ignore_raycast || (detect_interesting_time > 0.5f && std::size(raw_object_list) <= 0) || (first_cycle2 && detect_interesting_time > 2.0f))
 			{
-				//Hooks::add_debug_line("OBJECT SCANNER TRIGGERED, DTIME: " + std::to_string(detect_interesting_time), true);
+				Hooks::add_debug_line("OBJECT SCANNER TRIGGERED, DTIME: " + std::to_string(detect_interesting_time), true);
 
 				if (first_cycle2)
 					first_cycle2 = false;
@@ -2101,7 +2101,12 @@ namespace Observer {
 						//player->GetParentCell()->ForEachReferenceInRange(player->GetPosition(), 3000.0,
 						[&](RE::TESObjectREFR* a_ref) {
 
-							raw_object_list.push_back(a_ref->GetHandle());
+							auto base_type = a_ref->GetBaseObject()->formType;
+
+							if (base_type != RE::FormType::Hazard && !(base_type == RE::FormType::Static && !frozen_falmers_condition))
+								raw_object_list.push_back(a_ref->GetHandle());
+
+
 							return RE::BSContainer::ForEachResult::kContinue;
 						});
 
@@ -2117,7 +2122,7 @@ namespace Observer {
 
 			if (!player->IsDead())
 			{
-				for (int i = 0; i < 200; i++)
+				for (int i = 0; i < 75; i++)
 				{
 					auto raw_size = std::size(raw_object_list);
 					if (raw_size > 0)
@@ -2133,11 +2138,13 @@ namespace Observer {
 							auto base_type = base_obj->GetFormType();
 
 
-							if (base_type == RE::FormType::Hazard)
-							{
-								raw_object_list.pop_back();
-								continue;
-							}
+							//hazards and statics already filtered in foreach scan
+
+							//if (base_type == RE::FormType::Hazard)
+							//{
+							//	raw_object_list.pop_back();
+							//	continue;
+							//}
 
 
 							if (frozen_falmers_condition)
@@ -2155,11 +2162,11 @@ namespace Observer {
 								}
 							}
 
-							if (base_type == RE::FormType::Static)
-							{
-								raw_object_list.pop_back();
-								continue;
-							}
+							//if (base_type == RE::FormType::Static)
+							//{
+							//	raw_object_list.pop_back();
+							//	continue;
+							//}
 
 
 
@@ -3228,7 +3235,7 @@ namespace Observer {
 
 			if (detect_events_time > 0.1f && std::size(raw_event_object_list) <= 0)
 			{
-				//Hooks::add_debug_line("DETECT EVENTS TRIGGERED, TIME DELTA: " + std::to_string(detect_events_time), true);
+				Hooks::add_debug_line("DETECT EVENTS TRIGGERED, DTIME: " + std::to_string(detect_events_time), true);
 
 				detect_events_time = 0.0f;
 
@@ -3311,7 +3318,11 @@ namespace Observer {
 					//player->GetParentCell()->ForEachReferenceInRange(player->GetPosition(), 3000.0,
 					[&](RE::TESObjectREFR* a_ref) {
 
-						raw_event_object_list.push_back(a_ref->GetHandle());
+						auto base_type = a_ref->GetBaseObject()->formType;
+
+										//blackreach sun
+						if (a_ref->formID == 0xdb9d7 || (base_type != RE::FormType::Static && base_type != RE::FormType::Hazard))
+							raw_event_object_list.push_back(a_ref->GetHandle());
 						
 						return RE::BSContainer::ForEachResult::kContinue;
 					});
@@ -3328,7 +3339,7 @@ namespace Observer {
 
 
 
-			for (int i = 0; i < 200; i++)
+			for (int i = 0; i < 100; i++)
 			{
 				auto raw_size = std::size(raw_event_object_list);
 				if (raw_size > 0)
@@ -3685,14 +3696,16 @@ namespace Observer {
 								auto base_type = base_obj->GetFormType();
 
 
-								auto test_refr = RE::TESObjectREFR::LookupByID(0x945b8);
+								//auto test_refr = RE::TESObjectREFR::LookupByID(0x945b8);
 
-								if (a_ref == test_refr)
-									bool break_here = false;
+								//if (a_ref == test_refr)
+								//	bool break_here = false;
 
 								//if (true || base_type == RE::FormType::Activator || base_type == RE::FormType::Door)
-								if (base_type != RE::FormType::Static && base_type != RE::FormType::Hazard)
-								{
+
+								//already filtered in foreach function now
+								//if (base_type != RE::FormType::Static && base_type != RE::FormType::Hazard)
+								//{
 									if (objects_to_track.find(a_ref) == objects_to_track.end())
 									{
 										old_object_state state = { 0, 0, 0, 0, 0, -1, -1, 0, 0, 0 };
@@ -4792,7 +4805,7 @@ namespace Observer {
 
 										objects_to_track.insert_or_assign(a_ref, new_state);
 									}
-								}
+								//}
 							}
 						}
 						else
