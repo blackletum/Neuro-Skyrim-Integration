@@ -1564,6 +1564,21 @@ namespace WalkerProcessor {
                         if (player_pos.z < -2800.0f)
                             return (RE::TESObjectREFR*)RE::TESForm::LookupByID(0x57058); //alftand elevator to glacial ruins
                         break;
+
+
+                    case (0x1aec3): //saartal bossess-puzzles cell
+                    {
+                        auto boss = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1bb27);
+
+                        if (boss && boss->IsActor() && !boss->IsDead()) //boss is not dead - magnus eye is blocking exit
+                        {
+                                //auto door = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1b25d);
+                                auto gate = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xde07d);
+                                if (gate)
+                                    return gate;
+                        }
+                        break;
+                    }
                     }
                 }
             }
