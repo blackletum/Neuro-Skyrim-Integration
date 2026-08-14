@@ -169,6 +169,8 @@ namespace Observer {
 	std::map<RE::TESObjectREFR*, std::string> interesting_buffer{};
 	std::vector<RE::ObjectRefHandle> raw_object_list{};
 	std::vector<RE::ObjectRefHandle> raw_event_object_list{};
+	//std::vector<RE::ObjectRefHandle> raw_cleanup_object_list{};
+
 
 	bool detect_events_send_result_silent = false;
 	std::vector<std::string> detect_events_result{};
@@ -1115,6 +1117,8 @@ namespace Observer {
 		interesting_buffer.clear();
 		raw_object_list.clear();
 		raw_event_object_list.clear();
+		//raw_cleanup_object_list.clear();
+
 		detect_events_send_result_silent = false;
 		detect_events_result.clear();
 
@@ -1938,6 +1942,7 @@ namespace Observer {
 
 	void cleanup_invalid_objects(float dtime, bool force)
 	{
+
 		if (object_cleanup_timer > 0.5f || force)
 		{
 			object_cleanup_timer = 0.0f;
@@ -1946,24 +1951,37 @@ namespace Observer {
 				auto object_list = MiscThings::get_p_objects_around();
 
 
-				auto player_ref = RE::PlayerCharacter::GetSingleton()->AsReference();
+				//auto player_ref = RE::PlayerCharacter::GetSingleton();
+
+				auto player = RE::PlayerCharacter::GetSingleton();
+
+				if (!player)
+					return;
+
+				auto player_cell = player->GetParentCell();
+
+				bool frozen_falmers_condition = player_cell && player_cell->formID == 0x200384f;
 
 
-				std::map<RE::TESObjectREFR*, int> current_objects{};
+				std::unordered_map<RE::TESObjectREFR*, int> current_objects{};
 
-				RE::TES::GetSingleton()->ForEachReferenceInRange(player_ref, 30000.0,
+				RE::TES::GetSingleton()->ForEachReferenceInRange(player, 30000.0,
 					[&](RE::TESObjectREFR* a_ref) {
-						if (a_ref)
-						{
-							current_objects.insert({ a_ref, 0 });
-						}
+						//if (a_ref)
+						//{
+							//auto base_type = a_ref->GetBaseObject()->formType;
+
+							//if (a_ref->formID == 0xdb9d7 || !(base_type == RE::FormType::Hazard || (base_type == RE::FormType::Static && !frozen_falmers_condition)))
+							if (a_ref->GetBaseObject()->formType != RE::FormType::Hazard)
+								current_objects.insert({ a_ref, 0 });
+						//}
 						
 
 						return RE::BSContainer::ForEachResult::kContinue;
 					});
 
 
-				for (auto object : *object_list)
+				for (auto& object : *object_list)
 				{
 					if (object.second.object && current_objects.find(object.second.object) != current_objects.end())
 					{
@@ -5729,10 +5747,10 @@ namespace Observer {
 		if (!player)
 			return;
 
-		RE::TESObjectREFR* test_stone = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xc6bbd);
+		//RE::TESObjectREFR* test_stone = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xc6bbd);
 
-		if (test_stone && !test_stone->IsDisabled())
-			bool stop_here = false;
+		//if (test_stone && !test_stone->IsDisabled())
+		//	bool stop_here = false;
 		//
 
 
@@ -5803,7 +5821,19 @@ namespace Observer {
 		}
 
 
-		auto threshold_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("MQ101");
+		static auto threshold_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("MQ101");
+		static auto greybeard_call = (RE::TESQuest*)RE::TESForm::LookupByEditorID("MQGreybeardCall");
+		static auto force_field_ancano_1_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("MG06");
+		static auto snow_veil_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("TG05");
+		static auto dlc1vq01_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("DLC1VQ01");
+		static auto dlc1vq02_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("DLC1VQ02");
+		static auto dlc1vq07_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("DLC1VQ07");
+		static auto dlc_redwater_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("DLC1dunRedwaterDenQST");
+		static auto da10_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("DA10"); //molag bal quest
+		static auto da09_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("DA09"); //meridiah quest
+		static auto mg01_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("MG01"); //mage guild demonstate spell entry quest
+
+
 
 		if (threshold_quest && !observers_green_light)
 		{
@@ -5822,6 +5852,11 @@ namespace Observer {
 				else
 					observers_green_light = true;
 			}
+		}
+		else
+		{
+			if (!threshold_quest)
+				threshold_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("MQ101");
 		}
 
 
@@ -5893,10 +5928,11 @@ namespace Observer {
 					old_can_walk = can_walk;
 					old_can_fight = can_fight;
 
-					auto greybeard_call = (RE::TESQuest*)RE::TESForm::LookupByEditorID("MQGreybeardCall");
+					
 					if (greybeard_call)
 						old_greybeard_call_stage = greybeard_call->GetCurrentStageID();
-
+					else
+						greybeard_call = (RE::TESQuest*)RE::TESForm::LookupByEditorID("MQGreybeardCall");
 
 
 					old_had_any_quests = MiscThings::have_any_quests();
@@ -5904,15 +5940,18 @@ namespace Observer {
 					old_furniture_name = "";
 
 
-					auto force_field_ancano_1_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("MG06");
+					
 
 					if (force_field_ancano_1_quest)
 						old_mg6_quest_stage = force_field_ancano_1_quest->GetCurrentStageID();
+					else
+						force_field_ancano_1_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("MG06");
 
-					auto snow_veil_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("TG05");
+					
 					if (snow_veil_quest)
 						old_tg05_quest_stage = snow_veil_quest->GetCurrentStageID();
-
+					else
+						snow_veil_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("TG05");
 
 
 					//location cleared event. reveal chests. init
@@ -5926,42 +5965,52 @@ namespace Observer {
 					old_player_loc = player_loc;
 
 
-					auto dlc1vq01_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("DLC1VQ01");
+					
 
 					if (dlc1vq01_quest)
 						old_dlc1vq01_stage = dlc1vq01_quest->currentStage;
+					else
+						dlc1vq01_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("DLC1VQ01");
 
-					auto dlc1vq02_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("DLC1VQ02");
+					
 
 					if (dlc1vq02_quest)
 						old_dlc1vq02_stage = dlc1vq02_quest->currentStage;
+					else
+						dlc1vq02_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("DLC1VQ02");
 
-
-					auto dlc1vq07_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("DLC1VQ07");
+					
 					if (dlc1vq07_quest)
 						old_dlc1vq07_stage = dlc1vq07_quest->currentStage;
+					else
+						dlc1vq07_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("DLC1VQ07");
 
-
-					auto dlc_redwater_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("DLC1dunRedwaterDenQST");
+					
 					if (dlc_redwater_quest)
 						old_dlc_redwater_quest_stage = dlc_redwater_quest->currentStage;
+					else
+						dlc_redwater_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("DLC1dunRedwaterDenQST");
 
-					auto da10_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("DA10"); //molag bal quest
+
 
 					if (da10_quest)
 						old_da10_stage = da10_quest->currentStage;
+					else
+						da10_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("DA10"); //molag bal quest
+
 					
-					auto da09_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("DA09"); //meridiah quest
 
 					if (da09_quest)
 						old_da09_stage = da09_quest->currentStage;
+					else
+						da09_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("DA09"); //meridiah quest
 
-
-					auto mg01_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("MG01"); //mage guild demonstate spell entry quest
+					
 
 					if (mg01_quest)
 						old_mg01_stage = mg01_quest->currentStage;
-
+					else
+						mg01_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("MG01"); //mage guild demonstate spell entry quest
 
 					
 					old_vampire_melee = MiscThings::vampirelord_melee_mode();
@@ -6044,9 +6093,6 @@ namespace Observer {
 				}
 
 
-
-				auto dlc1vq07_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("DLC1VQ07");
-
 				if (dlc1vq07_quest)
 				{
 					int dlc1vq07_stage = dlc1vq07_quest->currentStage;
@@ -6058,9 +6104,11 @@ namespace Observer {
 
 					old_dlc1vq07_stage = dlc1vq07_stage;
 				}
+				else
+					dlc1vq07_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("DLC1VQ07");
 
 
-				auto dlc1vq01_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("DLC1VQ01");
+				
 
 				if (dlc1vq01_quest)
 				{
@@ -6073,10 +6121,10 @@ namespace Observer {
 
 					old_dlc1vq01_stage = dlc1vq01_stage;
 				}
+				else
+					dlc1vq01_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("DLC1VQ01");
 
 
-
-				auto dlc1vq02_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("DLC1VQ02");
 
 				if (dlc1vq02_quest)
 				{
@@ -6089,9 +6137,10 @@ namespace Observer {
 
 					old_dlc1vq02_stage = dlc1vq02_stage;
 				}
+				else
+					dlc1vq02_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("DLC1VQ02");
 
 
-				auto dlc_redwater_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("DLC1dunRedwaterDenQST");
 				if (dlc_redwater_quest)
 				{
 					int dlc_redwater_stage = dlc_redwater_quest->currentStage;
@@ -6103,9 +6152,10 @@ namespace Observer {
 
 					old_dlc_redwater_quest_stage = dlc_redwater_stage;
 				}
+				else
+					dlc_redwater_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("DLC1dunRedwaterDenQST");
 
 
-				auto da10_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("DA10"); //molag bal quest
 
 				if (da10_quest)
 				{
@@ -6122,8 +6172,9 @@ namespace Observer {
 
 					old_da10_stage = current_stage;
 				}
+				else
+					da10_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("DA10"); //molag bal quest
 					
-				auto da09_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("DA09"); //meridiah quest
 
 				if (da09_quest)
 				{
@@ -6138,9 +6189,10 @@ namespace Observer {
 
 					old_da09_stage = current_stage;
 				}
+				else
+					da09_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("DA09"); //meridiah quest
 					
 
-				auto mg01_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("MG01"); //meridiah quest
 
 				if (mg01_quest)
 				{
@@ -6169,7 +6221,8 @@ namespace Observer {
 
 					old_mg01_stage = current_stage;
 				}
-
+				else
+					mg01_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("MG01"); //meridiah quest
 
 
 				//fast travel monitor
@@ -6183,8 +6236,6 @@ namespace Observer {
 
 
 
-
-				auto force_field_ancano_1_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("MG06");
 				if (force_field_ancano_1_quest)
 				{
 					auto current_stage = force_field_ancano_1_quest->GetCurrentStageID();
@@ -6197,8 +6248,10 @@ namespace Observer {
 
 					old_mg6_quest_stage = current_stage;
 				}
+				else
+					force_field_ancano_1_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("MG06");
 
-				auto snow_veil_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("TG05");
+
 				if (snow_veil_quest)
 				{
 					auto current_stage = snow_veil_quest->GetCurrentStageID();
@@ -6211,6 +6264,8 @@ namespace Observer {
 
 					old_tg05_quest_stage = current_stage;
 				}
+				else
+					snow_veil_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("TG05");
 					
 
 
@@ -6266,7 +6321,6 @@ namespace Observer {
 				//serving_jail |= (bool)player->currentPrisonFaction;
 
 
-				auto greybeard_call = (RE::TESQuest*)RE::TESForm::LookupByEditorID("MQGreybeardCall");
 
 				if (greybeard_call)
 				{
@@ -6279,7 +6333,8 @@ namespace Observer {
 
 					old_greybeard_call_stage = greybeard_call_stage;
 				}
-
+				else
+					greybeard_call = (RE::TESQuest*)RE::TESForm::LookupByEditorID("MQGreybeardCall");
 
 
 				if (greybeards_called)
@@ -7137,7 +7192,7 @@ namespace Observer {
 
 
 
-					auto test123 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x5b611);
+					//auto test123 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x5b611);
 
 
 
@@ -7176,9 +7231,9 @@ namespace Observer {
 
 					old_time_text = time_text;
 					
-					auto blackreach_worldspace = RE::TESForm::LookupByID(0x1ee62);
+					static auto blackreach_worldspace = RE::TESForm::LookupByID(0x1ee62);
 					auto player_worldspace = player->GetWorldspace();
-					auto tamriel_worldspace = RE::TESForm::LookupByID(0x3c);
+					static auto tamriel_worldspace = RE::TESForm::LookupByID(0x3c);
 
 					if (!MiscThings::is_interior_cell() && player_worldspace == tamriel_worldspace)
 					{
