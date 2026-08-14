@@ -7807,7 +7807,21 @@ namespace MiscThings {
 
         
 
+            if (parent_cell && parent_cell->formID == 0x1aec3) //saartal bossess-puzzles cell
+            {
+                auto boss = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1bb27);
 
+                if (boss && boss->IsActor() && !boss->IsDead()) //boss is not dead - magnus eye is blocking exit
+                {
+                    if (quest && quest->formID != 0x1f252) //not saartal quest
+                    {
+                        auto door = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1b25d);
+                        
+                        if (door)
+                            return door;
+                    }
+                }
+            }
         
 
 
