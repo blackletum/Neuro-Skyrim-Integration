@@ -84,6 +84,15 @@
 ///////////DO ALL THIS
 
 
+//pickup item - wiggle body before wiggling camera
+//sneak fixes
+//fix resurrection spells
+//fix spell casting not casting when isnt drawn before cast
+//reduce frequency of good-gear advice
+//stealing from top shelves (should try to jump)
+//fix double perk bug
+
+
 //add handling for solstheim prison escaping flag bug
 //try to improve sneak (it still sometimes tries to sneak when we are 100% visible)
 //fix reanimate spells interrupting battle + fix reanimate spells being endlessly "processing" if cast while having ritual restoration scroll equipped

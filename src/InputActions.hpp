@@ -63,6 +63,7 @@ void confirm_fast();
 void press_f();
 
 void make_launch_sprint();
+void make_stop_sprint();
 bool launching_sprint();
 
 

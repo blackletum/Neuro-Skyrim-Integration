@@ -19,6 +19,7 @@ bool need_look_down = false;
 
 bool use_ult_prestart_done = false;
 
+bool sprint_mode_stop = false;
 bool launch_sprint = false;
 float launch_sprint_time = 0.0f;
 
@@ -81,6 +82,7 @@ void reset_input_processor()
 
     launch_sprint = false;
     launch_sprint_time = 0.0f;
+    sprint_mode_stop = false;
 }
 
 /*
@@ -886,14 +888,26 @@ void walk_forward_limited()
 
 void sprint_start()
 {
-    int32_t my_key = RE::ControlMap::GetSingleton()->GetMappedKey(RE::UserEvents::GetSingleton()->sprint, RE::INPUT_DEVICES::kGamepad);
-    RE::BSInputEventQueue::GetSingleton()->AddButtonEvent(RE::INPUT_DEVICES::kGamepad, my_key, 1.0f, 0.0f);
+    int32_t my_key = RE::ControlMap::GetSingleton()->GetMappedKey(RE::UserEvents::GetSingleton()->sprintStart, RE::INPUT_DEVICES::kGamepad);
+    RE::BSInputEventQueue::GetSingleton()->AddButtonEvent(RE::INPUT_DEVICES::kGamepad, my_key, 1.0f, 1000.0f);
     //RE::BSInputEventQueue::GetSingleton()->AddButtonEvent(RE::INPUT_DEVICES::kGamepad, my_key, 0.0f, 0.0f);
     //int32_t my_key = RE::ControlMap::GetSingleton()->GetMappedKey(RE::UserEvents::GetSingleton()->sprint, RE::INPUT_DEVICES::kKeyboard);
     //RE::BSInputEventQueue::GetSingleton()->AddButtonEvent(RE::INPUT_DEVICES::kKeyboard, my_key, 1.0, 0.0);
     //RE::BSInputEventQueue::GetSingleton()->AddButtonEvent(RE::INPUT_DEVICES::kKeyboard, my_key, 0.0, 0.0);
 
     Hooks::add_debug_line("Input: sprint start");
+}
+
+void sprint_stop()
+{
+    int32_t my_key = RE::ControlMap::GetSingleton()->GetMappedKey(RE::UserEvents::GetSingleton()->sprintStop, RE::INPUT_DEVICES::kGamepad);
+    RE::BSInputEventQueue::GetSingleton()->AddButtonEvent(RE::INPUT_DEVICES::kGamepad, my_key, 1.0f, 1000.0f);
+    //RE::BSInputEventQueue::GetSingleton()->AddButtonEvent(RE::INPUT_DEVICES::kGamepad, my_key, 0.0f, 0.0f);
+    //int32_t my_key = RE::ControlMap::GetSingleton()->GetMappedKey(RE::UserEvents::GetSingleton()->sprint, RE::INPUT_DEVICES::kKeyboard);
+    //RE::BSInputEventQueue::GetSingleton()->AddButtonEvent(RE::INPUT_DEVICES::kKeyboard, my_key, 1.0, 0.0);
+    //RE::BSInputEventQueue::GetSingleton()->AddButtonEvent(RE::INPUT_DEVICES::kKeyboard, my_key, 0.0, 0.0);
+
+    Hooks::add_debug_line("Input: sprint stop");
 }
 
 
@@ -1390,8 +1404,15 @@ void make_launch_sprint()
 {
     launch_sprint = true;
     launch_sprint_time = 0.0f;
+    sprint_mode_stop = false;
 }
 
+void make_stop_sprint()
+{
+    launch_sprint = true;
+    launch_sprint_time = 0.0f;
+    sprint_mode_stop = false;
+}
 
 
 void make_long_ult_cast()
@@ -1517,9 +1538,18 @@ void input_processor(float dtime)
 
     if (launch_sprint)
     {
-        if (!MiscThings::is_player_swimming() && launch_sprint_time < 0.05f)
+        bool cancel_condition = false;// sprint_mode_stop ? !RE::PlayerCharacter::GetSingleton()->IsSprinting() : RE::PlayerCharacter::GetSingleton()->IsSprinting();
+
+
+                                                                    //if stops after 1s - replace this with 0.1f
+        if (!MiscThings::is_player_swimming() && launch_sprint_time < 0.05f && !cancel_condition)
         {
             launch_sprint_time += dtime;
+            //if (sprint_mode_stop)
+            //    sprint_stop();
+            //else
+            //    sprint_start();
+
             sprint();
         }
         else

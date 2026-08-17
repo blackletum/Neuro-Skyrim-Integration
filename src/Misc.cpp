@@ -6276,6 +6276,7 @@ namespace MiscThings {
 
                     auto player_pos = start->GetPosition();
 
+
                     RE::NiPoint3 last_teleport_pos_end = RE::NiPoint3::Zero();
 
                     RE::ObjectRefHandle quest_ref_handle{};
@@ -6292,7 +6293,10 @@ namespace MiscThings {
                     RE::TESWorldSpace* quest_target_ref_worldspace = nullptr;
 
                     if (quest_target_ref)
+                    {
                         quest_target_ref_worldspace = quest_target_ref->GetWorldspace();
+                    }
+                        
 
                     bool shortcut_used = false;
 
@@ -6384,6 +6388,16 @@ namespace MiscThings {
         }
 
         
+        if (start && start->formID == 0x46bdf && result > 10000.0f) //college map marker. must only be closest to targets that are inside of winterhold
+            result += 50000.0f; //pretend its super far
+        else
+        {
+            if (start && start->formID == 0x46bdf)
+                bool stop_here = false;
+        }
+
+
+
 
         return result;
     }
@@ -16448,6 +16462,13 @@ namespace MiscThings {
                 if (player_ref)
                 {
                     
+                    if (object->formID == 0x102ed2) //mzulft dwemer armillary
+                    {
+                        return player->GetDistance(object) < 500.0f;
+                    }
+
+
+
                     if (base_obj->GetFormType() == RE::FormType::Activator)
                     {
 

@@ -2467,8 +2467,21 @@ namespace Observer {
 									{
 										if (!MiscThings::is_object_in_the_list(a_ref))
 										{
+
+											if (a_ref->formID == 0x102ed2) //mzulft dwemer armillary
+											{
+												if (player->GetDistance(a_ref) < 500.0f)
+												{
+													std::string info = MiscThings::insert_object_into_list_custom_name("Dwemer armillary mechanism", a_ref);
+													interesting_buffer.insert_or_assign(a_ref, info);
+												}
+													
+											}
+
+
+
 											float scan_distance_norm = scan_distance;
-											if (a_ref == RE::TESObjectREFR::LookupByID(0xC3B29))
+											if (a_ref->formID == 0xC3B29)
 												scan_distance = 130.0f;
 
 											bool local_ignore_raycast = false;

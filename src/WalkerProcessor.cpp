@@ -3290,7 +3290,7 @@ namespace WalkerProcessor {
                 {
                     if (!launching_sprint())
                     {
-                        make_launch_sprint();
+                        make_stop_sprint();
                         was_sprinting = false;
                     }
 
@@ -15064,12 +15064,12 @@ namespace WalkerProcessor {
                               
                                                 if (armillary_state == 0)
                                                 {
-                                                    send_random_context("[Looks like something is not right. Paratus thinks the Crystal is still too warm... Maybe try Frost spells?]", false);
+                                                    send_random_context("[Looks like something is not right. Paratus thinks the Crystal is still too warm... Maybe try Frostbite spell?]", false);
                                                 }
 
                                                 if (armillary_state == 1)
                                                 {
-                                                    send_random_context("[Looks like something is not right. Paratus thinks the Crystal is too cold... Maybe try Fire spells?]", false);
+                                                    send_random_context("[Looks like something is not right. Paratus thinks the Crystal is too cold... Maybe try Flames spell?]", false);
                                                 }
 
                                                 if (armillary_state == 2)
