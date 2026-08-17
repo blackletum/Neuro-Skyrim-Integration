@@ -1727,7 +1727,7 @@ namespace MiscThings {
                     if (model.find("ApoParArchGates01") != std::string::npos)
                         return false; //these can be 2-state so all states can be blocking
 
-                    if (model.find("PortImpGate01") != std::string::npos ||
+                    if (//model.find("PortImpGate01") != std::string::npos ||
                         model.find("NorRetractableBridge01") != std::string::npos ||
                         model.find("DweRetractableBridge01") != std::string::npos ||
                         model.find("SkyHavenRetractableBridge01") != std::string::npos ||
@@ -9618,6 +9618,17 @@ namespace MiscThings {
                     }
                 }
             }
+            else
+                if (parent_cell && parent_cell->formID == 0x91872)
+                {
+                    auto pole_gate = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xf82ee);
+                    if (pole_gate && MiscThings::two_state_activator_state(pole_gate) != 0)
+                    {
+                        auto lever = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xf82ef);
+                        if (lever)
+                            return lever;
+                    }
+                }
             
 
         }
@@ -16603,9 +16614,13 @@ namespace MiscThings {
                 switch (object->formID)
                 {
 
-                case (0x123):
+                case (0xf4986): //fire door labyrinthian
                 {
-                    ;
+                    RE::NiPoint3 object_angles = object->data.angle;
+                    RE::NiPoint3 base_shift_vector = { 0.0f, -100.0f, 100.0f };
+                    RE::NiPoint3 rotated_shift_vector = rotate_vector_by_angles(base_shift_vector, object_angles);
+                    result = rotated_shift_vector;
+                    return result;
                 }
 
                 case (0x106bba): //saartal fx
@@ -29939,7 +29954,7 @@ namespace MiscThings {
 
         bool katariah_condition = MiscThings::kataria_exists() && !MiscThings::is_object_inside_of_kataria(player);
         bool snow_veil_gate_condition = player_cell && player_cell->formID == 0x15208 && !(player_pos.x > 4027.3f && player_pos.y < 2224.7f);
-
+        bool labyrinthian_shit_gate_condition = player_cell && player_cell->formID == 0x91872 && player_pos.x < -901.0f && player_pos.y < 230.0f;
 
         RE::TES::GetSingleton()->ForEachReferenceInRange(player_ref, 9000.0f,
             //player->GetParentCell()->ForEachReferenceInRange(player->GetPosition(), 3000.0,
@@ -29947,6 +29962,19 @@ namespace MiscThings {
 
                 if (a_ref && a_ref->IsActor())
                 {
+                    if (labyrinthian_shit_gate_condition)
+                    {
+                        auto object_pos = a_ref->GetPosition();
+
+                        if (player_pos.x > -901.0f && player_pos.y > 230.0f)
+                        {
+                            auto gate = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xf82ee);
+                            if (gate && MiscThings::two_state_activator_state(gate) == 1)
+                                return RE::BSContainer::ForEachResult::kContinue; //it raycasts enemies through this gate and it looks ass
+                        }
+                    }
+
+
                     if (snow_veil_gate_condition)
                     {
                         auto object_pos = a_ref->GetPosition();

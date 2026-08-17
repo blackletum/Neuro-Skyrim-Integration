@@ -3979,14 +3979,14 @@ namespace Observer {
 
 																	if (activation == 0)
 																	{
-																		detect_events_result.push_back("[ " + name + " closed]");
+																		detect_events_result.push_back("[ " + name + " opened]");
 																		no_spam = true;
 																	}
 
 
 																	if (activation == 1)
 																	{
-																		detect_events_result.push_back("[ " + name + " opened]");
+																		detect_events_result.push_back("[ " + name + " closed]");
 																		no_spam = true;
 																	}
 
