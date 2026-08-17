@@ -15120,6 +15120,13 @@ namespace MiscThings {
         }
             
 
+        //labyrinthian ghosts
+        case (0xbbdbf):
+        case (0xbbdc1):
+        case (0xbbdc0):
+        case (0xbbdc2):
+        case (0xbbdc3):
+        case (0xd07dc):
 
         //dlc1 shrine ghosts
         case (0x200a8bf):
