@@ -22230,127 +22230,259 @@ namespace MiscThings {
 
         if (player)
         {
-            if (ench && ench->data.baseEnchantment)
+            if (ench)
             {
-                for (auto effect : ench->data.baseEnchantment->effects)
+                //its own effects
+                if (std::size(ench->effects) > 0)
                 {
-                    if (effect && effect->baseEffect)
+                    for (auto effect : ench->effects)
                     {
-                        float magnitude = effect->GetMagnitude();
-
-                        switch (effect->baseEffect->formID)
+                        if (effect && effect->baseEffect)
                         {
-                        case (0x49295): //shock
-                        {
-                            float current_player_value = player->GetActorValue(RE::ActorValue::kResistShock);
-                            current_player_value -= magnitude;
+                            float magnitude = effect->GetMagnitude();
 
-                            if (current_player_value > 100.0f)
-                                current_player_value = 100.0f;
+                            switch (effect->baseEffect->formID)
+                            {
+                            case (0x49295): //shock
+                            {
+                                float current_player_value = player->GetActorValue(RE::ActorValue::kResistShock);
+                                current_player_value -= magnitude;
 
-                            float coef = 1.0f + 2.0f * magnitude * (100.0f - current_player_value) / 100.0f / 100.0f;
+                                if (current_player_value > 100.0f)
+                                    current_player_value = 100.0f;
 
-                            result += 40.0f * coef;
+                                float coef = 1.0f + 2.0f * magnitude * (100.0f - current_player_value) / 100.0f / 100.0f;
 
-                            break;
-                        }
+                                result += 40.0f * coef;
 
-                        case (0x48c8b): //fire
-                        {
-                            float current_player_value = player->GetActorValue(RE::ActorValue::kResistFire);
-                            current_player_value -= magnitude;
+                                break;
+                            }
 
-                            if (current_player_value > 100.0f)
-                                current_player_value = 100.0f;
+                            case (0x48c8b): //fire
+                            {
+                                float current_player_value = player->GetActorValue(RE::ActorValue::kResistFire);
+                                current_player_value -= magnitude;
 
-                            float coef = 1.0f + 5.0f * magnitude * (100.0f - current_player_value) / 100.0f / 100.0f;
+                                if (current_player_value > 100.0f)
+                                    current_player_value = 100.0f;
 
-                            result += 40.0f * coef;
+                                float coef = 1.0f + 5.0f * magnitude * (100.0f - current_player_value) / 100.0f / 100.0f;
 
-                            break;
-                        }
+                                result += 40.0f * coef;
 
-                        case (0x48f45): //frost
-                        {
-                            float current_player_value = player->GetActorValue(RE::ActorValue::kResistFrost);
-                            current_player_value -= magnitude;
+                                break;
+                            }
 
-                            if (current_player_value > 100.0f)
-                                current_player_value = 100.0f;
+                            case (0x48f45): //frost
+                            {
+                                float current_player_value = player->GetActorValue(RE::ActorValue::kResistFrost);
+                                current_player_value -= magnitude;
 
-                            float coef = 1.0f + 10.0f * magnitude * (100.0f - current_player_value) / 100.0f / 100.0f;
+                                if (current_player_value > 100.0f)
+                                    current_player_value = 100.0f;
 
-                            result += 40.0f * coef;
+                                float coef = 1.0f + 10.0f * magnitude * (100.0f - current_player_value) / 100.0f / 100.0f;
 
-                            break;
-                        }
+                                result += 40.0f * coef;
 
-                        case (0x109637): //magic
-                        {
-                            float current_player_value = player->GetActorValue(RE::ActorValue::kResistMagic);
-                            current_player_value -= magnitude;
+                                break;
+                            }
 
-                            if (current_player_value > 100.0f)
-                                current_player_value = 100.0f;
+                            case (0x109637): //magic
+                            {
+                                float current_player_value = player->GetActorValue(RE::ActorValue::kResistMagic);
+                                current_player_value -= magnitude;
 
-                            float coef = 1.0f + 5.0f * magnitude * (100.0f - current_player_value) / 100.0f / 100.0f;
+                                if (current_player_value > 100.0f)
+                                    current_player_value = 100.0f;
 
-                            result += 40.0f * coef;
+                                float coef = 1.0f + 5.0f * magnitude * (100.0f - current_player_value) / 100.0f / 100.0f;
 
-                            break;
-                        }
+                                result += 40.0f * coef;
 
-
-                        case (0x109630): //magic regen
-                        {
-                            float coef = 0.22f;
-
-                            result += coef * magnitude;
-
-                            break;
-                        }
-
-                        case (0x109631): //reduce destruction cost
-                        {
-                            float coef = 1.0f;
-
-                            result += coef * magnitude;
-
-                            break;
-                        }
+                                break;
+                            }
 
 
-                        case (0x493aa): //bonus health
-                        {
-                            float coef = 1.6f;
+                            case (0x109630): //magic regen
+                            {
+                                float coef = 0.33f;
 
-                            result += coef * magnitude;
+                                result += coef * magnitude;
 
-                            break;
-                        }
+                                break;
+                            }
 
-                        case (0x49504): //bonus mana
-                        {
-                            float coef = 0.7f;
+                            case (0x109631): //reduce destruction cost
+                            {
+                                float coef = 1.0f;
 
-                            result += coef * magnitude;
+                                result += coef * magnitude;
 
-                            break;
-                        }
+                                break;
+                            }
 
 
-                        default: //random enchantment
-                        {
-                            float coef = 0.3f;
+                            case (0x493aa): //bonus health
+                            {
+                                float coef = 1.6f;
 
-                            result += coef * magnitude;
+                                result += coef * magnitude;
 
-                            break;
-                        }
+                                break;
+                            }
 
+                            case (0x49504): //bonus mana
+                            {
+                                float coef = 0.8f;
+
+                                result += coef * magnitude;
+
+                                break;
+                            }
+
+
+                            default: //random enchantment
+                            {
+                                float coef = 0.3f;
+
+                                result += coef * magnitude;
+
+                                break;
+                            }
+
+                            }
                         }
                     }
                 }
+                else
+                {
+                    //no own effets, maybe contained in base entirely?
+                    if (ench->data.baseEnchantment)
+                    {
+                        for (auto effect : ench->data.baseEnchantment->effects)
+                        {
+                            if (effect && effect->baseEffect)
+                            {
+                                float magnitude = effect->GetMagnitude();
+
+                                switch (effect->baseEffect->formID)
+                                {
+                                case (0x49295): //shock
+                                {
+                                    float current_player_value = player->GetActorValue(RE::ActorValue::kResistShock);
+                                    current_player_value -= magnitude;
+
+                                    if (current_player_value > 100.0f)
+                                        current_player_value = 100.0f;
+
+                                    float coef = 1.0f + 2.0f * magnitude * (100.0f - current_player_value) / 100.0f / 100.0f;
+
+                                    result += 40.0f * coef;
+
+                                    break;
+                                }
+
+                                case (0x48c8b): //fire
+                                {
+                                    float current_player_value = player->GetActorValue(RE::ActorValue::kResistFire);
+                                    current_player_value -= magnitude;
+
+                                    if (current_player_value > 100.0f)
+                                        current_player_value = 100.0f;
+
+                                    float coef = 1.0f + 5.0f * magnitude * (100.0f - current_player_value) / 100.0f / 100.0f;
+
+                                    result += 40.0f * coef;
+
+                                    break;
+                                }
+
+                                case (0x48f45): //frost
+                                {
+                                    float current_player_value = player->GetActorValue(RE::ActorValue::kResistFrost);
+                                    current_player_value -= magnitude;
+
+                                    if (current_player_value > 100.0f)
+                                        current_player_value = 100.0f;
+
+                                    float coef = 1.0f + 10.0f * magnitude * (100.0f - current_player_value) / 100.0f / 100.0f;
+
+                                    result += 40.0f * coef;
+
+                                    break;
+                                }
+
+                                case (0x109637): //magic
+                                {
+                                    float current_player_value = player->GetActorValue(RE::ActorValue::kResistMagic);
+                                    current_player_value -= magnitude;
+
+                                    if (current_player_value > 100.0f)
+                                        current_player_value = 100.0f;
+
+                                    float coef = 1.0f + 5.0f * magnitude * (100.0f - current_player_value) / 100.0f / 100.0f;
+
+                                    result += 40.0f * coef;
+
+                                    break;
+                                }
+
+
+                                case (0x109630): //magic regen
+                                {
+                                    float coef = 0.22f;
+
+                                    result += coef * magnitude;
+
+                                    break;
+                                }
+
+                                case (0x109631): //reduce destruction cost
+                                {
+                                    float coef = 1.0f;
+
+                                    result += coef * magnitude;
+
+                                    break;
+                                }
+
+
+                                case (0x493aa): //bonus health
+                                {
+                                    float coef = 1.6f;
+
+                                    result += coef * magnitude;
+
+                                    break;
+                                }
+
+                                case (0x49504): //bonus mana
+                                {
+                                    float coef = 0.7f;
+
+                                    result += coef * magnitude;
+
+                                    break;
+                                }
+
+
+                                default: //random enchantment
+                                {
+                                    float coef = 0.3f;
+
+                                    result += coef * magnitude;
+
+                                    break;
+                                }
+
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                
             }
         }
 
@@ -22406,7 +22538,21 @@ namespace MiscThings {
 
                     float current_armor_val = 0.0f;
 
-                    auto current_armor = (RE::TESObjectARMO*)get_armor_slot_contents(slot);
+                    RE::TESObjectARMO* current_armor = nullptr;
+                    
+                    for (int i = 0; i < 32; i++)
+                    {
+                        if ((int)slot & (1 << i))
+                        {
+                            auto test_armor = get_armor_slot_contents((RE::BGSBipedObjectForm::BipedObjectSlot)(1 << i));
+                            if (test_armor)
+                            {
+                                current_armor = (RE::TESObjectARMO*)test_armor;
+                                break;
+                            }
+                        }
+                    }
+                        
 
                     if (ignore_current)
                         current_armor = nullptr;
@@ -22665,8 +22811,6 @@ namespace MiscThings {
 
 
 
-
-
     std::string get_best_items_list()
     {
 
@@ -22710,12 +22854,12 @@ namespace MiscThings {
 
 
 
-            std::map<RE::BGSBipedObjectForm::BipedObjectSlot, std::pair<RE::TESBoundObject*, float>> best_armor{};
-
+            //std::map<RE::BGSBipedObjectForm::BipedObjectSlot, std::pair<RE::TESBoundObject*, float>> best_armor{};
+            std::vector<std::pair<RE::BGSBipedObjectForm::BipedObjectSlot, std::pair<RE::TESBoundObject*, float>>> best_armor{};
 
             for (auto inventory_entry : *p_inventory)
             {
-                if (inventory_entry.second.amount > 0 && inventory_entry.second.object)
+                if (inventory_entry.second.amount > 0 && inventory_entry.second.object && inventory_entry.second.object->IsArmor())
                 {
 
                     float benefit = armor_damage_difference(inventory_entry.second.object);
@@ -22724,34 +22868,59 @@ namespace MiscThings {
                     {
                         auto this_slot = get_armor_slot(inventory_entry.second.object);
 
-                        if ((int)this_slot)
-                        {
-                            auto current_best = best_armor.find(this_slot);
-
-                            if (current_best == best_armor.end())
-                                best_armor.insert({ this_slot, {inventory_entry.second.object, benefit} });
-                            else
-                            {
-                                float current_benefit = current_best->second.second;
-
-                                if (benefit > current_benefit)
-                                {
-                                    current_best->second.first = inventory_entry.second.object;
-                                    current_best->second.second = benefit;
-                                }
-                            }
-                        }
+                        best_armor.push_back({ this_slot, {inventory_entry.second.object, benefit} });
                     }
                 }
             }
 
+
+            std::sort(best_armor.begin(), best_armor.end(), [&](std::pair<RE::BGSBipedObjectForm::BipedObjectSlot, std::pair<RE::TESBoundObject*, float>> left, std::pair<RE::BGSBipedObjectForm::BipedObjectSlot, std::pair<RE::TESBoundObject*, float>> right) {
+                return left.second.second > right.second.second;
+                });
+
+            //now vector of candidates is sorted by benefit
+
+            //remove overlapping items with lower benefit
+
+            for (int i = 0; i < std::size(best_armor); i++)
+            {
+                
+                auto this_slot = &best_armor.at(i);
+                for (int j = 0; j < i; j++)
+                {
+                    auto previous_slot = best_armor.at(j);
+                    bool break_it = false;
+                    for (int k = 0; k < 32; k++)
+                    {
+                        if (((int)previous_slot.first & (1 << k)) && ((int)this_slot->first & (1 << k)))
+                        {
+                            this_slot->second.first = nullptr;
+                            break_it = true;
+                            break;
+                        }
+                    }
+                    if (break_it)
+                        break;
+                }
+            }
+
+
+
+            std::map<RE::TESBoundObject*, int> best_armor_filtered{};
+
             for (auto best_gear_piece : best_armor)
             {
-                auto item_info = insert_item_into_inventory_list_and_get_info(best_gear_piece.second.first, true);
+                best_armor_filtered.insert({ best_gear_piece.second.first , 0 });
+            }
+
+            for (auto best_gear_piece : best_armor_filtered)
+            {
+                auto item_info = insert_item_into_inventory_list_and_get_info(best_gear_piece.first, true);
 
                 if (item_info.second != "")
                     best_items.push_back(item_info.second);
             }
+
 
             bool first = true;
             for (auto best_item : best_items)
@@ -22771,6 +22940,133 @@ namespace MiscThings {
         return result;
     }
 
+
+    /*
+    std::string get_best_items_list()
+    {
+
+        std::string result = "";
+
+        auto player = RE::PlayerCharacter::GetSingleton();
+        auto actor_equip = RE::ActorEquipManager::GetSingleton();
+
+
+        std::vector<std::string> best_items{};
+
+        if (player && actor_equip && player->currentProcess)
+        {
+
+            //weapons
+            auto actor_process = player->currentProcess;
+            auto equipped_list = actor_process->equippedForms;
+
+            std::string weapon_slot_last_info = "";
+            for (auto equipped_item : equipped_list)
+            {
+                std::string best_weapon_for_slot = get_best_weapon_for_slot(equipped_item.slot);
+
+                if (best_weapon_for_slot != weapon_slot_last_info)
+                {
+                    best_items.push_back(best_weapon_for_slot);
+                }
+                weapon_slot_last_info = best_weapon_for_slot;
+            }
+
+
+            //apparel
+
+            if (!inventory_valid)
+                auto temp = GetInventory();
+
+            if (!inventory_valid)
+                return "";
+
+            auto p_inventory = get_p_inventory_items_list();
+
+
+
+            //std::map<RE::BGSBipedObjectForm::BipedObjectSlot, std::pair<RE::TESBoundObject*, float>> best_armor{};
+            std::map<RE::BGSBipedObjectForm::BipedObjectSlot, std::pair<RE::TESBoundObject*, float>> best_armor{};
+
+            for (auto inventory_entry : *p_inventory)
+            {
+                if (inventory_entry.second.amount > 0 && inventory_entry.second.object)
+                {
+
+                    float benefit = armor_damage_difference(inventory_entry.second.object);
+
+                    if (benefit > 2.0f)
+                    {
+                        auto this_slot = get_armor_slot(inventory_entry.second.object);
+
+                        //some things take multiple slots
+                        //so they should be remembered into each slot it takes
+                        //but only if none of its slots have anything better already
+                        //however if new item is better than something else that was checked before but it doesnt have one slot that overlaps with those... so old item will remain in that slot as best
+                        //isnt ideal but should be enough (isnt ideal because maybe its possible to make some combination of several items that will do better combined than that singular thing, but it should be rare enough)
+                                         
+                        for (int i = 0; i < 32; i++)
+                        {
+                            int singular_slot = (int)this_slot & (1 << i);
+                            if (singular_slot)
+                            {
+                                auto current_best = best_armor.find((RE::BGSBipedObjectForm::BipedObjectSlot)singular_slot);
+
+                                if (current_best == best_armor.end())
+                                    best_armor.insert({ (RE::BGSBipedObjectForm::BipedObjectSlot)singular_slot, {inventory_entry.second.object, benefit} });
+                                else
+                                {
+                                    float current_benefit = current_best->second.second;
+
+                                    if (benefit > current_benefit)
+                                    {
+
+
+
+                                        current_best->second.first = inventory_entry.second.object;
+                                        current_best->second.second = benefit;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            std::map<RE::TESBoundObject*, int> best_armor_filtered{};
+
+            for (auto best_gear_piece : best_armor)
+            {
+                best_armor_filtered.insert({ best_gear_piece.second.first , 0 });
+            }
+
+            for (auto best_gear_piece : best_armor_filtered)
+            {
+                auto item_info = insert_item_into_inventory_list_and_get_info(best_gear_piece.first, true);
+
+                if (item_info.second != "")
+                    best_items.push_back(item_info.second);
+            }
+
+
+            bool first = true;
+            for (auto best_item : best_items)
+            {
+                if (best_item != "")
+                {
+                    if (!first)
+                        result += "; " + best_item;
+                    else
+                        result += best_item;
+
+                    first = false;
+                }
+            }
+
+        }
+        return result;
+    }
+    */
 
 
 
