@@ -67,6 +67,9 @@ void make_stop_sprint();
 bool launching_sprint();
 
 
+bool is_weapon_draw_ready();
+void set_draw_weapon_start_timestamp();
+
 void use_ult();
 
 bool is_casting_cast();

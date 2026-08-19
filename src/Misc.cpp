@@ -22266,7 +22266,7 @@ namespace MiscThings {
                                 if (current_player_value > 100.0f)
                                     current_player_value = 100.0f;
 
-                                float coef = 1.0f + 5.0f * magnitude * (100.0f - current_player_value) / 100.0f / 100.0f;
+                                float coef = 1.0f + 4.0f * magnitude * (100.0f - current_player_value) / 100.0f / 100.0f;
 
                                 result += 40.0f * coef;
 
@@ -22281,7 +22281,7 @@ namespace MiscThings {
                                 if (current_player_value > 100.0f)
                                     current_player_value = 100.0f;
 
-                                float coef = 1.0f + 10.0f * magnitude * (100.0f - current_player_value) / 100.0f / 100.0f;
+                                float coef = 1.0f + 4.0f * magnitude * (100.0f - current_player_value) / 100.0f / 100.0f;
 
                                 result += 40.0f * coef;
 
@@ -28781,6 +28781,7 @@ namespace MiscThings {
                                     {
                                         //set_universal_block(1.0f);
                                         ready_weapon();
+                                        set_draw_weapon_start_timestamp();
                                     }
 
                                     //check target. if cant find it - fallback to old-way cast no target
@@ -29474,7 +29475,7 @@ namespace MiscThings {
                                 if (player_actor && !MiscThings::is_weapon_drawn() && !(player_actor->actorState2.weaponState == RE::WEAPON_STATE::kDrawing))
                                 {
                                     ready_weapon(); //show off new weapon
-
+                                    set_draw_weapon_start_timestamp();
                                     if (player_hp_less_than(90.0f) && is_self_healing_spell(spell))
                                     {
                                         try_casting_hand(right_hand);

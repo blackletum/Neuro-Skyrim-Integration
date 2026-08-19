@@ -84,13 +84,14 @@
 ///////////DO ALL THIS
 
 
+//this new apparel evaluation might be super bad for performance, check/test
+
 //pickup item - wiggle body before wiggling camera
 //sneak fixes
 //fix resurrection spells
-//fix spell casting not casting when isnt drawn before cast
 //reduce frequency of good-gear advice
 //stealing from top shelves (should try to jump)
-//fix double perk bug
+
 
 
 //add handling for solstheim prison escaping flag bug
@@ -1235,6 +1236,83 @@ namespace Hooks {
         static inline void Install() { originalFunction = REL::Relocation<std::uintptr_t>(RE::VTABLE_StealthMeter[0]).write_vfunc(0x1, thunk); }
     };
     */
+
+
+
+
+    /*
+    void RemoveBasePerks(RE::Actor* actor)
+    {
+        using func_t = decltype(&RemoveBasePerks);
+        static REL::Relocation<func_t> func{ RELOCATION_ID(36695, 37704) };
+        return func(actor);
+
+    }
+
+
+    void ApplyPerk(RE::BGSPerk* perk, RE::Actor* perkOwner, std::uint8_t removeRank, std::uint8_t applyRank)
+	{
+        using func_t = decltype(&ApplyPerk);
+        static REL::Relocation<func_t> func{ RELOCATION_ID(23353, 23822) };
+        return func(perk, perkOwner, removeRank, applyRank);
+	}
+    
+
+
+
+
+
+    
+    struct ActorBasePerkFix {
+
+
+        //inline const std::uintptr_t QueueApplyPerk{ Relocation::AddressLibrary::GetSingleton().GetAddress(SKYRIM_RELOCATE(36007, 36982)) }; // TaskQueueInterface::QueueApplyPerk
+
+        
+        
+        //this is from original:
+        //Utility::Memory::SafeWriteAbsoluteJump(Addresses::TaskQueueInterface::QueueApplyPerk, reinterpret_cast<std::uintptr_t>(std::addressof(Events::QueueApplyPerk)));
+
+        //something like this?
+        //        auto address = REL::ID(36564).address();
+        //        auto offset = REL::Offset(0xC26).offset();
+        //        OnUpdate = REL::GetTrampoline().write_call<5>(address + offset, OnUpdateMod);
+        
+        
+        
+
+
+        void QueueApplyPerk(RE::TaskQueueInterface* taskQueueInterface, RE::Actor* perkOwner, RE::BGSPerk* perk, std::uint8_t removeRank, std::uint8_t applyRank)
+        {
+            if (!perkOwner)
+                return;
+
+            if (!perk)
+                return;
+
+            ApplyPerk(perk, perkOwner, removeRank, applyRank);
+        }
+
+
+        static void ApplyBasePerksActor(RE::Actor* actor)
+        {
+            RemoveBasePerks(actor);
+
+            originalApplyBasePerksActor(actor);
+        }
+        static inline REL::Relocation<decltype(ApplyBasePerksActor)> originalApplyBasePerksActor;
+        static inline REL::Relocation<decltype(QueueApplyPerk)> originalQueueApplyPerk;
+        static inline void Install() { 
+            originalApplyBasePerksActor = REL::Relocation<std::uintptr_t>(RE::VTABLE_Actor[0]).write_vfunc(0x101, ApplyBasePerksActor);
+        
+            originalQueueApplyPerk = REL::GetTrampoline().write_call<5>(36982, QueueApplyPerk);
+
+        }
+    };
+    */
+
+
+
 
 
     struct InventoryProcessMessage {
@@ -3922,6 +4000,9 @@ SKSE_PLUGIN_LOAD(const SKSE::LoadInterface* a_skse)
     Hooks::RaceSexMenuProcessMessage::Install();
 
     Hooks::InventoryProcessMessage::Install();
+
+    //Hooks::ActorBasePerkFix::Install();
+
 
     //Hooks::StealthMeter_Update::Install();
 

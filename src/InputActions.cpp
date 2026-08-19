@@ -47,6 +47,24 @@ float pause_pre_cast = 0.0f;
 float fishing_timer = 0.0f;
 
 
+long long draw_weapon_start_timestamp = 0;
+
+
+
+void set_draw_weapon_start_timestamp()
+{
+    draw_weapon_start_timestamp = std::chrono::steady_clock::now().time_since_epoch().count();
+}
+
+
+bool is_weapon_draw_ready()
+{
+    return (std::chrono::steady_clock::now().time_since_epoch().count() - draw_weapon_start_timestamp) > 400000000; //0.4 second
+}
+
+
+
+
 bool input_wants_to_cast()
 {
     return do_cast;
@@ -1135,10 +1153,17 @@ bool make_long_cast_spell_hand(bool right, float dtime)
 
     if (player_actor && !MiscThings::is_weapon_drawn() && !(player_actor->actorState2.weaponState == RE::WEAPON_STATE::kDrawing))
     {
+        set_draw_weapon_start_timestamp();
         ready_weapon();
+        set_draw_weapon_start_timestamp();
         //set_universal_block(1.3f);
         return false;
     }
+
+
+    if (!is_weapon_draw_ready())
+        return false;
+
 
     /*
     if (!MiscThings::has_spell_equipped(right))

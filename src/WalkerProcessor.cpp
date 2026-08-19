@@ -1328,6 +1328,9 @@ namespace WalkerProcessor {
 
     bool pause_attacking(float dtime)
     {
+        if (!is_weapon_draw_ready())
+            return false;
+
         if (!have_target_to_walk)
             return true;
 
@@ -12770,10 +12773,15 @@ namespace WalkerProcessor {
 
         if (!MiscThings::is_weapon_drawn() && !(player_actor->actorState2.weaponState == RE::WEAPON_STATE::kDrawing))
         {
+            set_draw_weapon_start_timestamp();
             right_attack(); //this is "readyWeapon"
             //set_universal_block(0.5f);
             return false;
         }
+
+
+        if (!is_weapon_draw_ready())
+            return false;
             
 
         if (is_casting_cast()) //from inputprocessor
@@ -19996,6 +20004,7 @@ namespace WalkerProcessor {
                         {
                             draw_weapon_check_time2 = 0.0f;
                             ready_weapon();
+                            set_draw_weapon_start_timestamp();
                             tried_to_draw_weapon2 = true;
                         }
                         else

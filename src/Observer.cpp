@@ -2415,6 +2415,69 @@ namespace Observer {
 
 									if (a_ref->AsReference()->IsActor())
 									{
+										/*
+										if (a_ref->formID == 0x29d87)//malkoran tests, remove later
+										{
+											auto actor = (RE::Actor*)a_ref;
+
+											class MyPerkVisitor : public RE::PerkEntryVisitor
+											{
+											public:
+
+												std::vector<RE::BGSPerk*>* perks;
+
+												RE::BSContainer::ForEachResult Visit(RE::BGSPerkEntry* a_perkEntry) override {
+
+
+													//auto test = a_perkEntry->GetFunction();
+													auto test_type = a_perkEntry->GetType();
+													auto test_func = a_perkEntry->GetFunction();
+
+													if (a_perkEntry->GetType() == RE::PERK_ENTRY_TYPE::kEntryPoint)
+													{
+														auto ability = (RE::BGSEntryPointPerkEntry*)a_perkEntry;
+
+														perks->push_back(ability->perk);
+													}
+													
+
+													//perks->push_back(a_perkEntry->);
+
+													return RE::BSContainer::ForEachResult::kContinue;
+												}
+											};
+
+											MyPerkVisitor perk_visitor{};
+
+											std::vector<RE::BGSPerk*> perks{};
+
+											perk_visitor.perks = &perks;
+
+											//actor->ForEachPerk(perk_visitor);
+
+											for (int i = 0; i < 92; i++)
+											{
+												actor->ForEachPerkEntry((RE::BGSEntryPointPerkEntry::EntryPoint)i, perk_visitor);
+											}
+
+											
+											std::vector<std::string> perk_names{};
+											std::string debug_text = "";
+
+											for (auto perk : perks)
+											{
+												perk_names.push_back(perk->fullName.c_str());
+
+												debug_text += perk->fullName.c_str();
+												debug_text += "\n";
+											}
+
+
+											Hooks::set_debug_text(debug_text);
+
+											bool stop_here = false;
+										}
+										*/
 
 										if (!MiscThings::is_object_in_the_list(a_ref) && ((a_ref->GetDistance(player_ref) < 150.0f && a_ref->formID != 0x2002b74) || ((MiscThings::is_carriage_driver(a_ref) && a_ref->GetDistance(player_ref) < 1300.0f) || MiscThings::raycastable(a_ref, scan_distance))))
 										{
