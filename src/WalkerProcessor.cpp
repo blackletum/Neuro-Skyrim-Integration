@@ -13,6 +13,17 @@
 
 namespace WalkerProcessor {
 
+    float pickup_unsneak_time = 0.0f;
+    bool tried_pickup_unsneak = false;
+    bool try_pickup_unsneak = false;
+
+    float pickup_sneak_jump_time = 0.0f;
+    bool tried_sneak_jump = false;
+    bool try_sneak_jump = false;
+    int pickup_wiggle_dir = 0;
+    float pickup_wiggle_time = 0.0f;
+    bool try_pickup_wiggle_body = false;
+
     long long last_dodge_projectile_extra_dangerous_timestamp = 0;
     long long last_attack_target_shout_info = 0;
 
@@ -5120,7 +5131,7 @@ namespace WalkerProcessor {
                     if (key_condition || (!sneak_failed && !stop_sneaking && !using_custom_path && !location_mode && !(!stealth_arching && quest_mode && target->IsActor() && !target->IsDead())))
                     {
                         lock_camera_wants_to_crouch = true;
-                        if (!player->IsSneaking())
+                        if (!player->IsSneaking() && !tried_pickup_unsneak)
                             crouch(); //if target is very low - sneak on it
                     }
                     else
@@ -5941,6 +5952,19 @@ namespace WalkerProcessor {
 
     void reset_walker()
     {
+        pickup_unsneak_time = 0.0f;
+        tried_pickup_unsneak = false;
+        try_pickup_unsneak = false;
+
+
+        pickup_sneak_jump_time = 0.0f;
+        tried_sneak_jump = false;
+        try_sneak_jump = false;
+
+        try_pickup_wiggle_body = false;
+        pickup_wiggle_dir = 0;
+        pickup_wiggle_time = 0.0f;
+
         //had_whirlwind_sprint_effect = false;
         repath_if_walking = false;
         pre_repath_if_walking = false;
@@ -6670,6 +6694,104 @@ namespace WalkerProcessor {
 
         return result;
     }
+
+    
+
+    bool pickup_unsneak(float dtime)
+    {
+        bool result = false;
+        auto player = RE::PlayerCharacter::GetSingleton();
+
+        if (pickup_unsneak_time < 0.3f && player)
+        {
+            if (pickup_unsneak_time == 0.0f)
+                if (player->IsSneaking())
+                    crouch();
+
+            pickup_unsneak_time += dtime;
+            
+
+
+        }
+        else
+        {
+            pickup_unsneak_time = 0.0f;
+            return true;
+        }
+
+        return result;
+    }
+
+
+    bool pickup_sneak_jump(float dtime)
+    {
+        bool result = false;
+        auto player = RE::PlayerCharacter::GetSingleton();
+
+        if (pickup_sneak_jump_time < 0.5f && player)
+        {
+            pickup_sneak_jump_time += dtime;
+            jump();
+            lock_camera_onto_target(target_ref, dtime, 2.0f);
+
+            //if ((interaction_after_walk == 1 || interaction_after_walk == 2) && get_targeted_ref() == target_ref)
+            //    confirm();
+        }
+        else
+        {
+            pickup_sneak_jump_time = 0.0f;
+            return true;
+        }
+
+        return result;
+    }
+
+
+    bool pickup_wiggle_body(float dtime)
+    {
+        bool result = false;
+        auto player = RE::PlayerCharacter::GetSingleton();
+
+        if (pickup_wiggle_time < 0.3f && player)
+        {
+            pickup_wiggle_time += dtime;
+
+
+            if (pickup_wiggle_dir < 0 || pickup_wiggle_dir > 2)
+                pickup_wiggle_dir = 0;
+
+            if (pickup_wiggle_dir == 0)
+            {
+                left();
+            }
+
+            if (pickup_wiggle_dir == 1)
+            {
+                right();
+            }
+
+            if (pickup_wiggle_dir == 2)
+            {
+                pickup_wiggle_time = 0.0f;
+                pickup_wiggle_dir = 0;
+                return true;
+            }
+
+
+        }
+        else
+        {
+            pickup_wiggle_time = 0.0f;
+            pickup_wiggle_dir++;
+            return true;
+        }
+
+        return result;
+    }
+
+
+
+
 
 
 
@@ -20126,7 +20248,6 @@ namespace WalkerProcessor {
                         if (dlc1_forgotten_valley_cave_check())
                             return;
 
-
                         if (walk_unstuck(dtime))
                         {
                             walk_unstuck_time = 0.0f;
@@ -20134,6 +20255,39 @@ namespace WalkerProcessor {
                             walk_again();
                         }
                         return;
+                    }
+
+
+                    if (try_pickup_unsneak)
+                    {
+                        if (!pickup_unsneak(dtime))
+                            return;
+                        else
+                            try_pickup_unsneak = false;
+                    }
+
+
+                    if (try_sneak_jump)
+                    {
+                        if (target_ref)
+                        {
+                            if (!pickup_sneak_jump(dtime))
+                                return;
+                            else
+                                try_sneak_jump = false;
+                        }
+                        else
+                            try_sneak_jump = false;
+                    }
+
+
+
+                    if (try_pickup_wiggle_body)
+                    {
+                        if (!pickup_wiggle_body(dtime))
+                            return;
+                        else
+                            try_pickup_wiggle_body = false;
                     }
 
 
@@ -21167,7 +21321,11 @@ namespace WalkerProcessor {
                                                                                 if (!is_target_an_alive_actor)
                                                                                 {
                                                                                     if (attempts_to_move_obstacle < 3)
+                                                                                    {
+                                                                                        tried_sneak_jump = false;
+                                                                                        
                                                                                         try_to_remove_obstacle_mode = true;
+                                                                                    }
                                                                                     else
                                                                                         move_obstacle_failed = true;
                                                                                 }
@@ -21289,11 +21447,55 @@ namespace WalkerProcessor {
                                                                                 }
 
 
+
+                                                                                if (target_ref && target_ref->GetPosition().z >= (player->GetHeight() * 0.25 + player->GetPosition().z))
+                                                                                    if (MiscThings::is_stealing(target_ref) == "") //not stealing
+                                                                                    {
+                                                                                        if (!tried_pickup_unsneak)
+                                                                                        {
+                                                                                            tried_pickup_unsneak = true;
+                                                                                            try_pickup_unsneak = true;
+                                                                                            locking_failed = false;
+                                                                                            return;
+                                                                                        }
+                                                                                    }
+
+
+
+
                                                                                 if (wiggle_camera(dtime)) //OTHERWISE WE WILL CATCH IT ABOVE
                                                                                 {
                                                                                     //timeout
                                                                                     if (lock_camera_onto_target(target_ref, dtime)) //last focus
                                                                                     {
+
+                                                                                        //now try to wiggle body without front/back (just left/right)
+
+
+                                                                                        if (player->IsSneaking())
+                                                                                        {
+                                                                                            if (!tried_sneak_jump)
+                                                                                            {
+                                                                                                tried_sneak_jump = true;
+                                                                                                try_sneak_jump = true;
+                                                                                                return;
+                                                                                            }
+                                                                                        }
+                                                                                        else
+                                                                                        {
+                                                                                            if (pickup_wiggle_dir < 2)
+                                                                                            {
+                                                                                                locking_failed = false;
+                                                                                                try_pickup_wiggle_body = true;
+                                                                                                return;
+                                                                                            }
+                                                                                        }
+
+
+
+
+
+
                                                                                         if (interaction_after_walk == 3)
                                                                                         {
                                                                                             reset_walker();

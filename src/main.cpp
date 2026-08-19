@@ -86,11 +86,9 @@
 
 //this new apparel evaluation might be super bad for performance, check/test
 
-//pickup item - wiggle body before wiggling camera
 //sneak fixes
 //fix resurrection spells
 //reduce frequency of good-gear advice
-//stealing from top shelves (should try to jump)
 
 
 
