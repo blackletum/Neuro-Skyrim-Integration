@@ -11,7 +11,7 @@ Some demonstration videos:
 - [Long walk](https://www.youtube.com/watch?v=IKCNaaQnnBw)
 
 ## Requirements
-* **Skyrim Special Edition 1.6.1170** (latest Steam release)
+* **Skyrim Special Edition 1.6.1170** (!!!! this is not steam latest anymore !!!!)
   * [Optional] Launch at least once to main menu (populates registry so tooling can discover path automatically)
   * Note: **Skyrim Anniversary Edition 1.6.1170** should also work (was not tested)
 * [XMake](https://xmake.io) [2.8.2+]
