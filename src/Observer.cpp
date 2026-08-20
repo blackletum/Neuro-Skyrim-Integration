@@ -4947,52 +4947,54 @@ namespace Observer {
 
 										if (old_state.action_flags != new_state.action_flags)
 										{
-											detect_events_send_result_silent = true;
-
-											std::string in_the_distance = "";
-
-											if (player_ref->GetDistance(a_ref) > 15000.0f)
-												in_the_distance = " in the distance";
-
-											if (new_state.action_flags & (int)RE::FLY_STATE::kCruising)
+											if (!a_ref->IsActor() || !a_ref->IsDead())
 											{
-												std::string name = MiscThings::insert_object_into_list_and_get_info(a_ref);
-												std::string action = " is flying";
-												if (detect_events_result.empty() && name != "")
-													detect_events_result.push_back("[" + name + action + in_the_distance + "]");
+												detect_events_send_result_silent = true;
+
+												std::string in_the_distance = "";
+
+												if (player_ref->GetDistance(a_ref) > 15000.0f)
+													in_the_distance = " in the distance";
+
+												if (new_state.action_flags & (int)RE::FLY_STATE::kCruising)
+												{
+													std::string name = MiscThings::insert_object_into_list_and_get_info(a_ref);
+													std::string action = " is flying";
+													if (detect_events_result.empty() && name != "")
+														detect_events_result.push_back("[" + name + action + in_the_distance + "]");
+												}
+
+												if (new_state.action_flags & (int)RE::FLY_STATE::kLanding)
+												{
+													std::string name = MiscThings::insert_object_into_list_and_get_info(a_ref);
+													std::string action = " is landing";
+													if (detect_events_result.empty() && name != "")
+														detect_events_result.push_back("[" + name + action + in_the_distance + "]");
+												}
+
+												if (new_state.action_flags & (int)RE::FLY_STATE::kHovering)
+												{
+													std::string name = MiscThings::insert_object_into_list_and_get_info(a_ref);
+													if (detect_events_result.empty() && name != "")
+														std::string action = " is hovering";
+
+												}
+
+												if (new_state.action_flags & (int)RE::FLY_STATE::kTakeOff)
+												{
+													std::string name = MiscThings::insert_object_into_list_and_get_info(a_ref);
+													std::string action = " takes off";
+													if (detect_events_result.empty() && name != "")
+														detect_events_result.push_back("[" + name + action + in_the_distance + "]");
+												}
+
+												if (new_state.action_flags & (int)RE::FLY_STATE::kPerching)
+												{
+													std::string name = MiscThings::insert_object_into_list_and_get_info(a_ref);
+													std::string action = " is perching";
+													//detect_events_result.push_back("[" + name + action + "]"); //looks like perching randomly comes with other types making no sense
+												}
 											}
-
-											if (new_state.action_flags & (int)RE::FLY_STATE::kLanding)
-											{
-												std::string name = MiscThings::insert_object_into_list_and_get_info(a_ref);
-												std::string action = " is landing";
-												if (detect_events_result.empty() && name != "")
-													detect_events_result.push_back("[" + name + action + in_the_distance + "]");
-											}
-
-											if (new_state.action_flags & (int)RE::FLY_STATE::kHovering)
-											{
-												std::string name = MiscThings::insert_object_into_list_and_get_info(a_ref);
-												if (detect_events_result.empty() && name != "")
-													std::string action = " is hovering";
-
-											}
-
-											if (new_state.action_flags & (int)RE::FLY_STATE::kTakeOff)
-											{
-												std::string name = MiscThings::insert_object_into_list_and_get_info(a_ref);
-												std::string action = " takes off";
-												if (detect_events_result.empty() && name != "")
-													detect_events_result.push_back("[" + name + action + in_the_distance + "]");
-											}
-
-											if (new_state.action_flags & (int)RE::FLY_STATE::kPerching)
-											{
-												std::string name = MiscThings::insert_object_into_list_and_get_info(a_ref);
-												std::string action = " is perching";
-												//detect_events_result.push_back("[" + name + action + "]"); //looks like perching randomly comes with other types making no sense
-											}
-
 										}
 									}
 
