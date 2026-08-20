@@ -21106,6 +21106,9 @@ namespace MiscThings {
                     result = dead + "[Creature" + race + "]";
 
 
+                if (actor_object->IsReanimated())
+                    result += "[Zombie]";
+
 
                 std::string sitsleep = "";
 
@@ -21116,6 +21119,7 @@ namespace MiscThings {
                     else
                         sitsleep = "[Dormant]";
                 }
+
 
                 std::string driver_text = "";
 
@@ -29791,6 +29795,12 @@ namespace MiscThings {
             auto player = RE::PlayerCharacter::GetSingleton();
             //auto player_ref = player->AsReference();
             //auto player_actor = (RE::Actor*)player_ref;
+            
+            //it looks like this flag either comes while actor is still dead, or doesnt work at all. here it is useless, replaced with IsReanimated check below
+            //if (actor_refr->formID != 0x14)
+            //   if (actor_refr->actorState2.reanimating)
+            //        return false;
+
 
             if (controller)
             {
@@ -29820,6 +29830,10 @@ namespace MiscThings {
             }
             //else
             //{
+
+            if (actor_refr->IsReanimated())
+                only_fighting = true;
+
             if (!only_fighting && (WalkerProcessor::is_sneak_on() || weapon_independent || WalkerProcessor::has_bow_equipped(WalkerProcessor::get_current_active_hand()) || WalkerProcessor::has_crossbow_equipped(WalkerProcessor::get_current_active_hand())))
             {
                 bool aggressive = false;

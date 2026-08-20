@@ -13,6 +13,9 @@
 
 namespace WalkerProcessor {
 
+
+    bool dont_clear_spell_vars = false;
+
     float pickup_unsneak_time = 0.0f;
     bool tried_pickup_unsneak = false;
     bool try_pickup_unsneak = false;
@@ -5952,6 +5955,12 @@ namespace WalkerProcessor {
 
     void reset_walker()
     {
+
+
+        
+
+
+
         pickup_unsneak_time = 0.0f;
         tried_pickup_unsneak = false;
         try_pickup_unsneak = false;
@@ -6387,7 +6396,7 @@ namespace WalkerProcessor {
         gave_attacking_info = false;
 
         last_attack_action = -1;
-        attack_action = -1;
+        
         attack_action_time0 = 0.0f;
         attack_action_time1 = 0.0f;
 
@@ -6430,9 +6439,19 @@ namespace WalkerProcessor {
         shout_mode = false;
         shout_to_use = nullptr;
 
-        spell_mode = false;
-        spell_to_use = nullptr;
-        spell_ult_mode = false;
+
+
+        if (!dont_clear_spell_vars)
+        {
+            spell_mode = false;
+            spell_to_use = nullptr;
+            spell_ult_mode = false;
+            attack_action = -1;
+        }
+
+
+        dont_clear_spell_vars = false;
+
 
         if (gate_shout)
             register_allowed_actions();
@@ -16713,6 +16732,9 @@ namespace WalkerProcessor {
 
             bool dont_replace_with_shout = false;
             
+            dont_clear_spell_vars = true;
+
+
             switch (spell->formID)
             {
             case (0x4DBA4)://soul trap

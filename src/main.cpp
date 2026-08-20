@@ -85,9 +85,7 @@
 
 
 //this new apparel evaluation might be super bad for performance, check/test
-
-//sneak fixes
-//fix resurrection spells
+//sneak fixes (should not stop on being detected by allies, check fuck-it-lets-go thing not working properly)
 //reduce frequency of good-gear advice
 
 
