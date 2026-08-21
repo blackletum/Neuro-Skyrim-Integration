@@ -6,6 +6,9 @@
 namespace MiscThings {
 
 
+    bool any_enemy_sees_player_for_safe_stealthwalk_check(float range, bool stealth_probe_done);
+
+
     std::string get_equipped_hand_text(RE::TESBoundObject* object);
 
     bool jumpable_ramp_ahead();
@@ -274,7 +277,8 @@ namespace MiscThings {
 
     std::vector<quest>* get_p_quest_list();
 
-    bool sees_player(RE::TESObjectREFR* actor_ref, bool stealth_probe_done = false);
+    bool sees_player(RE::TESObjectREFR* actor_ref, bool stealth_probe_done = false, bool ignore_stealthmeter = false);
+    bool sees_player_for_safe_stealthwalk_check(RE::TESObjectREFR* actor_ref, bool stealth_probe_done = false, bool ignore_stealthmeter = false);
 
     bool is_equipped(RE::TESBoundObject* object);
 

@@ -2726,20 +2726,55 @@ namespace MiscThings {
 
     bool safe_to_stealthwalk(bool stealth_probe_done)
     {
-        return get_detection_level_value() < -13.0f || get_hud_stealthmeter_value(stealth_probe_done) <= 10.0f;
+        //return get_detection_level_value() < -13.0f || get_hud_stealthmeter_value(stealth_probe_done) <= 10.0f;
+        return !any_enemy_sees_player_for_safe_stealthwalk_check(9000.0f, stealth_probe_done) || get_hud_stealthmeter_value(stealth_probe_done) <= 10.0f;
     }
 
 
 
 
+    bool sees_player_for_safe_stealthwalk_check(RE::TESObjectREFR* actor_ref, bool stealth_probe_done, bool ignore_stealthmeter)
+    {
 
-    bool sees_player(RE::TESObjectREFR* actor_ref, bool stealth_probe_done)
+
+        if (MiscThings::is_player_hidden() || MiscThings::get_hud_stealthmeter_value(stealth_probe_done) < 10.0f)
+            return false; //cant see if nobody sees player
+
+        if (!ignore_stealthmeter)
+            if (MiscThings::get_hud_stealthmeter_value(stealth_probe_done) >= 100.0f)
+                return true;
+
+        if (actor_ref && actor_ref->IsActor())
+        {
+            auto player = RE::PlayerCharacter::GetSingleton();
+            auto player_actor = (RE::Actor*)player->AsReference();
+
+            auto actor = (RE::Actor*)actor_ref;
+
+            auto detection1 = actor->RequestDetectionLevel(player_actor, RE::DETECTION_PRIORITY::kCritical);
+            auto detection2 = actor->RequestDetectionLevel(player_actor, RE::DETECTION_PRIORITY::kHigh);
+            auto detection3 = actor->RequestDetectionLevel(player_actor, RE::DETECTION_PRIORITY::kLow);
+            auto detection4 = actor->RequestDetectionLevel(player_actor, RE::DETECTION_PRIORITY::kNone);
+            auto detection5 = actor->RequestDetectionLevel(player_actor, RE::DETECTION_PRIORITY::kNormal);
+            auto detection6 = actor->RequestDetectionLevel(player_actor, RE::DETECTION_PRIORITY::kVeryLow);
+
+
+            return detection5 > 0;
+        }
+
+        return false;
+    }
+
+
+
+    bool sees_player(RE::TESObjectREFR* actor_ref, bool stealth_probe_done, bool ignore_stealthmeter)
     {
         if (MiscThings::is_player_hidden() || MiscThings::get_hud_stealthmeter_value(stealth_probe_done) < 100.0f)
             return false; //cant see if nobody sees player
 
-        if (MiscThings::get_hud_stealthmeter_value(stealth_probe_done) >= 100.0f)
-            return true;
+        if (!ignore_stealthmeter)
+            if (MiscThings::get_hud_stealthmeter_value(stealth_probe_done) >= 100.0f)
+                return true;
 
         if (actor_ref && actor_ref->IsActor())
         {
@@ -30144,6 +30179,63 @@ namespace MiscThings {
             if (actor->currentProcess && actor->currentProcess->cachedValues && actor->currentProcess->cachedValues->flags && actor->currentProcess->cachedValues->flags.any(RE::CachedValues::Flags::kActorIsGhost))
                 result |= true;
         }
+
+
+        return result;
+    }
+
+
+
+    bool any_enemy_sees_player_for_safe_stealthwalk_check(float range, bool stealth_probe_done)
+    {
+        bool result = false;
+
+        auto player = RE::PlayerCharacter::GetSingleton();
+        auto player_ref = player->AsReference();
+        auto player_actor = (RE::Actor*)player_ref;
+
+        bool raycastable_only = false;
+        bool only_fighting = false;
+
+
+        RE::TESObjectREFR* exclude_ref = nullptr;
+
+
+
+        RE::TES::GetSingleton()->ForEachReferenceInRange(player_ref, range,
+            //player->GetParentCell()->ForEachReferenceInRange(player->GetPosition(), 3000.0,
+            [&](RE::TESObjectREFR* a_ref) {
+
+                if (a_ref && a_ref->IsActor())
+                {
+                    if (MiscThings::kataria_exists() && MiscThings::is_object_inside_of_kataria(a_ref) && !MiscThings::is_object_inside_of_kataria(player))
+                        return RE::BSContainer::ForEachResult::kContinue; //skip kataria sailors if we escaped. this ship is cursed
+
+                    if (MiscThings::is_dragon(a_ref))
+                        return RE::BSContainer::ForEachResult::kContinue; //they have crazy detection so it doesnt matter really
+
+                    if (is_enemy_to_actor(a_ref, only_fighting, true) && (!raycastable_only || raycastable(a_ref, range, false)))
+                    {
+
+                        auto target_actor = (RE::Actor*)a_ref;
+
+                        bool not_a_threat = MiscThings::is_immortal(target_actor) && target_actor->GetActorValue(RE::ActorValue::kHealth) < 2;
+
+                        if (!not_a_threat && (a_ref != exclude_ref) && !a_ref->IsChild())
+                        {
+                            auto distance = player_ref->GetDistance(a_ref);
+
+                            if (distance < range)
+                                if (sees_player_for_safe_stealthwalk_check(a_ref, true, true))
+                                    result = true;
+                        }
+
+                    }
+
+                }
+
+                return RE::BSContainer::ForEachResult::kContinue;
+            });
 
 
         return result;
