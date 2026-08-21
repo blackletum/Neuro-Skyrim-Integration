@@ -84,7 +84,6 @@
 
 
 //this new apparel evaluation might be super bad for performance, check/test
-//reduce frequency of good-gear advice
 
 
 
@@ -1750,7 +1749,7 @@ namespace Hooks {
                         std::string better_gear = MiscThings::get_best_items_list();
 
                         if (!MiscThings::is_serving_jail() && !MiscThings::player_escaping_jail())
-                            if (better_gear != "")
+                            if (better_gear != "" && MiscThings::coinflip() && MiscThings::coinflip())
                                 advice += ". You have good gear that is not equipped, you can do use_inventory_items action to equip them: " + better_gear;
 
 
