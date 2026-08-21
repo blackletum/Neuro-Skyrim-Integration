@@ -3811,7 +3811,7 @@ namespace MiscThings {
         //Hooks::add_debug_line(std::to_string(score), true);
         //DebugAPI_IMPL::DebugAPI::GetSingleton()->Update();
         
-        return score > 240.0f;
+        return score > 200.0f;
     }
 
 

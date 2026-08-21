@@ -5537,7 +5537,18 @@ namespace WalkerProcessor {
                             result = true; //we either fell or pathfinding glitched. point is too high
 
                         /////////////////// EXPERIMENTAL /////////////////
-                        if (!is_about_to_fall() || blackreach_mode)
+                        //if ((!is_about_to_fall() || blackreach_mode) && !)
+
+                        auto player_pos_noZ = player_pos;
+                        auto path_point_pos_noZ = current_path_point_pos;
+
+                        player_pos_noZ.z = 0.0f;
+                        path_point_pos_noZ.z = 0.0f;
+
+                        bool actually_ignore_z = player_pos_noZ.GetDistance(path_point_pos_noZ) < 12.0f && abs(player_pos.z - current_path_point_pos.z) < 50.0f;
+
+
+                        if (blackreach_mode || (!is_about_to_fall() && actually_ignore_z))
                         {
                             current_path_point_pos.z = 0.0f;
                             player_pos.z = 0.0f;

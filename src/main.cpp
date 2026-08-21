@@ -71,7 +71,6 @@
 //TODO upgrade-house helper interesting place
 //TODO winterhold quest with claw
 //TODO that fire nordic sword quest triggered by some book
-//TODO cure vampirism quest
 
 
 //////////////////////////////////////////////////////
