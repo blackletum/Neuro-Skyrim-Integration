@@ -5218,9 +5218,9 @@ namespace Observer {
 			{
 
 				auto cell_door1 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xa577d);
-				auto cell_door2 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xa7618);
+				//auto cell_door2 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xa7618);
 
-				if (MiscThings::is_door_locked(cell_door1) && MiscThings::is_door_locked(cell_door2))
+				if (MiscThings::is_door_locked(cell_door1))// && MiscThings::is_door_locked(cell_door2))
 				{
 
 					if (player_pos.z > -290.0f)
@@ -5233,7 +5233,7 @@ namespace Observer {
 						RE::NiPoint2 p = { player_pos.x, player_pos.y };
 						if (MiscThings::is_inside_of_rectangle(p, a, b, c, d))
 						{
-							if (time_bad_escape > 3.0f)
+							if (time_bad_escape > 6.0f)
 							{
 								player->playerFlags.escaping = false;
 
@@ -5261,6 +5261,40 @@ namespace Observer {
 				return;
 			}
 
+
+			case (0x4019ad8): //solstheim
+			{
+
+				auto exit_door = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4019af2);
+				if (MiscThings::is_door_locked(exit_door)) MiscThings::set_door_locked(exit_door, false); //escaping but exit door is locked, even though it should be forced to unlock. try unlocking it
+
+				auto cell_door1 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4019b09);
+				//auto cell_door2 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xa7618);
+
+				if (MiscThings::is_door_locked(cell_door1))// && MiscThings::is_door_locked(cell_door2))
+				{
+
+					if (player_pos.z > 410.4f && player_pos.x > 784.0f)
+					{
+
+						if (time_bad_escape > 10.0f)
+						{
+							player->playerFlags.escaping = false;
+
+							if (get_active_force() == -1)
+							{
+								unregister_all_actions();
+								register_allowed_actions();
+							}
+
+						}
+						else
+							time_bad_escape += dtime;
+					}
+				}
+
+				return;
+			}
 
 
 

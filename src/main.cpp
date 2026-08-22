@@ -87,7 +87,6 @@
 
 
 
-//add handling for solstheim prison escaping flag bug
 //try to improve sneak (it still sometimes tries to sneak when we are 100% visible)
 //fix reanimate spells interrupting battle + fix reanimate spells being endlessly "processing" if cast while having ritual restoration scroll equipped
 
