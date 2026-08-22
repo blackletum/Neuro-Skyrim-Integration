@@ -7830,6 +7830,35 @@ namespace MiscThings {
                 return gates;
         }
 
+        if (quest)
+        {
+            switch (quest->formID)
+            {
+            case (0x4018b13): //ash captain soltsheim dungeon
+            {
+
+                if (target && target->formID == 0x401a57a)
+                {
+                    auto locked_door = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x401f4be);
+                    if (locked_door)
+                        if (MiscThings::is_door_locked(locked_door))
+                        {
+                            auto key_satchel = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x402ac1a);
+                            if (key_satchel)
+                                return key_satchel;
+                        }
+                        else
+                        {
+                            //it pathfinds like shit. direct do door if its locked when we ignore key
+                            if (MiscThings::is_door_locked(locked_door, true))
+                                return locked_door;
+                        }
+                }
+                break;
+            }
+            }
+        }
+
 
             auto dlc1vq07_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("DLC1VQ07");
 

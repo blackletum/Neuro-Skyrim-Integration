@@ -9,7 +9,6 @@
 // QUESTLINES
 
 //TODO polish thief guild (potential softlock due to anti-drown in mercer fight, no info in the well of nocturnal sanctum, maybe fix goldenglow pathfinding)
-//TODO polish mage guild (maybe add context about things happening around)
 //TODO polish dark brotherhood (test alternative paths (kill astrid right away, dont kill captain when caught killing fake emperor, accept emperors offer to kill the client), orc drag mechanic
 //TODO polish civil war (ambush quest sometimes the soldier cannot hit the enemy)
 //TODO polish companions (maybe add jorwaskr as an interesting place to whiterun.. or make some kind of bridge-quest when player didnt take new quest right away. maybe test more locations for silverhands)
@@ -20,7 +19,7 @@
 
 //TODO polish dawnguard dlc 
 // improve harkon fight to let us actually use the bow even though its beatable without it, fix constant "cant walk there" pathfinding death during fight
-// add ability to shoow the sun with auriel bow
+// add ability to shoot the sun with auriel bow
 
 
 //combat-only commands? that appear instead of map/wait? (they should be super compact, maybe even no description)
@@ -51,7 +50,6 @@
 //TODO potema part2
 //TODO white phial part 2 (windhelm alchemist quest)
 //TODO riften dwemer cube quest
-//TODO solstheim ash captain shit
 //TODO whiterun save the guy from thalmor quest
 //TODO falkreath help the hunter spriggan cave
 //TODO riften mzinchaleft sword quest
@@ -83,16 +81,9 @@
 ///////////DO ALL THIS
 
 
-//this new apparel evaluation might be super bad for performance, check/test
-
-
-
-//try to improve sneak (it still sometimes tries to sneak when we are 100% visible)
 //fix reanimate spells interrupting battle + fix reanimate spells being endlessly "processing" if cast while having ritual restoration scroll equipped
 
-//test trade history more
-
-//maybe attempt to block dragon breath with ward spell (depending on how good it is - add a random chance)
+//(HARD) maybe attempt to block dragon breath with ward spell (depending on how good it is - add a random chance)
 //(HARD) try to walk under dragon if possible to get in range for short range spells (might be useless by now)
 //autoequip bow fix (it looked like it didnt work at all after last changes)
 

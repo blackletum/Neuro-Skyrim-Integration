@@ -3962,6 +3962,21 @@ namespace WalkerProcessor {
         if (target_ref && temp_result)
         {
 
+            if (auto extra = temp_result->extraList.GetByType(RE::ExtraDataType::kAshPileRef); extra)
+            {
+                auto extra_ash = (RE::ExtraAshPileRef*)extra;
+
+                if (extra_ash->ashPileRef)
+                {
+                    auto ash_parent_ref = extra_ash->ashPileRef.get().get();
+
+                    if (ash_parent_ref == target_ref)
+                        return target_ref;
+                }
+            }
+
+
+
             switch (target_ref->formID)
             {
 
