@@ -83,7 +83,6 @@
 
 //raycast spells from hand and not from crosshair for better aim and proper test on walls blocking specific hand without blocking crosshair
 //jumping to pickup items from top shelves
-//fix not attacking wide enemies while healing (add check if get_targeted_ref == target_ref for that attack-possible test)
 //winterhold trader hard to reach (need to either block top door or make complex redirection to that trader. will probably need to do the quest with claw too)
 //archmage quaters easy access (throw it to interesting places, walk to the middle of it. message "you arrived" or smth like that on arrival)
 //jumping while walking having some bug after last walking fix (maybe need to adjust point_reached thresholds now since z is less likely to be removed)
@@ -94,7 +93,7 @@
 //check healing potions not being usable
 //container track all items for current session. must be done because forces are ephemeral and old transaction is forgotten
 //dragon bow must be fixed since its possible to have 0 mana regen and spells are not enough
-
+//in fight after enemy dies it walks to the corpse weirdly
 
 
 

@@ -29044,7 +29044,21 @@ namespace MiscThings {
                                                 try_casting_hand(right_hand);
                                         }
                                         else
-                                            try_casting_hand(right_hand);
+                                        {
+                                            if (WalkerProcessor::is_fighting())
+                                            {
+                                                auto current_walker_target = WalkerProcessor::get_current_target();
+                                                if (current_walker_target)
+                                                {
+                                                    WalkerProcessor::cast_spell_at_target(current_walker_target, spell);
+                                                }
+                                                else
+                                                    try_casting_hand(right_hand);
+                                            }
+                                            else
+                                                try_casting_hand(right_hand);
+                                        }
+                                            
 
                                         last_spell_cast_timestamp = std::chrono::steady_clock::now().time_since_epoch().count();
 

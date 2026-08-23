@@ -48,6 +48,7 @@ namespace WalkerProcessor {
 
 	float get_spell_timeout(bool right);
 
+	RE::TESObjectREFR* get_current_target();
 
 	std::pair<bool, std::string> make_jumps();
 

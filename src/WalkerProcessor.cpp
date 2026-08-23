@@ -1146,10 +1146,16 @@ namespace WalkerProcessor {
     }
 
 
-
     bool walker_active()
     {
         return (bool)target_ref;
+    }
+
+
+
+    RE::TESObjectREFR* get_current_target()
+    {
+        return target_ref;
     }
 
     
@@ -13711,7 +13717,7 @@ namespace WalkerProcessor {
 
                         if (!goto_attack_used && MiscThings::has_spell_equipped(true) && is_concentration_spell(true) && is_casting_walker3(true))
                         {
-                            if (player->GetDistance(target_ref, true) < (50.0f + get_weapon_range(false) * target_ref->GetScale()) && !left_is_useless)
+                            if (((get_targeted_ref() == target_ref) || (player->GetDistance(target_ref, true) < (50.0f + get_weapon_range(false) * target_ref->GetScale()))) && !left_is_useless)
                             {
                                 if (!do_dodge_projectile || !is_melee_weapon(false))
                                 {
@@ -13764,7 +13770,8 @@ namespace WalkerProcessor {
 
                             pause_post_attack = 0.0f;
 
-                            attack_action_done = true;
+                            if (!goto_attack_used && !dualcasting)
+                                attack_action_done = true;
 
                             dualcasting = false;
 
@@ -14356,7 +14363,7 @@ namespace WalkerProcessor {
 
                             if (!goto_attack_used && MiscThings::has_spell_equipped(false) && is_concentration_spell(false) && is_casting_walker3(false) && !MiscThings::is_summon_spell(true) && !MiscThings::is_summon_spell(false))
                             {
-                                if (player->GetDistance(target_ref, true) < (50.0f + get_weapon_range(true) * target_ref->GetScale()) && !right_is_useless)
+                                if (((get_targeted_ref() == target_ref) || (player->GetDistance(target_ref, true) < (50.0f + get_weapon_range(true) * target_ref->GetScale()))) && !right_is_useless)
                                 {
                                     if (!do_dodge_projectile || !is_melee_weapon(true))
                                     {
@@ -14411,7 +14418,8 @@ namespace WalkerProcessor {
 
                             pause_post_attack = 0.0f;
 
-                            attack_action_done = true;
+                            if (!goto_attack_used && !dualcasting)
+                                attack_action_done = true;
 
                             if (dualhanding_two_weapons && try_dual_attack)
                                 right_attack_cancel();
