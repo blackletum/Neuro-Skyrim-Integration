@@ -4236,6 +4236,7 @@ namespace WalkerProcessor {
             (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x9b0a5), //helgen door
             (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x33f0f), //malborn door1
             (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x33f4b), //malborn door1
+            (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1f146), //potema master door
 
         };
 
@@ -8785,8 +8786,6 @@ namespace WalkerProcessor {
 
 
 
-                Observer::reset_threats();
-
                 if (have_target_to_walk)
                 {
                     if (target_ref != object->second.object || interaction != interaction_after_walk)
@@ -8810,7 +8809,10 @@ namespace WalkerProcessor {
                         return result;
                     }
                 }
-                    
+                   
+
+                Observer::reset_threats();
+
 
 
                 right_attack_cancel();
@@ -9040,7 +9042,7 @@ namespace WalkerProcessor {
             if (object != objects_around->end())
             {
                 
-                Observer::reset_threats();
+                
 
                 if (have_target_to_walk)
                 {
@@ -9055,7 +9057,7 @@ namespace WalkerProcessor {
                     }
                 }
 
-
+                Observer::reset_threats();
 
                 right_attack_cancel();
                 left_attack_cancel();
@@ -9128,8 +9130,6 @@ namespace WalkerProcessor {
 
             if (object)
             {
-                if (!dont_reset_threats)
-                    Observer::reset_threats();
 
                 if (have_target_to_walk)
                 {
@@ -9143,6 +9143,9 @@ namespace WalkerProcessor {
                         return result;
                     }
                 }
+
+                if (!dont_reset_threats)
+                    Observer::reset_threats();
 
 
                 right_attack_cancel();
@@ -10342,9 +10345,6 @@ namespace WalkerProcessor {
                                                 }
 
 
-
-                                                Observer::reset_threats();
-
                                                 if (have_target_to_walk)
                                                 {
                                                     if (target_ref != quests_target_ref || last_quest != quest_entry.quest || last_quest_objective_chosen != quest_entry.objective || backup_interaction_made)
@@ -10401,6 +10401,8 @@ namespace WalkerProcessor {
                                                     }
                                                 }
 
+                                                Observer::reset_threats();
+
                                                 if (quests_target_ref == helgen_tower_marker)
                                                 {
                                                     unregister_all_actions();
@@ -10412,6 +10414,20 @@ namespace WalkerProcessor {
 
                                                 quest_mode = true;
                                                 target_ref = MiscThings::redirect_quest_target(quest_entry.quest, quests_target_ref, quest_entry.target);
+
+
+                                                if (target_ref && target_ref->formID == 0x988dd && player->GetPosition().GetDistance({ -60488.1445, 120750.820, -9233.74316 }) < 600.0f) //potema exit cliff back to dungeon door
+                                                {
+                                                    unregister_all_actions();
+                                                    using_custom_path = true;
+                                                    custom_path = CustomWalkerPaths::potema_tamriel_exit_down;
+                                                    auto tree = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x3907d); //some tree down the cliff
+                                                    if (tree)
+                                                        target_ref = tree;
+
+                                                    reset_after_walk = true;
+                                                    dont_shift = true;
+                                                }
 
 
                                                 if (MiscThings::inside_volkihar_balcony())
@@ -10668,8 +10684,6 @@ namespace WalkerProcessor {
                             }
 
 
-                            Observer::reset_threats();
-
                             if (have_target_to_walk)
                             {
                                 if (target_ref != quests_target_ref || last_quest != quest_entry.quest || last_quest_objective_chosen != quest_entry.objective || backup_interaction_made)
@@ -10690,6 +10704,8 @@ namespace WalkerProcessor {
                                 }
                             }
 
+
+                            Observer::reset_threats();
 
                             quest_mode = true;
                             target_ref = MiscThings::redirect_quest_target(quest_entry.quest, quests_target_ref, quest_entry.target);

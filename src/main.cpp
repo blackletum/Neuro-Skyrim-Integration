@@ -47,12 +47,10 @@
 
 //  RANDOM QUESTS TODO
 // 
-//TODO potema part2
 //TODO white phial part 2 (windhelm alchemist quest)
 //TODO riften dwemer cube quest
 //TODO whiterun save the guy from thalmor quest
 //TODO falkreath help the hunter spriggan cave
-//TODO riften mzinchaleft sword quest
 //TODO mage sidequests
 //TODO dlc etherium book quest
 //TODO soltsheim riekling quests
@@ -1748,6 +1746,11 @@ namespace Hooks {
                             send_random_context("[Current location: " + location_name + advice + "]");
                         else
                             neuro::add_message_to_delayed_queue("[Current location: " + location_name + ". Use commands to interact with the game" + advice + "]");
+
+
+                        if (player_worldspace && player_worldspace->formID == 0x3c && player->GetPosition().GetDistance({ -60488.1445, 120750.820, -9233.74316 }) < 600.0f)
+                            WalkerProcessor::reset_walker(); //got out of potema dungeon after killing potema, reset walker so it doesnt slide down automatically
+
 
 
                         if (MiscThings::is_prelast_saveloading())

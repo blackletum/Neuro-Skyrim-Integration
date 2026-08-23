@@ -7830,6 +7830,22 @@ namespace MiscThings {
                 return gates;
         }
 
+
+                            if (target && target->formID == 0x264ae) //bad exit door potema end dungeon
+                            {
+                                auto potema_quest_part2 = (RE::TESQuest*)RE::TESForm::LookupByEditorID("MS06");
+                                if (potema_quest_part2 && potema_quest_part2->currentStage == 150)
+                                {
+                                    auto good_exit_door = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x9af54);
+                                    if (good_exit_door) return good_exit_door;
+                                }
+
+
+                            }
+
+
+
+
         if (quest)
         {
             switch (quest->formID)
@@ -7854,6 +7870,40 @@ namespace MiscThings {
                                 return locked_door;
                         }
                 }
+                break;
+            }
+
+            case (0x26c4d): //potema quest part2
+            {
+                if (target)
+                    switch (target->formID)
+                    {
+                    case (0x77077):
+                    {
+                        auto locked_door = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x72286);
+                        if (locked_door && MiscThings::is_door_locked(locked_door, true))
+                            return locked_door;
+
+                        break;
+                    }
+
+                    case (0x9e01e): //potema, last location
+                    {
+                        auto gate1 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x98b32);
+
+                        if (gate1 && MiscThings::two_state_activator_state(gate1) != 0)
+                        {
+                            auto redirect1 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x2ade4);
+                            if (redirect1) return redirect1;
+                        }
+
+
+                        break;
+                    }
+                    }
+
+
+
                 break;
             }
             }
@@ -13210,6 +13260,12 @@ namespace MiscThings {
                 }
                 //NorSecRmSmDoorSm01
 
+                if (extra_anim_graph->animGraphMgr->variableCache.animationGraph->projectName == "PortGatePole05")
+                {
+                    std::string name = MiscThings::insert_object_into_list_custom_name("Metal pole gate", a_ref);
+                    result = name;
+                }
+
                 if (extra_anim_graph->animGraphMgr->variableCache.animationGraph->projectName == "PortGatePole06")
                 {
                     std::string name = MiscThings::insert_object_into_list_custom_name("Dwemer metal pole gate", a_ref);
@@ -14454,6 +14510,80 @@ namespace MiscThings {
                     if (object_p)
                     {
                         bool stop_here = false;
+                    }
+
+
+
+                    if (model.find("NorRotatingDoor01") != std::string::npos)
+                    {
+                        auto the_3d = activator->Get3D();
+
+                        if (the_3d)
+                        {
+                            auto angles = activator->data.angle;
+
+                            auto asnode = the_3d->AsNode();
+
+                            //auto temp = niav_recurse(asnode);
+                            //auto temp_names = niav_recurse_names(asnode);
+
+                            auto base = asnode->GetObjectByName("NorRotatingDoor01");
+                            auto rotating_bone = asnode->GetObjectByName("ColHelper01");
+                            
+                            if (base && rotating_bone)
+                            {
+                                auto base_pos = base->world.translate;
+                                auto rotating_pos = rotating_bone->world.translate;
+
+                                base_pos = rotate_vector_by_angles(base_pos, angles);
+                                rotating_pos = rotate_vector_by_angles(rotating_pos, angles);
+
+                                auto dif = base_pos - rotating_pos;
+                                auto dif2 = base->world.translate - rotating_bone->world.translate;
+                                //auto dif3 = base_pos - rotating_bone->world.translate;
+                                //auto dif4 = base->world.translate - rotating_pos;
+
+                                //auto dif3 = rotate_vector_by_angles(dif, angles);
+                                //auto dif4 = rotate_vector_by_angles(dif2, angles);
+
+                                bool inverse = false;
+                                if (dif2.z > 0.0f)
+                                    inverse = true;
+                                
+                                /*
+                                if (activator->formID == 0x2623f || activator->formID == 0x69228)
+                                {
+                                    auto white = DebugAPI_IMPL::DrawDebug::Colors::GRN;
+                                    white.blue = 0;
+                                    white.red = 0;
+                                    white.green = 0;
+
+                                    DebugAPI_IMPL::DebugAPI::GetSingleton()->LinesToDraw.clear();
+                                    DebugAPI_IMPL::DrawDebug::draw_line(base->world.translate, base->world.translate + dif);
+                                    DebugAPI_IMPL::DrawDebug::draw_line(base->world.translate, base->world.translate + dif2, 5.0f, DebugAPI_IMPL::DrawDebug::Colors::GRN);
+                                    //DebugAPI_IMPL::DrawDebug::draw_line(base->world.translate, base->world.translate + dif3, 5.0f, DebugAPI_IMPL::DrawDebug::Colors::BLU);
+                                    //DebugAPI_IMPL::DrawDebug::draw_line(base->world.translate, base->world.translate + dif4, 5.0f, white);
+                                    
+                                    DebugAPI_IMPL::DebugAPI::GetSingleton()->Update();
+
+                                }
+                                */
+
+                                auto z_distance = dif.z;
+
+                                bool open_condition = inverse ? abs(z_distance) < 155.0f : abs(z_distance) > 305.0f;
+
+
+                                if (open_condition)
+                                    result = 0;
+                                else
+                                    result = 1;
+                            }
+                            else
+                                result = 1;
+
+                            //bool stop_here = false;
+                        }
                     }
 
 

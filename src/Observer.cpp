@@ -4073,12 +4073,90 @@ namespace Observer {
 															if (extra_anim_graph->animGraphMgr->variableCache.animationGraph->projectName == "NorRotatingDoor01")
 															{
 																std::string name = MiscThings::insert_object_into_list_custom_name("Rotating Stone Door", a_ref);
+																auto player_pos = player->GetPosition();
 
 																if (activation == 0)
+																{
+																	switch (a_ref->formID)
+																	{
+																	case (0x69228)://potema part 2 dungeon rotating door singular 1st dungeon
+																	{
+																		detect_events_send_result_silent = true;
+																		auto lever = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x69276);
+
+																		if (!WalkerProcessor::is_fighting() && lever && player->GetDistance(lever) < 300.0f && (player_pos.x < 3556.0f || player_pos.y > -4576.0f))
+																		{
+																			send_random_context("You feel an urge to pull the lever...", true);
+																			WalkerProcessor::walk_to_object_by_refr(lever, 1);
+																		}
+
+																		break;
+																	}
+
+																	case (0x2623f)://potema part 2 dungeon rotating #1 2nd dungeon
+																	{
+																		detect_events_send_result_silent = true;
+																		auto lever = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1f13b);
+																		
+																		if (!WalkerProcessor::is_fighting() && lever && player->GetDistance(lever) < 500.0f && player_pos.y > -560.0f && player_pos.y < 58.0f && player_pos.x > -2747.0f)
+																		{
+																			send_random_context("You feel an urge to pull the lever...", true);
+																			WalkerProcessor::walk_to_object_by_refr(lever, 1);
+																		}
+
+																		break;
+																	}
+
+																	case (0x3a07f)://potema part 2 dungeon rotating #2 2nd dungeon
+																	{
+																		detect_events_send_result_silent = true;
+																		auto lever = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1f13c);
+
+																		if (!WalkerProcessor::is_fighting() && lever && player->GetDistance(lever) < 500.0f && player_pos.y > -560.0f && player_pos.y < 58.0f && player_pos.x > -2747.0f)
+																		{
+																			send_random_context("You feel an urge to pull the lever...", true);
+																			WalkerProcessor::walk_to_object_by_refr(lever, 1);
+																		}
+
+																		break;
+																	}
+
+																	case (0x26241)://potema part 2 dungeon rotating #3 2nd dungeon
+																	{
+																		detect_events_send_result_silent = true;
+																		auto lever = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1f13e);
+
+																		if (!WalkerProcessor::is_fighting() && lever && player->GetDistance(lever) < 500.0f && player_pos.y > -560.0f && player_pos.y < 58.0f && player_pos.x > -2747.0f)
+																		{
+																			send_random_context("You feel an urge to pull the lever...", true);
+																			WalkerProcessor::walk_to_object_by_refr(lever, 1);
+																		}
+
+																		break;
+																	}
+
+																	}
+																	
 																	detect_events_result.push_back("[ " + name + " opened]");
+																}
+																	
 
 																if (activation == 1)
+																{
+																	switch (a_ref->formID)
+																	{
+																	case (0x69228)://potema part 2 dungeon rotating door singular 1st dungeon
+																	case (0x2623f)://potema part 2 dungeon rotating door #1 2nd dungeon
+																	case (0x3a07f)://potema part 2 dungeon rotating door #2 2nd dungeon
+																	case (0x26241)://potema part 2 dungeon rotating door #3 2nd dungeon
+																	{
+																		detect_events_send_result_silent = true;
+																		break;
+																	}
+																	}
 																	detect_events_result.push_back("[ " + name + " closed]");
+																}
+																	
 															}
 
 															if (extra_anim_graph->animGraphMgr->variableCache.animationGraph->projectName == "TrapNorPlatformStairs01")
@@ -4152,6 +4230,38 @@ namespace Observer {
 																if (activation == 1)
 																	detect_events_result.push_back("[ " + name + " lowered]");
 															}
+
+
+
+															if (extra_anim_graph->animGraphMgr->variableCache.animationGraph->projectName == "PortGatePole05")
+															{
+
+																if (activation == 1)
+																{
+																	if (!no_spam)
+																	{
+																		std::string name = MiscThings::insert_object_into_list_custom_name("Pole Gate", a_ref);
+																		detect_events_result.push_back("[ " + name + " closed]");
+																		no_spam = true;
+																	}
+																}
+
+
+																if (activation == 0)
+																{
+																	if (!no_spam)
+																	{
+																		std::string name = MiscThings::insert_object_into_list_custom_name("Pole Gate", a_ref);
+																		detect_events_result.push_back("[ " + name + " opened]");
+																		no_spam = true;
+																	}
+
+																}
+
+
+
+															}
+
 
 
 															if (extra_anim_graph->animGraphMgr->variableCache.animationGraph->projectName == "PortGatePole04")
