@@ -86,7 +86,6 @@
 //winterhold trader hard to reach (need to either block top door or make complex redirection to that trader. will probably need to do the quest with claw too)
 //archmage quaters easy access (throw it to interesting places, walk to the middle of it. message "you arrived" or smth like that on arrival)
 //jumping while walking having some bug after last walking fix (maybe need to adjust point_reached thresholds now since z is less likely to be removed)
-//message about corpse being too strong for resurrection might be filtered, must be unfiltered
 //disarming is making weapon equipping hard for some reason. maybe it equips brawl fist, test it
 //unlock new shout advice somewhere. its better to unlock all shouts and get rid of that command, unclog context a little
 //inventory is hard to use. introduce categories - ignore category if overencumbered. maybe do chain-force like in visit_interesting action style

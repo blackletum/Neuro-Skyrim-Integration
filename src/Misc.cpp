@@ -16201,7 +16201,7 @@ namespace MiscThings {
                                                             }
 
 
-                                                            if (result_string != "Autosaving..." && result_string != "Quicksaving..." && result_string != "Quickloading..." && result_string.find("is too powerful") == std::string::npos)
+                                                            if (result_string != "Autosaving..." && result_string != "Quicksaving..." && result_string != "Quickloading...")// && result_string.find("is too powerful") == std::string::npos)
                                                             {
 
                                                                 if (result_string == "Your vampire blood boils in the sunlight.")
