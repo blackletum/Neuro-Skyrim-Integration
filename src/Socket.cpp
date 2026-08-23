@@ -1912,7 +1912,7 @@ bool neuro::NeuroSocket::Tick(float dtime) //const neurosdk_message_action_t& aC
                             if (command_result.second == "" && overweight)
                             {
                                 command_result.first = false;
-                                command_result.second = "Cannot do that while overencumbered. Drop something from the inventory first. Excess weight: " + std::to_string(overweight) + ". Make sure to drop enough weight";
+                                command_result.second = "Cannot do that while overencumbered. Drop something from the inventory first. Excess weight: " + std::to_string(overweight);
                             }
                             else
                             {

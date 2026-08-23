@@ -81,6 +81,25 @@
 
 //fix reanimate spells interrupting battle + fix reanimate spells being endlessly "processing" if cast while having ritual restoration scroll equipped
 
+//raycast spells from hand and not from crosshair for better aim and proper test on walls blocking specific hand without blocking crosshair
+//jumping to pickup items from top shelves
+//fix not attacking wide enemies while healing (add check if get_targeted_ref == target_ref for that attack-possible test)
+//winterhold trader hard to reach (need to either block top door or make complex redirection to that trader. will probably need to do the quest with claw too)
+//archmage quaters easy access (throw it to interesting places, walk to the middle of it. message "you arrived" or smth like that on arrival)
+//jumping while walking having some bug after last walking fix (maybe need to adjust point_reached thresholds now since z is less likely to be removed)
+//message about corpse being too strong for resurrection might be filtered, must be unfiltered
+//disarming is making weapon equipping hard for some reason. maybe it equips brawl fist, test it
+//unlock new shout advice somewhere. its better to unlock all shouts and get rid of that command, unclog context a little
+//inventory is hard to use. introduce categories - ignore category if overencumbered. maybe do chain-force like in visit_interesting action style
+//check healing potions not being usable
+//container track all items for current session. must be done because forces are ephemeral and old transaction is forgotten
+//dragon bow must be fixed since its possible to have 0 mana regen and spells are not enough
+
+
+
+
+
+
 //(HARD) maybe attempt to block dragon breath with ward spell (depending on how good it is - add a random chance)
 //(HARD) try to walk under dragon if possible to get in range for short range spells (might be useless by now)
 //autoequip bow fix (it looked like it didnt work at all after last changes)
@@ -90,7 +109,7 @@
 //try to track current follower position, add hint about it in quest list - this is really only useful for followers that are untrackable with universal methods (for example farkas in companions quest), but normal followers dont need this function at all - they either follow you or go home in short time. therefore this is pretty useless overall
 //maybe dont interrupt spellcasting by equipping stuff at all (pause equip "processing..." style or choose different hand) - QUESTIONABLE, may create too much blocking
 //ults that are on cooldown should be tagged [On cooldown] - MAYBE NO
-//container track all items for current session - MAYBE NO
+
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
