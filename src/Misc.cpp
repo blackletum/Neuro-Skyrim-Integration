@@ -4520,6 +4520,7 @@ namespace MiscThings {
         {0x1c1a7, 3, "Phinis [Master of Conjuration]", 3}, //
         {0x1c1a8, 3, "Colette [Master of Restoration]", 4}, //
         {0x1c1a1, 3, "Tolfdir [Master of Alteration]", 5}, //
+        {0x7768c, 10, "Archmage Quarters [Yours]", 6}, //this is chair
     }
 
 }
@@ -5272,6 +5273,22 @@ namespace MiscThings {
             {
                 
 
+                if (mode == 10) //some special condition
+                {
+                    if (object->formID == 0x7768c) //archmage chair
+                    {
+                        auto mg08 = (RE::TESQuest*)RE::TESForm::LookupByEditorID("MG08");
+                        if (mg08 && mg08->currentStage >= 200) //mage guild is done
+                        {
+                            return true;
+                        }
+                    }
+
+
+                    return false;
+                }
+
+
                 if (object->IsActor())
                 {
                     bool is_disabled = object->IsDisabled();
@@ -5312,7 +5329,6 @@ namespace MiscThings {
                         if (player_has_follower())
                             follower_not_ready = true;
                     }
-
 
 
                     return !not_trading && !is_dead && !is_disabled && !follower_not_ready;
