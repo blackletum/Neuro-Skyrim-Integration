@@ -79,7 +79,7 @@
 ///////////DO ALL THIS
 
 
-//fix reanimate spells interrupting battle + fix reanimate spells being endlessly "processing" if cast while having ritual restoration scroll equipped
+
 
 //raycast spells from hand and not from crosshair for better aim and proper test on walls blocking specific hand without blocking crosshair
 //jumping to pickup items from top shelves
@@ -88,14 +88,13 @@
 //disarming is making weapon equipping hard for some reason. maybe it equips brawl fist, test it
 //unlock new shout advice somewhere. its better to unlock all shouts and get rid of that command, unclog context a little
 //inventory is hard to use. introduce categories - ignore category if overencumbered. maybe do chain-force like in visit_interesting action style
-//check healing potions not being usable
 //container track all items for current session. must be done because forces are ephemeral and old transaction is forgotten
 //dragon bow must be fixed since its possible to have 0 mana regen and spells are not enough
 //in fight after enemy dies it walks to the corpse weirdly
 
 
 
-
+//(this is kinda far) fix reanimate spells being endlessly "processing" if cast while having ritual restoration scroll equipped
 
 //(HARD) maybe attempt to block dragon breath with ward spell (depending on how good it is - add a random chance)
 //(HARD) try to walk under dragon if possible to get in range for short range spells (might be useless by now)

@@ -38,6 +38,7 @@ namespace WalkerProcessor {
     int preferred_attacking_hand = -1;
 
     bool midcombat_reanimate_cast = false;
+    bool midcombat_reanimate_cast_done = false;
 
     std::map<RE::TESQuest*, std::vector<uint32_t>> followed_quests{};
 
@@ -6025,6 +6026,7 @@ namespace WalkerProcessor {
         preferred_attacking_hand = -1;
 
         midcombat_reanimate_cast = false;
+        midcombat_reanimate_cast_done = false;
 
         seaching_dragon_land_spot = false;
 
@@ -7309,6 +7311,9 @@ namespace WalkerProcessor {
 
         if (!player)
             return false;
+
+        if (midcombat_reanimate_cast_done)
+            return true;
 
 
         if (close_enough_force_fail && !MiscThings::is_dragon(target_ref) || close_enough_force_fail_reason_friendly_fire)
@@ -13875,7 +13880,8 @@ namespace WalkerProcessor {
                                 if (!midcombat_reanimate_cast)
                                     reset_walker();
                                 else
-                                    midcombat_reanimate_cast = false;
+                                    midcombat_reanimate_cast_done = true;// midcombat_reanimate_cast = false; //now done in interact_with_target function to properly change target
+                                    
 
                                 return true;
                             }
@@ -14515,9 +14521,7 @@ namespace WalkerProcessor {
                                 if (!midcombat_reanimate_cast)
                                     reset_walker();
                                 else
-                                {
-                                    midcombat_reanimate_cast = false;
-                                }
+                                    midcombat_reanimate_cast_done = true;// midcombat_reanimate_cast = false; //now done in interact_with_target function to properly change target
                                     
 
                                 return true;
@@ -15510,6 +15514,13 @@ namespace WalkerProcessor {
                     ignore_alive |= MiscThings::is_wabbajack(!last_attack_action);
 
                     ignore_alive |= !MiscThings::is_enemy_to_actor(target_ref);
+                }
+
+                if (midcombat_reanimate_cast)
+                {
+                    midcombat_reanimate_cast = false;
+                    midcombat_reanimate_cast_done = false;
+                    ignore_alive = true;
                 }
 
                 if (still_alive && !ignore_alive)
