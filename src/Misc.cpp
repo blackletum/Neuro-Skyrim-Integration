@@ -16219,6 +16219,11 @@ namespace MiscThings {
 
                                                             if (result_string != "Autosaving..." && result_string != "Quicksaving..." && result_string != "Quickloading...")// && result_string.find("is too powerful") == std::string::npos)
                                                             {
+                                                                bool silent = false;
+
+                                                                if (result_string.find(" too powerful ") != std::string::npos || result_string.find(" poisoned.") != std::string::npos)
+                                                                    if (MiscThings::coinflip())
+                                                                        silent = true;
 
                                                                 if (result_string == "Your vampire blood boils in the sunlight.")
                                                                 {
@@ -16304,7 +16309,7 @@ namespace MiscThings {
                                                                         result_string += bonus;
                                                                     }
 
-                                                                bool silent = false;
+                                                               
 
                                                                 if (result_string.find("Critical Strike on") != std::string::npos)
                                                                     silent = true;
