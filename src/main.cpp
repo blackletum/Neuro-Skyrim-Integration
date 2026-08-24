@@ -85,7 +85,6 @@
 //jumping to pickup items from top shelves
 //winterhold trader hard to reach (need to either block top door or make complex redirection to that trader. will probably need to do the quest with claw too)
 //disarming is making weapon equipping hard for some reason. maybe it equips brawl fist, test it
-//unlock new shout advice somewhere. its better to unlock all shouts and get rid of that command, unclog context a little
 //inventory is hard to use. introduce categories - ignore category if overencumbered. maybe do chain-force like in visit_interesting action style
 //container track all items for current session. must be done because forces are ephemeral and old transaction is forgotten
 //dragon bow must be fixed since its possible to have 0 mana regen and spells are not enough
@@ -1755,6 +1754,13 @@ namespace Hooks {
                                 advice += ". You have good gear that is not equipped, you can do use_inventory_items action to equip them: " + better_gear;
 
 
+                        if (MiscThings::player_has_shouts_to_unlock())
+                        {
+                            std::string shouts_to_unlock = MiscThings::get_unlockable_shouts();
+
+                            if (shouts_to_unlock != "")
+                                advice += ". You can unlock new shouts you have discovered: " + shouts_to_unlock + ". You can use unlock_shout_level action to unlock them";
+                        }
 
                         if (WalkerProcessor::walker_active())
                             send_random_context("[Current location: " + location_name + advice + "]");
