@@ -15373,8 +15373,8 @@ namespace WalkerProcessor {
                         //return false;
                     }
                     else
-                    {                                                                                                                                                       //trieves guild hatch, for tonila
-                        if (!MiscThings::is_cave_autoloader_door(target_ref) && MiscThings::get_door_teleport(target_ref) != "" && (quest_mode || (target_ref && target_ref->formID == 0x2d2dd)))
+                    {                                                                                                                                             //trieves guild hatch, for tonila                 //winterhold trader door
+                        if (!MiscThings::is_cave_autoloader_door(target_ref) && MiscThings::get_door_teleport(target_ref) != "" && (quest_mode || (target_ref && (target_ref->formID == 0x2d2dd || target_ref->formID == 0x177f7))))
                             just_teleported = true;
 
                         confirm();
@@ -19290,6 +19290,35 @@ namespace WalkerProcessor {
                         }
                     }
 
+                                                            //winterhold trader door
+                    if (target_ref && target_ref->formID == 0x177f7)
+                    {                                             //got inside
+                        if (parent_cell && parent_cell->formID == 0x13813)
+                        {
+                            auto birna = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1c18c);
+                            if (birna && birna->GetParentCell() && birna->GetParentCell()->formID == 0x13813)
+                            {
+                                reset_walker();
+                                walk_to_object_by_refr(birna, 1);
+                                return;
+                            }
+                        }
+                    }
+                                                            //winterhold trader
+                    if (target_ref && target_ref->formID == 0x1c18c)
+                    {                                                //outside
+                        if (player_worldspace && player_worldspace->formID == 0x3c)
+                        {
+                            auto good_door = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x177f7);
+                            if (good_door && target_ref->GetParentCell() && target_ref->GetParentCell()->formID == 0x13813)
+                            {
+                                walk_to_object_by_refr(good_door, 1);
+                                return;
+                            }
+                        }
+                    }
+
+
 
                         auto redirect_ref = MiscThings::get_generic_redirect(target_ref, quest_mode, runaway_mode, (generic_redirect_active || target_before_generic_redirect));
 
@@ -20259,7 +20288,9 @@ namespace WalkerProcessor {
                                             set_universal_block(1.5f);
                                         }
                                         else
-                                            reset_walker();//;// walk_forward_a_little = true;
+                                                                                        //winterhold trader door
+                                            if (!(target_ref && target_ref->formID == 0x177f7))
+                                                reset_walker();//;// walk_forward_a_little = true;
                                     }
                                     else
                                     {
@@ -21011,8 +21042,9 @@ namespace WalkerProcessor {
                                                                                     
                                                                             }
                                                                             else
-                                                                            {                                                             //tg mausoleum door               //tg hatch              //tg chain         //these are for riften-tonila walk and out-of-riften non quest mode
-                                                                                if (!quest_mode && !(target_ref && (target_ref->formID == 0xc730a || target_ref->formID == 0x2d2dd || target_ref->formID == 0xc7312)))
+                                                                            {                                          //these are for riften-tonila walk and out-of-riften non quest mode
+                                                                                                                    //tg mausoleum door               //tg hatch                        //tg chain                      //winterhold trader door      
+                                                                                if (!quest_mode && !(target_ref && (target_ref->formID == 0xc730a || target_ref->formID == 0x2d2dd || target_ref->formID == 0xc7312 || target_ref->formID == 0x177f7)))
                                                                                     reset_walker();
                                                                                 else
                                                                                 {
@@ -21025,7 +21057,6 @@ namespace WalkerProcessor {
                                                                                         map_was_unregistered_by_follow_quest = false; //so it doesnt autoregister map while we are staring at some talking npc
                                                                                         reset_walker();
                                                                                     }
-                                                                                        
 
                                                                                     lock_camera_onto_target(target_ref, dtime, 0.5f);
 

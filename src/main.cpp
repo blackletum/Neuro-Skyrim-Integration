@@ -65,7 +65,6 @@
 
 
 //TODO upgrade-house helper interesting place
-//TODO winterhold quest with claw
 //TODO that fire nordic sword quest triggered by some book
 
 
@@ -83,7 +82,6 @@
 //hide nelacar helper subquest
 //raycast spells from hand and not from crosshair for better aim and proper test on walls blocking specific hand without blocking crosshair
 //jumping to pickup items from top shelves
-//winterhold trader hard to reach (need to either block top door or make complex redirection to that trader. will probably need to do the quest with claw too)
 //disarming is making weapon equipping hard for some reason. maybe it equips brawl fist, test it
 //inventory is hard to use. introduce categories - ignore category if overencumbered. maybe do chain-force like in visit_interesting action style
 //container track all items for current session. must be done because forces are ephemeral and old transaction is forgotten
