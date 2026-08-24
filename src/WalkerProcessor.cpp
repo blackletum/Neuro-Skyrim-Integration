@@ -5555,8 +5555,12 @@ namespace WalkerProcessor {
                     {
                         auto current_path_point_pos = path.at(current_path_point);
 
-                        if (current_path_point_pos.z - player_pos.z > 200.0f)
-                            result = true; //we either fell or pathfinding glitched. point is too high
+                        if (current_path_point_pos.z - player_pos.z > 300.0f)
+                        {
+                            current_path_point_pos.z = 0.0f;
+                            player_pos.z = 0.0f;
+                        }
+                            //result = true; //we either fell or pathfinding glitched. point is too high
 
                         /////////////////// EXPERIMENTAL /////////////////
                         //if ((!is_about_to_fall() || blackreach_mode) && !)
@@ -5567,7 +5571,7 @@ namespace WalkerProcessor {
                         player_pos_noZ.z = 0.0f;
                         path_point_pos_noZ.z = 0.0f;
 
-                        bool actually_ignore_z = player_pos_noZ.GetDistance(path_point_pos_noZ) < 12.0f && abs(player_pos.z - current_path_point_pos.z) < 50.0f;
+                        bool actually_ignore_z = player_pos_noZ.GetDistance(path_point_pos_noZ) < 30.0f && abs(player_pos.z - current_path_point_pos.z) < 100.0f;
 
 
                         if (blackreach_mode || (!is_about_to_fall() && actually_ignore_z))
