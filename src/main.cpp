@@ -79,7 +79,6 @@
 
 
 
-//hide nelacar helper subquest
 //raycast spells from hand and not from crosshair for better aim and proper test on walls blocking specific hand without blocking crosshair
 //jumping to pickup items from top shelves
 //disarming is making weapon equipping hard for some reason. maybe it equips brawl fist, test it
