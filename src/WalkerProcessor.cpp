@@ -7733,16 +7733,64 @@ namespace WalkerProcessor {
 
                         auto raycast_ref = MiscThings::GetRaycastRef(camera_pos, delta_pos, range, target_ref, 0b00000000000010010000000000000110); //projectile layer in player group
 
+
+                        bool raycast_hands_too = is_fire_and_forget_spell(true) || is_fire_and_forget_spell(false);
+
+                        RE::TESObjectREFR* raycast_ref_right = nullptr;
+                        RE::TESObjectREFR* raycast_ref_left = nullptr;
+
+                        if (raycast_hands_too)
+                        {
+                            auto delta_pos_norm = delta_pos / delta_pos.Length();
+                            RE::NiPoint3 orth_shift = { -delta_pos_norm.y, delta_pos_norm.x, 0.0f };
+                            orth_shift.Unitize();
+
+                            float r = 70.0f;
+                            auto camera_pos_right = camera_pos + orth_shift * r;
+                            auto camera_pos_left = camera_pos - orth_shift * r;
+
+                            auto delta_pos_right = aim_pos - camera_pos_right;
+                            auto delta_pos_left = aim_pos - camera_pos_left;
+
+                            raycast_ref_right = MiscThings::GetRaycastRef(camera_pos_right, delta_pos_right, range, target_ref, 0b00000000000010010000000000000110);
+                            raycast_ref_left = MiscThings::GetRaycastRef(camera_pos_left, delta_pos_left, range, target_ref, 0b00000000000010010000000000000110);
+
+
+                            /*
+                            auto color1 = DebugAPI_IMPL::DrawDebug::Colors::RED;
+                            auto color2 = DebugAPI_IMPL::DrawDebug::Colors::RED;
+
+                            if (raycast_ref_right == target_ref)
+                                color1 = DebugAPI_IMPL::DrawDebug::Colors::GRN;
+
+                            if (raycast_ref_left == target_ref)
+                                color2 = DebugAPI_IMPL::DrawDebug::Colors::GRN;
+
+                            DebugAPI_IMPL::DebugAPI::GetSingleton()->LinesToDraw.clear();
+                            DebugAPI_IMPL::DrawDebug::draw_line(camera_pos_right, camera_pos_right + delta_pos_right, 5.0f, color1);
+                            DebugAPI_IMPL::DrawDebug::draw_line(camera_pos_left, camera_pos_left + delta_pos_left, 5.0f, color2);
+                            DebugAPI_IMPL::DebugAPI::GetSingleton()->Update();
+                            */
+
+                        }
+
+
                         if (target_ref && target_ref->formID == 0xdb9d7 && raycast_ref && raycast_ref->formID == 0x80b2c)
+                        {
                             raycast_ref = target_ref;
+                            raycast_ref_right = target_ref;
+                            raycast_ref_left = target_ref;
+                        }
+                            
 
                         //if (target_ref->IsActor() && target_ref->IsDead())
                         //    return true;
+                        
 
                         if (raycast_ref && raycast_ref->formID == 0x14)
                             bool stop_here = false; //to detect when raycast caught player
 
-                        auto raycast_test = raycast_ref == target_ref;
+                        auto raycast_test = raycast_ref == target_ref && (start_attacking || attack_paused || raycast_was_on || !raycast_hands_too || (raycast_ref_right == target_ref && raycast_ref_left == target_ref));
                         bool target_visible = false;
 
                         float on_time = 0.4f;
@@ -7757,6 +7805,8 @@ namespace WalkerProcessor {
                             off_time = 0.01f;
                             dragon_coef = true;
                         }
+
+
 
 
                         if (raycast_test || ignore_raycast)
@@ -7794,7 +7844,7 @@ namespace WalkerProcessor {
                         distance = camera_pos - aim_pos;
 
 
-                        if ((target_visible && distance.Length() < range) || distance.Length() < (160.0f + close_enough_linger * 60.0f))
+                        if ((target_visible && distance.Length() < range) || (!raycast_hands_too && distance.Length() < (160.0f + close_enough_linger * 60.0f)) || (distance.Length() < (80.0f + close_enough_linger * 60.0f)))
                         {
                             close_enough_linger = true;
                             return true;

@@ -5969,6 +5969,51 @@ namespace Observer {
 		if (!player)
 			return;
 
+		/*
+		RE::TESObjectREFR* test_hound = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x10d418);
+
+		if (test_hound)
+		{
+			auto camera_pos = RE::PlayerCamera::GetSingleton()->pos;
+
+			auto aim_pos = WalkerProcessor::get_estimate_aim_pos(test_hound, true, false);
+
+			auto delta_pos = aim_pos - camera_pos;
+
+			auto delta_pos_norm = delta_pos / delta_pos.Length();
+			RE::NiPoint3 orth_shift = { -delta_pos_norm.y, delta_pos_norm.x, 0.0f };
+			orth_shift.Unitize();
+
+			float r = 80.0f;
+			auto camera_pos_right = camera_pos + orth_shift * r;
+			auto camera_pos_left = camera_pos - orth_shift * r;
+
+			auto delta_pos_right = aim_pos - camera_pos_right;
+			auto delta_pos_left = aim_pos - camera_pos_left;
+
+			auto raycast_ref_right = MiscThings::GetRaycastRef(camera_pos_right, delta_pos_right, 5000.0f, test_hound, 0b00000000000010010000000000000110);
+			auto raycast_ref_left = MiscThings::GetRaycastRef(camera_pos_left, delta_pos_left, 5000.0f, test_hound, 0b00000000000010010000000000000110);
+
+			auto color1 = DebugAPI_IMPL::DrawDebug::Colors::RED;
+			auto color2 = DebugAPI_IMPL::DrawDebug::Colors::RED;
+
+			if (raycast_ref_right == test_hound)
+				color1 = DebugAPI_IMPL::DrawDebug::Colors::GRN;
+
+			if (raycast_ref_left == test_hound)
+				color2 = DebugAPI_IMPL::DrawDebug::Colors::GRN;
+
+			DebugAPI_IMPL::DebugAPI::GetSingleton()->LinesToDraw.clear();
+			DebugAPI_IMPL::DrawDebug::draw_line(camera_pos_right, camera_pos_right + delta_pos_right, 5.0f, color1);
+			DebugAPI_IMPL::DrawDebug::draw_line(camera_pos_left, camera_pos_left + delta_pos_left, 5.0f, color2);
+			DebugAPI_IMPL::DebugAPI::GetSingleton()->Update();
+		}
+		*/
+
+
+
+
+
 		//RE::TESObjectREFR* test_stone = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xc6bbd);
 
 		//if (test_stone && !test_stone->IsDisabled())
