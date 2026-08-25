@@ -81,7 +81,6 @@
 
 //raycast spells from hand and not from crosshair for better aim and proper test on walls blocking specific hand without blocking crosshair
 //jumping to pickup items from top shelves
-//disarming is making weapon equipping hard for some reason. maybe it equips brawl fist, test it
 //inventory is hard to use. introduce categories - ignore category if overencumbered. maybe do chain-force like in visit_interesting action style
 //container track all items for current session. must be done because forces are ephemeral and old transaction is forgotten
 //dragon bow must be fixed since its possible to have 0 mana regen and spells are not enough

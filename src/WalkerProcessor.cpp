@@ -13579,7 +13579,7 @@ namespace WalkerProcessor {
                                     if (!MiscThings::has_something_equipped(true))
                                     {
                                         no_weapon = true;
-                                        attacking_weapon = "bare fist. You might want to equip some weapon or magic (use get_inventory and use_inventory_item to equip gear). ";
+                                        attacking_weapon = "bare fist. You might want to equip some weapon or magic (use get_inventory and use_inventory_item to equip gear) or cast some spell. ";
                                         if (!(dodge_melee_mode && do_dodge_projectile))
                                             if (player->GetDistance(target_ref, true) > 80.0f * target_ref->GetScale())
                                             {
@@ -14226,7 +14226,7 @@ namespace WalkerProcessor {
                                             if (!MiscThings::has_something_equipped(false))
                                             {
                                                 no_weapon = true;
-                                                attacking_weapon = "bare fist. You might want to equip some weapon or magic (use get_inventory and use_inventory_item to equip gear). ";
+                                                attacking_weapon = "bare fist. You might want to equip some weapon or magic (use get_inventory and use_inventory_item to equip gear) or cast some spell. ";
                                                 if (!(dodge_melee_mode && do_dodge_projectile))
                                                     if (player->GetDistance(target_ref, true) > 80.0f * target_ref->GetScale())
                                                     {
