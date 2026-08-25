@@ -92,7 +92,7 @@ void left_attack_bow();
 
 void press_tab();
 
-void quicksave();
+void quicksave(bool ignore_restrictions = false);
 void quickload();
 
 void right_power_attack();

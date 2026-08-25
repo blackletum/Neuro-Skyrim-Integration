@@ -1350,7 +1350,7 @@ namespace MapProcessor {
 			{
 				if (catch_result == "Autosaving...")
 				{
-					quicksave();
+					quicksave(true);
 					send_random_context("[Successfully travelled]", false);
 
 					auto player = RE::PlayerCharacter::GetSingleton();

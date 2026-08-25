@@ -14,6 +14,12 @@
 namespace WalkerProcessor {
 
 
+    //reset on successfuly walk. do not reset in reset_walker
+    RE::NiPoint3 last_stuck_pos{};
+    RE::TESWorldSpace* last_stuck_worldspace = nullptr;
+    RE::TESObjectCELL* last_stuck_cell = nullptr;
+
+
     bool dont_clear_spell_vars = false;
 
     float pickup_unsneak_time = 0.0f;
@@ -648,6 +654,51 @@ namespace WalkerProcessor {
         return false;
     }
     */
+
+
+    void remember_stuck_position()
+    {
+        auto player = RE::PlayerCharacter::GetSingleton();
+        if (player)
+        {
+            last_stuck_pos = player->GetPosition();
+            last_stuck_worldspace = player->GetWorldspace(); 
+            last_stuck_cell = player->GetParentCell(); 
+        }
+    }
+
+    void forget_stuck_position()
+    {
+        last_stuck_pos = RE::NiPoint3::Zero();
+        last_stuck_worldspace = nullptr;
+        last_stuck_cell = nullptr;
+    }
+
+
+    bool is_near_last_stuck_pos()
+    {
+        auto player = RE::PlayerCharacter::GetSingleton();
+        if (player)
+        {
+            auto pos = player->GetPosition();
+            auto worldspace = player->GetWorldspace();
+            auto cell = player->GetParentCell();
+
+            if ((worldspace && worldspace == last_stuck_worldspace) || (cell && cell == last_stuck_cell))
+            {
+                if (pos.GetDistance(player->GetPosition()) < 1000.0f)
+                    return true;
+            }
+        }
+
+        //not nearby
+        forget_stuck_position();
+        return false;
+    }
+
+
+
+
 
 
     std::string get_quest_journal_description_if_never_shown(RE::TESQuest* quest)
@@ -2189,6 +2240,7 @@ namespace WalkerProcessor {
 
                     if (navmesh_probe_mode)
                     {
+                        remember_stuck_position();
                         navmesh_probe_result = std::size(hazards) > 2;
                         navmesh_probe_result_valid = true;
                         navmesh_probe_mode = false;
@@ -6291,7 +6343,7 @@ namespace WalkerProcessor {
             register_allowed_actions();
 
             if (!dont_quicksave_after_custom_path)
-                quicksave();
+                quicksave(true);
         }
 
         custom_path_use_z_for_path_point_reached = false;
@@ -11186,7 +11238,7 @@ namespace WalkerProcessor {
                                                     {
                                                         register_allowed_actions();
                                                         if (!dont_quicksave_after_custom_path)
-                                                            quicksave();
+                                                            quicksave(true);
                                                     }
                                                         
 
@@ -11441,7 +11493,7 @@ namespace WalkerProcessor {
                                                         {
                                                             register_allowed_actions();
                                                             if (!dont_quicksave_after_custom_path)
-                                                                quicksave();
+                                                                quicksave(true);
                                                         }
 
 
@@ -15606,6 +15658,9 @@ namespace WalkerProcessor {
 
     std::string get_success_message()
     {
+
+        forget_stuck_position(); //successful walk, forget stuck place to allow quicksaving
+
         std::string result = "";
         std::string target_name = target_ref->GetDisplayFullName();
 
@@ -16433,7 +16488,7 @@ namespace WalkerProcessor {
                 reset_walker();
             }
 
-            quicksave();
+            quicksave(true);
 
             unregister_all_actions();
 
@@ -18075,7 +18130,7 @@ namespace WalkerProcessor {
                         if (player_pos.x > 600.0f)
                         {
                             send_random_context("You passed the gate challenge!", false);
-                            quicksave();
+                            quicksave(true);
                         }
                         else
                         {
@@ -20719,6 +20774,7 @@ namespace WalkerProcessor {
                                                             Observer::detect_interesting_objects(0.016, true);
                                                     }
 
+                                                    remember_stuck_position();
                                                     remove_navmesh_cutter();
                                                     send_random_context(fail_text, false);
                                                     reset_walker();
@@ -20925,7 +20981,7 @@ namespace WalkerProcessor {
                                                         using_custom_path = false;
                                                         register_allowed_actions();
                                                         if (!dont_quicksave_after_custom_path)
-                                                            quicksave();
+                                                            quicksave(true);
                                                         walk_again();
                                                         return; //REMOVE IF BROKE
                                                     }
@@ -22169,6 +22225,8 @@ namespace WalkerProcessor {
                                                                     Observer::detect_interesting_objects(0.016, true);
                                                             }
 
+                                                            remember_stuck_position();
+
                                                             send_random_context(fail_text, false);
                                                             remove_navmesh_cutter();
                                                             reset_walker();
@@ -22201,6 +22259,8 @@ namespace WalkerProcessor {
                                                     if (!MiscThings::is_serving_jail())
                                                         Observer::detect_interesting_objects(0.016, true);
                                                 }
+
+                                                remember_stuck_position();
 
                                                 remove_navmesh_cutter();
                                                 send_random_context(fail_text, false);
@@ -22292,6 +22352,8 @@ namespace WalkerProcessor {
                                                         if (!MiscThings::is_serving_jail())
                                                             Observer::detect_interesting_objects(0.016, true);
                                                     }
+
+                                                    remember_stuck_position();
 
                                                     remove_navmesh_cutter();
                                                     send_random_context(fail_text, false);

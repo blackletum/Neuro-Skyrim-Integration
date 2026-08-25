@@ -81,7 +81,7 @@
 
 //container track all items for current session. must be done because forces are ephemeral and old transaction is forgotten
 //inventory is hard to use. introduce categories - ignore category if overencumbered. maybe do chain-force like in visit_interesting action style
-
+//remember bad corpses for resurrection (those who are too powerful) and dont target them again automatically (maybe just filter in get_nearest_corpse function, it shouldnt affect manual targeting anyway since no search used.. test it maybe wrong)
 
 //jumping to pickup items from top shelves
 //dragon bow must be fixed since its possible to have 0 mana regen and spells are not enough
@@ -1773,7 +1773,7 @@ namespace Hooks {
                         if (MiscThings::is_prelast_saveloading())
                         {
                             MiscThings::reset_prelast_save_load();
-                            quicksave();
+                            quicksave(true);
                         }
                             
 
@@ -3749,7 +3749,7 @@ class MyHook {
 
 
                         if (subtitle_msg.find("This is far as I can take you. Krif voth ahkrin.") != std::string::npos)
-                            quicksave();
+                            quicksave(true);
 
 
                         if (subtitle_msg.find("That's the last of them. Poor sods can't resist after they get a taste of your dosed Skooma.") != std::string::npos)

@@ -1037,10 +1037,11 @@ void walk_forward()
 
 
 
-void quicksave()
+void quicksave(bool ignore_restrictions)
 {
-    if (MiscThings::quicksave_is_banned())
-        return;
+    if (!ignore_restrictions)
+        if (MiscThings::quicksave_is_banned())
+            return;
 
     int32_t my_key = RE::ControlMap::GetSingleton()->GetMappedKey(RE::UserEvents::GetSingleton()->quicksave, RE::INPUT_DEVICES::kKeyboard);
     RE::BSInputEventQueue::GetSingleton()->AddButtonEvent(RE::INPUT_DEVICES::kKeyboard, my_key, 1.0, 0.0);

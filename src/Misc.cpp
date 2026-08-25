@@ -112,6 +112,9 @@ namespace MiscThings {
         auto player = RE::PlayerCharacter::GetSingleton();
         if (player)
         {
+            if (WalkerProcessor::is_near_last_stuck_pos())
+                return true;
+
             auto parent_cell = player->GetParentCell();
             if (parent_cell && parent_cell->formID == 0x27d1c)
             {
@@ -16043,7 +16046,7 @@ namespace MiscThings {
 
                                         if (var_string == "Quest completed: : PIECES OF THE PAST")
                                         {
-                                            quicksave(); //daedras are kinda strong and doing all dialogues again is lame
+                                            quicksave(true); //daedras are kinda strong and doing all dialogues again is lame
                                         }
 
                                         WalkerProcessor::test_new_very_close_quest();

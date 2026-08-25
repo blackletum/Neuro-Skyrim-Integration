@@ -53,6 +53,8 @@ namespace WalkerProcessor {
 	std::pair<bool, std::string> make_jumps();
 
 
+	bool is_near_last_stuck_pos();
+
 	std::pair<bool, std::string> switch_vampirelord_mode_up();
 	std::pair<bool, std::string> switch_vampirelord_mode_down();
 

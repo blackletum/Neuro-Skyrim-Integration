@@ -4428,7 +4428,7 @@ namespace Observer {
 																	RE::TESObjectREFR* karthspire_bridge2 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4e862);
 
 																	if (a_ref == karthspire_bridge1 || a_ref == karthspire_bridge2)
-																		quicksave();
+																		quicksave(true);
 
 
 																	detect_events_result.push_back("[ " + name + " opened]");
@@ -4469,7 +4469,7 @@ namespace Observer {
 																if (activation == 0)
 																{
 																	if (a_ref->formID == 0x72434) //saartal pillars1
-																		quicksave();
+																		quicksave(true);
 
 																	detect_events_result.push_back("[ " + name + " opened]");
 																}
@@ -4487,7 +4487,7 @@ namespace Observer {
 																if (activation == 0)
 																{
 																	if (a_ref->formID == 0x725b5) //saartal pillars2
-																		quicksave();
+																		quicksave(true);
 
 																	detect_events_result.push_back("[ " + name + " opened]");
 																}
