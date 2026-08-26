@@ -257,6 +257,10 @@ namespace MiscThings {
     RE::NiPoint3 rotate_vector_by_angles(RE::NiPoint3 v, RE::NiPoint3 object_angles);
     RE::NiPoint3 rotate_vector_by_angles2(RE::NiPoint3 v, RE::NiPoint3 object_angles);
 
+
+    bool is_unique_item(RE::TESForm* form);
+
+
     RE::NiPoint3 get_walking_point_shift(RE::TESObjectREFR* object);
 
     void reset_misc();

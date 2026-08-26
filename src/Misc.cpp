@@ -70,6 +70,139 @@ namespace MiscThings {
     long long settlement_advice_timestamp = 0;
     
 
+
+    //todo
+    bool is_unique_item(RE::TESForm* form)
+    {
+        if (form)
+        {
+            if (form->HasKeywordByEditorID("DaedricArtifact"))
+                return true;
+
+            switch (form->formID)
+            {
+            case (0x10F570):
+            case (0x61CC1):
+            case (0x61CB9):
+            case (0x61C8B):
+            case (0x61CA5):
+            case (0x61CC2):
+            case (0x61CC0):
+            case (0x61CC9):
+            case (0x61CAB):
+            case (0x61CCA):
+            case (0x61CD6):
+            case (0x40240fe):
+            case (0x40240ff):
+            case (0x4024037):
+            case (0x4039d2b):
+            case (0x4039d2e):
+            case (0x4039d2f):
+            case (0x4039fa1):
+            case (0x4039fa2):
+            case (0x4039fa3):
+            case (0x2000800):
+            case (0x6492C):
+            case (0x6492A):
+            case (0x6492D):
+            case (0x6492E):
+            case (0xCEE6E):
+            case (0xCEE70):
+            case (0xCEE74):
+            case (0xCEE72):
+            case (0xE35D7):
+            case (0xE35D6):
+            case (0xE35D8):
+            case (0xE35D9):
+            case (0x108544):
+            case (0x108543):
+            case (0x108545):
+            case (0x108546):
+            case (0x5DB86):
+            case (0xFCC0C):
+            case (0x5DB87):
+            case (0x5DB88):
+            case (0xFCC0E):
+            case (0x5DB85):
+            case (0xFCC10):
+            case (0xFCC13):
+            case (0xFCC0F):
+            case (0xFCC0D):
+            case (0xFCC11):
+            case (0xFCC12):
+            case (0xD2844):
+            case (0xD2845):
+            case (0xD2842):
+            case (0xD2843):
+            case (0x5ABC3):
+            case (0xCF8A9):
+            case (0xCF8A1):
+            case (0xCF8A0):
+            case (0xCF89F):
+            case (0xD3AC3):
+            case (0xD3AC2):
+            case (0xD3AC4):
+            case (0xD3AC5):
+            case (0xD3ACC):
+            case (0xD3ACB):
+            case (0xD3ACD):
+            case (0xD3ACE):
+            case (0x402ad33):
+            case (0x402ad34):
+            case (0x402ad32):
+            case (0x402ad31):
+            case (0x200575a):
+            case (0xF9904):
+            case (0x0009DFF7):
+            case (0x000F6904):
+            case (0x000F690D):
+            case (0x000F690E):
+            case (0x000F690F):
+            case (0x000F6910):
+            case (0x000F6911):
+            case (0x000C891D):
+            case (0x400f4d5):
+            case (0x40068ae):
+            case (0x2D773):
+            case (0x4018b91):
+            case (0x000F1B33):
+            case (0x000EAFD0):
+            case (0x000EAFD3):
+            case (0x000EAFD2):
+            case (0x000EAFD1):
+            case (0x000E1F15):
+            case (0x000E1F14):
+            case (0x000E1F17):
+            case (0x000E1F16):
+            case (0x200e7fd):
+            case (0x200e7fe):
+            case (0x1CB34):
+            case (0x9CCDC):
+            case (0x000F8313):
+            case (0x000F8314):
+            case (0x000F8315):
+            case (0x000F8316):
+            case (0x000F8317):
+            case (0x000F8318):
+            case (0x20067cf):
+            case (0xF6527):
+            case (0x1019D4):
+            case (0x9FD50):
+            case (0x1C4E6):
+            case (0x956B5):
+            case (0x400cfb6):
+                    return true;
+            }
+
+        }
+
+
+        return false;
+    }
+
+
+
+
     bool cast_spell_recently()
     {
         auto now = std::chrono::steady_clock::now().time_since_epoch().count();
@@ -24570,20 +24703,35 @@ namespace MiscThings {
 
 
 
+                    std::string valuable_text = "";
+                    std::string equipped_text = "";
+                    std::string unique_text = "";
+                    std::string name = item->GetName();
+
                     if (value > 500.0f)
                     {
                         do_force = true;
-                        std::string name = item->GetName();
 
-                        message = "You are about to drop: " + name + ", item's gold value: " + std::to_string(value) + ", " + weight_text + ", confirm dropping this item ? ";
+                        valuable_text = "It is valuable; ";
                     }
 
                     if (MiscThings::is_equipped(item))
                     {
                         do_force = true;
                         std::string name = item->GetName();
-                        message = "You are about to drop: " + name + ", " + std::to_string(value) + ", " + weight_text + ", but it is currently equipped. Confirm dropping this item?";
+                        equipped_text = "It is currently equipped; ";
                     }
+
+                    if (MiscThings::is_unique_item(item))
+                    {
+                        unique_text = "It is a unique or legendary item; ";
+                    }
+
+                    if (valuable_text != "" || equipped_text != "" || unique_text != "")
+                    {
+                        message = "You are about to drop: " + name + ", item's gold value: " + std::to_string(value) + ", " + weight_text + ", " + valuable_text + equipped_text + unique_text + " Are you sure you want to drop this item?";
+                    }
+
 
 
                     if (do_force)
