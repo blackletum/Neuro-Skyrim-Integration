@@ -11,6 +11,10 @@
 namespace ContainerProcessor {
 
 
+std::string container_history{};
+std::string current_item_info_for_history = "";
+
+
 bool madesi_mode = false;
 bool madesi_ring_found = false;
 int madesi_ring_id = -1;
@@ -434,14 +438,36 @@ std::string get_force_message()
 					std::string name = container_refr->GetDisplayFullName();
 					std::string action = "You are looting ";
 
-					if (container_mode == RE::ContainerMenu::ContainerMode::kPickpocket)
-						action = "You are pickpocketing ";
-					if (container_mode == RE::ContainerMenu::ContainerMode::kLoot)
-						action = "You are looting ";
-					if (container_mode == RE::ContainerMenu::ContainerMode::kSteal)
-						action = "You are stealing from ";
+					std::string history_action = " took: ";
 
-					result = action + name + " in Skyrim. Select item to take. ";
+					if (container_mode == RE::ContainerMenu::ContainerMode::kPickpocket)
+					{
+						action = "You are pickpocketing ";
+						history_action = " stole: ";
+					}
+
+					if (container_mode == RE::ContainerMenu::ContainerMode::kLoot)
+					{
+						action = "You are looting ";
+						history_action = " took: ";
+					}
+
+					if (container_mode == RE::ContainerMenu::ContainerMode::kSteal)
+					{
+						action = "You are stealing from ";
+						history_action = " stole: ";
+					}
+						
+
+					std::string history_msg = "";
+					if (container_history != "")
+						history_msg = "You already" + history_action + container_history;
+
+					std::string quit_advice = "";
+					if (history_msg != "")
+						quit_advice = " or send -1 as option to quit if you dont need anything else";
+
+					result = action + name + " in Skyrim. " + history_msg + "Select items to take" + quit_advice + ". ";
 				}
 				
 			}
@@ -1061,6 +1087,9 @@ void reset_pickpocketing()
 
 void reset_container()
 {
+	if (!catch_pickpocket_result)
+		current_item_info_for_history = "";
+
 	madesi_mode = false;
 	madesi_ring_found = false;
 	madesi_ring_id = -1;
@@ -1135,6 +1164,9 @@ void reset_container()
 
 void process_next_item()
 {
+
+	current_item_info_for_history = "";
+
 	if (std::size(item_choice_array) <= 0)
 		reset_container();
 	else
@@ -1182,6 +1214,9 @@ void process_next_item()
 			set_universal_block(1.0f);
 			ready_weapon();
 			reset_container();
+
+			send_random_context("Taking all...", true);
+
 			return;
 		}
 		else
@@ -1196,6 +1231,13 @@ void process_next_item()
 				}
 				else
 				{
+					auto p_current_item = items_list.find(item_choice);
+
+					if (p_current_item != items_list.end())
+					{
+						send_random_context("Taking " + p_current_item->second.name + "...", true);
+					}
+
 					item_choice_valid = true;
 					return;
 				}
@@ -1327,7 +1369,18 @@ std::pair<bool, std::string> set_item_choice(int id)
 				item_choice = id;
 				item_choice_valid = true;
 				result.first = true;
-				result.second = "[Processing...]";
+
+				std::string message = "[Processing...]";
+
+				auto p_current_item = items_list.find(item_choice);
+
+				if (p_current_item != items_list.end())
+				{
+					message = "[Taking " + p_current_item->second.name + "...]";
+				}
+
+
+				result.second = message;
 			}
 		}
 		else
@@ -1601,15 +1654,26 @@ void processor(float dtime)
 	in_container = ui->IsMenuOpen(RE::ContainerMenu::MENU_NAME);
 
 	auto menu = ui->GetMenu<RE::ContainerMenu>();
-	
+
 
 	if (catch_pickpocket_result)
 	{
-		if (in_container)
-			send_random_context("[Successfully stole an item]", false);
-		else
-			send_random_context("[You have been caught]", false);
+		if (current_item_info_for_history != "")
+			container_history += current_item_info_for_history + "; ";
 
+		if (in_container)
+		{
+			std::string name_stolen = "an item";
+
+			if (current_item_info_for_history != "")
+				name_stolen = current_item_info_for_history;
+
+			send_random_context("[Successfully stole " + name_stolen + "]", false);
+		}
+		else
+			send_random_context("You have been caught!", false);
+
+		current_item_info_for_history = "";
 		catch_pickpocket_result = false;
 
 	}
@@ -1627,7 +1691,7 @@ void processor(float dtime)
 			{
 				cancel();
 			}
-				//quit_menu();
+			//quit_menu();
 
 			WalkerProcessor::reset_walker();
 
@@ -1741,6 +1805,12 @@ void processor(float dtime)
 
 						if (process_next_item_after_refresh)
 						{
+							if (current_item_info_for_history != "")
+								container_history += current_item_info_for_history + "; ";
+
+							current_item_info_for_history = "";
+
+
 							process_next_item_after_refresh = false;
 							process_next_item();
 							return;
@@ -1855,7 +1925,7 @@ void processor(float dtime)
 									move_cursor_timeout2 = 0.0f;
 									if (!check_results)
 									{
-										
+
 										//this is [R]Craft button
 										//menu->uiMovie->Invoke("_root.Menu.BottomBarInfo.Buttons.3.onPress", nullptr, nullptr, 0); //this seems to have immidiate 100% result so do everything here, next cycle we are not getting in this menu at all
 
@@ -1889,10 +1959,10 @@ void processor(float dtime)
 														Observer::reset_dont_inform_inventory();
 														close_empty_container = true;
 													}
-														
+
 													return;
 												}
-													
+
 											}
 
 											if (!bad_pos)
@@ -1900,7 +1970,7 @@ void processor(float dtime)
 												ready_weapon();
 												bad_pos_time = 0.0f;
 											}
-												
+
 										}
 										else
 										{
@@ -1912,7 +1982,7 @@ void processor(float dtime)
 											else
 												confirm();
 										}
-											
+
 
 										if (!is_malborn())
 											set_universal_block(0.3f);
@@ -1928,18 +1998,26 @@ void processor(float dtime)
 												{
 													item_names_to_skip.push_back(get_item_selected_name());
 												}
-													
+
 											}
 										}
 
 										check_results = true;
-											
+
+										if (current_item_info_for_history == "") //only do this when no item is remembered, for situation when we pick up same item multiple times
+										{
+											auto p_current_item = items_list.find(item_choice);
+											if (p_current_item != items_list.end())
+												current_item_info_for_history = p_current_item->second.name;
+										}
+
+
 									}
 									else
 									{
 										if (quantity_slider_active())
 										{
-											
+
 											if (!is_malborn())
 											{
 												confirm();
@@ -1952,6 +2030,7 @@ void processor(float dtime)
 
 											return;
 
+											/*
 											if (!slider_request_sent)
 											{
 												if (force_choice({}, "Choose amount of " + get_item_text_by_id(item_choice) + " to take. Valid range: from " +
@@ -1995,6 +2074,8 @@ void processor(float dtime)
 												else
 													return;
 											}
+											*/
+
 										}
 
 										slider_request_sent = false;
@@ -2003,7 +2084,6 @@ void processor(float dtime)
 										slider_confirmed = false;
 										slider_confirming = false;
 
-
 										{
 											//no slider or slider done
 
@@ -2011,8 +2091,9 @@ void processor(float dtime)
 
 											if (is_pickpocketing())
 											{
-												reset_container();
 												catch_pickpocket_result = true;
+												reset_container();
+												
 											}
 											else
 											{
@@ -2032,7 +2113,8 @@ void processor(float dtime)
 		else
 		{
 			reset_container();
-		}	
+			container_history = "";
+		}
 	}
 	else
 		container_processor_timer += dtime;
@@ -2040,3 +2122,4 @@ void processor(float dtime)
 
 
 };
+
