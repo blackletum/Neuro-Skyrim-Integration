@@ -21,6 +21,10 @@ namespace BarterProcessor {
     bool spent_a_lot_choice_valid = false;
     int spent_a_lot_choice = 0;
 
+    bool sell_legendary_request_sent = false;
+    bool sell_legendary_choice_valid = false;
+    int sell_legendary_choice = 0;
+
     bool big_transaction_request_sent = false;
     bool big_transaction_choice_valid = false;
     int big_transaction_choice = 0;
@@ -128,6 +132,28 @@ namespace BarterProcessor {
     way_to_fill way{};
 
 
+
+
+    RE::TESForm* find_form_by_name_in_player_inventory(std::string name)
+    {
+        auto p_inventory = MiscThings::get_p_inventory_items_list();
+
+        if (p_inventory)
+        {
+            for (auto& inventory_entry : *p_inventory)
+            {
+                if (inventory_entry.second.object && inventory_entry.second.amount > 0)
+                {
+                    auto item_name = inventory_entry.second.name;
+
+                    if (item_name == name)
+                        return inventory_entry.second.object;
+                }
+            }
+        }
+
+        return nullptr;
+    }
 
 
 
@@ -461,7 +487,9 @@ namespace BarterProcessor {
         big_transaction_request_sent = false;
         big_transaction_choice_valid = false;
 
-
+        sell_legendary_request_sent = false;
+        sell_legendary_choice_valid = false;
+        sell_legendary_choice = 0;
 
         slider_big_transaction_request_sent = false;
         slider_big_transaction_choice_valid = false;
@@ -733,6 +761,58 @@ namespace BarterProcessor {
     }
 
 
+    std::pair<bool, std::string> set_sell_legendary_choice(int choice)
+    {
+        std::pair<bool, std::string> result{};
+
+        auto ui = RE::UI::GetSingleton();
+        if (!ui->IsMenuOpen(RE::BarterMenu::MENU_NAME))
+        {
+            result.first = true;
+            result.second = "[Error]";
+            return result;
+        }
+
+        if (choice == -1)
+        {
+            quit_menu();
+            result.first = true;
+            result.second = "[Barter stopped]";
+            return result;
+        }
+
+
+        if (choice == -3)
+        {
+            back_to_categories();
+            result.first = true;
+            result.second = "[Went back to category selection]";
+            return result;
+        }
+
+        if (choice == -4)
+        {
+            back_to_items();
+            result.first = true;
+            result.second = "[Went back to item selection]";
+            return result;
+        }
+
+
+        if (choice == 0 || choice == 1)
+        {
+            sell_legendary_choice = choice;
+            sell_legendary_choice_valid = true;
+            result.first = true;
+            result.second = "[Processing...]";
+        }
+        else
+        {
+            result.first = false;
+            result.second = "Invalid choice ID";
+        }
+        return result;
+    }
 
 
 
@@ -2898,6 +2978,7 @@ namespace BarterProcessor {
 
                                                 
 
+                                                auto temp = MiscThings::GetInventory(); //update it so we can scan by names
 
                                                 if (force_choice(options, "You are bartering in Skyrim. " + get_gold_text() + history_message + ". Choose item to " + get_barter_type_text() + ". " + get_items_we_cant_buy_text(), force_type::barter_item_array))
                                                 {
@@ -3001,50 +3082,106 @@ namespace BarterProcessor {
 
                                                         //check the price, ask for confirmation if its high
 
-                                                        if (type == BarterProcessor::barter_type::buy && !(slider_big_transaction_request_sent || slider_big_transaction_choice_valid) && !item_confirming && !slider_confirming && !item_confirmed)
+                                                        if (!(slider_big_transaction_request_sent || slider_big_transaction_choice_valid) && !item_confirming && !slider_confirming && !item_confirmed)
                                                         {
                                                             auto p_item_info = items_list.find(pos_to_id(item_choice));
 
                                                             if (p_item_info != items_list.end())
                                                             {
 
-                                                                int price = p_item_info->second.price;
-                                                                float player_gold_threshold = ((float)MiscThings::get_player_gold()) * 0.2f;
-                                                                float flat_minimum = 250.0f;
-                                                                float lower_bound = player_gold_threshold > flat_minimum ? player_gold_threshold : flat_minimum;
-
-                                                                if (price > lower_bound && !is_lockpick(p_item_info->second.name))
+                                                                if (type == BarterProcessor::barter_type::buy)
                                                                 {
-                                                                    if (big_transaction_choice_valid)
+                                                                    int price = p_item_info->second.price;
+                                                                    float player_gold_threshold = ((float)MiscThings::get_player_gold()) * 0.2f;
+                                                                    float flat_minimum = 250.0f;
+                                                                    float lower_bound = player_gold_threshold > flat_minimum ? player_gold_threshold : flat_minimum;
+
+                                                                    if (price > lower_bound && !is_lockpick(p_item_info->second.name))
                                                                     {
-                                                                        if (big_transaction_choice)
+                                                                        if (big_transaction_choice_valid)
                                                                         {
-                                                                            ;// fall through down
+                                                                            if (big_transaction_choice)
+                                                                            {
+                                                                                ;// fall through down
+                                                                            }
+                                                                            else
+                                                                            {
+                                                                                finish_transaction(); //cancel operation
+                                                                                return;
+                                                                            }
                                                                         }
                                                                         else
                                                                         {
-                                                                            finish_transaction(); //cancel operation
-                                                                            return;
+                                                                            if (!big_transaction_request_sent)
+                                                                            {
+
+                                                                                std::string player_gold_text = std::to_string(MiscThings::get_player_gold());
+                                                                                std::string price_text = std::to_string(price);
+
+                                                                                std::string item_name = p_item_info->second.name;
+
+                                                                                if (force_choice({ {0, "No"}, {1, "Yes"}, {-1, "[QUIT BARTER]"} }, "You are about to buy " + item_name + ". Item costs " + price_text + " gold, you have " + player_gold_text + " gold, confirm operation ? ", force_type::barter_vendor_confirm_big_transaction))
+                                                                                    big_transaction_request_sent = true;
+
+                                                                                return;
+
+                                                                            }
+                                                                            else
+                                                                                return; //wait for response
                                                                         }
                                                                     }
-                                                                    else
+                                                                }
+
+
+                                                                if (type == BarterProcessor::barter_type::sell)
+                                                                {
+                                                                    std::string item_name = p_item_info->second.name;
+
+                                                                    auto form = find_form_by_name_in_player_inventory(item_name);
+
+                                                                    if (form)
                                                                     {
-                                                                        if (!big_transaction_request_sent)
+                                                                        if (MiscThings::is_unique_item(form))
                                                                         {
+                                                                            if (sell_legendary_choice_valid)
+                                                                            {
+                                                                                if (sell_legendary_choice)
+                                                                                {
+                                                                                    ;// fall through down
+                                                                                }
+                                                                                else
+                                                                                {
+                                                                                    finish_transaction(); //cancel operation
+                                                                                    return;
+                                                                                }
+                                                                            }
+                                                                            else
+                                                                            {
+                                                                                if (!sell_legendary_request_sent)
+                                                                                {
+                                                                                    int price = p_item_info->second.price;
+                                                                                    std::string player_gold_text = std::to_string(MiscThings::get_player_gold());
+                                                                                    std::string price_text = std::to_string(price);
 
-                                                                            std::string player_gold_text = std::to_string(MiscThings::get_player_gold());
-                                                                            std::string price_text = std::to_string(price);
+                                                                                    std::string item_name = p_item_info->second.name;
 
-                                                                            std::string item_name = p_item_info->second.name;
+                                                                                    int amount_bracket_pos = item_name.find("(");
 
-                                                                            if (force_choice({ {0, "No"}, {1, "Yes"}, {-1, "[QUIT BARTER]"} }, "You are about to buy " + item_name + ". Item costs " + price_text + " gold, you have " + player_gold_text + " gold, confirm operation ? ", force_type::barter_vendor_confirm_big_transaction))
-                                                                                big_transaction_request_sent = true;
+                                                                                    if (amount_bracket_pos != std::string::npos && amount_bracket_pos > 0 && amount_bracket_pos < item_name.length())
+                                                                                    {
+                                                                                        item_name = item_name.substr(0, amount_bracket_pos - 1);
+                                                                                    }
 
-                                                                            return;
+                                                                                    if (force_choice({ {0, "No"}, {1, "Yes"}, {-1, "[QUIT BARTER]"} }, "You are about to sell " + item_name + ". Item costs " + price_text + " gold, you have " + player_gold_text + " gold. It is a unique or legendary item. Confirm operation ? ", force_type::barter_vendor_confirm_sell_legendary))
+                                                                                        sell_legendary_request_sent = true;
 
+                                                                                    return;
+
+                                                                                }
+                                                                                else
+                                                                                    return; //wait for response
+                                                                            }
                                                                         }
-                                                                        else
-                                                                            return; //wait for response
                                                                     }
                                                                 }
                                                             }

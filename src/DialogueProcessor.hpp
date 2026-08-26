@@ -66,7 +66,8 @@
         barter_vendor_confirm_big_transaction,
         barter_vendor_confirm_slider_big_transaction,
         confirm_item_drop,
-        barter_spent_a_lot
+        barter_spent_a_lot,
+        barter_vendor_confirm_sell_legendary
     };
 
     int get_active_force();
