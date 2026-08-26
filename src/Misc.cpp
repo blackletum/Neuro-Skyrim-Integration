@@ -26562,7 +26562,7 @@ namespace MiscThings {
 
 
 
-    std::pair<bool, std::string> GetInventory(bool force_weight_value_info)
+    std::pair<bool, std::string> GetInventory(bool force_weight_value_info, int category)
     {
         std::pair<bool, std::string> result{};
 
@@ -26651,16 +26651,22 @@ namespace MiscThings {
 
                 case (1):
                 {
+                    if (category == 2) break;
+
                     inventory_contents += "Weapons (1H - One-handed, 2H - Two-handed):\n" + category_entry + "\n";
                     break;
                 }
                 case (2):
                 {
+                    if (category == 2) break;
+
                     inventory_contents += "Armor:\n" + category_entry + "\n";
                     break;
                 }
                 case (3):
                 {
+                    if (category == 2) break;
+
                     inventory_contents += "Outfits:\n" + category_entry + "\n";
                     break;
                 }
@@ -26674,11 +26680,15 @@ namespace MiscThings {
 
                 case (5):
                 {
+                    if (category == 1) break;
+
                     inventory_contents += "Potions and food:\n" + category_entry + "\n";
                     break;
                 }
                 case (6):
                 {
+                    if (category == 1) break;
+
                     if (category_list.at(7) == "")
                         inventory_contents += "Notes:\n" + category_entry + "\n";
                     else
@@ -26689,6 +26699,8 @@ namespace MiscThings {
                     
                 case (7):
                 {
+                    if (category == 1) break;
+
                     if (category_list.at(6) == "")
                         inventory_contents += "Books:\n" + category_entry + "\n";
                     else
@@ -26699,22 +26711,30 @@ namespace MiscThings {
 
                 case (8):
                 {
+                    if (category == 1) break;
+
                     inventory_contents += "Ingredients:\n" + category_entry + "\n";
                     break;
                 }
                 case (9):
                 {
+                    if (category == 1) break;
+
                     inventory_contents += "Soulgems:\n" + category_entry + "\n";
                     break;
                 }
                 case (10):
                 {
+                    if (category == 1) break;
+
                     inventory_contents += "Ammo:\n" + category_entry + "\n";
                     break;
                 }
 
                 case (11):
                 {
+                    if (category == 1) break;
+
                     inventory_contents += "Other items:\n" + category_entry + "\n";
                     break;
                 }

@@ -466,10 +466,10 @@ namespace Capabilities
         constexpr char Name[] = "get_inventory";
         constexpr char Desc[] =
             R"(Get contents of your inventory)";
-        //constexpr char JsonSchema[] =
-        //    R"({ "additionalProperties": false, "type": "object", "properties": { "full_info": { "description": "(optional) 1 to show gold value and weight for all items", "type": "integer" } })";//, "required": ["id"] })";//
+        constexpr char JsonSchema[] =
+            R"({ "additionalProperties": false, "type": "object", "properties": { "category": { "description": "(optional) 1 - show only weapons and armor, 2 - show everything except weapons and armor, leave blank to show everything", "type": "integer" } } })";//, "required": ["id"] })";//
 
-        constexpr neurosdk_action Action = { .name = Name, .description = Desc };// , .json_schema = JsonSchema};
+        constexpr neurosdk_action Action = { .name = Name, .description = Desc, .json_schema = JsonSchema};
     } // namespace SelectChoiceOption
 
 
@@ -567,6 +567,11 @@ namespace Impl
 {
     namespace JSON
     {
+        struct NeuroChoiceJsonCategory
+        {
+            int category{};
+        };
+
 
         struct NeuroChoiceJson
         {

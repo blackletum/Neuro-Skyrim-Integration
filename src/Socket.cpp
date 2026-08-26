@@ -1733,7 +1733,13 @@ bool neuro::NeuroSocket::Tick(float dtime) //const neurosdk_message_action_t& aC
 
                             if (name == Capabilities::GetInventory::Name)
                             {
-                                command_result = MiscThings::GetInventory();
+
+                                Impl::JSON::NeuroChoiceJsonCategory json{};
+
+                                if (glz::read_json(json, messageQueue[i].value.action.data))
+                                    command_result = MiscThings::GetInventory(false);
+                                else
+                                    command_result = MiscThings::GetInventory(false, json.category);
 
                                 make_delayed_poke = true;
 

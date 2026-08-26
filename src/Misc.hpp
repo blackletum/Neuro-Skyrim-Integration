@@ -247,7 +247,7 @@ namespace MiscThings {
 
     bool is_running_allowed_in_current_cell();
 
-    std::pair<bool, std::string> GetInventory(bool force_weight_value_info = false);
+    std::pair<bool, std::string> GetInventory(bool force_weight_value_info = false, int category = 0);
     std::pair<bool, std::string> GetGold();
     std::pair<bool, std::string> GetObjectsAround(int type);
     bool is_objects_around_valid();

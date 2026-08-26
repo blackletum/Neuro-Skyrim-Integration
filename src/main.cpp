@@ -78,7 +78,6 @@
 ///////////DO ALL THIS
 
 
-//inventory is hard to use. introduce categories - ignore category if overencumbered. maybe do chain-force like in visit_interesting action style
 //remember bad corpses for resurrection (those who are too powerful) and dont target them again automatically (maybe just filter in get_nearest_corpse function, it shouldnt affect manual targeting anyway since no search used.. test it maybe wrong)
 
 //jumping to pickup items from top shelves
