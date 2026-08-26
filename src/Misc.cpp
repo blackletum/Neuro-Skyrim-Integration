@@ -26141,18 +26141,8 @@ namespace MiscThings {
                         //auto enchantment = ench->formEnchanting;
 
 
-                        auto effect = enchantment->GetAVEffect();
 
                         std::string descr = "";
-
-                        if (effect)
-                        {
-
-                            descr = effect->magicItemDescription;
-                            descr = fix_enchantment_description(descr, enchantment);
-
-                            result = "[Enchanted: " + descr + "]";
-                        }
 
                         if (descr == "")
                         {
@@ -26197,6 +26187,19 @@ namespace MiscThings {
                             }
                             
                         }
+
+
+                        auto effect = enchantment->GetAVEffect();
+
+                        if (effect)
+                        {
+
+                            descr = effect->magicItemDescription;
+                            descr = fix_enchantment_description(descr, enchantment);
+
+                            result = "[Enchanted: " + descr + "]";
+                        }
+
 
 
                         if (descr == "")
