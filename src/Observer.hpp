@@ -54,6 +54,7 @@ namespace Observer {
 
 	bool threat_response_choice_pending();
 
+	float get_last_saved_time();
 
 	void notify_player_hit_by_weapon(RE::TESForm* weapon);
 

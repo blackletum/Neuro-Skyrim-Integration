@@ -3617,6 +3617,17 @@ namespace MiscThings {
             return result;
 
         auto player_pos = player->GetPosition();
+        auto player_worldspace = player->GetWorldspace();
+
+        if (player_worldspace && player_worldspace->formID == 0x3c)
+        {
+            RE::NiPoint3 throat_of_the_world_pos = { 56411.4180, -48398.1016,  36180.5312 }; // throat of the world
+            if (player_pos.GetDistance(throat_of_the_world_pos) < 10000.0f)
+            {
+                return throat_of_the_world_pos;
+            }
+        }
+
 
         player_pos.z += 2000.0f; //pretend player is high so it prefers higher points, like top of mountain
 
@@ -29517,7 +29528,11 @@ namespace MiscThings {
         {
             int picked = random_int_from_range(0, amount_of_shouts - 1);
 
-            WalkerProcessor::shout_at_target(target, shouts_available.at(picked));
+            auto dragonrend = (RE::TESShout*)RE::TESForm::LookupByID(0x44250);
+            if (MiscThings::is_dragon(target) && MiscThings::is_flying(target) && MiscThings::player_has_spell((RE::SpellItem*)dragonrend))
+                WalkerProcessor::shout_at_target(target, dragonrend);
+            else
+                WalkerProcessor::shout_at_target(target, shouts_available.at(picked));
         }
 
     }

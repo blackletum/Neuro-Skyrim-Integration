@@ -20,6 +20,8 @@ namespace WalkerProcessor {
     RE::TESObjectCELL* last_stuck_cell = nullptr;
 
 
+    long long last_dragonrend_use_timestamp = 0;
+
     bool dont_clear_spell_vars = false;
 
     float pickup_unsneak_time = 0.0f;
@@ -2330,7 +2332,12 @@ namespace WalkerProcessor {
                                                 }
                                                 else
                                                 {
-                                                    if (longer_range_advices_ignored > 0)
+                                                    auto dragonrend = (RE::TESShout*)RE::TESForm::LookupByID(0x44250);
+                                                    bool player_knows_dragonrend = MiscThings::player_has_spell((RE::SpellItem*)dragonrend);
+
+                                                    int threshold = player_knows_dragonrend ? 0 : 0;
+
+                                                    if (longer_range_advices_ignored > threshold)
                                                     {
                                                         //try to find landing spot for dragon
                                                         dragon_landing_spot_mode = true;
@@ -7336,18 +7343,36 @@ namespace WalkerProcessor {
                 auto actor_refr = (RE::Actor*)target_ref;
                 if (actor_refr->race->fullName == "Dragon Race" && MiscThings::is_flying(target_ref))
                 {
-                    horizontal_max_distance = 8000.0f;
+                    horizontal_max_distance = 12000.0f;
 
                     if (player->GetDistance(target_ref) < 400.0f)
                         return false;
                 }
 
             }
-            
 
             bool its_right_above = pos_dif.Length() < horizontal_max_distance;
 
-            return its_high && its_right_above;//
+            bool dragonrendable_condition = false;
+
+            if (MiscThings::is_dragon(target_ref))
+            {
+                
+
+                auto camera_pos = RE::PlayerCamera::GetSingleton()->pos;
+                auto aim_pos = get_estimate_aim_pos(target_ref, true, false);
+                auto delta_pos = aim_pos - camera_pos;
+
+                auto dragonrend = (RE::TESShout*)RE::TESForm::LookupByID(0x44250);
+                bool player_knows_dragonrend = MiscThings::player_has_spell((RE::SpellItem*)dragonrend);
+                bool can_shout = MiscThings::get_shout_cooldown() <= 0.0f;
+                auto raycast_ref = MiscThings::GetRaycastRef(camera_pos, delta_pos, 20000.0f, target_ref, 0b00000000000010010000000000000110); //projectile layer in player group
+
+                dragonrendable_condition = raycast_ref == target_ref && can_shout && player_knows_dragonrend;
+            }
+
+
+            return its_high && its_right_above;// && !dragonrendable_condition;// && !close_enough();// && !(player_knows_dragonrend && can_shout);//
         }
 
 
@@ -7657,6 +7682,21 @@ namespace WalkerProcessor {
                         if ((has_bow_equipped(true) || has_crossbow_equipped(true)) && MiscThings::is_dragon(target_ref) && !no_ammo())
                             range = 10000.0f;
 
+
+                        /* //this is absolute bullshit dont do this
+                        if (MiscThings::is_dragon(target_ref))
+                        {
+                            auto dragonrend = (RE::TESShout*)RE::TESForm::LookupByID(0x44250);
+                            bool player_knows_dragonrend = MiscThings::player_has_spell((RE::SpellItem*)dragonrend);
+
+                            if (player_knows_dragonrend && MiscThings::get_shout_cooldown() <= 0.0f)
+                            {
+                                range = 20000.0f; //can use dragonrend. let it do it
+                            }
+
+                        }
+                        */
+
                         if (shout_mode)
                         {
                             auto dragonrend = (RE::TESShout*)RE::TESForm::LookupByID(0x44250);
@@ -7668,7 +7708,6 @@ namespace WalkerProcessor {
 
                             if (target_ref && target_ref->formID == 0xdb9d7)
                                 range = 8000.0f;
-
                         }
                             
 
@@ -7686,7 +7725,7 @@ namespace WalkerProcessor {
 
 
                         //this is for melee
-                        if (!dragon_landing_spot_mode || dragon_landing_spot_nowhere_to_land)
+                        if (!shout_mode && (!dragon_landing_spot_mode || dragon_landing_spot_nowhere_to_land))
                         {
                             if (MiscThings::is_dragon(target_ref) && MiscThings::is_flying(target_ref))// && (!(has_ranged_weapon_equipped(get_current_active_hand()) || shout_mode)))
                             {
@@ -7721,7 +7760,12 @@ namespace WalkerProcessor {
                                                     }
                                                     else
                                                     {
-                                                        if (longer_range_advices_ignored > 0)
+                                                        auto dragonrend = (RE::TESShout*)RE::TESForm::LookupByID(0x44250);
+                                                        bool player_knows_dragonrend = MiscThings::player_has_spell((RE::SpellItem*)dragonrend);
+
+                                                        int threshold = player_knows_dragonrend ? 0 : 0;
+
+                                                        if (longer_range_advices_ignored > threshold)
                                                         {
                                                             //try to find landing spot for dragon
                                                             dragon_landing_spot_mode = true;
@@ -12904,6 +12948,9 @@ namespace WalkerProcessor {
         auto player_actor = (RE::Actor*)player_ref;
 
 
+        if (target_ref && target_ref->formID == 0x7121d4f) //landing marker
+            return false;
+
         if (shout_mode)
         {
             if (shout_to_use)
@@ -13065,16 +13112,21 @@ namespace WalkerProcessor {
             crouch();//uncrouch 
 
 
-
-
-        if (MiscThings::is_dragon(target_ref))
+        if (MiscThings::is_dragon(target_ref))// && !(dragon_landing_spot_mode || dragon_landing_spot_nowhere_to_land))
         {
             auto dragonrend = (RE::TESShout*)RE::TESForm::LookupByID(0x44250);
 
             if (MiscThings::player_has_spell((RE::SpellItem*)dragonrend) && MiscThings::get_shout_cooldown() <= 0.0f)
             {
-                WalkerProcessor::shout_at_target(target_ref, dragonrend);
-                return false;
+                long long now = std::chrono::steady_clock::now().time_since_epoch().count();;
+                float delta_dragonrend = (double)(now - last_dragonrend_use_timestamp) / 1000000000.0;
+
+                if (delta_dragonrend > 30.0f)
+                {
+                    last_dragonrend_use_timestamp = now;
+                    WalkerProcessor::shout_at_target(target_ref, dragonrend);
+                    return false;
+                }
             }
         }
 
@@ -21829,7 +21881,12 @@ namespace WalkerProcessor {
                                                                 }
                                                                 else
                                                                 {
-                                                                    if (longer_range_advices_ignored > 0)
+                                                                    auto dragonrend = (RE::TESShout*)RE::TESForm::LookupByID(0x44250);
+                                                                    bool player_knows_dragonrend = MiscThings::player_has_spell((RE::SpellItem*)dragonrend);
+
+                                                                    int threshold = player_knows_dragonrend ? 0 : 0;
+
+                                                                    if (longer_range_advices_ignored > threshold)
                                                                     {
                                                                         //try to find landing spot for dragon
                                                                         dragon_landing_spot_mode = true;

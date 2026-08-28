@@ -1134,6 +1134,10 @@ namespace Observer {
 	}
 
 	
+	float get_last_saved_time()
+	{
+		return last_saved_time;
+	}
 
 	bool not_informing_inventory()
 	{

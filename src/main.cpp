@@ -3745,10 +3745,10 @@ class MyHook {
                         }
 
 
-                        if (subtitle_msg.find("This is far as I can take you. Krif voth ahkrin.") != std::string::npos)
+                        if (Observer::get_last_saved_time() > 30.0f && ((subtitle_msg.find("This is far as I can take you. Krif voth ahkrin.") != std::string::npos) || (subtitle_msg.find("Bahloki nahkip sillesejoor.") != std::string::npos)))
                             quicksave(true);
 
-
+                        
                         if (subtitle_msg.find("That's the last of them. Poor sods can't resist after they get a taste of your dosed Skooma.") != std::string::npos)
                         {
                             send_random_context("You passed out, and then woke up in a cage!", false);
