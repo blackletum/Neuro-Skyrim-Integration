@@ -7971,6 +7971,25 @@ namespace MiscThings {
             return nullptr;
 
 
+        if (parent_cell && parent_cell->formID == 0x152c3) //glacial ruins for find-elder-scroll quest
+        {
+            if (quest->formID == 0x2d516 || quest->formID == 0x2d512)
+            {
+                auto lift = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x57056);
+                auto gate = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x93e11);
+
+                float test_distance = player->GetDistance(lift);
+
+                if (lift && gate && (test_distance < 1413.0f || MiscThings::two_state_activator_state(gate) == 0))
+                {
+                    return lift;
+                }
+            }
+        }
+
+
+
+
         //visit college of winterhold. i thought i fixed it by completing it BUT THEY ACTUALLY PUT THE TARGET ON AN NPC, WHO SOMETIMES, JUST RUNS OUT OF COLLEGE AS WE GO TOWARDS IT.
         //and quests leads to it
         //redirect to gates

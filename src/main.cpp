@@ -1574,7 +1574,7 @@ namespace Hooks {
                 }
 
                 
-                if (!WalkerProcessor::get_just_teleported())
+                if (!WalkerProcessor::get_just_teleported() || WalkerProcessor::is_walking_important_path()) //should reset if it was custom path regardless of just_teleported. no custom path leads across locations
                 {
                     //walker didnt open any doors. its some weird situation/user loaded save manually/it was fasttravel/script travel.
                     //actions must be redone
