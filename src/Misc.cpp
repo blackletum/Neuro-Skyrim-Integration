@@ -10539,6 +10539,16 @@ namespace MiscThings {
             if (elder_lexicon_quest_stage == 20 || elder_lexicon_quest_stage == 30)
                 check_elder_scroll_zone_dwemer_mechanism = true;
 
+
+            if (target == player)
+            {
+                //it directs us to player, it means that it directs us to elder scroll which has already been picked up.
+                //redirect to lexicon stand.
+                auto full_stand = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x88269);
+                if (full_stand)
+                    return full_stand;
+            }
+
         }
 
 
@@ -15282,6 +15292,14 @@ namespace MiscThings {
 
         if (!object)
             return "";
+
+
+        if (object->GetBaseObject()->formID == 0x1ba5a)
+        {
+            //dwebutton
+            if (MiscThings::two_state_activator_state(object) == 1)
+                return "[Locked]";
+        }
 
 
         auto object_p = General::Script::GetObject(object, "TG08LeverPuzzle");

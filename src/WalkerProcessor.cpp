@@ -10264,41 +10264,50 @@ namespace WalkerProcessor {
                                                 auto test_quests_target_ref = quest_ref_handle.get().get();
                                                 if (test_quests_target_ref == player_ref)
                                                 {
+                                                    bool player_in_tower_of_mzark = player && player->GetParentCell() == RE::TESForm::LookupByID(0x2d4e3);
 
-                                                    //it leads to player. try to give proper hint on what to do 
-
-                                                    std::string actual_target_name = "maybe read some note or book?";
-
-                                                    RE::ObjectRefHandle test_quest_ref_handle{};
-
-                                                    target->GetTargetRef(test_quest_ref_handle, false, quest_entry.quest); //it tracks to player. check target
-
-                                                    if (test_quest_ref_handle)
+                                                    if (!(quest_entry.quest && quest_entry.quest->formID == 0x2d512 && player_in_tower_of_mzark))
                                                     {
-                                                        if (test_quest_ref_handle.get())
+                                                        //it leads to player. try to give proper hint on what to do 
+
+                                                        std::string actual_target_name = "maybe read some note or book?";
+
+                                                        RE::ObjectRefHandle test_quest_ref_handle{};
+
+                                                        target->GetTargetRef(test_quest_ref_handle, false, quest_entry.quest); //it tracks to player. check target
+
+                                                        if (test_quest_ref_handle)
                                                         {
-                                                            auto test_quest_target_ref2 = test_quest_ref_handle.get().get();
-
-                                                            if (test_quest_target_ref2)
+                                                            if (test_quest_ref_handle.get())
                                                             {
-                                                                std::string test_actual_target_name = test_quest_target_ref2->GetDisplayFullName();
+                                                                auto test_quest_target_ref2 = test_quest_ref_handle.get().get();
 
-                                                                if (test_actual_target_name != "")
+                                                                if (test_quest_target_ref2)
                                                                 {
-                                                                    auto base_obj = test_quest_target_ref2->GetBaseObject();
-                                                                    auto category = MiscThings::get_object_category((RE::TESForm*)base_obj);
-                                                                    actual_target_name = category.second + " " + test_actual_target_name;
+                                                                    std::string test_actual_target_name = test_quest_target_ref2->GetDisplayFullName();
 
+                                                                    if (test_actual_target_name != "")
+                                                                    {
+                                                                        auto base_obj = test_quest_target_ref2->GetBaseObject();
+                                                                        auto category = MiscThings::get_object_category((RE::TESForm*)base_obj);
+                                                                        actual_target_name = category.second + " " + test_actual_target_name;
+
+                                                                    }
                                                                 }
                                                             }
                                                         }
+
+                                                        reset_walker();
+                                                        result.first = false;
+                                                        result.second = "[This quest has no target to walk to... You need to investigate items in your inventory (" + actual_target_name + ")]";
+                                                        do_delayed_poke();
+                                                        return result;
                                                     }
-                                                    
-                                                    reset_walker();
-                                                    result.first = false;
-                                                    result.second = "[This quest has no target to walk to... You need to investigate items in your inventory (" + actual_target_name + ")]";
-                                                    do_delayed_poke();
-                                                    return result;
+                                                    else
+                                                    {
+                                                        //lexicon quest, need to direct to lexicon.
+                                                        //will be redirected in redirect_quest_target
+                                                    }
 
                                                 }
                                             }
