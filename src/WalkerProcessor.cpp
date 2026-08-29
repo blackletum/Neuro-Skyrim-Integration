@@ -14874,13 +14874,12 @@ namespace WalkerProcessor {
                                 }
 
 
-
-
-
+                                /*
                                 send_random_context("Attacking doesnt work... They are not dying. You can try to run away or ignore the fight instead.", false);
                                 Observer::reset_threats(); //so it can actually offer choice to run or ignore
                                 reset_walker();
                                 return true;
+                                */
                             }
 
                             std::string message = "You keep attacking...";
