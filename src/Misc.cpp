@@ -12034,10 +12034,15 @@ namespace MiscThings {
 
         if (player_actor && player_actor->IsOverEncumbered())
         {
-            int cur_weight = (int)player_actor->GetActorValue(RE::ActorValue::kInventoryWeight);
-            int max_weight = (int)player_actor->GetActorValue(RE::ActorValue::kCarryWeight);
+            float cur_weight = player_actor->GetActorValue(RE::ActorValue::kInventoryWeight);
+            float max_weight = player_actor->GetActorValue(RE::ActorValue::kCarryWeight);
 
-            return cur_weight - max_weight;
+            float delta = cur_weight - max_weight;
+
+            if (delta < 1.0f)
+                return 1;
+            else
+                return delta;
         }
 
         return 0;
