@@ -47,6 +47,7 @@ bool visit_all_members5(std::vector<std::string>& results, const RE::GFxValue& i
 
 void add_delayed_message(std::string message);
 
+bool get_debug_cam_move_coef();
 
 bool force_choice(std::vector<MenuOption> options, std::string message, int force_type, bool no_block = false);
 

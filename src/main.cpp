@@ -48,7 +48,6 @@
 //  RANDOM QUESTS TODO
 // 
 //TODO white phial part 2 (windhelm alchemist quest)
-//TODO riften dwemer cube quest
 //TODO whiterun save the guy from thalmor quest
 //TODO falkreath help the hunter spriggan cave
 //TODO mage sidequests
@@ -182,7 +181,7 @@ bool API_CONTROL_BARTER = false;
 bool API_CONTROL_LOCKPICK = false;
 bool API_CONTROL_CRAFTING = false;
 
-
+bool debug_cam_move_coef = true;
 bool do_debug_scan = false;
 bool debug_info = false;
 bool debug_info2 = false; //just update text, for manual debug_text modifications (without add_line stuff)
@@ -228,6 +227,12 @@ long long last_load_timestamp = 0;
 bool loading_menu_lock = false;
 
 /////////////////////////////////////////////////////////
+
+bool get_debug_cam_move_coef()
+{
+    return debug_cam_move_coef;
+}
+
 
 
 long long get_last_load_timestamp()

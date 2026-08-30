@@ -3716,6 +3716,15 @@ namespace WalkerProcessor {
 
 
             //mouse_mouse_x_y(mouse_x, -mouse_y);
+            //
+            if (get_debug_cam_move_coef())
+            {
+                Hooks::add_debug_line("walker camera move coef: " + std::to_string(dtime_maybe_bad / 0.016666f) + ", dtime was " + std::to_string(dtime_maybe_bad) , true);
+                mouse_x = mouse_x * dtime_maybe_bad / 0.016666f;
+                mouse_y = mouse_y * dtime_maybe_bad / 0.016666f;
+            }
+
+
             mouse_look(mouse_x, -mouse_y);
 
 
@@ -5525,10 +5534,11 @@ namespace WalkerProcessor {
         auto player_pos = player->GetPosition();
         auto blackreach_worldspace = RE::TESForm::LookupByID(0x1ee62);
         auto player_worldspace = player->GetWorldspace();
+        auto parent_cell = player->GetParentCell();
 
         bool blackreach_mode = false;
-
-        if (player_worldspace == blackreach_worldspace)
+                                                                                                //avanchenzel with fucked pathfinding
+        if (player_worldspace == blackreach_worldspace || (parent_cell && parent_cell->formID == 0x4c6dd))
             blackreach_mode = true; //navmesh in blackreach is very bad. clips through the floor. looks like they changed terrain without remaking navmesh
 
 
@@ -21573,7 +21583,7 @@ namespace WalkerProcessor {
 
                                                                             wiggle_body_start_pos = player->GetPosition();
 
-                                                                            if (get_targeted_ref() && get_targeted_ref()->formID == 0x2e107)
+                                                                            if (get_targeted_ref() && (get_targeted_ref()->formID == 0x2e107 || get_targeted_ref()->formID == 0x6d0b0))
                                                                                 unstuck_direction = 0;
                                                                             else
                                                                                 unstuck_direction = 1;
@@ -22008,7 +22018,7 @@ namespace WalkerProcessor {
 
                                                                         wiggle_body_start_pos = player->GetPosition();
 
-                                                                        if (get_targeted_ref() && get_targeted_ref()->formID == 0x2e107)
+                                                                        if (get_targeted_ref() && (get_targeted_ref()->formID == 0x2e107 || get_targeted_ref()->formID == 0x6d0b0))
                                                                             unstuck_direction = 0;
                                                                         else
                                                                             unstuck_direction = 1;
@@ -22454,7 +22464,7 @@ namespace WalkerProcessor {
 
                                                         wiggle_body_start_pos = player->GetPosition();
 
-                                                        if (get_targeted_ref() && get_targeted_ref()->formID == 0x2e107)
+                                                        if (get_targeted_ref() && (get_targeted_ref()->formID == 0x2e107 || get_targeted_ref()->formID == 0x6d0b0))
                                                             unstuck_direction = 0;
                                                         else
                                                             unstuck_direction = 1;

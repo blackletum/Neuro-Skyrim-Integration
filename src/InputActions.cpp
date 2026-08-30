@@ -1032,7 +1032,7 @@ void walk_forward()
     RE::BSInputEventQueue::GetSingleton()->AddButtonEvent(RE::INPUT_DEVICES::kKeyboard, my_key, 1.0, 0.0);
 
 
-    Hooks::add_debug_line("Input: walk forward", true);
+    Hooks::add_debug_line("Input: walk forward");
 }
 
 

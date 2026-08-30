@@ -2108,7 +2108,7 @@ namespace Observer {
 
 			if (ignore_raycast || (detect_interesting_time > 0.5f && std::size(raw_object_list) <= 0) || (first_cycle2 && detect_interesting_time > 2.0f))
 			{
-				Hooks::add_debug_line("OBJECT SCANNER TRIGGERED, DTIME: " + std::to_string(detect_interesting_time), true);
+				//Hooks::add_debug_line("OBJECT SCANNER TRIGGERED, DTIME: " + std::to_string(detect_interesting_time), true);
 
 				if (first_cycle2)
 					first_cycle2 = false;
@@ -3333,7 +3333,7 @@ namespace Observer {
 
 			if (detect_events_time > 0.1f && std::size(raw_event_object_list) <= 0)
 			{
-				Hooks::add_debug_line("DETECT EVENTS TRIGGERED, DTIME: " + std::to_string(detect_events_time), true);
+				//Hooks::add_debug_line("DETECT EVENTS TRIGGERED, DTIME: " + std::to_string(detect_events_time), true);
 
 				detect_events_time = 0.0f;
 

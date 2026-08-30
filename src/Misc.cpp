@@ -2815,6 +2815,7 @@ namespace MiscThings {
             case (0xa9530)://silverhand skinner base exit door
             case (0x17080)://bloodlet throne bar door
             case (0x2e107)://alftand pre-blackreach door (needs to go back-left
+            case (0x6d0b0)://avanchenzel final door
                 return true;
             }
 
@@ -15544,6 +15545,12 @@ namespace MiscThings {
         case (0x200a8bb):
         case (0x2002b48):
         case (0x200a8b8):
+
+        //avanchenzel orange ghosts
+        case (0x2ba33):
+        case (0x56555):
+        case (0x2ba30):
+        case (0x56554):
             return "[Ghost]";
 
 
@@ -30790,6 +30797,11 @@ namespace MiscThings {
 
                 if (a_ref && a_ref->IsActor())
                 {
+                    if (a_ref->formID == 0x6dfa0)
+                        return RE::BSContainer::ForEachResult::kContinue; //spider in avanchenzel who is under the floor
+
+
+
                     if (labyrinthian_shit_gate_condition)
                     {
                         auto object_pos = a_ref->GetPosition();
