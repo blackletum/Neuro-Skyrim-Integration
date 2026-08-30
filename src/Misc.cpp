@@ -29494,7 +29494,7 @@ namespace MiscThings {
         offensive_shouts.push_back((RE::TESShout*)RE::TESForm::LookupByID(0x13e07)); //unrelenting force
         offensive_shouts.push_back((RE::TESShout*)RE::TESForm::LookupByID(0x70981)); // disarm
         offensive_shouts.push_back((RE::TESShout*)RE::TESForm::LookupByID(0x2395a)); // dismay
-        offensive_shouts.push_back((RE::TESShout*)RE::TESForm::LookupByID(0x32921)); // elemental fury
+        //offensive_shouts.push_back((RE::TESShout*)RE::TESForm::LookupByID(0x32921)); // elemental fury
         offensive_shouts.push_back((RE::TESShout*)RE::TESForm::LookupByID(0x3f9ea)); // fire breath
         offensive_shouts.push_back((RE::TESShout*)RE::TESForm::LookupByID(0x5d16b)); // frost breath
         offensive_shouts.push_back((RE::TESShout*)RE::TESForm::LookupByID(0x70980)); // ice form

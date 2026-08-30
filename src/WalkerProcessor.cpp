@@ -14873,13 +14873,14 @@ namespace WalkerProcessor {
                                     }
                                 }
 
-
-                                /*
-                                send_random_context("Attacking doesnt work... They are not dying. You can try to run away or ignore the fight instead.", false);
-                                Observer::reset_threats(); //so it can actually offer choice to run or ignore
-                                reset_walker();
-                                return true;
-                                */
+                                                                                                                        //alduin
+                                if (target_actor->GetActorValue(RE::ActorValue::kHealth) < 10 && target_actor->formID != 0x32DB7)
+                                {
+                                    send_random_context("Attacking doesnt work... They are not dying. You can try to run away or ignore the fight instead.", false);
+                                    Observer::reset_threats(); //so it can actually offer choice to run or ignore
+                                    reset_walker();
+                                    return true;
+                                }
                             }
 
                             std::string message = "You keep attacking...";
