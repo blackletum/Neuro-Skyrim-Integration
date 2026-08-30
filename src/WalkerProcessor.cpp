@@ -18510,6 +18510,14 @@ namespace WalkerProcessor {
                 if (test_targeted_ref)
                 {
 
+                    if (test_targeted_ref && test_targeted_ref->formID == 0xf5b04 && target_ref && target_ref->formID != 0xf5b04) //hermaeus after book da04
+                    {
+                        auto temp_result = walk_to_object_by_refr(test_targeted_ref, 1);
+                        return;
+                    }
+
+
+
                     auto labyr_gate = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xf498c);
 
                     if (labyr_gate && test_targeted_ref == labyr_gate && target_ref && target_ref != labyr_gate)
@@ -18517,7 +18525,7 @@ namespace WalkerProcessor {
                         auto temp_result = walk_to_object_by_refr(labyr_gate, 1);
                         return;
                     }
-
+                   
 
                     auto nocturnal_portal = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x10c5f0);
 

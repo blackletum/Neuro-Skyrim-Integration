@@ -12083,6 +12083,9 @@ namespace MiscThings {
     {
         if (!object)
             return false;
+        
+        if (object->formID == 0xf5b04)
+            return true; //hermaeus mora after ogma infinium pickup
 
         auto camera = RE::PlayerCamera::GetSingleton();
 
@@ -13236,7 +13239,16 @@ namespace MiscThings {
         case (0x63cfc):
         case (0x63cfe):
             return "";
+
+        case (0xf5b03): //hermaeus mora after ogma infinium pickup
+        {
+            auto hermaeus_activator = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xf5b04);
+            return MiscThings::insert_object_into_list_and_get_info(hermaeus_activator);
         }
+        }
+
+
+
 
 
        // return "";

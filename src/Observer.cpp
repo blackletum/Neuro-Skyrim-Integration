@@ -16,7 +16,7 @@ namespace Observer {
 	float swimming_time = 0.0f;
 	float not_swimming_time = 0.0f;
 
-
+	int old_da04_septimus_scene_phase = 0;
 
 	long long last_use_potion_timestamp = 0;
 
@@ -5973,6 +5973,10 @@ namespace Observer {
 		if (!player)
 			return;
 
+
+		auto parent_cell = player->GetParentCell();
+
+
 		/*
 		RE::TESObjectREFR* test_hound = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x10d418);
 
@@ -6237,6 +6241,21 @@ namespace Observer {
 
 
 					
+
+					//da04 hermaeus mora book quest, septimus events.
+					if (parent_cell && parent_cell->formID == 0x2d4e4)
+					{
+						auto scene = (RE::BGSScene*)RE::TESForm::LookupByID(0x1a333);
+						if (scene)
+						{
+							auto phase = scene->unkBC;
+							old_da04_septimus_scene_phase = phase;
+						}
+
+					}
+
+
+
 
 					if (dlc1vq01_quest)
 						old_dlc1vq01_stage = dlc1vq01_quest->currentStage;
@@ -6805,9 +6824,9 @@ namespace Observer {
 				{
 					if (jail_reminder_time > 40.0f)
 					{
-						auto player_cell = player->GetParentCell();
+						
 
-						if (player_cell && player_cell->GetFormID() == 0x16203)
+						if (parent_cell && parent_cell->GetFormID() == 0x16203)
 						{
 							auto cidhna_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("MS02");
 
@@ -7050,6 +7069,45 @@ namespace Observer {
 						
 
 				}
+
+
+				
+
+				//da04 hermaeus mora book quest, septimus events.
+				if (parent_cell && parent_cell->formID == 0x2d4e4)
+				{
+					auto scene = (RE::BGSScene*)RE::TESForm::LookupByID(0x1a333);
+					if (scene)
+					{
+						auto phase = scene->unkBC;
+
+						if (old_da04_septimus_scene_phase != phase)
+						{
+							if (phase == 2)
+								send_random_context("[Septimus injects Blood Extractor into himself...]");
+
+							if (phase == 3)
+								send_random_context("[Septimus walks up to the Giant Dwemer Cube...]");
+
+							if (phase == 5)
+								send_random_context("[Dwemer Cube opens, it reveals a passage. Septimus walks inside...]");
+
+							if (phase == 6)
+								send_random_context("[You see a pedestal with some big book... Septimus starts floating...]");
+						}
+
+						old_da04_septimus_scene_phase = phase;
+					}
+
+				}
+
+
+
+
+
+
+
+
 
 
 				old_sit_state = sit_state;

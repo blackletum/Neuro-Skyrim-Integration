@@ -60,7 +60,6 @@
 //TODO dwemer shield daedra
 //TODO black armor daedra
 //TODO black sword daedra
-//TODO check hermaeus book-blood quest
 
 
 //TODO upgrade-house helper interesting place
