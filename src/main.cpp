@@ -49,7 +49,6 @@
 // 
 //TODO white phial part 2 (windhelm alchemist quest)
 //TODO whiterun save the guy from thalmor quest
-//TODO falkreath help the hunter spriggan cave
 //TODO mage sidequests
 //TODO dlc etherium book quest
 //TODO soltsheim riekling quests

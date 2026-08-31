@@ -11020,6 +11020,22 @@ namespace MiscThings {
             }
         }
 
+        if (quest && quest->formID == 0x376ee)
+        {
+            auto valdr = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x411b9); //valdr
+            if (valdr && valdr->IsDead())
+                return true;
+
+            auto stage = quest->currentStage;
+
+            if (stage >= 15 && objective && objective->index == 5)
+            {
+                auto next_objective = MiscThings::get_quest_objective_by_index(quest, 30);
+                if (next_objective && next_objective->state.all(RE::QUEST_OBJECTIVE_STATE::kDisplayed) && !next_objective->state.all(RE::QUEST_OBJECTIVE_STATE::kCompletedDisplayed) && !next_objective->state.all(RE::QUEST_OBJECTIVE_STATE::kFailedDisplayed))
+                    return true;
+            }
+        }
+
 
 
 
