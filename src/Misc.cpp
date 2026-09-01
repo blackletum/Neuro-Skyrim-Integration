@@ -4684,8 +4684,9 @@ namespace MiscThings {
         {
             {0x1c18c, 1, "Trader", 1}, //trader
             {0x1c18d, 2, "Tavern [Provides bed, jobs and food/booze]", 2}, //tavern
-            {0x1c1b5, 5, "Jarl", 3} //jarl
-
+            {0x1c1b5, 5, "Jarl", 3}, //jarl korir
+            {0x1C190, 5, "Jarl", 4},  //jarl kraldar
+            {0x1c192, 11, "Jarl's Steward", 5}  //steward malur
         }
 
     }
@@ -4702,9 +4703,12 @@ namespace MiscThings {
             {0x1b118, 2, "Tavern [Provides bed, jobs and food/booze]", 2}, //tavern
             {0x1b115, 3, "Alchemist [Provides potions and ingredients. Probably has alchemist table]", 3}, //alchemist
             {0x1b135, 4, "Blacksmith [Weapons, armor, materials for crafting. Might have crafting workbenches around]", 4}, //blacksmith
-            {0x1b131, 5, "Jarl", 5}, //jarl
-            {0x1b132, 6, "Wizard", 6}, //wizard
-            {0x16962, 7, "Church [Has shrines]", 7} //church
+            {0x1b131, 5, "Jarl", 5}, //jarl ulfric
+            {0x1B117, 5, "Jarl", 6}, //jarl brynwulf
+            {0x1b132, 6, "Wizard", 7}, //wizard
+            {0x16962, 7, "Church [Has shrines]", 8}, //church
+            {0x1b134, 11, "Jarl's Steward", 9}  //steward Jorleif
+
         }
     }
 },
@@ -4724,9 +4728,13 @@ namespace MiscThings {
         {0x19dc8, 2, "Tavern [Provides bed, jobs and food/booze]", 6}, //tavern
         {0x19dfc, 3, "Alchemist [Provides potions and ingredients. Probably has alchemist table]", 7}, //alchemist
         {0x19df1, 4, "Blacksmith [Weapons, materials for crafting. Might have crafting workbenches around]", 8}, //blacksmith
-        {0x19dea, 5, "Jarl", 9}, //jarl
-        {0x19df0, 6, "Wizard", 10}, //wizard
-        {0x4227b, 7, "Church [Has shrines]", 11} //church
+        {0x19dea, 5, "Jarl", 9}, //jarl laila
+        {0x19DD1, 5, "Jarl", 10}, //jarl maven
+        {0x19df0, 6, "Wizard", 11}, //wizard
+        {0x4227b, 7, "Church [Has shrines]", 12}, //church
+        {0x19dd2, 11, "Jarl's Steward", 13},  //steward Hemming
+        {0x19dee, 11, "Jarl's Steward", 14}  //steward Anuriel
+
     }
 
 }
@@ -4757,9 +4765,12 @@ namespace MiscThings {
             {0x3a198, 2, "Tavern [Provides bed, jobs and food/booze]", 2}, //tavern
             {0x3a19b, 3, "Alchemist [Provides potions and ingredients. Probably has alchemist table]", 3}, //alchemist
             {0x3a19f, 4, "Blacksmith [Weapons, armor, materials for crafting. Might have crafting workbenches around]", 4}, //blacksmith
-            {0x19822, 5, "Jarl", 5}, //jarl
-            {0x1b132, 6, "Wizard", 6}, //wizard
-            {0x17766, 7, "Church [Has shrines]", 7} //church
+            {0x19822, 5, "Jarl", 5}, //jarl siddgeir
+            {0x1981B, 5, "Jarl", 6}, //jarl dengeir
+            {0x1b132, 6, "Wizard", 7}, //wizard
+            {0x17766, 7, "Church [Has shrines]", 8}, //church
+            {0x19823, 11, "Jarl's Steward", 9},  //steward Nenya
+            {0x1981c, 11, "Jarl's Steward", 10}  //steward Tekla
         }
 
 
@@ -4776,9 +4787,13 @@ namespace MiscThings {
             {0x198ec, 2, "Tavern [Provides bed, jobs and food/booze]", 2}, //tavern
             {0x198f7, 3, "Alchemist [Provides potions and ingredients. Probably has alchemist table]", 3}, //alchemist
             {0x19906, 4, "Blacksmith [Weapons, armor, materials for crafting. Might have crafting workbenches around]", 4}, //blacksmith
-            {0x19903, 5, "Jarl", 5}, //jarl
-            {0x19908, 6, "Wizard", 6}, //wizard
-            {0x16e3e, 7, "Church [Has shrines]", 7} //church
+            {0x19903, 5, "Jarl", 5}, //jarl igmund
+            {0x198E3, 5, "Jarl", 6}, //jarl thongvor
+            {0x19908, 6, "Wizard", 7}, //wizard
+            {0x16e3e, 7, "Church [Has shrines]", 8}, //church
+            {0x198e4, 11, "Jarl's Steward", 9},  //steward Reburrus
+            {0x19904, 11, "Jarl's Steward", 10}  //steward Raerek
+
         }
 
 
@@ -4797,7 +4812,8 @@ namespace MiscThings {
         {0x198d8, 4, "Blacksmith [Weapons, armor, materials for crafting. Might have crafting workbenches around]", 4}, //blacksmith
         {0x198c1, 5, "Jarl", 5}, //jarl
         {0x198c5, 6, "Wizard", 6}, //wizard
-        {0x37f3e, 7, "Church [Has shrines]", 7} //church
+        {0x37f3e, 7, "Church [Has shrines]", 7}, //church
+        {0x198C2, 11, "Jarl's Steward", 8}  //steward Falk
         }
 
 
@@ -4812,8 +4828,11 @@ namespace MiscThings {
         {
         {0x1aa62, 2, "Tavern [Provides bed, jobs and food/booze]", 1}, //tavern
         {0x1aa61, 3, "Alchemist [Provides potions and ingredients. Probably has alchemist table]", 2}, //alchemist
-        {0x1aa66, 5, "Jarl", 3}, //jarl
-        {0x1aa5e, 6, "Wizard", 4 } //wizard
+        {0x1aa66, 5, "Jarl", 3}, //jarl idgrod
+        {0x1AA57, 5, "Jarl", 4}, //jarl sorli
+        {0x1aa5e, 6, "Wizard", 5 }, //wizard
+        {0x1aa58, 11, "Jarl's Steward", 6},  //steward Pactur
+        {0x1aa68, 11, "Jarl's Steward", 7}  //steward Aslfur
         }
 
     }
@@ -4828,7 +4847,9 @@ namespace MiscThings {
                     {0x1a6c8, 2, "Tavern [Provides bed, jobs and food/booze]", 1}, //tavern
                     {0x1a6b5, 3, "Alchemist [Provides potions and ingredients. Probably has alchemist table]", 2}, //alchemist
                     {0x1a6be, 4, "Blacksmith [Weapons, armor, materials for crafting. Might have crafting workbenches around]", 3}, //blacksmith
-                    {0x1a6c0, 5, "Jarl", 4} //jarl
+                    {0x1a6c0, 5, "Jarl", 4}, //jarl skald
+                    {0x1A6B8, 5, "Jarl", 5}, //jarl brina
+                    //no steward here! house is bought directly from jarl
                 }
 
             }
@@ -4847,11 +4868,14 @@ namespace MiscThings {
             {0x1a66d, 3, "Alchemist [Provides potions and ingredients. Probably has alchemist table]", 4}, //alchemist
             {0x1a67c, 4, "Blacksmith [Weapons, armor, materials for crafting. Might have crafting workbenches around]", 5}, //blacksmith
             //{0xd15b0, 4, "Blacksmith (Warmaiden's)", 6}, //blacksmith
-            {0x1a677, 5, "Jarl", 6}, //jarl
-            {0x1a67e, 6, "Wizard", 7}, //wizard
-            {0x1a700, 7, "Church [Has shrines]", 8}, //church
-            {0x1a6f9, 8, "Breezehome [your house]", 9 }, //house
-            {0xA2C94, 9, "Lydia [your friend]", 10 } //lydia
+            {0x1a677, 5, "Jarl", 6}, //jarl balgruuf
+            {0x1A6A1, 5, "Jarl", 7}, //jarl vignar
+            {0x1a67e, 6, "Wizard", 8}, //wizard
+            {0x1a700, 7, "Church [Has shrines]", 9}, //church
+            {0x1a6f9, 8, "Breezehome [your house]", 10 }, //house
+            {0xA2C94, 9, "Lydia [your friend]", 11 }, //lydia
+            {0x1a67d, 11, "Jarl's Steward", 12},  //steward proventus
+            {0x1a6a3, 11, "Jarl's Steward", 13}  //steward brill
 
         }
 
@@ -5469,6 +5493,41 @@ namespace MiscThings {
                         }
                     }
 
+                    bool not_jarl = false;
+
+                    if (mode == 5) //jarl
+                    {
+                        auto actor = (RE::Actor*)object;
+                        
+                        auto jarl_faction = (RE::TESFaction*)RE::TESForm::LookupByID(0x50920);
+
+                        if (jarl_faction)
+                            not_jarl = !actor->IsInFaction(jarl_faction);
+
+                    }
+
+                    bool not_steward = false;
+
+                    if (mode == 11) //steward
+                    {
+                        if (object->formID == 0x1c192 || object->formID == 0x1b134 || object->formID == 0x198C2) //jorleif, falk and malur
+                        {
+                            ;//always steward
+                        }
+                        else
+                        {
+                            auto actor = (RE::Actor*)object;
+
+                            auto steward_faction = (RE::TESFaction*)RE::TESForm::LookupByID(0x50922);
+
+                            if (steward_faction)
+                                not_steward = !actor->IsInFaction(steward_faction);
+                        }
+
+
+                    }
+
+
                     bool follower_not_ready = false;
 
                     if (mode == 9) //friend
@@ -5479,7 +5538,7 @@ namespace MiscThings {
                     }
 
 
-                    return !not_trading && !is_dead && !is_disabled && !follower_not_ready;
+                    return !not_trading && !is_dead && !is_disabled && !follower_not_ready && !not_jarl && !not_steward;
                 }
                 else
                 {
