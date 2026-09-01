@@ -47,10 +47,8 @@
 
 //  RANDOM QUESTS TODO
 // 
-//TODO white phial part 2 (windhelm alchemist quest)
 //TODO whiterun save the guy from thalmor quest
 //TODO mage sidequests
-//TODO dlc etherium book quest
 //TODO soltsheim riekling quests
 //TODO soltsheim blacksmith quests
 //TODO dawnguard sidequests
@@ -59,6 +57,7 @@
 //TODO dwemer shield daedra
 //TODO black armor daedra
 //TODO black sword daedra
+//TODO dlc etherium book quest
 
 
 //TODO upgrade-house helper interesting place
@@ -3748,7 +3747,7 @@ class MyHook {
                         }
 
 
-                        if (Observer::get_last_saved_time() > 30.0f && ((subtitle_msg.find("This is far as I can take you. Krif voth ahkrin.") != std::string::npos) || (subtitle_msg.find("Bahloki nahkip sillesejoor.") != std::string::npos)))
+                        if (Observer::get_last_saved_time() > 30.0f && (subtitle_msg.find("This is far as I can take you. Krif voth ahkrin.") != std::string::npos))
                             quicksave(true);
 
                         
@@ -3828,7 +3827,53 @@ class MyHook {
                     else
                     {
                         if (subtitle_msg != "")
+                        {
                             bool stop_here = false; //no speaker?
+
+                            auto sub = sub_manager->subtitles.begin();
+
+                            if (sub && sub != sub_manager->subtitles.end())
+                            {
+                                auto speaker = sub->speaker;
+                                if (speaker && speaker.get() && speaker.get().get())
+                                {
+                                    auto speaker_ref = speaker.get().get();
+                                    if (speaker_ref->formID == 0x3c57d)
+                                    {
+                                        if (player->GetDistance(speaker_ref) < 5000.0f && player->GetWorldspace() && player->GetWorldspace()->formID == 0x3c)
+                                        {
+                                            send_speech_context(speaker_ref, subtitle_msg, the_subtitle_data->forceDisplay);
+
+                                            subtitle_history_clear_time = 0.0f;
+
+                                            int subtitle_msg_old_vector_max = 3;
+
+
+                                            for (int i = 0; i < (subtitle_msg_old_vector_max - 1); i++)
+                                            {
+                                                if (std::size(subtitle_msg_old_vector) < subtitle_msg_old_vector_max)
+                                                {
+                                                    if (std::size(subtitle_msg_old_vector) > 0)
+                                                        subtitle_msg_old_vector.push_back(subtitle_msg_old_vector.at(std::size(subtitle_msg_old_vector) - 1));
+                                                }
+                                                else
+                                                {
+                                                    subtitle_msg_old_vector.at((subtitle_msg_old_vector_max - 1) - i) = subtitle_msg_old_vector.at((subtitle_msg_old_vector_max - 2) - i);
+                                                }
+                                            }
+
+                                            if (std::size(subtitle_msg_old_vector) > 0) //has 1 or more elements
+                                                subtitle_msg_old_vector.at(0) = subtitle_msg;
+                                            else
+                                                subtitle_msg_old_vector.push_back(subtitle_msg);
+                                        }
+                                    }
+                                }
+
+                            }
+                            
+                        }
+                            
                     }
                         
 

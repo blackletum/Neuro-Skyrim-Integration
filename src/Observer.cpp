@@ -17,6 +17,8 @@ namespace Observer {
 	float not_swimming_time = 0.0f;
 
 	int old_da04_septimus_scene_phase = 0;
+	int old_mq206_alduin_scene_phase1 = 0;
+	int old_mq206_alduin_scene_phase2 = 0;
 
 	long long last_use_potion_timestamp = 0;
 
@@ -6254,6 +6256,18 @@ namespace Observer {
 
 					}
 
+					auto mq206_alduin_scene1 = (RE::BGSScene*)RE::TESForm::LookupByID(0x44241);
+					auto mq206_alduin_scene2 = (RE::BGSScene*)RE::TESForm::LookupByID(0x4496d);
+
+					if (mq206_alduin_scene1)
+					{
+						old_mq206_alduin_scene_phase1  = mq206_alduin_scene1->unkBC;
+					}
+
+					if (mq206_alduin_scene2)
+					{
+						old_mq206_alduin_scene_phase2 = mq206_alduin_scene2->unkBC;
+					}
 
 
 
@@ -7100,6 +7114,88 @@ namespace Observer {
 					}
 
 				}
+
+
+
+				//alduin battle elder scroll vision and battle
+
+				if (old_mq206_alduin_scene_phase2 <= 0)
+				{
+					auto mq206_alduin_scene1 = (RE::BGSScene*)RE::TESForm::LookupByID(0x44241);
+
+					if (mq206_alduin_scene1)
+					{
+						auto phase = mq206_alduin_scene1->unkBC;
+
+						if (old_mq206_alduin_scene_phase1 != phase)
+						{
+							switch (phase)
+							{
+							case 1:
+								send_random_context("[(Elder Scroll vision) You see ancient nords and dragons. The skies are red. It looks like a battlefield]");
+								break;
+							case 4:
+								send_random_context("[(Elder Scroll vision) Dragon attacks the nords]");
+								break;
+							case 33:
+								send_random_context("[(Elder Scroll vision) Nords use some unknown shout at Alduin...]");
+								break;
+							case 35:
+								send_random_context("[(Elder Scroll vision) The shout made Alduin land...]");
+								break;
+							case 39:
+								send_random_context("[(Elder Scroll vision) Alduin starts fighting nords, without flying...]");
+								break;
+							case 50:
+								send_random_context("[(Elder Scroll vision) Felldir takes out the Elder Scroll...]");
+								break;
+							case 55:
+								send_random_context("[(Elder Scroll vision) A portal emerges around Alduin...]");
+								break;
+							case 56:
+								send_random_context("[(Elder Scroll vision) Alduin disappeared]");
+								break;
+							case 62:
+								send_random_context("[Elder Scroll vision is ending...]");
+								break;
+
+							case 9:
+							case 13:
+							case 16:
+							case 18:
+							case 21:
+							case 25:
+							case 30:
+							case 42:
+							case 46:
+								send_random_context("[Elder scroll vision continues...]");
+								break;
+							}
+						}
+
+						old_mq206_alduin_scene_phase1 = phase;
+
+					}
+
+					if (old_mq206_alduin_scene_phase1 > 62 || old_mq206_alduin_scene_phase1 == -1)
+					{
+						auto mq206_alduin_scene2 = (RE::BGSScene*)RE::TESForm::LookupByID(0x4496d);
+
+						if (mq206_alduin_scene2)
+						{
+							auto phase = mq206_alduin_scene2->unkBC;
+
+							if (old_mq206_alduin_scene_phase2 != phase)
+							{
+								if (phase == 0)
+									send_random_context("[You are back to normal world. The Elder Scroll vision is over]");
+							}
+
+							old_mq206_alduin_scene_phase2 = phase;
+						}
+					}
+				}
+				
 
 
 
