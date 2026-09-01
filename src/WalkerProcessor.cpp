@@ -12965,6 +12965,9 @@ namespace WalkerProcessor {
         {
             if (shout_to_use)
             {
+                if (do_dodge_projectile || !is_weapon_draw_ready())
+                    return false; //wait for it to finish, shout fails most of the time while dodging
+
                 if (lock_camera_onto_target(target_ref, 0.016))
                 {
                     if (!gate_shout || (gate_shout && gate_shout_condition()))
@@ -17575,7 +17578,7 @@ namespace WalkerProcessor {
 
 
 
-        if (!has_ritual_spell_equipped() && !MiscThings::have_force_only_menu_open() && !RE::UI::GetSingleton()->IsMenuOpen(RE::TweenMenu::MENU_NAME) && !RE::UI::GetSingleton()->IsMenuOpen(RE::LevelUpMenu::MENU_NAME) && !RE::UI::GetSingleton()->IsMenuOpen(RE::StatsMenu::MENU_NAME))
+        if (!has_ritual_spell_equipped() && !MiscThings::have_force_only_menu_open() && !is_casting_ult() && !RE::UI::GetSingleton()->IsMenuOpen(RE::TweenMenu::MENU_NAME) && !RE::UI::GetSingleton()->IsMenuOpen(RE::LevelUpMenu::MENU_NAME) && !RE::UI::GetSingleton()->IsMenuOpen(RE::StatsMenu::MENU_NAME))
         {
             //dodging
 

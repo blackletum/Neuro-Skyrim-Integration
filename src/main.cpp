@@ -47,6 +47,7 @@
 
 //  RANDOM QUESTS TODO
 // 
+//TODO white phial, i think it needs some ice from top of the mountain that might be unreachable. actually test it
 //TODO whiterun save the guy from thalmor quest
 //TODO mage sidequests
 //TODO soltsheim riekling quests
@@ -73,6 +74,9 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////DO ALL THIS
 
+
+//test how slow time works with new camera move coef
+//fix windfury shout, it looks very good but needs unenchanted weapon
 
 //remember bad corpses for resurrection (those who are too powerful) and dont target them again automatically (maybe just filter in get_nearest_corpse function, it shouldnt affect manual targeting anyway since no search used.. test it maybe wrong)
 

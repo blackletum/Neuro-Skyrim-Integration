@@ -5682,6 +5682,150 @@ namespace MiscThings {
                                 
                         }
 
+                        if (settlement_place.type == 11) //stewards
+                        {
+                            if (settlement_place.npc == 0x1a67d || settlement_place.npc == 0x1a6a3)
+                            {
+                                //whiterun steward, house-buy-upgrade advice. maybe later can be made so all stewards are supported.
+                                //first figure out what can be bought
+
+                                auto house_quest = (RE::TESQuest*)RE::TESForm::LookupByID(0xa7b33);
+
+                                if (house_quest)
+                                {
+                                    //this way does not account for relationship. for whiterun its probably pointless because its unlikely that player will get 5k gold before completing first drago kill quest
+                                    auto object_p = MiscThings::General::Script::GetObject(house_quest, "HousePurchaseScript");
+                                    if (object_p)
+                                    {
+                                        RE::BSFixedString prop_name = "::WhiterunHouseVar_var";
+                                        int house_owned = MiscThings::General::Script::GetVariable<int>(object_p, prop_name);
+
+                                        if (house_owned >= 1)
+                                        {
+                                            //decoration info
+
+                                            //additional checks - has to be in dragonsreach cell
+                                            auto npc = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(settlement_place.npc);
+
+                                            bool upgrade_allowed = false;
+
+                                            if (npc)
+                                            {
+                                                auto steward_cell = npc->GetParentCell();
+                                                if (steward_cell && steward_cell->formID == 0x165a3)
+                                                    upgrade_allowed = true;
+                                            }
+                                            
+
+
+                                            if (upgrade_allowed)
+                                            {
+                                                auto living_room_marker = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xc6e3b);
+                                                auto dining_room_marker = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xe4ec9);
+                                                auto kitchen_marker = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xc6e3c);
+                                                auto loft_marker = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xc6e39);
+                                                auto bedroom_marker = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xc6e3a);
+                                                auto alch_lab_marker = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xe4ec8);
+                                                auto kids_room_marker = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x3004274);
+
+                                                if (living_room_marker && dining_room_marker && kitchen_marker && loft_marker && bedroom_marker && alch_lab_marker && kids_room_marker)
+                                                {
+                                                    bool living_room_available = living_room_marker->IsDisabled();
+                                                    bool dining_room_available = dining_room_marker->IsDisabled();
+                                                    bool kitchen_available = kitchen_marker->IsDisabled();
+                                                    bool loft_available = loft_marker->IsDisabled();
+                                                    bool bedroom_available = bedroom_marker->IsDisabled();
+                                                    bool alch_lab_available = alch_lab_marker->IsDisabled();
+                                                    bool kids_room_available = kids_room_marker->IsDisabled();
+
+                                                    std::string player_gold = std::to_string(MiscThings::get_player_gold());
+
+                                                    std::string living_room = living_room_available ? "Living room: 250 gold; " : ""; //250
+                                                    std::string dining_room = dining_room_available ? "Dining room: 250 gold; " : ""; ; //250
+                                                    std::string kitchen = kitchen_available ? "Kitchen: 300 gold; " : ""; ; //300
+                                                    std::string loft = loft_available ? "Loft: 200 gold; " : ""; ; //200
+                                                    std::string bedroom = bedroom_available ? "Bedroom: 300 gold; " : ""; ; //300
+                                                    std::string alch_lab = alch_lab_available ? "Alchemy lab room: 500 gold; " : ""; ; //500
+                                                    std::string kids_room = kids_room_available ? "Childrens' room: 500 gold; " : ""; ; //500
+
+                                                    std::string sum = kids_room + living_room + dining_room + kitchen + loft + bedroom + alch_lab;
+
+                                                    if (sum != "")
+                                                    {
+                                                        place_name += "[Can sell you upgrades for your house: " + sum + " You have: " + player_gold + " gold]";
+                                                    }
+                                                }
+                                            }
+
+
+                                            
+                                        }
+                                        else
+                                        {
+                                            //purchase house info. need to check relationship
+
+                                            bool purchase_allowed = false;
+
+                                            RE::TESObjectREFR* jarl1 = nullptr;
+                                            RE::TESObjectREFR* jarl2 = nullptr;
+
+                                            if (settlement_place.npc == 0x1a67d) //proventus
+                                            {
+                                                jarl1 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1A677); //balgruuf
+                                            }
+                                            else
+                                            {
+                                                jarl2 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1A6A1); //vignar
+                                            }
+
+                                            if (jarl1)
+                                            {
+                                                RE::TESNPC* jarl_npc = (RE::TESNPC*)jarl1->GetBaseObject();
+                                                RE::TESNPC* player_npc = (RE::TESNPC*)RE::TESForm::LookupByID(0x7);
+                                                auto relationship = RE::BGSRelationship::GetRelationship(jarl_npc, player_npc);
+
+                                                if (relationship)
+                                                {
+                                                    //purchase_allowed = relationship->level.any(RE::BGSRelationship::RELATIONSHIP_LEVEL::kAlly, RE::BGSRelationship::RELATIONSHIP_LEVEL::kFriend, RE::BGSRelationship::RELATIONSHIP_LEVEL::kLover, RE::BGSRelationship::RELATIONSHIP_LEVEL::kConfidant);
+                                                    purchase_allowed = relationship->level == RE::BGSRelationship::RELATIONSHIP_LEVEL::kAlly || relationship->level == RE::BGSRelationship::RELATIONSHIP_LEVEL::kFriend || relationship->level == RE::BGSRelationship::RELATIONSHIP_LEVEL::kLover || relationship->level == RE::BGSRelationship::RELATIONSHIP_LEVEL::kConfidant;
+                                                
+                                                }
+
+                                            }
+
+                                            if (!purchase_allowed)
+                                            {
+                                                if (jarl2)
+                                                {
+                                                    RE::TESNPC* jarl_npc = (RE::TESNPC*)jarl2->GetBaseObject();
+                                                    RE::TESNPC* player_npc = (RE::TESNPC*)RE::TESForm::LookupByID(0x7);
+                                                    auto relationship = RE::BGSRelationship::GetRelationship(jarl_npc, player_npc);
+
+                                                    if (relationship)
+                                                    {
+                                                        //purchase_allowed = relationship->level.any(RE::BGSRelationship::RELATIONSHIP_LEVEL::kAlly, RE::BGSRelationship::RELATIONSHIP_LEVEL::kFriend, RE::BGSRelationship::RELATIONSHIP_LEVEL::kLover, RE::BGSRelationship::RELATIONSHIP_LEVEL::kConfidant);
+                                                        purchase_allowed = relationship->level == RE::BGSRelationship::RELATIONSHIP_LEVEL::kAlly || relationship->level == RE::BGSRelationship::RELATIONSHIP_LEVEL::kFriend || relationship->level == RE::BGSRelationship::RELATIONSHIP_LEVEL::kLover || relationship->level == RE::BGSRelationship::RELATIONSHIP_LEVEL::kConfidant;
+
+                                                    }
+                                                }
+                                            }
+                                            
+
+
+
+                                            auto player_gold = MiscThings::get_player_gold();
+                                            std::string enough_not_enough = player_gold < 5000 ? "(not enough gold)" : "(You have enough gold!)";
+                                            place_name += "[Can sell you a house, gold needed: " + std::to_string(player_gold) + "/5000" + enough_not_enough + "]";
+
+                                        }
+                                    }
+                                }
+
+
+                            }
+                        }
+
+
                         if (settlement_place.type == 6) //wizards
                         {
                             if (wizard_has_unknown_spells(place_refr))
@@ -29585,11 +29729,14 @@ namespace MiscThings {
         std::vector<RE::TESShout*> offensive_shouts{};
 
 
+        offensive_shouts.push_back((RE::TESShout*)RE::TESForm::LookupByID(0x13e07)); //unrelenting force //duplicated for greater chance
         offensive_shouts.push_back((RE::TESShout*)RE::TESForm::LookupByID(0x13e07)); //unrelenting force
         offensive_shouts.push_back((RE::TESShout*)RE::TESForm::LookupByID(0x70981)); // disarm
         offensive_shouts.push_back((RE::TESShout*)RE::TESForm::LookupByID(0x2395a)); // dismay
         //offensive_shouts.push_back((RE::TESShout*)RE::TESForm::LookupByID(0x32921)); // elemental fury
         offensive_shouts.push_back((RE::TESShout*)RE::TESForm::LookupByID(0x3f9ea)); // fire breath
+        offensive_shouts.push_back((RE::TESShout*)RE::TESForm::LookupByID(0x3f9ea)); // fire breath
+        offensive_shouts.push_back((RE::TESShout*)RE::TESForm::LookupByID(0x5d16b)); // frost breath
         offensive_shouts.push_back((RE::TESShout*)RE::TESForm::LookupByID(0x5d16b)); // frost breath
         offensive_shouts.push_back((RE::TESShout*)RE::TESForm::LookupByID(0x70980)); // ice form
         offensive_shouts.push_back((RE::TESShout*)RE::TESForm::LookupByID(0x7097c)); // marked for death
