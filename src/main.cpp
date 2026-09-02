@@ -75,6 +75,8 @@
 ///////////DO ALL THIS
 
 
+//test and polish the rest of mainquest
+
 //test how slow time works with new camera move coef
 //fix windfury shout, it looks very good but needs unenchanted weapon
 

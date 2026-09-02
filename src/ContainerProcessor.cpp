@@ -10,10 +10,14 @@
 
 namespace ContainerProcessor {
 
+bool item_confirming = false; //currently its only for deposit items
 
 std::string container_history{};
+std::string container_history_deposit{};
 std::string current_item_info_for_history = "";
 
+std::string old_item_choice_text = "";
+bool old_item_choice_text_valid = false;
 
 bool madesi_mode = false;
 bool madesi_ring_found = false;
@@ -57,6 +61,13 @@ int slider_choice = -1;
 bool slider_confirmed = false;
 bool slider_confirming = false;
 bool quantity_was_specified = false;
+
+
+int type_choice = -1;
+bool type_choice_valid = false;
+bool type_choice_request_sent = false;
+
+bool container_store_items_mode = false;
 
 
 int amount_skips = 0;
@@ -108,6 +119,46 @@ way_to_fill way{};
 
 
 
+
+std::pair<bool, std::string> set_container_type(int in_type)
+{
+	std::pair<bool, std::string> result{};
+
+	auto ui = RE::UI::GetSingleton();
+	if (!ui->IsMenuOpen(RE::ContainerMenu::MENU_NAME))
+	{
+		result.first = true;
+		result.second = "[Error]";
+		return result;
+	}
+
+	if (in_type == -1)
+	{
+		quit_menu();
+		result.first = true;
+		result.second = "[Closing container...]";
+		return result;
+	}
+
+	if (in_type == 0 || in_type == 1)
+	{
+		if (in_type == 0)
+			type_choice = 0;
+		else
+			type_choice = 1;
+
+		type_choice_valid = true;
+		result.first = true;
+		result.second = "[Processing...]";
+	}
+	else
+	{
+		result.first = false;
+		result.second = "Invalid choice ID. ";
+	}
+
+	return result;
+}
 
 
 
@@ -344,7 +395,7 @@ std::vector<MenuOption> get_items_options()
 						std::string container_name = container_ref->GetDisplayFullName();
 
 						result.push_back({ 1, "[Put " + plant_object_name + " into " + container_name + "]" });
-						result.push_back({ -1, "[STOP LOOTING]" });
+						result.push_back({ -1, "[CLOSE CONTAINER]" });
 						return result;
 					}
 				}
@@ -353,7 +404,7 @@ std::vector<MenuOption> get_items_options()
 		}
 	}
 
-	if (!is_pickpocketing() && has_take_all_button())
+	if (!is_pickpocketing() && has_take_all_button() && !container_store_items_mode)
 		result.push_back({ -2, "[TAKE ALL]" });
 
 
@@ -402,7 +453,10 @@ std::vector<MenuOption> get_items_options()
 
 	if (!is_possessions || is_pickpocketing())
 	{
-		result.push_back({ -1, "[STOP LOOTING]" });
+		if (container_store_items_mode)
+			result.push_back({ -1, "[CLOSE CONTAINER]" });
+		else
+			result.push_back({ -1, "[STOP LOOTING]" });
 	}
 		
 	
@@ -415,6 +469,12 @@ std::vector<MenuOption> get_items_options()
 std::string get_force_message()
 {
 	std::string result = "You opened a container. Select item to take. ";
+
+	if (container_store_items_mode)
+	{
+		result = "You opened your storage container. Select items to deposit in it";
+	}
+
 
 	RE::UI* ui = RE::UI::GetSingleton();
 	RE::GFxValue var1;
@@ -457,17 +517,44 @@ std::string get_force_message()
 						action = "You are stealing from ";
 						history_action = " stole: ";
 					}
-						
 
 					std::string history_msg = "";
-					if (container_history != "")
-						history_msg = "You already" + history_action + container_history;
-
 					std::string quit_advice = "";
-					if (history_msg != "")
-						quit_advice = " or send -1 as option to quit if you dont need anything else";
 
-					result = action + name + " in Skyrim. " + history_msg + "Select items to take" + quit_advice + ". ";
+					if (container_store_items_mode)
+					{
+						//storage container special
+
+						action = "You decided to deposit some items into your storage container ";
+						history_action = " put in it: ";
+
+						if (container_history_deposit != "")
+							history_msg = "You already" + history_action + container_history_deposit;
+
+						if (history_msg != "")
+							quit_advice = " or send -1 as option to quit if you dont need anything else";
+
+						result = action + name + " in Skyrim. " + history_msg + "Select other items to deposit" + quit_advice + ". ";
+
+					}
+					else
+					{
+						//standard mode
+
+						if (container_history != "")
+							history_msg = "You already" + history_action + container_history;
+
+						if (history_msg != "")
+							quit_advice = " or send -1 as option to quit if you dont need anything else";
+
+						result = action + name + " in Skyrim. " + history_msg + "Select items to take" + quit_advice + ". ";
+					}
+
+					
+
+
+					
+
 				}
 				
 			}
@@ -496,6 +583,7 @@ int get_item_scroll_position()
 					return var1.GetNumber();
 	return -1;
 }
+
 
 
 int get_item_max_scroll_position()
@@ -714,6 +802,7 @@ void update_items_list()
 											data.armor = armor;
 											data.is_stealing = is_stealing;
 											data.chance_to_steal = chance_to_steal;
+
 											items_list.insert({ result.id, data });
 										}
 
@@ -724,6 +813,131 @@ void update_items_list()
 					}
 				}
 }
+
+
+
+bool update_container_item_by_id(int id)
+{
+	bool update_result = false;
+
+	RE::GFxValue var1;
+	RE::UI* ui = RE::UI::GetSingleton();
+	if (ui)
+		if (const auto menu = ui->GetMenu<RE::ContainerMenu>(); menu)
+			if (menu->uiMovie)
+				if (menu->uiMovie->GetVariable(&var1, "_root.Menu_mc.InventoryLists_mc._ItemsList"))
+				{
+					std::string path_root = "_root.Menu_mc.InventoryLists_mc._ItemsList.";
+					for (int i = 0; i < 30; i++)
+					{
+						std::string full_path = path_root + "Entry" + std::to_string(i);
+						if (menu->uiMovie->GetVariable(&var1, full_path.c_str()))
+						{
+							if (menu->uiMovie->GetVariable(&var1, (full_path + ".itemIndex").c_str()))
+							{
+								//got indexed item
+								if (!var1.IsNull() && var1.IsNumber())
+								{
+									MenuOption result{};
+
+									result.id = var1.GetNumber();
+
+									if (result.id == id)
+									{
+										std::string name = "";
+										if (menu->uiMovie->GetVariable(&var1, (full_path + ".textField.text").c_str()))
+											if (!var1.IsNull() && var1.IsString())
+												name = var1.GetString();
+
+										int text_color = 0;
+										if (menu->uiMovie->GetVariable(&var1, (full_path + ".textField.textColor").c_str()))
+											if (!var1.IsNull() && var1.IsNumber())
+												text_color = var1.GetNumber();
+
+										bool is_stealing = text_color < 16750000;
+
+
+										RE::GFxValue subvar;
+
+										std::string price = "";
+										std::string weight = "";
+										std::string damage = "";
+										std::string armor = "";
+
+										if (menu->uiMovie->GetVariable(&subvar, "_root.Menu_mc.ItemCard_mc.ItemValueText.text"))
+											if (!subvar.IsNull() && subvar.IsString())
+												price = subvar.GetString();
+										if (menu->uiMovie->GetVariable(&subvar, "_root.Menu_mc.ItemCard_mc.ItemWeightText.text"))
+											if (!subvar.IsNull() && subvar.IsString())
+												weight = subvar.GetString();
+										if (menu->uiMovie->GetVariable(&subvar, "_root.Menu_mc.ItemCard_mc.WeaponDamageValue.text"))
+											if (!subvar.IsNull() && subvar.IsString())
+												damage = subvar.GetString();
+										if (menu->uiMovie->GetVariable(&subvar, "_root.Menu_mc.ItemCard_mc.ApparelArmorValue.text"))
+											if (!subvar.IsNull() && subvar.IsString())
+												armor = subvar.GetString();
+
+										int chance_to_steal = -1;
+										RE::GFxValue chance_var;
+										if (menu->uiMovie->GetVariable(&chance_var, "_root.Menu_mc.ItemCardFadeHolder_mc.StealTextInstance.PercentTextInstance.text"))
+											if (!chance_var.IsNull() && chance_var.IsString())
+											{
+												std::string chance_string = chance_var.GetString();
+
+												auto percent_pos = chance_string.find("%");
+												if (percent_pos != std::string::npos)
+												{
+													chance_string = chance_string.substr(0, percent_pos);
+
+													chance_to_steal = std::stoi(chance_string);
+
+													bool test = false;
+												}
+
+
+											}
+										// = 39%TO STEAL
+
+
+
+										if (name != "")
+										{
+											if (result.id == get_item_selected_index())
+											{
+
+
+												item_data data{};
+												data.name = name;
+												data.price = price;
+												data.weight = weight;
+												data.damage = damage;
+												data.armor = armor;
+												data.is_stealing = is_stealing;
+												data.chance_to_steal = chance_to_steal;
+												items_list.insert_or_assign(result.id, data);
+
+												update_result = true;
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+
+	return update_result;
+}
+
+
+
+
+
+
+
+
+
+
 
 void update_items_list2()
 {
@@ -834,6 +1048,11 @@ void update_items_list2()
 
 				}
 }
+
+
+
+
+
 
 
 
@@ -978,6 +1197,7 @@ void setup_fill_item_list()
 	fill_items_one_direction_done = false;
 	scroll_stuck = false; 
 
+
 	if (scroll <= min_scroll)
 		way = way_to_fill::down;
 	else
@@ -1087,6 +1307,11 @@ void reset_pickpocketing()
 
 void reset_container()
 {
+	item_confirming = false;
+
+	old_item_choice_text = "";
+	old_item_choice_text_valid = false;
+
 	if (!catch_pickpocket_result)
 		current_item_info_for_history = "";
 
@@ -1235,7 +1460,10 @@ void process_next_item()
 
 					if (p_current_item != items_list.end())
 					{
-						send_random_context("Taking " + p_current_item->second.name + "...", true);
+						if (container_store_items_mode)
+							send_random_context("Depositing " + p_current_item->second.name + "...", true);
+						else
+							send_random_context("Taking " + p_current_item->second.name + "...", true);
 					}
 
 					item_choice_valid = true;
@@ -1320,11 +1548,14 @@ std::pair<bool, std::string> set_item_choice(int id)
 	{
 		quit_menu();
 		result.first = true;
-		result.second = "[Stopped looting]";
+		if (container_store_items_mode)
+			result.second = "[Closed looting]";
+		else
+			result.second = "[Stopped looting]";
 		return result;
 	}
 
-	if (id == -2 && (is_pickpocketing() || has_take_all_button()))
+	if (id == -2 && (container_store_items_mode || is_pickpocketing() || !has_take_all_button()))
 	{
 		result.first = false;
 		result.second = "Invalid item ID";
@@ -1376,7 +1607,10 @@ std::pair<bool, std::string> set_item_choice(int id)
 
 				if (p_current_item != items_list.end())
 				{
-					message = "[Taking " + p_current_item->second.name + "...]";
+					if (container_store_items_mode)
+						message = "[Depositing " + p_current_item->second.name + "...]";
+					else
+						message = "[Taking " + p_current_item->second.name + "...]";
 				}
 
 
@@ -1638,6 +1872,85 @@ void move_cursor_to_category(int id)
 
 
 
+bool is_storage_container()
+{
+	RE::UI* ui = RE::UI::GetSingleton();
+	RE::GFxValue var1;
+	if (ui)
+	{
+		auto menu = ui->GetMenu<RE::ContainerMenu>();
+
+		if (menu)
+		{
+			auto container_ref_handle = menu->GetTargetRefHandle();
+
+			auto container_ref_ptr = RE::TESObjectREFR::LookupByHandle(container_ref_handle);
+
+			if (container_ref_ptr && container_ref_ptr.get())
+			{
+				auto container_ref = container_ref_ptr.get();
+				if (container_ref->formID == 0xf3922) //whiterun house chest
+					return true;
+			}
+		}
+	}
+
+	return false;
+}
+
+
+
+int detect_container_result()
+{
+	std::string test_result = get_result_message();
+
+	if (test_result != "")
+	{
+		send_random_context(test_result, false);
+
+		old_item_choice_text_valid = false;
+		old_item_choice_text = "";
+		return 999; //some result detected. maybe quest item or something else. give big pause for it to disasppear and consider it done
+	}
+
+	if (!update_container_item_by_id(item_choice))
+	{
+		old_item_choice_text_valid = false;
+		old_item_choice_text = "";
+		return 1; //item disappeared
+	}
+
+	std::string item_choice_text = get_item_text_by_id(get_item_selected_position());
+
+	if (item_choice_text == "")
+	{
+		old_item_choice_text = "";
+		old_item_choice_text_valid = false;
+		return 5; //item disappeared
+	}
+	else
+		if (item_choice_text != old_item_choice_text)
+		{
+			old_item_choice_text_valid = false;
+			old_item_choice_text = "";
+			return 6; //text changed. probably quantity.
+		}
+
+
+	//TODO: popups
+
+
+	return 0; //nothing seem to be changed
+}
+
+
+
+
+
+
+
+
+
 
 float container_processor_timer = 0.0f;
 
@@ -1712,6 +2025,40 @@ void processor(float dtime)
 				category_choice = 2;
 
 
+			if (is_storage_container())
+			{
+				//ask what we want. take or put
+				
+				if (!type_choice_request_sent)
+				{
+					if (force_choice({ {0, "Take items from container"},{1, "Put new items in container"}, {-1, "[CLOSE CONTAINER]"} }, "You opened your storage container. You can put new items in, or take items out of it. Choose what to do", force_type::container_type))
+						type_choice_request_sent = true;
+
+					return;
+				}
+				else
+				{
+					if (type_choice_valid)
+					{
+						if (type_choice == 0)
+							category_choice = 0;
+						else
+						{
+							container_store_items_mode = true;
+							category_choice = 2;
+						}
+
+					}
+					else
+						return; //wait for answer
+				}
+
+
+			}
+
+
+
+
 			if (get_category_selected_index() != category_choice)
 			{
 				if (!missing_category_detected)
@@ -1757,6 +2104,7 @@ void processor(float dtime)
 
 							if (move_cursor_timeout1 > 10.0f)
 							{
+								quit_menu();
 								reset_container();
 								return;
 							}
@@ -1806,8 +2154,13 @@ void processor(float dtime)
 						if (process_next_item_after_refresh)
 						{
 							if (current_item_info_for_history != "")
-								container_history += current_item_info_for_history + "; ";
-
+							{
+								if (container_store_items_mode)
+									container_history_deposit += current_item_info_for_history + "; ";
+								else
+									container_history += current_item_info_for_history + "; ";
+							}
+								
 							current_item_info_for_history = "";
 
 
@@ -1867,7 +2220,7 @@ void processor(float dtime)
 							{
 								auto force_type = force_type::container_item;
 
-								if (!is_pickpocketing())
+								if (!is_pickpocketing() && !container_store_items_mode)
 									force_type = force_type::container_item_array;
 
 								if (force_choice(options, get_force_message(), force_type))
@@ -1901,7 +2254,7 @@ void processor(float dtime)
 
 
 								int selected_index = get_item_selected_index();
-								if (!is_malborn() && (selected_index != item_choice) && !check_results)
+								if (!is_malborn() && (selected_index != item_choice) && !check_results && !item_confirming)
 								{
 									if (!missing_item_detected)
 									{
@@ -1923,7 +2276,7 @@ void processor(float dtime)
 								else
 								{
 									move_cursor_timeout2 = 0.0f;
-									if (!check_results)
+									if (!check_results && !item_confirming)
 									{
 
 										//this is [R]Craft button
@@ -1980,7 +2333,19 @@ void processor(float dtime)
 												ready_weapon();
 											}
 											else
-												confirm();
+											{
+												if (container_store_items_mode)
+												{
+													old_item_choice_text = get_item_text_by_id(item_choice);
+													old_item_choice_text_valid = true;
+													item_confirming = true;
+													set_universal_block(0.2f);
+													ready_weapon();
+												}
+												else
+													confirm(); //default
+											}
+												
 										}
 
 
@@ -2018,66 +2383,110 @@ void processor(float dtime)
 										if (quantity_slider_active())
 										{
 
-											if (!is_malborn())
+											if (!is_storage_container())
 											{
-												confirm();
-												set_universal_block(0.3f);
-											}
-											else
-											{
-												confirm_fast();
-											}
-
-											return;
-
-											/*
-											if (!slider_request_sent)
-											{
-												if (force_choice({}, "Choose amount of " + get_item_text_by_id(item_choice) + " to take. Valid range: from " +
-													std::to_string(get_slider_min()) + " to " + std::to_string(get_slider_max()), force_type::container_quantity))
-													slider_request_sent = true;
+												if (!is_malborn())
+												{
+													confirm();
+													set_universal_block(0.3f);
+												}
+												else
+												{
+													confirm_fast();
+												}
 
 												return;
 											}
 											else
 											{
-												if (slider_choice_valid)
+												if (!slider_request_sent)
 												{
-													quantity_was_specified = true;
-													if (slider_choice > 0)
+
+													std::string action = "take";
+
+													if (container_store_items_mode)
+														action = "store";
+
+													if (force_choice({}, "Choose amount of " + get_item_text_by_id(item_choice) + " to " + action + ".Valid range : from " +
+														std::to_string(get_slider_min()) + " to " + std::to_string(get_slider_max()), force_type::container_quantity))
+														slider_request_sent = true;
+
+													return;
+												}
+												else
+												{
+													if (slider_choice_valid)
 													{
-														if (get_slider_pos() != slider_choice)
+														quantity_was_specified = true;
+														if (slider_choice > 0)
 														{
-															move_slider_to_pos(slider_choice);
-															return;
-														}
-														else
-														{
-															if (!slider_confirmed)
+															if (get_slider_pos() != slider_choice)
 															{
-																confirm();
-																slider_confirming = true;
+																move_slider_to_pos(slider_choice);
 																return;
 															}
 															else
 															{
-																return;
-																;//put some watchdog here
+																if (!slider_confirmed)
+																{
+																	confirm();
+																	slider_confirming = true;
+																	return;
+																}
+																else
+																{
+																	return;
+																	;//put some watchdog here
+																}
 															}
 														}
-													}
 
-													cancel();
-													set_universal_block(0.3f);
+														cancel();
+														set_universal_block(0.3f);
+														return;
+													}
+													else
+														return;
+												}
+											}
+										}
+										else
+										{
+											if (container_store_items_mode)
+											{
+												int test_result = detect_container_result();
+												if (!test_result)
+												{
+													set_universal_block(0.2f);
+													ready_weapon(); //keep pressing
 													return;
 												}
 												else
-													return;
-											}
-											*/
+												{
+													if (test_result == 999) //need big pause
+													{
+														set_universal_block(2.0f);
+													}
+													else
+													{
+														//probably success?
+														if (current_item_info_for_history != "")
+														{
+															container_history_deposit += current_item_info_for_history + "; ";
+														}
 
+														current_item_info_for_history = "";
+													}
+												}
+												//else - fall through and finish this item
+											}
 										}
 
+										//these 2 are for detect_container_result for deposit mode
+										old_item_choice_text_valid = false;
+										old_item_choice_text = "";
+
+										item_confirming = false;
 										slider_request_sent = false;
 										slider_choice_valid = false;
 										slider_choice = -1;
@@ -2089,16 +2498,20 @@ void processor(float dtime)
 
 											check_results = false;
 
-											if (is_pickpocketing())
+											if (is_pickpocketing() || container_store_items_mode)
 											{
-												catch_pickpocket_result = true;
+												if (!container_store_items_mode)
+													catch_pickpocket_result = true;
+												else
+													left(); //its buggy and this gives proper id refresh
+
 												reset_container();
 												
 											}
 											else
 											{
 												refresh_items_list = true;
-												process_next_item_after_refresh = true;
+												process_next_item_after_refresh = true;									
 											}
 										}
 									}
@@ -2114,6 +2527,13 @@ void processor(float dtime)
 		{
 			reset_container();
 			container_history = "";
+			container_history_deposit = "";
+
+			type_choice = -1;
+			type_choice_valid = false;
+			type_choice_request_sent = false;
+			container_store_items_mode = false;
+
 		}
 	}
 	else

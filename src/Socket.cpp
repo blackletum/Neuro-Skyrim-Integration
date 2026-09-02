@@ -1479,6 +1479,9 @@ bool neuro::NeuroSocket::Tick(float dtime) //const neurosdk_message_action_t& aC
                         case force_type::barter_vendor_confirm_sell_legendary:
                             command_result = BarterProcessor::set_sell_legendary_choice(json.id); break;
 
+                        case force_type::container_type:
+                            command_result = ContainerProcessor::set_container_type(json.id); break;
+
 
                         default:
                         {

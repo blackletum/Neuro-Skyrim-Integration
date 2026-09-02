@@ -5745,8 +5745,8 @@ namespace MiscThings {
                                                     std::string kitchen = kitchen_available ? "Kitchen: 300 gold; " : ""; ; //300
                                                     std::string loft = loft_available ? "Loft: 200 gold; " : ""; ; //200
                                                     std::string bedroom = bedroom_available ? "Bedroom: 300 gold; " : ""; ; //300
-                                                    std::string alch_lab = alch_lab_available ? "Alchemy lab room: 500 gold; " : ""; ; //500
-                                                    std::string kids_room = kids_room_available ? "Childrens' room: 500 gold; " : ""; ; //500
+                                                    std::string alch_lab = (alch_lab_available && kids_room_available) ? "Alchemy lab room: 500 gold; " : ""; ; //500
+                                                    std::string kids_room = kids_room_available ? "Childrens' room: 250 gold; " : ""; ; //250
 
                                                     std::string sum = kids_room + living_room + dining_room + kitchen + loft + bedroom + alch_lab;
 
@@ -5942,6 +5942,17 @@ namespace MiscThings {
 
                         if (is_settlement_place_valid(place_refr, settlement_place.type))
                         {
+
+                            if (settlement_place.npc == 0x1a6f9) //whiterun house
+                            {
+                                //try to use chair instead
+                                auto chair = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xca117);
+                                //auto kitchen_marker = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xc6e3c);
+                                if (chair && !chair->IsDisabled())// && kitchen_marker && !kitchen_marker->IsDisabled())
+                                    place_refr = chair;
+                            }
+
+
                             WalkerProcessor::walk_to_object_by_refr(place_refr, 1);
                             result.first = true;
                             result.second = "Started walking to " + settlement_place.name + "...";
@@ -12306,6 +12317,12 @@ namespace MiscThings {
         if (object->formID == 0xf5b04)
             return true; //hermaeus mora after ogma infinium pickup
 
+
+        auto player = RE::PlayerCharacter::GetSingleton();
+
+        if (player && player->GetParentCell() && player->GetParentCell()->formID == 0x165a8)
+            return true; //everything is raycastable in player's home
+
         auto camera = RE::PlayerCamera::GetSingleton();
 
         auto camera_pos = camera->pos;
@@ -15794,8 +15811,6 @@ namespace MiscThings {
             return "Third";
         case (0x725b6):
             return "Fourth";
-
-
         }
 
 
@@ -21083,6 +21098,9 @@ namespace MiscThings {
     {
         if (object)
         {
+            if (object->formID == 0xf3922) //whiterun house container
+                return false; //so it detects
+
             auto base_obj = object->GetBaseObject();
 
             if (base_obj->GetFormType() == RE::FormType::Container)
@@ -22050,6 +22068,10 @@ namespace MiscThings {
                 {
                     name = "Large Treasure Dwemer Chest";
                 }
+
+
+                if (refr->formID == 0xf3922) //whiterun house chest
+                    name = "Your storage chest";
             }
 
             if (base_type == RE::FormType::Container && name == "Draugr")
