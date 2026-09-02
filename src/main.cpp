@@ -77,9 +77,6 @@
 
 //test and polish the rest of mainquest
 
-//test how slow time works with new camera move coef
-//fix windfury shout, it looks very good but needs unenchanted weapon
-
 //remember bad corpses for resurrection (those who are too powerful) and dont target them again automatically (maybe just filter in get_nearest_corpse function, it shouldnt affect manual targeting anyway since no search used.. test it maybe wrong)
 
 //jumping to pickup items from top shelves
@@ -184,7 +181,7 @@ bool API_CONTROL_BARTER = false;
 bool API_CONTROL_LOCKPICK = false;
 bool API_CONTROL_CRAFTING = false;
 
-bool debug_cam_move_coef = true;
+bool debug_cam_move_coef = false;
 bool do_debug_scan = false;
 bool debug_info = false;
 bool debug_info2 = false; //just update text, for manual debug_text modifications (without add_line stuff)

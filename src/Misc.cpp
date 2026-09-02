@@ -29737,6 +29737,21 @@ namespace MiscThings {
 
 
 
+    bool is_unenchanted_weapon(bool right)
+    {
+        auto hand = MiscThings::get_hand_contents(right);
+
+        if (hand && hand->IsWeapon())
+        {
+            auto weapon = (RE::TESObjectWEAP*)hand;
+
+            if (weapon->formEnchanting == nullptr)
+                return true;
+        }
+
+        return false;
+    }
+
 
 
     void use_random_offensive_shout(RE::TESObjectREFR* target)
@@ -29750,12 +29765,10 @@ namespace MiscThings {
 
         std::vector<RE::TESShout*> offensive_shouts{};
 
-
         offensive_shouts.push_back((RE::TESShout*)RE::TESForm::LookupByID(0x13e07)); //unrelenting force //duplicated for greater chance
         offensive_shouts.push_back((RE::TESShout*)RE::TESForm::LookupByID(0x13e07)); //unrelenting force
         offensive_shouts.push_back((RE::TESShout*)RE::TESForm::LookupByID(0x70981)); // disarm
         offensive_shouts.push_back((RE::TESShout*)RE::TESForm::LookupByID(0x2395a)); // dismay
-        //offensive_shouts.push_back((RE::TESShout*)RE::TESForm::LookupByID(0x32921)); // elemental fury
         offensive_shouts.push_back((RE::TESShout*)RE::TESForm::LookupByID(0x3f9ea)); // fire breath
         offensive_shouts.push_back((RE::TESShout*)RE::TESForm::LookupByID(0x3f9ea)); // fire breath
         offensive_shouts.push_back((RE::TESShout*)RE::TESForm::LookupByID(0x5d16b)); // frost breath
@@ -29764,6 +29777,9 @@ namespace MiscThings {
         offensive_shouts.push_back((RE::TESShout*)RE::TESForm::LookupByID(0x7097c)); // marked for death
         offensive_shouts.push_back((RE::TESShout*)RE::TESForm::LookupByID(0x48ac9)); // slow time
         offensive_shouts.push_back((RE::TESShout*)RE::TESForm::LookupByID(0x7097d)); // storm call
+        
+        if (is_unenchanted_weapon(true) || is_unenchanted_weapon(false))
+            offensive_shouts.push_back((RE::TESShout*)RE::TESForm::LookupByID(0x32921)); // elemental fury
 
 
         auto temp = get_available_spells(); //just refresh
