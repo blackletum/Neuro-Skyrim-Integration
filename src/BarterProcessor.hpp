@@ -13,6 +13,7 @@ namespace BarterProcessor {
 
 
     struct trader_history {
+        int times_visited = 0;
         std::string transaction_history_buy = "";
         int transaction_history_total_gold_buy = 0;
         std::string transaction_history_sell = "";
@@ -22,7 +23,10 @@ namespace BarterProcessor {
 
 
     void remember_barter_transaction(RE::TESObjectREFR* trader, trader_history transaction_info);
+    void remember_place_visited(RE::TESObjectREFR* trader);
     std::string get_history_message(RE::TESObjectREFR* trader);
+    int get_times_visited(RE::TESObjectREFR* trader);
+    void update_place_timestamp(uint32_t place_formid, long long timestamp);
     RE::TESObjectREFR* get_trader_ref();
 
 

@@ -14,6 +14,9 @@
 namespace WalkerProcessor {
 
 
+    bool do_inc_barter_history_upon_arrival = false;
+    bool did_inc_barter_history_upon_arrival = false;
+
     //reset on successfuly walk. do not reset in reset_walker
     RE::NiPoint3 last_stuck_pos{};
     RE::TESWorldSpace* last_stuck_worldspace = nullptr;
@@ -6081,6 +6084,8 @@ namespace WalkerProcessor {
     void reset_walker()
     {
 
+        do_inc_barter_history_upon_arrival = false;
+        did_inc_barter_history_upon_arrival = false;
 
         alduin_stare_notified = false;
 
@@ -11747,7 +11752,7 @@ namespace WalkerProcessor {
 
 
 
-    std::pair<bool, std::string> walk_to_object_by_refr(RE::TESObjectREFR* target, int interaction, bool surrender_to_guards_mode)
+    std::pair<bool, std::string> walk_to_object_by_refr(RE::TESObjectREFR* target, int interaction, bool surrender_to_guards_mode, std::string custom_name, bool inc_barter_history_upon_arrival)
     {    
         std::pair<bool, std::string> result{};
 
@@ -11820,7 +11825,15 @@ namespace WalkerProcessor {
                 was_enemy_from_start = true;
 
             auto player = RE::PlayerCharacter::GetSingleton();
-            reminder_target_name = MiscThings::insert_object_into_list_and_get_info(target);
+            if (custom_name != "")
+                reminder_target_name = custom_name;
+            else
+                reminder_target_name = MiscThings::insert_object_into_list_and_get_info(target);
+
+            if (inc_barter_history_upon_arrival)
+                do_inc_barter_history_upon_arrival = true;
+
+
             reminder_start_pos = player->GetPosition();
 
             solitude_post_emperor_check(target_ref);
@@ -15047,6 +15060,17 @@ namespace WalkerProcessor {
 
     bool interact_with_target(float dtime)
     {
+        if (do_inc_barter_history_upon_arrival)
+        {
+            if (!did_inc_barter_history_upon_arrival)
+                BarterProcessor::remember_place_visited(target_ref);
+
+            did_inc_barter_history_upon_arrival = true;
+        }
+
+
+
+
         bool result = false;
 
         auto result_target = get_targeted_ref();

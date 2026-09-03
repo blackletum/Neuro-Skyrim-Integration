@@ -5864,6 +5864,14 @@ namespace MiscThings {
                         }
                             
 
+                        int times_visited = BarterProcessor::get_times_visited(place_refr);
+
+                        if (times_visited > 0)
+                            if (times_visited > 1)
+                                place_name += "; You went there " + std::to_string(times_visited) + " times already recently";
+                            else
+                                place_name += "; You went there already recently";
+
 
                         options.push_back({ settlement_place.id, place_name });
                     }  
@@ -5974,7 +5982,7 @@ namespace MiscThings {
                             }
 
 
-                            WalkerProcessor::walk_to_object_by_refr(place_refr, 1);
+                            WalkerProcessor::walk_to_object_by_refr(place_refr, 1, false, settlement_place.name, true);
                             result.first = true;
                             result.second = "Started walking to " + settlement_place.name + "...";
                             register_allowed_actions();
@@ -6040,6 +6048,27 @@ namespace MiscThings {
             
             if (is_in_settlement())
             {
+
+                auto key = get_closest_settlement();
+
+                if (key)
+                {
+                    auto settlement = settlements.find(key->formID);
+
+                    if (settlement != settlements.end())
+                    {
+                        auto now = std::chrono::steady_clock::now().time_since_epoch().count();
+
+                        for (auto& place : settlement->second.places)
+                        {
+                            BarterProcessor::update_place_timestamp(place.npc, now);
+                        }
+                    }
+                }
+
+                
+
+
                 if (!get_visit_places_action_status() && get_active_force() == -1 && !is_intro() && !is_intro2() && is_something_registered())
                 {
                     std::string advice = "[You are in a settlement, you can use check_interesting_places action to visit trader, alchemist, or other useful NPC if you want]";

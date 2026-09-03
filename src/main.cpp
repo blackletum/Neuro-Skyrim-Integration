@@ -74,10 +74,10 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////DO ALL THIS
 
-
-//test and polish the rest of mainquest
-
+//try to fix shouts not shouting when camera shakes + when player jumps
 //remember bad corpses for resurrection (those who are too powerful) and dont target them again automatically (maybe just filter in get_nearest_corpse function, it shouldnt affect manual targeting anyway since no search used.. test it maybe wrong)
+//top of mountain climb
+
 
 //jumping to pickup items from top shelves
 //dragon bow must be fixed since its possible to have 0 mana regen and spells are not enough

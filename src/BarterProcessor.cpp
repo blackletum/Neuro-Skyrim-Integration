@@ -13,8 +13,8 @@
 namespace BarterProcessor {
 
   
-
-    std::map<RE::TESObjectREFR*, trader_history> barter_history{};
+            //now uses formid
+    std::map<uint32_t, trader_history> barter_history{};
 
 
     bool spent_a_lot_request_sent = false;
@@ -157,12 +157,55 @@ namespace BarterProcessor {
 
 
 
+    void update_place_timestamp(uint32_t place_formid, long long timestamp)
+    {
+        auto history_entry = barter_history.find(place_formid);
+
+        if (history_entry != barter_history.end())
+        {
+            //update old
+            history_entry->second.last_transaction_history_timestamp = timestamp;
+
+        }
+        //not creating new
+
+    }
+
+
+    void remember_place_visited(RE::TESObjectREFR* trader)
+    {
+        if (!trader)
+            return;
+
+        auto history_entry = barter_history.find(trader->formID);
+
+        if (history_entry != barter_history.end())
+        {
+            //update old
+
+            history_entry->second.times_visited++;
+
+        }
+        else
+        {
+            //create new
+
+            trader_history empty_history{};
+            empty_history.times_visited = 1;
+            empty_history.last_transaction_history_timestamp = std::chrono::steady_clock::now().time_since_epoch().count();
+            barter_history.insert({ trader->formID, empty_history });
+
+        }
+
+    }
+
+
     void remember_barter_transaction(RE::TESObjectREFR* trader, trader_history transaction_info)
     {
         if (!trader)
             return;
 
-        auto history_entry = barter_history.find(trader);
+        auto history_entry = barter_history.find(trader->formID);
 
         if (history_entry != barter_history.end())
         {
@@ -179,7 +222,7 @@ namespace BarterProcessor {
         {
             //create new
 
-            barter_history.insert({ trader, transaction_info });
+            barter_history.insert({ trader->formID, transaction_info });
 
         }
 
@@ -194,7 +237,7 @@ namespace BarterProcessor {
         if (!trader)
             return 0;
 
-        auto history_entry = barter_history.find(trader);
+        auto history_entry = barter_history.find(trader->formID);
 
         if (history_entry != barter_history.end())
         {
@@ -203,7 +246,7 @@ namespace BarterProcessor {
 
             if (delta_transaction_history > 900.0f)
             {
-                barter_history.erase(trader);
+                barter_history.erase(trader->formID);
                 //transaction_history_buy = "";
                 //transaction_history_sell = "";
                 //transaction_history_total_gold_buy = 0;
@@ -221,15 +264,14 @@ namespace BarterProcessor {
     }
 
 
-
-    std::string get_history_message(RE::TESObjectREFR* trader)
+    int get_times_visited(RE::TESObjectREFR* trader)
     {
-        std::string result = "";
+        int result = 0;
 
         if (!trader)
-            return "";
+            return 0;
 
-        auto history_entry = barter_history.find(trader);
+        auto history_entry = barter_history.find(trader->formID);
 
         if (history_entry != barter_history.end())
         {
@@ -238,7 +280,7 @@ namespace BarterProcessor {
 
             if (delta_transaction_history > 900.0f)
             {
-                barter_history.erase(trader);
+                barter_history.erase(trader->formID);
                 //transaction_history_buy = "";
                 //transaction_history_sell = "";
                 //transaction_history_total_gold_buy = 0;
@@ -246,6 +288,43 @@ namespace BarterProcessor {
             }
             else
             {
+                history_entry->second.last_transaction_history_timestamp = now; //update timestamp so it isnt cleared while we are still in the settlement
+
+                if (history_entry->second.times_visited > 0)
+                    result = history_entry->second.times_visited;
+            }
+        }
+
+        return result;
+    }
+
+    std::string get_history_message(RE::TESObjectREFR* trader)
+    {
+        std::string result = "";
+
+        if (!trader)
+            return "";
+
+        auto history_entry = barter_history.find(trader->formID);
+
+        if (history_entry != barter_history.end())
+        {
+            auto now = std::chrono::steady_clock::now().time_since_epoch().count();
+            float delta_transaction_history = (double)(now - history_entry->second.last_transaction_history_timestamp) / 1000000000.0;
+
+            if (delta_transaction_history > 900.0f)
+            {
+                barter_history.erase(trader->formID);
+                //transaction_history_buy = "";
+                //transaction_history_sell = "";
+                //transaction_history_total_gold_buy = 0;
+                //transaction_history_total_gold_sell = 0;
+            }
+            else
+            {
+                history_entry->second.last_transaction_history_timestamp = now; //update timestamp so it isnt cleared while we are still in the settlement
+
+
                 if (history_entry->second.transaction_history_buy != "")
                     result += "\nYou recently bought: " + history_entry->second.transaction_history_buy + " for total of " + std::to_string(history_entry->second.transaction_history_total_gold_buy) + " gold from this trader;";
                 if (history_entry->second.transaction_history_sell != "")
