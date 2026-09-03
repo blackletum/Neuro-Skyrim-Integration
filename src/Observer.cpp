@@ -20,6 +20,10 @@ namespace Observer {
 	int old_mq206_alduin_scene_phase1 = 0;
 	int old_mq206_alduin_scene_phase2 = 0;
 
+	int old_mq301_scene_phase = 0;
+	int old_mq306_scene_phase = 0;
+
+
 	long long last_use_potion_timestamp = 0;
 
 	long long halt_potion_autouse_timestamp = 0; //dont reset this ever
@@ -3595,6 +3599,11 @@ namespace Observer {
 
 														message_text = "[" + killer_name + " killed " + victim_name + "]";
 
+														if (killer_actor == player_actor && a_ref->formID == 0x4e9bd) //endgame alduin
+														{
+															WalkerProcessor::walk_to_object_by_refr(a_ref, 1);
+														}
+
 													}
 												}
 											}
@@ -3957,6 +3966,14 @@ namespace Observer {
 												}
 
 
+												if (a_ref->formID == 0x27acc) //sovngarde portal
+												{
+													if (activation == 0)
+														detect_events_result.push_back("The Sovngarde Portal opened...");
+
+													if (activation == 1)
+														detect_events_result.push_back("The Sovngarde Portal closed...");
+												}
 
 
 
@@ -6270,6 +6287,21 @@ namespace Observer {
 					}
 
 
+					auto mq301_scene = (RE::BGSScene*)RE::TESForm::LookupByID(0x46ef5); //odahviing trap scene
+
+					if (mq301_scene)
+					{
+						old_mq301_scene_phase = mq301_scene->unkBC;
+					}
+
+					
+					auto mq306_scene = (RE::BGSScene*)RE::TESForm::LookupByID(0x9e094); //outro
+
+					if (mq306_scene)
+					{
+						old_mq306_scene_phase = mq306_scene->unkBC;
+					}
+					
 
 					if (dlc1vq01_quest)
 						old_dlc1vq01_stage = dlc1vq01_quest->currentStage;
@@ -6813,7 +6845,7 @@ namespace Observer {
 				bool new_had_any_quests = MiscThings::have_any_quests();
 				
 
-				if (new_had_any_quests && !old_had_any_quests)
+				if (new_had_any_quests && !old_had_any_quests && is_something_registered())
 					register_allowed_actions();
 
 
@@ -7199,11 +7231,41 @@ namespace Observer {
 
 
 
+				auto mq301_scene = (RE::BGSScene*)RE::TESForm::LookupByID(0x46ef5); //odahviing trap scene
 
+				if (mq301_scene)
+				{
+					auto phase = mq301_scene->unkBC;
 
+					if (old_mq301_scene_phase != phase)
+					{
+						if (phase == 11)
+							send_random_context("The trap is activated... Large wooden bar falls from the ceiling, closing the mechanism around dragon's neck. Odahviing is trapped!", false);
 
+					}
 
+					old_mq301_scene_phase = phase;
+				}
 
+				auto mq306_scene = (RE::BGSScene*)RE::TESForm::LookupByID(0x9e094); //outro
+
+				if (mq306_scene)
+				{
+					auto phase = mq306_scene->unkBC;
+
+					if (old_mq306_scene_phase != phase)
+					{
+						if (phase == 4)
+						{
+							send_random_context("You are back to the mortal world. Several dragons gathered around you on top of the mountain, greeting you as the strongest", false);
+							quicksave(true);
+						}
+							
+					}
+
+					old_mq306_scene_phase = phase;
+				}
+				
 
 
 				old_sit_state = sit_state;

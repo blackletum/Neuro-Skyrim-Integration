@@ -19,7 +19,7 @@ namespace WalkerProcessor {
     RE::TESWorldSpace* last_stuck_worldspace = nullptr;
     RE::TESObjectCELL* last_stuck_cell = nullptr;
 
-
+    bool alduin_stare_notified = false;
     long long last_dragonrend_use_timestamp = 0;
 
     bool dont_clear_spell_vars = false;
@@ -2341,10 +2341,28 @@ namespace WalkerProcessor {
                                                     {
                                                         //try to find landing spot for dragon
                                                         dragon_landing_spot_mode = true;
-                                                        send_random_context("You try to find a spot where dragon will land...");
                                                         longer_range_advices_ignored++;
                                                         longer_range_advices_ignored_for_bow++;
                                                         invalidate_path();
+
+                                                        if (target_ref && target_ref->formID == 0x4e9bd) //alduin. need to change advice if its pre-mist-cleared sovngarde
+                                                        {
+                                                            if (player->GetWorldspace() && player->GetWorldspace()->formID == 0x2EE41)
+                                                            {
+                                                                //in sovngarde
+                                                                auto sovngarde_quest1 = (RE::TESQuest*)RE::TESForm::LookupByEditorID("MQ304");
+                                                                if (sovngarde_quest1 && sovngarde_quest1->currentStage < 170)
+                                                                {
+                                                                    reset_walker();
+                                                                    send_random_context("Cannot catch Alduin, he is hiding in his mist...", false);
+                                                                    return;
+                                                                }
+                                                            }
+
+                                                        }
+
+                                                        send_random_context("You try to find a spot where dragon will land...");
+
                                                         return;
                                                     }
 
@@ -6064,7 +6082,7 @@ namespace WalkerProcessor {
     {
 
 
-        
+        alduin_stare_notified = false;
 
 
 
@@ -7779,10 +7797,28 @@ namespace WalkerProcessor {
                                                         {
                                                             //try to find landing spot for dragon
                                                             dragon_landing_spot_mode = true;
-                                                            send_random_context("You try to find a spot where dragon will land...");
                                                             longer_range_advices_ignored++;
                                                             longer_range_advices_ignored_for_bow++;
                                                             invalidate_path();
+
+                                                            if (target_ref && target_ref->formID == 0x4e9bd) //alduin. need to change advice if its pre-mist-cleared sovngarde
+                                                            {
+                                                                if (player->GetWorldspace() && player->GetWorldspace()->formID == 0x2EE41)
+                                                                {
+                                                                    //in sovngarde
+                                                                    auto sovngarde_quest1 = (RE::TESQuest*)RE::TESForm::LookupByEditorID("MQ304");
+                                                                    if (sovngarde_quest1 && sovngarde_quest1->currentStage < 170)
+                                                                    {
+                                                                        reset_walker();
+                                                                        send_random_context("Cannot catch Alduin, he is hiding in his mist...", false);
+                                                                        return false;
+                                                                    }
+                                                                }
+
+                                                            }
+
+                                                            send_random_context("You try to find a spot where dragon will land...");
+
                                                             return false;
                                                         }
 
@@ -12965,6 +13001,14 @@ namespace WalkerProcessor {
         {
             if (shout_to_use)
             {
+                if (!MiscThings::is_weapon_drawn() && !(player_actor->actorState2.weaponState == RE::WEAPON_STATE::kDrawing))
+                {
+                    set_draw_weapon_start_timestamp();
+                    right_attack(); //this is "readyWeapon"
+                    //set_universal_block(0.5f);
+                    return false;
+                }
+
                 if (do_dodge_projectile || !is_weapon_draw_ready())
                     return false; //wait for it to finish, shout fails most of the time while dodging
 
@@ -14877,6 +14921,7 @@ namespace WalkerProcessor {
                                             {
                                                 if (!MiscThings::is_flying(odahviing))
                                                 {
+                                                    send_random_context("You are trying to lure Odahviing into the trap...", true);
                                                     target_ref = redirect_marker;
                                                     interaction_after_walk = 3;
                                                     return false;
@@ -14887,7 +14932,7 @@ namespace WalkerProcessor {
                                 }
 
                                                                                                                         //alduin
-                                if (target_actor->GetActorValue(RE::ActorValue::kHealth) < 10 && target_actor->formID != 0x32DB7)
+                                if (target_actor->GetActorValue(RE::ActorValue::kHealth) < 10 && target_actor->formID != 0x4e9bd)
                                 {
                                     send_random_context("Attacking doesnt work... They are not dying. You can try to run away or ignore the fight instead.", false);
                                     Observer::reset_threats(); //so it can actually offer choice to run or ignore
@@ -17371,7 +17416,7 @@ namespace WalkerProcessor {
 
 
 
-    void look_up(float speed_koef)
+    void look_up(float speed_koef, float pause)
     {
         auto dummy_target = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x7002dbf);
 
@@ -17386,7 +17431,13 @@ namespace WalkerProcessor {
 
             look_at_object_by_refr(dummy_target, true, speed_koef);
 
+            reset_inactive_timer();
             
+            if (pause > 0.0f)
+            {
+                unregister_all_actions();
+                register_allowed_actions(pause);
+            }
         }
 
     }
@@ -18156,6 +18207,23 @@ namespace WalkerProcessor {
 
                                 Observer::reset_threats();
 
+                                if (target_ref && target_ref->formID == 0x4e9bd) //alduin. need to change advice if its pre-mist-cleared sovngarde
+                                {
+                                    if (player->GetWorldspace() && player->GetWorldspace()->formID == 0x2EE41)
+                                    {
+                                        //in sovngarde
+                                        auto sovngarde_quest1 = (RE::TESQuest*)RE::TESForm::LookupByEditorID("MQ304");
+                                        if (sovngarde_quest1 && sovngarde_quest1->currentStage < 170)
+                                        {
+                                            reset_walker();
+                                            send_random_context("Cannot catch Alduin, he is hiding in his mist...", false);
+                                            return;
+                                        }
+                                    }
+
+                                }
+
+
                                 reset_walker();
                                 std::string advice = "";
 
@@ -18403,6 +18471,33 @@ namespace WalkerProcessor {
                     return;
                 }
                     
+
+                if (target_ref && target_ref->formID == 0x4e9bd && target_ref->IsDead()) //endgame alduin
+                {
+                    if (player->GetDistance(target_ref) < 1000.0f && !detect_stuck(dtime))
+                    {
+                        lock_camera_onto_target(target_ref, 0.5f);
+                        cursor_down(); 
+                        //go back and stare at him a little
+                        return;
+                    }
+                    else
+                    {
+                        if (lock_camera_onto_target(target_ref, 0.5f))
+                        {
+                            if (!alduin_stare_notified)
+                            {
+                                alduin_stare_notified = true;
+                                send_random_context("You look at defeated Alduin...", true);
+                            }
+                            
+                            //reset_walker();
+                            return;
+                        }
+                    }
+                }
+
+
 
 
                 if (pre_repath_if_walking)
@@ -19200,6 +19295,7 @@ namespace WalkerProcessor {
 
                                             if (dragonrent)
                                             {
+                                                send_random_context("You are trying to lure Odahviing into the trap...", true);
                                                 target_ref = redirect_marker;
                                                 interaction_after_walk = 3;
                                             }
@@ -21911,9 +22007,28 @@ namespace WalkerProcessor {
                                                                     {
                                                                         //try to find landing spot for dragon
                                                                         dragon_landing_spot_mode = true;
-                                                                        send_random_context("You try to find a spot where dragon will land...");
+                                                                        
                                                                         longer_range_advices_ignored++;
                                                                         longer_range_advices_ignored_for_bow++;
+
+                                                                        if (target_ref && target_ref->formID == 0x4e9bd) //alduin. need to change advice if its pre-mist-cleared sovngarde
+                                                                        {
+                                                                            if (player->GetWorldspace() && player->GetWorldspace()->formID == 0x2EE41)
+                                                                            {
+                                                                                //in sovngarde
+                                                                                auto sovngarde_quest1 = (RE::TESQuest*)RE::TESForm::LookupByEditorID("MQ304");
+                                                                                if (sovngarde_quest1 && sovngarde_quest1->currentStage < 170)
+                                                                                {
+                                                                                    reset_walker();
+                                                                                    send_random_context("Cannot catch Alduin, he is hiding in his mist...", false);
+                                                                                    return;
+                                                                                }
+                                                                            }
+
+                                                                        }
+
+                                                                        send_random_context("You try to find a spot where dragon will land...");
+
                                                                         return;
                                                                     }
 

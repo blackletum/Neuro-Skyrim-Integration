@@ -1953,12 +1953,21 @@ namespace MiscThings {
 
                 if (earth_stone_marker && player && player->GetDistance(earth_stone_marker) < 700.0f)
                     return true;
-
+                
                 auto sun_stone_marker = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4035443);
 
                 if (sun_stone_marker && player && player->GetDistance(sun_stone_marker) < 700.0f)
                     return true;
             }
+
+
+            if (player->GetWorldspace() && player->GetWorldspace()->formID == 0x2EE41) //sovngarde
+            {
+                if (!is_something_registered())
+                    return true;
+            }
+
+
         }
 
         return false;
@@ -3628,6 +3637,18 @@ namespace MiscThings {
                 return throat_of_the_world_pos;
             }
         }
+
+
+        if (player_worldspace && player_worldspace->formID == 0x2EE41) //sovngarde
+        {
+            auto sovngarde_clearskies = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x700bf59);
+
+            if (sovngarde_clearskies)
+                return sovngarde_clearskies->GetPosition();
+        }
+
+
+
 
 
         player_pos.z += 2000.0f; //pretend player is high so it prefers higher points, like top of mountain
@@ -13044,6 +13065,9 @@ namespace MiscThings {
 
             if (target->formID == 0x9f850 || target->formID == 0x9f854 || target->formID == 0x4f829) //sheogorath big guys and tsun
                 return true;
+
+            if (target->formID == 0x4e9bd && target->IsDead())
+                return true;
         }
 
 
@@ -14516,6 +14540,25 @@ namespace MiscThings {
         if (!activator)
             return -1;
 
+
+        if (activator->formID == 0x27acc)//sovngarde portal
+        {
+            auto object_p = General::Script::GetObject(activator, "FXSkuldafnPortal");
+            if (object_p)
+            {
+
+                RE::BSFixedString prop_name = "::isOpen_var";
+                if (General::Script::GetVariable<bool>(object_p, prop_name))
+                {
+                    return 0;
+                }
+                else
+                    return 1;
+
+            }
+        }
+
+
         auto object_p = General::Script::GetObject(activator, "default2StateActivator");
         //dunCGdefault2StateActivator
         if (!object_p)
@@ -15441,6 +15484,7 @@ namespace MiscThings {
             if (General::Script::GetVariable<bool>(object_p, prop_name))
                 result = 22;
         }
+
 
 
 
@@ -16454,7 +16498,7 @@ namespace MiscThings {
                                     if (var_string.find("STARTED: ") == 0)
                                     {
                                         if (var_string.find("SOVNGARDE") != std::string::npos)
-                                            WalkerProcessor::look_up(0.25f);
+                                            WalkerProcessor::look_up(0.25f, 4.0f);
 
 
                                         var_string = "Quest started: " + insert_quest_into_list_and_get_info(var_string.substr(9, var_string.length() - 9));
@@ -16466,7 +16510,13 @@ namespace MiscThings {
                                     if (var_string.find("COMPLETED: ") == 0)
                                     {
                                         if (var_string.find("DRAGONSLAYER") != std::string::npos)
-                                            WalkerProcessor::look_up(0.25f);
+                                        {
+                                            send_random_context("Alduin exploded and his soul flew into the sky", false);
+                                            //WalkerProcessor::look_up(0.25f, 20.0f);
+                                            unregister_all_actions();
+                                            register_allowed_actions(10.0f);
+                                        }
+                                            
 
                                         var_string = "Quest completed: " + insert_quest_into_list_and_get_info(var_string.substr(9, var_string.length() - 9));
 
@@ -16593,6 +16643,12 @@ namespace MiscThings {
                                         }
                                         else
                                         {
+                                            if (var_string.find("Reach Alduin's portal to Sovngarde") != std::string::npos)
+                                            {
+                                                send_random_context("You climb onto Odahviing... and he takes off. You fly, riding the dragon...", false);
+                                            }
+
+
                                             var_string = "New subquest: " + insert_quest_into_list_and_get_info(var_string);
                                             WalkerProcessor::test_new_very_close_quest();
 
@@ -29776,7 +29832,11 @@ namespace MiscThings {
         offensive_shouts.push_back((RE::TESShout*)RE::TESForm::LookupByID(0x70980)); // ice form
         offensive_shouts.push_back((RE::TESShout*)RE::TESForm::LookupByID(0x7097c)); // marked for death
         offensive_shouts.push_back((RE::TESShout*)RE::TESForm::LookupByID(0x48ac9)); // slow time
-        offensive_shouts.push_back((RE::TESShout*)RE::TESForm::LookupByID(0x7097d)); // storm call
+
+        auto sky = RE::Sky::GetSingleton();
+
+        if (sky && sky->mode == RE::Sky::Mode::kFull)
+            offensive_shouts.push_back((RE::TESShout*)RE::TESForm::LookupByID(0x7097d)); // storm call
         
         if (is_unenchanted_weapon(true) || is_unenchanted_weapon(false))
             offensive_shouts.push_back((RE::TESShout*)RE::TESForm::LookupByID(0x32921)); // elemental fury
@@ -29813,7 +29873,8 @@ namespace MiscThings {
             int picked = random_int_from_range(0, amount_of_shouts - 1);
 
             auto dragonrend = (RE::TESShout*)RE::TESForm::LookupByID(0x44250);
-            if (MiscThings::is_dragon(target) && MiscThings::is_flying(target) && MiscThings::player_has_spell((RE::SpellItem*)dragonrend))
+                                                                                                    //odaving
+            if (MiscThings::is_dragon(target) && (MiscThings::is_flying(target) || target->formID == 0x45921) && MiscThings::player_has_spell((RE::SpellItem*)dragonrend))
                 WalkerProcessor::shout_at_target(target, dragonrend);
             else
                 WalkerProcessor::shout_at_target(target, shouts_available.at(picked));
@@ -31072,7 +31133,20 @@ namespace MiscThings {
                     if (a_ref->formID == 0x6dfa0)
                         return RE::BSContainer::ForEachResult::kContinue; //spider in avanchenzel who is under the floor
 
+                    if (a_ref->formID == 0x45921)
+                    {
+                        //odahviing. it somehow decides that he is enemy right before the trap is activated and he isnt actually an enemy, and if we attack him, he will go mad after trap is released which causes 
+                        //quest to be bugged and we need to travel very far away from him so he calms down.
+                        //try to avoid it
+                        auto mq301_scene = (RE::BGSScene*)RE::TESForm::LookupByID(0x46ef5); //odahviing trap scene
 
+                        if (mq301_scene)
+                        {
+                            auto phase = mq301_scene->unkBC;
+                            if (phase > 10)
+                                return RE::BSContainer::ForEachResult::kContinue; //he is going to be trapped
+                        }
+                    }
 
                     if (labyrinthian_shit_gate_condition)
                     {

@@ -2541,7 +2541,7 @@ namespace Hooks {
 }
 
 
-auto lasttime = std::chrono::steady_clock::now().time_since_epoch().count();
+long long lasttime = std::chrono::steady_clock::now().time_since_epoch().count();
 
 
 
@@ -2565,6 +2565,8 @@ private:
         float dtime = (double)(now - lasttime) / 1000000000.0;
         lasttime = now;
         
+        //Hooks::add_debug_line("DTIME_HOOK: " + std::to_string(dtime), true);
+
         if (universal_block)
         {
             if (universal_block_time > universal_block_time_threshold)
@@ -2743,6 +2745,9 @@ private:
 
         if (restore_actions)
         {
+            //if (restore_actions_timer != 0.0f)
+            //    Hooks::add_debug_line("RESTORE_ACTIONS_TIMER: " + std::to_string(restore_actions_timer), true);
+
             if (restore_actions_timer > 1.5f && Observer::are_surroundings_scanned())
             {
                 m_neuroSocket->register_allowed_actions();
@@ -3693,7 +3698,7 @@ class MyHook {
             for (int i = 1; i < std::size(subtitle_msg_old_vector); i++)
                 subtitle_msg_old_vector.at(i) = "";
 
-            if (subtitle_history_clear_time > 10.0f)
+            if (subtitle_history_clear_time > 20.0f)
                 subtitle_msg_old_vector.clear(); //clear all. if its a repeat, its been actually repeated.
 
             if (!DialogueProcessor::is_in_dialogue())
@@ -3750,7 +3755,7 @@ class MyHook {
                         }
 
 
-                        if (Observer::get_last_saved_time() > 30.0f && (subtitle_msg.find("This is far as I can take you. Krif voth ahkrin.") != std::string::npos))
+                        if (subtitle_msg.find("This is far as I can take you. Krif voth ahkrin.") != std::string::npos)
                             quicksave(true);
 
                         
