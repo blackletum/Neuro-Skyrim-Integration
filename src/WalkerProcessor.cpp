@@ -3318,7 +3318,7 @@ namespace WalkerProcessor {
                     else
                     {
                         //if (!MiscThings::is_werewolf() && !MiscThings::is_vampirelord() && !MiscThings::is_on_horse() && !player->IsRunning() && !was_slowwalking && !turning_around && !always_shift)
-                        if (!MiscThings::is_on_horse() && !player->IsRunning() && !was_slowwalking && !turning_around && !always_shift)
+                        if (!MiscThings::is_on_horse() && !player->IsRunning() && !was_slowwalking && !turning_around && !always_shift && !player->IsBlocking())
                         {
                             //test if we are slowwalking for some reason
                             anti_slowwalk_timer += dtime_maybe_bad;
@@ -13022,7 +13022,7 @@ namespace WalkerProcessor {
                     return false;
                 }
 
-                if (do_dodge_projectile || !is_weapon_draw_ready())
+                if (do_dodge_projectile || MiscThings::cant_shout_yet())
                     return false; //wait for it to finish, shout fails most of the time while dodging
 
                 if (lock_camera_onto_target(target_ref, 0.016))

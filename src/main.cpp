@@ -47,7 +47,7 @@
 
 //  RANDOM QUESTS TODO
 // 
-//TODO white phial, i think it needs some ice from top of the mountain that might be unreachable. actually test it
+//TODO white phial, i think it needs some ice from top of the mountain that might be unreachable. actually test it (stonebank is somehow interactive even without quest; its also not really far up so can be done, but doesnt work out of the box)
 //TODO whiterun save the guy from thalmor quest
 //TODO mage sidequests
 //TODO soltsheim riekling quests
@@ -74,9 +74,9 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////DO ALL THIS
 
-//try to fix shouts not shouting when camera shakes + when player jumps
+
 //remember bad corpses for resurrection (those who are too powerful) and dont target them again automatically (maybe just filter in get_nearest_corpse function, it shouldnt affect manual targeting anyway since no search used.. test it maybe wrong)
-//top of mountain climb
+
 
 
 //jumping to pickup items from top shelves
@@ -84,6 +84,7 @@
 //in fight after enemy dies it walks to the corpse weirdly
 
 
+//top of mountain climb (kinda hard)
 
 //(this is kinda far) fix reanimate spells being endlessly "processing" if cast while having ritual restoration scroll equipped
 

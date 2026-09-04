@@ -5,6 +5,7 @@
 
 namespace MiscThings {
 
+    bool cant_shout_yet();
 
     bool any_enemy_sees_player_for_safe_stealthwalk_check(float range, bool stealth_probe_done);
 

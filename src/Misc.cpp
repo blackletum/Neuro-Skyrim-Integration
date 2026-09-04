@@ -71,6 +71,64 @@ namespace MiscThings {
     
 
 
+
+    bool cant_shout_yet()
+    {
+        auto player = RE::PlayerCharacter::GetSingleton();
+
+        bool staggering = player->IsStaggering();
+        bool staggered = player->IsStaggered();
+        bool recoiled = player->actorState2.recoil;
+        bool knocked = player->actorState1.knockState != RE::KNOCK_STATE_ENUM::kNormal;
+        
+        bool jumping_flying_swimming = false;
+
+        if (player->currentProcess)
+            if (player->currentProcess->middleHigh)
+                if (player->currentProcess->middleHigh->charController)
+                {
+                    auto current_state = player->currentProcess->middleHigh->charController->context.currentState;
+
+                    if (current_state == RE::hkpCharacterStateTypes::hkpCharacterStateType::kFlying ||
+                        current_state == RE::hkpCharacterStateTypes::hkpCharacterStateType::kInAir ||
+                        current_state == RE::hkpCharacterStateTypes::hkpCharacterStateType::kSwimming)
+
+                        jumping_flying_swimming = true;
+                }
+
+
+        bool weapon_draw_ban = !is_weapon_draw_ready();
+
+
+        //auto now = std::chrono::steady_clock::now().time_since_epoch().count();
+
+
+        //if (jumping_flying_swimming)
+        //    Hooks::add_debug_line("JUMPING/FLYING/SWIMMING " + std::to_string(now), true);
+
+
+        /*
+        auto now = std::chrono::steady_clock::now().time_since_epoch().count();
+
+
+        if (staggering)
+            Hooks::add_debug_line("STAGGERING " + std::to_string(now), true);
+
+        if (staggered)
+            Hooks::add_debug_line(" STAGGERED " + std::to_string(now), true);
+
+        if (recoiled)
+            Hooks::add_debug_line("  RECOILED " + std::to_string(now), true);
+
+        if (knocked)
+            Hooks::add_debug_line("   KNOCKED " + std::to_string(now), true);
+    */
+
+        return staggering || staggered || recoiled || knocked || jumping_flying_swimming || weapon_draw_ban;
+    }
+
+
+
     //todo
     bool is_unique_item(RE::TESForm* form)
     {

@@ -1604,7 +1604,7 @@ void input_processor(float dtime)
             {
                 if (use_ult_prestart_done)
                 {
-                    if (use_ult_time < 2.5f)
+                    if (use_ult_time < 2.0f)
                     {
                         use_ult_time += dtime;
                         start_use_ult();
@@ -1618,8 +1618,12 @@ void input_processor(float dtime)
                 }
                 else
                 {
-                    use_ult_prestart_done = true;
-                    prestart_use_ult();
+                    if (!MiscThings::cant_shout_yet()) //after this passes, never check again
+                    {
+                        use_ult_prestart_done = true;
+                        prestart_use_ult();
+                    }
+
                 }
                     
 

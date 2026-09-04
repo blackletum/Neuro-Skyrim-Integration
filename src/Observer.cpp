@@ -5993,6 +5993,8 @@ namespace Observer {
 			return;
 
 
+		MiscThings::cant_shout_yet();
+
 		auto parent_cell = player->GetParentCell();
 
 
