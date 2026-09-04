@@ -48,7 +48,6 @@
 //  RANDOM QUESTS TODO
 // 
 //TODO white phial, i think it needs some ice from top of the mountain that might be unreachable. actually test it (stonebank is somehow interactive even without quest; its also not really far up so can be done, but doesnt work out of the box)
-//TODO whiterun save the guy from thalmor quest
 //TODO mage sidequests
 //TODO soltsheim riekling quests
 //TODO soltsheim blacksmith quests
@@ -60,8 +59,6 @@
 //TODO black sword daedra
 //TODO dlc etherium book quest
 
-
-//TODO upgrade-house helper interesting place
 //TODO that fire nordic sword quest triggered by some book
 
 

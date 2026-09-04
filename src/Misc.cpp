@@ -8355,6 +8355,30 @@ namespace MiscThings {
         {
             switch (quest->formID)
             {
+
+            case (0x1cf26): //whiterun rescue guy from thalmor ms09
+            {
+                if (quest->currentStage == 60 && target && target->formID == 0x159df) //bad door
+                {
+                    auto cool_door = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4b687);
+                    if (cool_door)
+                    {
+                        if (MiscThings::is_door_locked(cool_door))
+                        {
+                            auto elf = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xa02fe);
+                            if (elf)
+                                return elf;
+                        }
+                        else
+                            return cool_door;
+                    }
+                }
+
+
+                break;
+            }
+
+
             case (0x4018b13): //ash captain soltsheim dungeon
             {
 
