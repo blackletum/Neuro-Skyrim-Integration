@@ -7426,7 +7426,7 @@ namespace WalkerProcessor {
             return true;
 
 
-        if (close_enough_force_fail && !MiscThings::is_dragon(target_ref) || close_enough_force_fail_reason_friendly_fire)
+        if (close_enough_force_fail && (!MiscThings::is_dragon(target_ref) || close_enough_force_fail_reason_friendly_fire))
         {
             auto now = std::chrono::steady_clock::now().time_since_epoch().count();
             float delta_cancel_fail = (double)(now - close_enough_force_fail_time_start) / 1000000000.0;
@@ -7445,6 +7445,12 @@ namespace WalkerProcessor {
             }
             else
                 return false;
+        }
+        else
+        {
+            close_enough_force_fail = false;
+            close_enough_force_fail_time_start = 0;
+            close_enough_force_fail_reason_friendly_fire = false;
         }
 
 
@@ -7624,6 +7630,13 @@ namespace WalkerProcessor {
 
                 if (interaction_after_walk == 3)
                 {
+
+
+                    if (target_ref->IsActor() && !was_already_dead && target_ref->IsDead())
+                        return true; //target died
+
+
+
                     if (target_ref->formID == 0x200a58b && MiscThings::get_hand_contents(get_current_active_hand()) && MiscThings::get_hand_contents(get_current_active_hand())->formID == 0x1a4cc)
                         return true;
 
@@ -12244,7 +12257,7 @@ namespace WalkerProcessor {
                     result = true;
                 else
                 {
-                    if (weapon->IsTwoHandedAxe() || weapon->IsTwoHandedSword())
+                    if (weapon->IsTwoHandedAxe() || weapon->IsTwoHandedSword() || MiscThings::is_torch(weapon))
                         result = true;
                 }
             }
@@ -12261,6 +12274,8 @@ namespace WalkerProcessor {
 
             }
         }
+
+
         return result;
     }
 
@@ -12959,12 +12974,15 @@ namespace WalkerProcessor {
 
         auto left_weapon = MiscThings::get_hand_contents(false);
         if (left_weapon && left_weapon->GetFormID() == 0x35369)
-            staff_of_magnus_in_left = true;
+        {
+            auto mg08 = (RE::TESQuest*)RE::TESForm::LookupByEditorID("MG08");
+            if (mg08 && mg08->currentStage < 200) //mage guild is not done
+                staff_of_magnus_in_left = true;
+        }
 
         if (target_ref && (target_ref == magnus_eye || target_ref == redirect_force_field2))
             if (staff_of_magnus_in_left)
                 attack_action = 1;
-
 
 
         if (attack_action == 1)
@@ -13253,7 +13271,6 @@ namespace WalkerProcessor {
             bool dont_use_left = false;
             bool dont_use_right = false;
 
-            
             if (target_ref->IsActor() && !target_ref->IsDead())
             {
                 auto target_actor = (RE::Actor*)target_ref;
@@ -13318,6 +13335,7 @@ namespace WalkerProcessor {
 
             //dont_use_left |= left_hand_reserved_for_mage_fuckup;
 
+
             bool staff_of_magnus_in_left = false;
             auto magnus_eye = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x25224);
             auto redirect_force_field2 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x702c923);
@@ -13325,7 +13343,12 @@ namespace WalkerProcessor {
             auto right_weapon = MiscThings::get_hand_contents(true);
             auto left_weapon = MiscThings::get_hand_contents(false);
             if (left_weapon && left_weapon->GetFormID() == 0x35369)
-                staff_of_magnus_in_left = true;
+            {
+                auto mg08 = (RE::TESQuest*)RE::TESForm::LookupByEditorID("MG08");
+                if (mg08 && mg08->currentStage < 200) //mage guild is not done
+                    staff_of_magnus_in_left = true;
+            }
+                
 
             if (target_ref && (target_ref == magnus_eye || target_ref == redirect_force_field2))
                 if (staff_of_magnus_in_left)
@@ -13616,7 +13639,7 @@ namespace WalkerProcessor {
                                 }
                                     
 
-                                bool friendly_fire_check = (target_is_dead || inanimate || MiscThings::is_enemy_to_actor(target_ref)) && MiscThings::friendly_fire_test(true);
+                                bool friendly_fire_check = (target_is_dead || inanimate || MiscThings::is_enemy_to_actor(target_ref)) && MiscThings::friendly_fire_test(true, target_ref);
 
                                 if (friendly_fire_check && !close_enough_force_fail && friendly_fire_blocks < 3 && friendly_fire_blocks2 < 10)
                                 {
@@ -14262,7 +14285,7 @@ namespace WalkerProcessor {
 
 
 
-                                    bool friendly_fire_check = (target_is_dead || inanimate || MiscThings::is_enemy_to_actor(target_ref)) && MiscThings::friendly_fire_test(false);
+                                    bool friendly_fire_check = (target_is_dead || inanimate || MiscThings::is_enemy_to_actor(target_ref)) && MiscThings::friendly_fire_test(false, target_ref);
 
                                     if (friendly_fire_check && !close_enough_force_fail && friendly_fire_blocks < 3 && friendly_fire_blocks2 < 10)
                                     {
@@ -18494,6 +18517,7 @@ namespace WalkerProcessor {
                     reset_walker();
                     return;
                 }
+
                     
 
                 if (target_ref && target_ref->formID == 0x4e9bd && target_ref->IsDead()) //endgame alduin

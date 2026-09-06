@@ -14,6 +14,10 @@ namespace MiscThings {
 
     bool jumpable_ramp_ahead();
 
+    bool friendly_fire_test(bool right_hand, RE::TESObjectREFR* target);
+    bool is_torch(RE::TESForm* object);
+
+
     bool player_has_deseases();
 
     bool cast_spell_recently();

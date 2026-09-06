@@ -46,12 +46,8 @@
 //TODO that seducers AE quest
 
 //  RANDOM QUESTS TODO
-// 
+
 //TODO white phial, i think it needs some ice from top of the mountain that might be unreachable. actually test it (stonebank is somehow interactive even without quest; its also not really far up so can be done, but doesnt work out of the box)
-//TODO mage sidequests
-//TODO soltsheim riekling quests
-//TODO soltsheim blacksmith quests
-//TODO dawnguard sidequests
 //TODO 3 amulet pieces quest (that starts with saartal boss in the magnus eye room)
 
 //TODO dwemer shield daedra
@@ -61,6 +57,10 @@
 
 //TODO that fire nordic sword quest triggered by some book
 
+//TODO mage sidequests
+//TODO dawnguard sidequests
+//TODO soltsheim riekling quests
+//TODO soltsheim blacksmith quests
 
 //////////////////////////////////////////////////////
 // RANDOM STUFF
@@ -70,6 +70,14 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////DO ALL THIS
+
+
+//fix casting not casting close-range after last 3 point raycast change
+//raised zombies count as enemies sometimes (silver hands for example)
+//check autosave after wait
+//healing potions are unusable when we are casting healing
+//some bullshit while casting ult (it cast it 500 times in a row and then bugged, looks like targeted ult bug when its on cooldown)
+//spider cave
 
 
 //remember bad corpses for resurrection (those who are too powerful) and dont target them again automatically (maybe just filter in get_nearest_corpse function, it shouldnt affect manual targeting anyway since no search used.. test it maybe wrong)

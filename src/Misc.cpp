@@ -627,7 +627,7 @@ namespace MiscThings {
 
 
 
-    bool friendly_fire_test(bool right_hand)
+    bool friendly_fire_test(bool right_hand, RE::TESObjectREFR* target)
     {
         auto player = RE::PlayerCharacter::GetSingleton();
 
@@ -687,7 +687,7 @@ namespace MiscThings {
 
                                     //DebugAPI_IMPL::DebugAPI::GetSingleton()->Update();
 
-                                    if (raycast_ref && raycast_ref->IsActor() && !MiscThings::is_enemy_to_actor(raycast_ref))
+                                    if (raycast_ref && raycast_ref->IsActor() && raycast_ref != target && !raycast_ref->IsDead() && !MiscThings::is_enemy_to_actor(raycast_ref))
                                     {
                                         DebugAPI_IMPL::DebugAPI::GetSingleton()->LinesToDraw.clear();
                                         return true;
@@ -759,6 +759,10 @@ namespace MiscThings {
                                         //DebugAPI_IMPL::DrawDebug::draw_line(pos1 + camera_dir_tilted4 * range2, pos4 + camera_dir_tilted4 * range2 + small_up, 5.0f, color);
                                         //DebugAPI_IMPL::DebugAPI::GetSingleton()->Update();
                                         
+                                        float player_target_distance = player->GetDistance(target) + 100.0f;
+
+                                        if (player_target_distance < range2)
+                                            range2 = player_target_distance;
 
 
                                         auto raycast_ref2 = MiscThings::GetRaycastRef(pos1, camera_dir_tilted1, range2, nullptr, 0b00000000000010010000000000000110);
@@ -773,15 +777,20 @@ namespace MiscThings {
 
 
 
-                                        bool test1 = (raycast_ref2 && raycast_ref2->IsActor() && !MiscThings::is_enemy_to_actor(raycast_ref2));
-                                        bool test2 = (raycast_ref3 && raycast_ref3->IsActor() && !MiscThings::is_enemy_to_actor(raycast_ref3));
-                                        bool test3 = (raycast_ref4 && raycast_ref4->IsActor() && !MiscThings::is_enemy_to_actor(raycast_ref4));
-                                        bool test4 = (raycast_ref5 && raycast_ref5->IsActor() && !MiscThings::is_enemy_to_actor(raycast_ref5));
+                                        bool test1 = (raycast_ref2 && raycast_ref2 != target && raycast_ref2->IsActor() && !raycast_ref2->IsDead() && !MiscThings::is_enemy_to_actor(raycast_ref2));
+                                        bool test2 = (raycast_ref3 && raycast_ref3 != target && raycast_ref3->IsActor() && !raycast_ref3->IsDead() && !MiscThings::is_enemy_to_actor(raycast_ref3));
+                                        bool test3 = (raycast_ref4 && raycast_ref4 != target && raycast_ref4->IsActor() && !raycast_ref4->IsDead() && !MiscThings::is_enemy_to_actor(raycast_ref4));
+                                        bool test4 = (raycast_ref5 && raycast_ref5 != target && raycast_ref5->IsActor() && !raycast_ref5->IsDead() && !MiscThings::is_enemy_to_actor(raycast_ref5));
 
-                                        bool test5 = (raycast_ref6 && raycast_ref6->IsActor() && !MiscThings::is_enemy_to_actor(raycast_ref6));
-                                        bool test6 = (raycast_ref7 && raycast_ref7->IsActor() && !MiscThings::is_enemy_to_actor(raycast_ref7));
-                                        bool test7 = (raycast_ref8 && raycast_ref8->IsActor() && !MiscThings::is_enemy_to_actor(raycast_ref8));
-                                        bool test8 = (raycast_ref9 && raycast_ref9->IsActor() && !MiscThings::is_enemy_to_actor(raycast_ref9));
+                                        bool test5 = (raycast_ref6 && raycast_ref6 != target && raycast_ref6->IsActor() && !raycast_ref6->IsDead() && !MiscThings::is_enemy_to_actor(raycast_ref6));
+                                        bool test6 = (raycast_ref7 && raycast_ref7 != target && raycast_ref7->IsActor() && !raycast_ref7->IsDead() && !MiscThings::is_enemy_to_actor(raycast_ref7));
+                                        bool test7 = (raycast_ref8 && raycast_ref8 != target && raycast_ref8->IsActor() && !raycast_ref8->IsDead() && !MiscThings::is_enemy_to_actor(raycast_ref8));
+                                        bool test8 = (raycast_ref9 && raycast_ref9 != target && raycast_ref9->IsActor() && !raycast_ref9->IsDead() && !MiscThings::is_enemy_to_actor(raycast_ref9));
+
+
+                                        
+
+
 
                                         /*
                                         DebugAPI_IMPL::DebugAPI::GetSingleton()->LinesToDraw.clear();
@@ -23935,6 +23944,22 @@ namespace MiscThings {
         old_subquest_notification_vector.clear();
     }
 
+    bool is_torch(RE::TESForm* object)
+    {
+        if (object)
+        {
+            if (object->formID == 0x1D4EC ||
+                object->formID == 0x36343 ||
+                object->formID == 0xC82C7
+                )
+                return true;
+        }
+
+        return false;
+
+    }
+
+
 
     bool is_equippable(RE::TESBoundObject* object)
     {
@@ -23943,7 +23968,7 @@ namespace MiscThings {
         std::string actions = "";
 
         if (item_form)
-            if (item_form->IsArmor() || item_form->IsWeapon() || item_form->IsAmmo() || item_form->GetFormType() == RE::FormType::Scroll)
+            if (item_form->IsArmor() || item_form->IsWeapon() || item_form->IsAmmo() || item_form->GetFormType() == RE::FormType::Scroll || is_torch(object))
                 result = true;
 
         return result;
