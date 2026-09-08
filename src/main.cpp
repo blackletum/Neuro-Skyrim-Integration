@@ -71,11 +71,8 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////DO ALL THIS
 
-//context for blood sample quest messagebox
-//fix casting not casting close-range after last 3 point raycast change
 //raised zombies count as enemies sometimes (silver hands for example)
 //check autosave after wait
-//healing potions are unusable when we are casting healing
 //some bullshit while casting ult (it cast it 500 times in a row and then bugged, looks like targeted ult bug when its on cooldown)
 //spider cave
 
@@ -86,14 +83,10 @@
 
 //jumping to pickup items from top shelves
 //dragon bow must be fixed since its possible to have 0 mana regen and spells are not enough
-//in fight after enemy dies it walks to the corpse weirdly
 
 
 //top of mountain climb (kinda hard)
-
 //(this is kinda far) fix reanimate spells being endlessly "processing" if cast while having ritual restoration scroll equipped
-
-//(HARD) maybe attempt to block dragon breath with ward spell (depending on how good it is - add a random chance)
 //(HARD) try to walk under dragon if possible to get in range for short range spells (might be useless by now)
 //autoequip bow fix (it looked like it didnt work at all after last changes)
 

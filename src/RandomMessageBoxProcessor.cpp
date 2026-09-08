@@ -266,6 +266,7 @@ namespace RandomMessageBoxProcessor {
 									if (text == "What would you like to do?")
 									{
 										if (std::size(options) > 1)
+										{
 											if (options.at(0).text == "Feed")
 											{
 												//vampiric feed choice. rephrase a little so its more clear what is happening
@@ -275,6 +276,15 @@ namespace RandomMessageBoxProcessor {
 
 												options.at(0).text = "Feed on them, reducing your vampiric hunger (they might get mad if they notice you doing it)";
 											}
+
+											if (options.at(0).text == "Harvest Blood")
+											{
+												//hermaeus mora quest harvest blood choice. rephrase a little so its more clear what is happening
+
+												options.at(0).text = "Harvest Blood (for the Discerning the Transmundane quest, you need a sample from each certain races)";
+											}
+										}
+
 									}
 
 									if (force_choice(options, text, force_type::messagebox_option))
