@@ -59,7 +59,7 @@ void set_draw_weapon_start_timestamp()
 
 bool is_weapon_draw_ready()
 {
-    return (std::chrono::steady_clock::now().time_since_epoch().count() - draw_weapon_start_timestamp) > 400000000; //0.4 second
+    return (std::chrono::steady_clock::now().time_since_epoch().count() - draw_weapon_start_timestamp) > 600000000; //0.6 second
 }
 
 

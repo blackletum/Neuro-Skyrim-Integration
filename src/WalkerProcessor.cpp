@@ -13134,13 +13134,14 @@ namespace WalkerProcessor {
         {
             if (shout_to_use)
             {
-                if (!MiscThings::is_weapon_drawn() && !(player_actor->actorState2.weaponState == RE::WEAPON_STATE::kDrawing))
-                {
-                    set_draw_weapon_start_timestamp();
-                    right_attack(); //this is "readyWeapon"
-                    //set_universal_block(0.5f);
-                    return false;
-                }
+
+                //if (!MiscThings::is_weapon_drawn() && !(player_actor->actorState2.weaponState == RE::WEAPON_STATE::kDrawing))
+                //{
+                //    set_draw_weapon_start_timestamp();
+                //    right_attack(); //this is "readyWeapon"
+                //    //set_universal_block(0.5f);
+                //    return false;
+                //}
 
                 if (do_dodge_projectile || MiscThings::cant_shout_yet())
                     return false; //wait for it to finish, shout fails most of the time while dodging
@@ -20875,7 +20876,7 @@ namespace WalkerProcessor {
                     auto player_actor = (RE::Actor*)player->AsReference();
 
                     //hide weapon
-                    if (!shout_mode && player_actor && (MiscThings::is_weapon_drawn() || player_actor->actorState2.weaponState == RE::WEAPON_STATE::kDrawing) && interaction_after_walk != 3 && !input_wants_to_cast() && !(MiscThings::has_bound_weapon_equipped(true) || MiscThings::has_bound_weapon_equipped(false)))
+                    if (!spell_ult_mode && !shout_mode && player_actor && (MiscThings::is_weapon_drawn() || player_actor->actorState2.weaponState == RE::WEAPON_STATE::kDrawing) && interaction_after_walk != 3 && !input_wants_to_cast() && !(MiscThings::has_bound_weapon_equipped(true) || MiscThings::has_bound_weapon_equipped(false)))
                     {
                         if (!tried_to_draw_weapon1 || draw_weapon_check_time1 > 2.0f)
                         {
@@ -20893,7 +20894,7 @@ namespace WalkerProcessor {
                     }
 
                     //show weapon
-                    if (!shout_mode && player_actor && !MiscThings::is_weapon_drawn() && !(player_actor->actorState2.weaponState == RE::WEAPON_STATE::kDrawing) && interaction_after_walk == 3)
+                    if (!spell_ult_mode && !shout_mode && player_actor && !MiscThings::is_weapon_drawn() && !(player_actor->actorState2.weaponState == RE::WEAPON_STATE::kDrawing) && interaction_after_walk == 3)
                     {
                         if (!tried_to_draw_weapon2 || draw_weapon_check_time2 > 2.0f)
                         {
