@@ -18026,7 +18026,6 @@ namespace MiscThings {
                 */
 
 
-
                 switch (object->formID)
                 {
 
@@ -21886,7 +21885,7 @@ namespace MiscThings {
                                         return false;
                                 }
 
-                                return true;
+                                return extra_changes->changes->changed;
                             }
                             else
                                 return true;

@@ -18828,6 +18828,19 @@ namespace WalkerProcessor {
                 }
 
                     
+                if (target_ref)
+                {
+                    auto base_obj = target_ref->GetBaseObject();
+                    if (base_obj)
+                    {
+                        if (base_obj->formID == 0x3fa7d) //egg sac with crazy large bounds for some reason
+                        {
+                            dont_use_bounds_for_close_enough = true;
+                        }
+                    }
+                }
+
+
 
                 if (wait_a_little_before_walking)
                 {
@@ -22222,6 +22235,23 @@ namespace WalkerProcessor {
                                                                                     dont_use_bounds_for_close_enough = false;
                                                                                     must_use_bounds = true;
                                                                                     return;
+                                                                                }
+
+                                                                                if (!must_use_bounds && !dont_use_bounds_for_close_enough && player->GetDistance(target_ref) > 120.0f)
+                                                                                {
+                                                                                    //try without bounds if they are big
+
+                                                                                    auto bound_max = target_ref->GetBoundMax() * target_ref->GetScale();
+                                                                                    auto bound_min = target_ref->GetBoundMin() * target_ref->GetScale();
+                                                                                    auto bound_dif = bound_max - bound_min;
+
+                                                                                    if (bound_dif.x > 100.0f || bound_dif.y > 100.0f)
+                                                                                    {
+                                                                                        locking_failed = false;
+                                                                                        dont_use_bounds_for_close_enough = true;
+                                                                                        return;
+                                                                                    }
+
                                                                                 }
 
 
