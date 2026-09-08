@@ -73,7 +73,6 @@
 
 //raised zombies count as enemies sometimes (silver hands for example)
 //check autosave after wait
-//some bullshit while casting ult (it cast it 500 times in a row and then bugged, looks like targeted ult bug when its on cooldown)
 //spider cave
 
 

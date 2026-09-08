@@ -18065,7 +18065,7 @@ namespace WalkerProcessor {
                 if (!spell_mode && MiscThings::dragon_about_to_use_dragonbreath(dragon_for_breath_test))
                 {
                     auto lesser_ward = (RE::SpellItem*)RE::TESForm::LookupByID(0x13018);
-                    if (lesser_ward && MiscThings::player_has_spell(lesser_ward) && MiscThings::get_player_mana() > 50.0f)
+                    if (lesser_ward && MiscThings::player_has_spell(lesser_ward) && MiscThings::get_player_mana() > 30.0f)
                     {
                         if (MiscThings::get_hand_contents(false) != lesser_ward)
                         {
@@ -18089,6 +18089,7 @@ namespace WalkerProcessor {
                             attack_spell_cast_timeout = 0.0f;
                             was_charging_ranged = false;
                             was_casting_spell_left = false;
+                            was_casting_spell_right = false;
                             try_dual_attack = false;
                             attack_action_time1 = 0.0f;
                             attack_action_timeout1 = 0.0f;

@@ -8682,6 +8682,23 @@ namespace MiscThings {
             return nullptr;
 
 
+        if (parent_cell && parent_cell->formID == 0x152a7) //cronvangr cave1
+        {
+            if (target && target->formID == 0x2e02e) //location switch that is somehow being shorter than normal one even though its unreachable from below
+            {
+                if (!(player_pos.z > 15.0f && player_pos.x > -1322.0f))
+                {
+                    //we are not in place where we can reach it. redirect to another location switch
+                    auto good_door = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x2e03d);
+
+                    if (good_door)
+                        return good_door;
+                }
+            }
+        }
+
+
+
         if (parent_cell && parent_cell->formID == 0x152c3) //glacial ruins for find-elder-scroll quest
         {
             if (quest->formID == 0x2d516 || quest->formID == 0x2d512)
