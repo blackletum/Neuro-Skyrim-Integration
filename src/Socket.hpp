@@ -42,6 +42,25 @@
 namespace Capabilities
 {
 
+    namespace FightKeepDistanceLong
+    {
+        constexpr char Name[] = "keep_distance_from_enemies";
+        constexpr char Desc[] =
+            R"()";
+        constexpr neurosdk_action Action = { .name = Name, .description = Desc };//, .json_schema = JsonSchema };
+    }
+
+
+    namespace FightKeepDistanceShort
+    {
+        constexpr char Name[] = "get_closer_to_enemies";
+        constexpr char Desc[] =
+            R"()";
+        constexpr neurosdk_action Action = { .name = Name, .description = Desc };//, .json_schema = JsonSchema };
+    }
+
+
+
     namespace StartSneak
     {
         constexpr char Name[] = "start_sneaking";

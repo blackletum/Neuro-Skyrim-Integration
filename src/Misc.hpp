@@ -178,6 +178,9 @@ namespace MiscThings {
     bool is_wabbajack(bool right);
 
     RE::TESObjectREFR* GetRaycastRef(RE::NiPoint3 from, RE::NiPoint3 aimVector, float distance, RE::TESObjectREFR* target = nullptr, uint32_t filter = 0);
+    float GetRaycastDistance(RE::NiPoint3 from, RE::NiPoint3 aimVector, float distance, RE::TESObjectREFR* target, uint32_t filter);
+
+    RE::NiPoint3 rotate_around_axis(RE::NiPoint3 v, RE::NiPoint3 axis, float radians);
 
     void set_time_of_death(long long timestamp);
     long long get_time_of_death();
@@ -293,7 +296,7 @@ namespace MiscThings {
 
     bool is_known_shit_door(RE::TESObjectREFR* door);
 
-    std::vector<RE::Actor*> get_player_attackers(bool raycastable_only = false, RE::TESObjectREFR* exclude_ref = nullptr, bool only_fighting = false, float range = 9000.0f);
+    std::vector<RE::Actor*> get_player_attackers(bool raycastable_only = false, RE::TESObjectREFR* exclude_ref = nullptr, bool only_fighting = false, float range = 9000.0f, bool ignore_player_not_being_target_for_fighting_enemies = false);
 
     bool is_pillar_solved(RE::TESObjectREFR* pillar);
 
@@ -317,6 +320,12 @@ namespace MiscThings {
     std::string get_object_full_info(RE::TESObjectREFR* refr, bool no_linked_chains = false);
 
     bool raycastable(RE::TESObjectREFR* object, float range, bool only_forward = true);
+    bool raycastable_with_current_spell(RE::TESObjectREFR* target, float range, int left_hand = -1, bool any_enemy = false);
+
+    bool target_cant_attack(RE::TESObjectREFR* object);
+    bool target_is_attacking_non_player(RE::TESObjectREFR* object);
+    bool target_uses_ranged_weapon(RE::TESObjectREFR* object);
+
 
     std::string get_blocking_object_name2(RE::TESObjectREFR* a_ref);
 
@@ -489,8 +498,12 @@ namespace MiscThings {
 
     bool inside_meridia_flybox();
 
-    bool is_enemy_to_actor(RE::TESObjectREFR* object, bool only_fighting = false, bool weapon_independent = false);
+    bool is_enemy_to_actor(RE::TESObjectREFR* object, bool only_fighting = false, bool weapon_independent = false, bool ignore_player_not_being_target_for_fighting_enemies = false);
     bool recursive_quest_condition_check(RE::TESConditionItem* condition, RE::TESQuest* quest, RE::TESQuestTarget* target);
+
+
+    bool ignores_friendly_hits(RE::TESObjectREFR* object);
+
 
     bool have_any_quests();
 

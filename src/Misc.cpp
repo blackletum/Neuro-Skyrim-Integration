@@ -72,6 +72,121 @@ namespace MiscThings {
 
 
 
+
+
+    RE::NiPoint3 rotate_around_axis(RE::NiPoint3 v, RE::NiPoint3 axis, float radians)
+    {
+        float pi = RE::NI_PI;
+
+        float cosTheta = std::cos(radians);
+        float sinTheta = std::sin(radians);
+
+        // Vector rotation formula components
+        RE::NiPoint3 term1 = v * cosTheta;
+        RE::NiPoint3 term2 = axis.Cross(v) * sinTheta;
+        RE::NiPoint3 term3 = axis * axis.Dot(v) * (1.0 - cosTheta);
+
+        return term1 + term2 + term3;
+    }
+
+
+
+
+
+    bool ignores_friendly_hits(RE::TESObjectREFR* object)
+    {
+        if (object && object->IsActor())
+        {
+            return object->formFlags & RE::TESForm::RecordFlags::kIgnoreFriendlyHits;
+        }
+
+        return false;
+    }
+
+
+
+    bool target_uses_ranged_weapon(RE::TESObjectREFR* object)
+    {
+        if (object && object->IsActor())
+        {
+            auto actor = (RE::Actor*)object;
+
+            auto actor_process = actor->currentProcess;
+            if (actor_process)
+            {
+                auto equipped_list = actor_process->equippedObjects;
+
+                auto equipped_right = equipped_list[1];
+                auto equipped_left = equipped_list[0];
+
+                if (equipped_right)
+                {
+                    if (equipped_right->GetFormType() == RE::FormType::Spell || equipped_right->GetFormType() == RE::FormType::Scroll)
+                        return true;
+
+                    auto weapon = (RE::TESObjectWEAP*)equipped_right;
+                    if (weapon->IsWeapon() && !weapon->IsMelee())
+                        return true;
+                }
+
+                if (equipped_left)
+                {
+                    if (equipped_left->GetFormType() == RE::FormType::Spell || equipped_left->GetFormType() == RE::FormType::Scroll)
+                        return true;
+
+                    auto weapon = (RE::TESObjectWEAP*)equipped_left;
+                    if (weapon->IsWeapon() && !weapon->IsMelee())
+                        return true;
+                }
+
+            }
+
+        }
+
+        return false;
+    }
+
+
+    bool target_is_attacking_non_player(RE::TESObjectREFR* object)
+    {
+        if (object && object->IsActor())
+        {
+            auto actor = (RE::Actor*)object;
+
+            auto target_combat_controller = actor->combatController;
+
+            if (target_combat_controller)
+            {
+                auto target_handle = target_combat_controller->targetHandle;
+                if (target_handle)
+                {
+                    auto target_ref = RE::TESObjectREFR::LookupByHandle(target_handle.native_handle());
+
+                    if (target_ref && target_ref.get() != RE::PlayerCharacter::GetSingleton())
+                        return true;
+                }
+            }
+        }
+        return false;
+    }
+
+
+    bool target_cant_attack(RE::TESObjectREFR* object)
+    {
+        if (object && object->IsActor())
+        {
+            auto actor = (RE::Actor*)object;
+            bool knocked = actor->actorState1.knockState != RE::KNOCK_STATE_ENUM::kNormal;
+            auto target_combat_controller = actor->combatController;
+
+            bool fleeing = target_combat_controller ? target_combat_controller->IsFleeing() : false;
+
+            return knocked || fleeing;
+
+        }
+        return false;
+    }
+
     bool cant_shout_yet()
     {
         auto player = RE::PlayerCharacter::GetSingleton();
@@ -642,7 +757,7 @@ namespace MiscThings {
             {
                 auto spell = (RE::SpellItem*)hand_contents;
 
-                if (WalkerProcessor::is_concentration_spell(right_hand))
+                if (true)//WalkerProcessor::is_concentration_spell(right_hand))
                 {
                     if (spell->GetDelivery() != RE::MagicSystem::Delivery::kSelf)
                     {
@@ -667,6 +782,20 @@ namespace MiscThings {
 
 
                                     auto camera_pos = camera->cameraRoot.get()->world.translate;
+                                    //auto camera_pos = player->GetPosition();
+                                    //camera_pos.z += player->eyeHeight;
+
+
+                                    auto tempO = player->Get3D(true);
+                                    auto playerRootNode = tempO ? tempO->AsNode() : nullptr;
+                                    tempO = playerRootNode ? playerRootNode->GetObjectByName("Camera1st [Cam1]") : nullptr;
+                                    auto playerCameraNode = tempO ? tempO->AsNode() : nullptr;
+
+                                    if (playerCameraNode)
+                                    {
+                                        camera_pos = playerCameraNode->world.translate;
+                                    }
+
                                     auto camera_dir = camera->cameraRoot.get()->world.rotate.GetVectorY();
 
                                     auto camera_orth_dir1 = camera->cameraRoot.get()->world.rotate.GetVectorX();
@@ -687,13 +816,19 @@ namespace MiscThings {
 
                                     //DebugAPI_IMPL::DebugAPI::GetSingleton()->Update();
 
-                                    if (raycast_ref && raycast_ref->IsActor() && raycast_ref != target && !raycast_ref->IsDead() && !MiscThings::is_enemy_to_actor(raycast_ref))
+                                    if (raycast_ref && raycast_ref->IsActor() && raycast_ref != target && !raycast_ref->IsDead() && !MiscThings::is_enemy_to_actor(raycast_ref) && !MiscThings::ignores_friendly_hits(raycast_ref))
                                     {
                                         DebugAPI_IMPL::DebugAPI::GetSingleton()->LinesToDraw.clear();
                                         return true;
                                     }
                                     else
                                     {
+                                        if (!WalkerProcessor::is_concentration_spell(right_hand))
+                                            return false; //for non-concentration, do only dot
+
+
+
+
                                         /*
                                         std::string test_starts{};
                                         for (int i = 0; i < 8; i++)
@@ -708,6 +843,7 @@ namespace MiscThings {
                                         float r2 = 50.0f;
 
                                         float coef2 = 0.5f;
+
 
 
 
@@ -759,7 +895,7 @@ namespace MiscThings {
                                         //DebugAPI_IMPL::DrawDebug::draw_line(pos1 + camera_dir_tilted4 * range2, pos4 + camera_dir_tilted4 * range2 + small_up, 5.0f, color);
                                         //DebugAPI_IMPL::DebugAPI::GetSingleton()->Update();
                                         
-                                        float player_target_distance = player->GetDistance(target) + 100.0f;
+                                        float player_target_distance = target ? player->GetDistance(target) + 100.0f : FLT_MAX;
 
                                         if (player_target_distance < range2)
                                             range2 = player_target_distance;
@@ -769,11 +905,21 @@ namespace MiscThings {
                                         auto raycast_ref3 = MiscThings::GetRaycastRef(pos2, camera_dir_tilted2, range2, nullptr, 0b00000000000010010000000000000110);
                                         auto raycast_ref4 = MiscThings::GetRaycastRef(pos3, camera_dir_tilted3, range2, nullptr, 0b00000000000010010000000000000110);
                                         auto raycast_ref5 = MiscThings::GetRaycastRef(pos4, camera_dir_tilted4, range2, nullptr, 0b00000000000010010000000000000110);
-
                                         auto raycast_ref6 = MiscThings::GetRaycastRef(pos5, camera_dir_tilted5, range2, nullptr, 0b00000000000010010000000000000110);
                                         auto raycast_ref7 = MiscThings::GetRaycastRef(pos6, camera_dir_tilted6, range2, nullptr, 0b00000000000010010000000000000110);
                                         auto raycast_ref8 = MiscThings::GetRaycastRef(pos7, camera_dir_tilted7, range2, nullptr, 0b00000000000010010000000000000110);
                                         auto raycast_ref9 = MiscThings::GetRaycastRef(pos8, camera_dir_tilted8, range2, nullptr, 0b00000000000010010000000000000110);
+
+
+                                        auto raycast_ref21 = MiscThings::GetRaycastRef(hand_pos, camera_dir_tilted1, range2, nullptr, 0b00000000000010010000000000000110);
+                                        auto raycast_ref31 = MiscThings::GetRaycastRef(hand_pos, camera_dir_tilted2, range2, nullptr, 0b00000000000010010000000000000110);
+                                        auto raycast_ref41 = MiscThings::GetRaycastRef(hand_pos, camera_dir_tilted3, range2, nullptr, 0b00000000000010010000000000000110);
+                                        auto raycast_ref51 = MiscThings::GetRaycastRef(hand_pos, camera_dir_tilted4, range2, nullptr, 0b00000000000010010000000000000110);
+                                        auto raycast_ref61 = MiscThings::GetRaycastRef(hand_pos, camera_dir_tilted5, range2, nullptr, 0b00000000000010010000000000000110);
+                                        auto raycast_ref71 = MiscThings::GetRaycastRef(hand_pos, camera_dir_tilted6, range2, nullptr, 0b00000000000010010000000000000110);
+                                        auto raycast_ref81 = MiscThings::GetRaycastRef(hand_pos, camera_dir_tilted7, range2, nullptr, 0b00000000000010010000000000000110);
+                                        auto raycast_ref91 = MiscThings::GetRaycastRef(hand_pos, camera_dir_tilted8, range2, nullptr, 0b00000000000010010000000000000110);
+
 
 
 
@@ -781,15 +927,44 @@ namespace MiscThings {
                                         bool test2 = (raycast_ref3 && raycast_ref3 != target && raycast_ref3->IsActor() && !raycast_ref3->IsDead() && !MiscThings::is_enemy_to_actor(raycast_ref3));
                                         bool test3 = (raycast_ref4 && raycast_ref4 != target && raycast_ref4->IsActor() && !raycast_ref4->IsDead() && !MiscThings::is_enemy_to_actor(raycast_ref4));
                                         bool test4 = (raycast_ref5 && raycast_ref5 != target && raycast_ref5->IsActor() && !raycast_ref5->IsDead() && !MiscThings::is_enemy_to_actor(raycast_ref5));
-
                                         bool test5 = (raycast_ref6 && raycast_ref6 != target && raycast_ref6->IsActor() && !raycast_ref6->IsDead() && !MiscThings::is_enemy_to_actor(raycast_ref6));
                                         bool test6 = (raycast_ref7 && raycast_ref7 != target && raycast_ref7->IsActor() && !raycast_ref7->IsDead() && !MiscThings::is_enemy_to_actor(raycast_ref7));
                                         bool test7 = (raycast_ref8 && raycast_ref8 != target && raycast_ref8->IsActor() && !raycast_ref8->IsDead() && !MiscThings::is_enemy_to_actor(raycast_ref8));
                                         bool test8 = (raycast_ref9 && raycast_ref9 != target && raycast_ref9->IsActor() && !raycast_ref9->IsDead() && !MiscThings::is_enemy_to_actor(raycast_ref9));
 
+                                        bool test11 = (raycast_ref21 && raycast_ref21 != target && raycast_ref21->IsActor() && !raycast_ref21->IsDead() && !MiscThings::is_enemy_to_actor(raycast_ref21) && !MiscThings::ignores_friendly_hits(raycast_ref));
+                                        bool test21 = (raycast_ref31 && raycast_ref31 != target && raycast_ref31->IsActor() && !raycast_ref31->IsDead() && !MiscThings::is_enemy_to_actor(raycast_ref31) && !MiscThings::ignores_friendly_hits(raycast_ref));
+                                        bool test31 = (raycast_ref41 && raycast_ref41 != target && raycast_ref41->IsActor() && !raycast_ref41->IsDead() && !MiscThings::is_enemy_to_actor(raycast_ref41) && !MiscThings::ignores_friendly_hits(raycast_ref));
+                                        bool test41 = (raycast_ref51 && raycast_ref51 != target && raycast_ref51->IsActor() && !raycast_ref51->IsDead() && !MiscThings::is_enemy_to_actor(raycast_ref51) && !MiscThings::ignores_friendly_hits(raycast_ref));
+                                        bool test51 = (raycast_ref61 && raycast_ref61 != target && raycast_ref61->IsActor() && !raycast_ref61->IsDead() && !MiscThings::is_enemy_to_actor(raycast_ref61) && !MiscThings::ignores_friendly_hits(raycast_ref));
+                                        bool test61 = (raycast_ref71 && raycast_ref71 != target && raycast_ref71->IsActor() && !raycast_ref71->IsDead() && !MiscThings::is_enemy_to_actor(raycast_ref71) && !MiscThings::ignores_friendly_hits(raycast_ref));
+                                        bool test71 = (raycast_ref81 && raycast_ref81 != target && raycast_ref81->IsActor() && !raycast_ref81->IsDead() && !MiscThings::is_enemy_to_actor(raycast_ref81) && !MiscThings::ignores_friendly_hits(raycast_ref));
+                                        bool test81 = (raycast_ref91 && raycast_ref91 != target && raycast_ref91->IsActor() && !raycast_ref91->IsDead() && !MiscThings::is_enemy_to_actor(raycast_ref91) && !MiscThings::ignores_friendly_hits(raycast_ref));
 
                                         
+                                        /*
+                                        DebugAPI_IMPL::DebugAPI::GetSingleton()->LinesToDraw.clear();
+                                        DebugAPI_IMPL::DrawDebug::draw_line(camera_pos + camera_dir, camera_pos + camera_dir * 100.0f);
+                                        DebugAPI_IMPL::DrawDebug::draw_line(pos1, pos1 + camera_dir_tilted1 * range2, 5.0f, test1 ? DebugAPI_IMPL::DrawDebug::Colors::GRN : DebugAPI_IMPL::DrawDebug::Colors::RED);
+                                        DebugAPI_IMPL::DrawDebug::draw_line(pos2, pos2 + camera_dir_tilted2 * range2, 5.0f, test2 ? DebugAPI_IMPL::DrawDebug::Colors::GRN : DebugAPI_IMPL::DrawDebug::Colors::RED);
+                                        DebugAPI_IMPL::DrawDebug::draw_line(pos3, pos3 + camera_dir_tilted3 * range2, 5.0f, test3 ? DebugAPI_IMPL::DrawDebug::Colors::GRN : DebugAPI_IMPL::DrawDebug::Colors::RED);
+                                        DebugAPI_IMPL::DrawDebug::draw_line(pos4, pos4 + camera_dir_tilted4 * range2, 5.0f, test4 ? DebugAPI_IMPL::DrawDebug::Colors::GRN : DebugAPI_IMPL::DrawDebug::Colors::RED);
+                                        DebugAPI_IMPL::DrawDebug::draw_line(pos5, pos5 + camera_dir_tilted5 * range2, 5.0f, test5 ? DebugAPI_IMPL::DrawDebug::Colors::GRN : DebugAPI_IMPL::DrawDebug::Colors::RED);
+                                        DebugAPI_IMPL::DrawDebug::draw_line(pos6, pos6 + camera_dir_tilted6 * range2, 5.0f, test6 ? DebugAPI_IMPL::DrawDebug::Colors::GRN : DebugAPI_IMPL::DrawDebug::Colors::RED);
+                                        DebugAPI_IMPL::DrawDebug::draw_line(pos7, pos7 + camera_dir_tilted7 * range2, 5.0f, test7 ? DebugAPI_IMPL::DrawDebug::Colors::GRN : DebugAPI_IMPL::DrawDebug::Colors::RED);
+                                        DebugAPI_IMPL::DrawDebug::draw_line(pos8, pos8 + camera_dir_tilted8 * range2, 5.0f, test8 ? DebugAPI_IMPL::DrawDebug::Colors::GRN : DebugAPI_IMPL::DrawDebug::Colors::RED);
+                                       
+                                        DebugAPI_IMPL::DrawDebug::draw_line(hand_pos, hand_pos + camera_dir_tilted1 * range2, 5.0f, test11 ? DebugAPI_IMPL::DrawDebug::Colors::GRN : DebugAPI_IMPL::DrawDebug::Colors::RED);
+                                        DebugAPI_IMPL::DrawDebug::draw_line(hand_pos, hand_pos + camera_dir_tilted2 * range2, 5.0f, test21 ? DebugAPI_IMPL::DrawDebug::Colors::GRN : DebugAPI_IMPL::DrawDebug::Colors::RED);
+                                        DebugAPI_IMPL::DrawDebug::draw_line(hand_pos, hand_pos + camera_dir_tilted3 * range2, 5.0f, test31 ? DebugAPI_IMPL::DrawDebug::Colors::GRN : DebugAPI_IMPL::DrawDebug::Colors::RED);
+                                        DebugAPI_IMPL::DrawDebug::draw_line(hand_pos, hand_pos + camera_dir_tilted4 * range2, 5.0f, test41 ? DebugAPI_IMPL::DrawDebug::Colors::GRN : DebugAPI_IMPL::DrawDebug::Colors::RED);
+                                        DebugAPI_IMPL::DrawDebug::draw_line(hand_pos, hand_pos + camera_dir_tilted5 * range2, 5.0f, test51 ? DebugAPI_IMPL::DrawDebug::Colors::GRN : DebugAPI_IMPL::DrawDebug::Colors::RED);
+                                        DebugAPI_IMPL::DrawDebug::draw_line(hand_pos, hand_pos + camera_dir_tilted6 * range2, 5.0f, test61 ? DebugAPI_IMPL::DrawDebug::Colors::GRN : DebugAPI_IMPL::DrawDebug::Colors::RED);
+                                        DebugAPI_IMPL::DrawDebug::draw_line(hand_pos, hand_pos + camera_dir_tilted7 * range2, 5.0f, test71 ? DebugAPI_IMPL::DrawDebug::Colors::GRN : DebugAPI_IMPL::DrawDebug::Colors::RED);
+                                        DebugAPI_IMPL::DrawDebug::draw_line(hand_pos, hand_pos + camera_dir_tilted8 * range2, 5.0f, test81 ? DebugAPI_IMPL::DrawDebug::Colors::GRN : DebugAPI_IMPL::DrawDebug::Colors::RED);
 
+                                        DebugAPI_IMPL::DebugAPI::GetSingleton()->Update();
+                                        */
 
 
                                         /*
@@ -806,7 +981,9 @@ namespace MiscThings {
                                         DebugAPI_IMPL::DebugAPI::GetSingleton()->Update();
                                         */
 
-                                        if (test1 || test2 || test3 || test4 || test5 || test6 || test7 || test8)
+                                        if (test1 || test2 || test3 || test4 || test5 || test6 || test7 || test8 ||
+                                            test11 || test21 || test31 || test41 || test51 || test61 || test71 || test81
+                                            )
                                         {
                                             return true;
                                         }
@@ -853,6 +1030,31 @@ namespace MiscThings {
 
                             if (projectile_ref->shooter && projectile_ref->shooter.get() && projectile_ref->shooter.get().get() == player)
                             {
+
+                                auto tempO = player->Get3D(true);
+                                auto playerRootNode = tempO ? tempO->AsNode() : nullptr;
+
+
+                                auto temp = MiscThings::niav_recurse(playerRootNode);
+                                auto temp_names = MiscThings::niav_recurse_names(playerRootNode);
+
+
+
+                                tempO = playerRootNode ? playerRootNode->GetObjectByName("Camera1st [Cam1]") : nullptr;
+                                auto playerCameraNode = tempO ? tempO->AsNode() : nullptr;
+
+                                if (playerCameraNode)
+                                {
+                                    auto camera_pos_hands = playerCameraNode->world.translate;
+                                    auto projectile_pos = projectile_ref->GetPosition();
+
+                                    auto delta_pos = projectile_pos - camera_pos_hands;
+
+                                    bool stop_here = false;
+                                }
+                                    
+
+
                                 //friendly_fire_test(true);
                                 return RE::BSContainer::ForEachResult::kContinue;
                             }
@@ -12448,6 +12650,187 @@ namespace MiscThings {
 
 
 
+    bool raycastable_with_current_spell(RE::TESObjectREFR* target, float range, int left_hand, bool any_enemy)
+    {
+        auto player = RE::PlayerCharacter::GetSingleton();
+
+        if (target && player)
+        {
+            float pi = RE::NI_PI;
+
+
+            auto camera_pos = RE::PlayerCamera::GetSingleton()->pos;
+
+            auto aim_pos = WalkerProcessor::get_estimate_aim_pos(target, true, false);
+
+            auto delta_pos = aim_pos - camera_pos;
+
+            auto delta_pos_norm = delta_pos / delta_pos.Length();
+            RE::NiPoint3 orth_shiftX = { -delta_pos_norm.y, delta_pos_norm.x, 0.0f };
+            RE::NiPoint3 orth_shiftY = MiscThings::rotate_around_axis(orth_shiftX, delta_pos_norm, pi / 2);
+            orth_shiftX.Unitize();
+            orth_shiftY.Unitize();
+
+
+            RE::NiPoint3 orth_shiftZ = { 0.0f, 0.0f, 30.0f };
+
+            auto camera_pos_hands = camera_pos;
+            auto camera_pos_hand_right = camera_pos;
+            auto camera_pos_hand_left = camera_pos;
+
+            auto tempO = player->Get3D(true);
+            auto playerRootNode = tempO ? tempO->AsNode() : nullptr;
+
+
+            auto temp = MiscThings::niav_recurse(playerRootNode);
+            auto temp_names = MiscThings::niav_recurse_names(playerRootNode);
+
+
+
+            tempO = playerRootNode ? playerRootNode->GetObjectByName("Camera1st [Cam1]") : nullptr;
+            auto playerCameraNode = tempO ? tempO->AsNode() : nullptr;
+
+            if (playerCameraNode)
+                camera_pos_hands = playerCameraNode->world.translate;
+
+            float r_proj = 15.0f;
+
+            auto hand_right = MiscThings::get_hand_contents(true);
+
+            if (hand_right)
+            {
+                if (hand_right->formType == RE::FormType::Spell || hand_right->formType == RE::FormType::Scroll)
+                {
+                    auto spell = (RE::SpellItem*)hand_right;
+
+                    if (spell->avEffectSetting && spell->avEffectSetting->data.projectileBase)
+                    {
+                        if (spell->avEffectSetting->data.projectileBase->data.collisionRadius > 0.0f)
+                            r_proj = spell->avEffectSetting->data.projectileBase->data.collisionRadius + 5.0f;
+                    }
+                }
+            }
+
+
+            auto camera_pos_right = camera_pos_hands - orth_shiftX * 12.6857910f - orth_shiftY * 7.87097168f + delta_pos_norm * 53.942627f;
+            auto camera_pos_left = camera_pos_hands + orth_shiftX * 12.6857910f - orth_shiftY * 7.87097168f + delta_pos_norm * 53.942627f;
+
+            auto delta_pos_right = aim_pos - camera_pos_right;
+            auto delta_pos_left = aim_pos - camera_pos_left;
+
+
+            auto delta_pos_right_norm = delta_pos_right;
+            auto delta_pos_left_norm = delta_pos_left;
+            delta_pos_right_norm.Unitize();
+            delta_pos_left_norm.Unitize();
+
+            //now update, shifting it behind slightly to account for potential immidiate hit on spawn of projectile
+            camera_pos_right -= delta_pos_right_norm * 20.0f;
+            camera_pos_left -= delta_pos_left_norm * 20.0f;
+
+            delta_pos_right = aim_pos - camera_pos_right;
+            delta_pos_left = aim_pos - camera_pos_left;
+
+
+
+
+            std::vector<RE::NiPoint3> camera_subpos_right{};
+            std::vector<RE::NiPoint3> camera_subpos_left{};
+
+            RE::NiPoint3 shift_base = orth_shiftX * r_proj;
+
+
+
+
+            for (int i = 0; i < 8; i++)
+            {
+                RE::NiPoint3 shift = MiscThings::rotate_around_axis(shift_base, delta_pos_right_norm, pi / 4 * i);
+                camera_subpos_right.push_back(camera_pos_right + shift);
+                camera_subpos_left.push_back(camera_pos_left + shift);
+            }
+
+            //center, right, left
+            float raycast_distance = MiscThings::GetRaycastDistance(camera_pos, delta_pos, 5000.0f, target, 0b00000000000010010000000000000110);
+            float raycast_distance_right = MiscThings::GetRaycastDistance(camera_pos_right, delta_pos_right, 5000.0f, target, 0b00000000000010010000000000000110);
+            float raycast_distance_left = MiscThings::GetRaycastDistance(camera_pos_left, delta_pos_left, 5000.0f, target, 0b00000000000010010000000000000110);
+
+
+            auto raycast_ref = MiscThings::GetRaycastRef(camera_pos, delta_pos, 5000.0f, target, 0b00000000000010010000000000000110);
+            auto raycast_ref_right = MiscThings::GetRaycastRef(camera_pos_right, delta_pos_right, 5000.0f, target, 0b00000000000010010000000000000110);
+            auto raycast_ref_left = MiscThings::GetRaycastRef(camera_pos_left, delta_pos_left, 5000.0f, target, 0b00000000000010010000000000000110);
+
+
+            
+            /*
+            DebugAPI_IMPL::DebugAPI::GetSingleton()->LinesToDraw.clear();
+            DebugAPI_IMPL::DrawDebug::draw_line(camera_pos, camera_pos + delta_pos, 10.0f, raycast_ref == test_hound ? DebugAPI_IMPL::DrawDebug::Colors::GRN : DebugAPI_IMPL::DrawDebug::Colors::RED);
+
+            for (auto& subpos : camera_subpos_right)
+            {
+                float subraycast_distance = MiscThings::GetRaycastDistance(subpos, delta_pos_right, 5000.0f, test_hound, 0b00000000000010010000000000000110);
+                DebugAPI_IMPL::DrawDebug::draw_line(subpos, subpos + delta_pos_right, 5.0f, raycast_ref_right == test_hound && subraycast_distance >= (raycast_distance_right - 100.0f) ? DebugAPI_IMPL::DrawDebug::Colors::GRN : DebugAPI_IMPL::DrawDebug::Colors::RED);
+            }
+
+            for (auto& subpos : camera_subpos_left)
+            {
+                float subraycast_distance = MiscThings::GetRaycastDistance(subpos, delta_pos_left, 5000.0f, test_hound, 0b00000000000010010000000000000110);
+                DebugAPI_IMPL::DrawDebug::draw_line(subpos, subpos + delta_pos_left, 5.0f, raycast_ref_left == test_hound && subraycast_distance >= (raycast_distance_left - 100.0f) ? DebugAPI_IMPL::DrawDebug::Colors::GRN : DebugAPI_IMPL::DrawDebug::Colors::RED);
+            }
+
+            DebugAPI_IMPL::DebugAPI::GetSingleton()->Update();
+            */
+
+
+            if (raycast_ref != target && (!any_enemy || !MiscThings::is_enemy_to_actor(raycast_ref, false, true, true)))
+                return false; //center failed
+
+            if (left_hand != 1 && (raycast_ref_right != target && (!any_enemy || !MiscThings::is_enemy_to_actor(raycast_ref_right, false, true, true))))
+                return false;
+
+            if (left_hand != 0 && (raycast_ref_left != target && (!any_enemy || !MiscThings::is_enemy_to_actor(raycast_ref_left, false, true, true))))
+                return false;
+
+
+            if (left_hand != 1)
+            {
+                for (auto& subpos : camera_subpos_right)
+                {
+                    float subraycast_distance = MiscThings::GetRaycastDistance(subpos, delta_pos_right, 5000.0f, target, 0b00000000000010010000000000000110);
+                    auto subraycast_ref = MiscThings::GetRaycastRef(subpos, delta_pos_right, 5000.0f, target, 0b00000000000010010000000000000110);
+
+                    if (subraycast_distance < (raycast_distance_right - 100.0f) && (!any_enemy || !MiscThings::is_enemy_to_actor(raycast_ref_right, false, true, true)))
+                        return false; //subraycast failed
+
+                    //DebugAPI_IMPL::DrawDebug::draw_line(subpos, subpos + delta_pos_right, 5.0f, raycast_ref_right == target && subraycast_distance >= (raycast_distance_right - 100.0f) ? DebugAPI_IMPL::DrawDebug::Colors::GRN : DebugAPI_IMPL::DrawDebug::Colors::RED);
+                }
+            }
+
+
+            if (left_hand != 0) //dont check if we only need right hand
+            {
+                for (auto& subpos : camera_subpos_left)
+                {
+                    float subraycast_distance = MiscThings::GetRaycastDistance(subpos, delta_pos_left, 5000.0f, target, 0b00000000000010010000000000000110);
+                    auto subraycast_ref = MiscThings::GetRaycastRef(subpos, delta_pos_left, 5000.0f, target, 0b00000000000010010000000000000110);
+
+                    if (subraycast_distance < (raycast_distance_left - 100.0f) && (!any_enemy || !MiscThings::is_enemy_to_actor(raycast_ref_left, false, true, true)))
+                        return false; //subraycast failed
+
+                    //DebugAPI_IMPL::DrawDebug::draw_line(subpos, subpos + delta_pos_left, 5.0f, raycast_ref_left == target && subraycast_distance >= (raycast_distance_left - 100.0f) ? DebugAPI_IMPL::DrawDebug::Colors::GRN : DebugAPI_IMPL::DrawDebug::Colors::RED);
+                }
+            }
+
+
+            //all hit
+            return true;
+        }
+
+
+        return false;
+    }
+
+
+
 
 
     bool raycastable(RE::TESObjectREFR* object, float range, bool only_forward)
@@ -13408,6 +13791,23 @@ namespace MiscThings {
 
 
         return raycast_result.hitObjectRef;
+    }
+
+
+    float GetRaycastDistance(RE::NiPoint3 from, RE::NiPoint3 aimVector, float distance, RE::TESObjectREFR* target, uint32_t filter)
+    {
+        auto player = RE::PlayerCharacter::GetSingleton();
+        auto player_actor = (RE::Actor*)player->AsReference();
+
+        MiscThings::RayCastResult raycast_result{};
+
+        if (filter)
+            raycast_result = RayCast_debug(from, aimVector, distance, player_actor, target, filter);
+        else
+            raycast_result = RayCast(from, aimVector, distance, player_actor, target);
+
+
+        return raycast_result.distance;
     }
 
 
@@ -25817,7 +26217,10 @@ namespace MiscThings {
 
                 auto test_av = what_does_potion_restore(alchemy_item);
 
-                if (test_av != RE::ActorValue::kNone)
+                //after "fire within" passive effect that makes your fire breath 25% stronger turned out to have everything wrapped up like it is a hp modifier, decided to limit this check to elemental resistances.
+                //this is bad for many other effects. maybe upgrade player_has_potion_effect later but its hard to tell which random passive ability will have some random actor value which is not wrapped as temportary, and wont let eat corresponding potion
+                if (test_av == RE::ActorValue::kResistMagic || test_av == RE::ActorValue::kResistFrost || test_av == RE::ActorValue::kResistFire || test_av == RE::ActorValue::kResistShock)
+                //if (test_av != RE::ActorValue::kNone)
                 {
                     if (player_has_potion_effect(test_av))
                     {
@@ -29959,23 +30362,29 @@ namespace MiscThings {
 
         offensive_shouts.push_back((RE::TESShout*)RE::TESForm::LookupByID(0x13e07)); //unrelenting force //duplicated for greater chance
         offensive_shouts.push_back((RE::TESShout*)RE::TESForm::LookupByID(0x13e07)); //unrelenting force
-        offensive_shouts.push_back((RE::TESShout*)RE::TESForm::LookupByID(0x70981)); // disarm
-        offensive_shouts.push_back((RE::TESShout*)RE::TESForm::LookupByID(0x2395a)); // dismay
         offensive_shouts.push_back((RE::TESShout*)RE::TESForm::LookupByID(0x3f9ea)); // fire breath
         offensive_shouts.push_back((RE::TESShout*)RE::TESForm::LookupByID(0x3f9ea)); // fire breath
         offensive_shouts.push_back((RE::TESShout*)RE::TESForm::LookupByID(0x5d16b)); // frost breath
         offensive_shouts.push_back((RE::TESShout*)RE::TESForm::LookupByID(0x5d16b)); // frost breath
-        offensive_shouts.push_back((RE::TESShout*)RE::TESForm::LookupByID(0x70980)); // ice form
-        offensive_shouts.push_back((RE::TESShout*)RE::TESForm::LookupByID(0x7097c)); // marked for death
-        offensive_shouts.push_back((RE::TESShout*)RE::TESForm::LookupByID(0x48ac9)); // slow time
 
-        auto sky = RE::Sky::GetSingleton();
+        if (Observer::get_same_place_death_count() == 0)
+        {
+            //use these only if its allowed to fuck around with questionable shouts
+            offensive_shouts.push_back((RE::TESShout*)RE::TESForm::LookupByID(0x70981)); // disarm
+            offensive_shouts.push_back((RE::TESShout*)RE::TESForm::LookupByID(0x2395a)); // dismay
+            offensive_shouts.push_back((RE::TESShout*)RE::TESForm::LookupByID(0x70980)); // ice form
+            offensive_shouts.push_back((RE::TESShout*)RE::TESForm::LookupByID(0x7097c)); // marked for death
+            offensive_shouts.push_back((RE::TESShout*)RE::TESForm::LookupByID(0x48ac9)); // slow time
 
-        if (sky && sky->mode == RE::Sky::Mode::kFull)
-            offensive_shouts.push_back((RE::TESShout*)RE::TESForm::LookupByID(0x7097d)); // storm call
-        
-        if (is_unenchanted_weapon(true) || is_unenchanted_weapon(false))
-            offensive_shouts.push_back((RE::TESShout*)RE::TESForm::LookupByID(0x32921)); // elemental fury
+            auto sky = RE::Sky::GetSingleton();
+
+            if (sky && sky->mode == RE::Sky::Mode::kFull)
+                offensive_shouts.push_back((RE::TESShout*)RE::TESForm::LookupByID(0x7097d)); // storm call
+
+            if (is_unenchanted_weapon(true) || is_unenchanted_weapon(false))
+                offensive_shouts.push_back((RE::TESShout*)RE::TESForm::LookupByID(0x32921)); // elemental fury
+        }
+
 
 
         auto temp = get_available_spells(); //just refresh
@@ -30720,11 +31129,14 @@ namespace MiscThings {
     }
 
 
-    bool is_enemy_to_actor(RE::TESObjectREFR* object, bool only_fighting, bool weapon_independent)
+    bool is_enemy_to_actor(RE::TESObjectREFR* object, bool only_fighting, bool weapon_independent, bool ignore_player_not_being_target_for_fighting_enemies)
     {
         if (object && object->IsActor() && !object->IsDead())
         {
             auto actor_refr = (RE::Actor*)object;
+
+            if (actor_refr->actorState2.reanimating)
+                return false;
 
             auto controller = actor_refr->combatController;
 
@@ -30758,7 +31170,7 @@ namespace MiscThings {
 
                     if (is_enemy == RE::FIGHT_REACTION::kEnemy)
                     {
-                        if (controller->startedCombat)
+                        if (controller->startedCombat || controller->IsFleeing())
                             return true;
                     }
                 }
@@ -30770,7 +31182,7 @@ namespace MiscThings {
             if (actor_refr->IsReanimated())
                 only_fighting = true;
 
-            if (!only_fighting && (WalkerProcessor::is_sneak_on() || weapon_independent || WalkerProcessor::has_bow_equipped(WalkerProcessor::get_current_active_hand()) || WalkerProcessor::has_crossbow_equipped(WalkerProcessor::get_current_active_hand())))
+            if (((ignore_player_not_being_target_for_fighting_enemies && controller) || !only_fighting) && (WalkerProcessor::is_sneak_on() || weapon_independent || WalkerProcessor::has_bow_equipped(WalkerProcessor::get_current_active_hand()) || WalkerProcessor::has_crossbow_equipped(WalkerProcessor::get_current_active_hand())))
             {
                 bool aggressive = false;
 
@@ -31222,7 +31634,7 @@ namespace MiscThings {
     }
 
 
-    std::vector<RE::Actor*> get_player_attackers(bool raycastable_only, RE::TESObjectREFR* exclude_ref, bool only_fighting, float range)
+    std::vector<RE::Actor*> get_player_attackers(bool raycastable_only, RE::TESObjectREFR* exclude_ref, bool only_fighting, float range, bool ignore_player_not_being_target_for_fighting_enemies)
     {
         std::vector<RE::Actor*> result{};
 
@@ -31318,7 +31730,7 @@ namespace MiscThings {
 
                     
 
-                    if (is_enemy_to_actor(a_ref, only_fighting) && (!raycastable_only || raycastable(a_ref, range, false)))
+                    if (is_enemy_to_actor(a_ref, only_fighting, false, true) && (!raycastable_only || raycastable(a_ref, range, false)))
                     {
 
                         auto target_actor = (RE::Actor*)a_ref;

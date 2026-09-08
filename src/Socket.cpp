@@ -169,6 +169,8 @@ neurosdk_action ActionsList[] = {
                                     Capabilities::GetIngameTime::Action,
                                     Capabilities::StartSneak::Action,
                                     Capabilities::StopSneak::Action,
+                                    Capabilities::FightKeepDistanceLong::Action,
+                                    Capabilities::FightKeepDistanceShort::Action,
 
                                     Capabilities::ConfirmCharacter::Action,
                                     Capabilities::ChangeCharacter::Action,
@@ -226,7 +228,8 @@ neurosdk_action ActionsListNoForces[] = {
                                     Capabilities::GetIngameTime::Action,
                                     Capabilities::StartSneak::Action,
                                     Capabilities::StopSneak::Action,
-
+                                    Capabilities::FightKeepDistanceLong::Action,
+                                    Capabilities::FightKeepDistanceShort::Action,
 
                                     Capabilities::ConfirmCharacter::Action,
                                     Capabilities::ChangeCharacter::Action,
@@ -286,6 +289,9 @@ neurosdk_action ActionsListNoForces2[] = { //these are for moments when we cant 
                                     //Capabilities::GetSpells::Action,
                                     Capabilities::StartSneak::Action,
                                     Capabilities::StopSneak::Action,
+                                    Capabilities::FightKeepDistanceLong::Action,
+                                    Capabilities::FightKeepDistanceShort::Action,
+
 
                                     Capabilities::CastSpell::Action,
                                     Capabilities::EquipSpell::Action,
@@ -767,6 +773,21 @@ bool neuro::NeuroSocket::register_allowed_actions(bool reconnect)
                             {
                                 actions_to_register[action_pos] = Capabilities::CastSpell::Action; action_pos++;
                                 actions_to_register[action_pos] = Capabilities::EquipSpell::Action; action_pos++;
+                            }
+
+
+
+                            if (WalkerProcessor::is_fighting())
+                            {
+                                if (Observer::get_keep_distance_mode())
+                                {
+                                    actions_to_register[action_pos] = Capabilities::FightKeepDistanceShort::Action; action_pos++;
+                                }
+                                else
+                                {
+                                    actions_to_register[action_pos] = Capabilities::FightKeepDistanceLong::Action; action_pos++;
+                                }
+
                             }
 
 
@@ -1659,6 +1680,17 @@ bool neuro::NeuroSocket::Tick(float dtime) //const neurosdk_message_action_t& aC
                             if (name == Capabilities::StopSneak::Name)
                             {
                                 command_result = WalkerProcessor::turn_sneak_off();
+                            }
+
+
+                            if (name == Capabilities::FightKeepDistanceLong::Name)
+                            {
+                                command_result = Observer::set_keep_distance_mode(true);
+                            }
+
+                            if (name == Capabilities::FightKeepDistanceShort::Name)
+                            {
+                                command_result = Observer::set_keep_distance_mode(false);
                             }
 
 

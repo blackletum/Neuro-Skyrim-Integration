@@ -71,7 +71,7 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////DO ALL THIS
 
-
+//context for blood sample quest messagebox
 //fix casting not casting close-range after last 3 point raycast change
 //raised zombies count as enemies sometimes (silver hands for example)
 //check autosave after wait
@@ -350,6 +350,74 @@ bool unregister_start_sneak()
 
     return false;
 }
+
+
+
+
+
+bool register_keep_distance_short()
+{
+    neurosdk_action actions[] = { Capabilities::FightKeepDistanceShort::Action };
+
+    if (m_neuroSocket->register_actions(actions, std::size(actions)))
+        return true;
+
+    return false;
+}
+
+bool unregister_keep_distance_short()
+{
+    const char* action_names[] = { Capabilities::FightKeepDistanceShort::Name };
+
+    if (m_neuroSocket->unregister_actions(action_names, std::size(action_names)))
+        return true;
+
+    return false;
+}
+
+
+
+bool register_keep_distance_long()
+{
+    neurosdk_action actions[] = { Capabilities::FightKeepDistanceLong::Action };
+
+    if (m_neuroSocket->register_actions(actions, std::size(actions)))
+        return true;
+
+    return false;
+}
+
+bool unregister_keep_distance_long()
+{
+    const char* action_names[] = { Capabilities::FightKeepDistanceLong::Name };
+
+    if (m_neuroSocket->unregister_actions(action_names, std::size(action_names)))
+        return true;
+
+    return false;
+}
+
+
+bool is_keep_distance_long_action_registered()
+{
+    std::string name = Capabilities::FightKeepDistanceLong::Name;
+
+    return neuro::get_action_status(name);
+}
+
+
+bool is_keep_distance_short_action_registered()
+{
+    std::string name = Capabilities::FightKeepDistanceShort::Name;
+
+    return neuro::get_action_status(name);
+}
+
+
+
+
+
+
 
 
 

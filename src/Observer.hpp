@@ -56,6 +56,13 @@ namespace Observer {
 
 	float get_last_saved_time();
 
+
+	bool get_keep_distance_mode();
+	std::pair<bool, std::string> set_keep_distance_mode(bool set);
+
+
+	int get_same_place_death_count();
+
 	void notify_player_hit_by_weapon(RE::TESForm* weapon);
 
 

@@ -113,7 +113,11 @@ namespace RandomMessageBoxProcessor {
 							the_option.text = var_text.GetString();
 							options.push_back(the_option);
 
-							MenuOption option = { i, var_text.GetString()};
+							std::string text_string = var_text.GetString();
+
+							MiscThings::clean_controls_from_string(&text_string);
+
+							MenuOption option = { i, text_string};
 							result.push_back(option);
 						}
 				}
@@ -257,7 +261,23 @@ namespace RandomMessageBoxProcessor {
 								}
 								else
 								{
-									if (force_choice(get_options(), text, force_type::messagebox_option))
+									auto options = get_options();
+
+									if (text == "What would you like to do?")
+									{
+										if (std::size(options) > 1)
+											if (options.at(0).text == "Feed")
+											{
+												//vampiric feed choice. rephrase a little so its more clear what is happening
+
+												if (options.at(1).text.length() > 4)
+													options.at(1).text.insert(4, " to");
+
+												options.at(0).text = "Feed on them, reducing your vampiric hunger (they might get mad if they notice you doing it)";
+											}
+									}
+
+									if (force_choice(options, text, force_type::messagebox_option))
 										message_box_request_sent = true;
 								}
 							}

@@ -13,6 +13,10 @@
 
 namespace WalkerProcessor {
 
+    long long last_switch_to_nearest_enemy_timestamp = 0;
+
+    bool wait_a_little_before_walking = false;
+    float wait_a_little_before_walking_time = 0.0f;
 
     bool do_inc_barter_history_upon_arrival = false;
     bool did_inc_barter_history_upon_arrival = false;
@@ -407,6 +411,7 @@ namespace WalkerProcessor {
     float walk_unstuck_time = 0.0f;
     int unstuck_attempts = 0;
 
+    bool dodge_keep_distance_mode = false;
     float dodge_projectile_time = 0.0f;
     bool do_dodge_projectile = false;
     RE::NiPoint3 dodge_projectile_direction{};
@@ -5012,6 +5017,8 @@ namespace WalkerProcessor {
 
         bool low_range_concentration_spell = is_concentration_spell(get_current_active_hand()) && get_weapon_range(get_current_active_hand()) < 2000.0f;
 
+        auto pos_for_speed_calculation = target->GetPosition();
+
         if (force_speed_correction || (interaction_after_walk == 3 && start_attacking && ((has_ranged_weapon_equipped(get_current_active_hand()) && !low_range_concentration_spell) || shout_mode)))
         {
             //assuming its always pulled to the max
@@ -5047,7 +5054,12 @@ namespace WalkerProcessor {
                     t ~= distance/arc_coef3
                 */
 
-                auto delta_target_pos = path_point_pos - last_target_pos;
+                //auto delta_target_pos = path_point_pos - last_target_pos;
+
+                
+
+                auto delta_target_pos = pos_for_speed_calculation - last_target_pos;
+
 
                 if (!MiscThings::is_flying(target))
                     delta_target_pos.z = 0.0f;
@@ -5176,7 +5188,7 @@ namespace WalkerProcessor {
         if (!dont_send_inputs)
         {
             last_target_pos_valid = true;
-            last_target_pos = path_point_pos;
+            last_target_pos = pos_for_speed_calculation;// path_point_pos;
         }
 
         
@@ -6083,6 +6095,8 @@ namespace WalkerProcessor {
 
     void reset_walker()
     {
+        wait_a_little_before_walking = false;
+        wait_a_little_before_walking_time = 0.0f; 
 
         do_inc_barter_history_upon_arrival = false;
         did_inc_barter_history_upon_arrival = false;
@@ -6699,6 +6713,12 @@ namespace WalkerProcessor {
                     attacking_done = true;
 
                 start_attacking = false;
+
+
+                if (Observer::get_keep_distance_mode())
+                {
+                    wait_a_little_before_walking = true;
+                }
             }
 
             anti_slowwalk_timer = 0.0f;
@@ -7119,13 +7139,19 @@ namespace WalkerProcessor {
 
                             float dodge_direction_chance = (float)std::rand() / RAND_MAX;
 
-                            if (dodge_direction_chance < 0.15f && MiscThings::getbit(dodge_projectile_allowed_dirs, best_dir_adjacent1))
-                                dodge_direction = best_dir_adjacent1;
+                            if (dodge_keep_distance_mode)
+                                dodge_direction = best_dir;
                             else
-                                if (dodge_direction_chance > 0.85f && MiscThings::getbit(dodge_projectile_allowed_dirs, best_dir_adjacent2))
-                                    dodge_direction = best_dir_adjacent2;
+                            {
+                                if (dodge_direction_chance < 0.15f && MiscThings::getbit(dodge_projectile_allowed_dirs, best_dir_adjacent1))
+                                    dodge_direction = best_dir_adjacent1;
                                 else
-                                    dodge_direction = best_dir;
+                                    if (dodge_direction_chance > 0.85f && MiscThings::getbit(dodge_projectile_allowed_dirs, best_dir_adjacent2))
+                                        dodge_direction = best_dir_adjacent2;
+                                    else
+                                        dodge_direction = best_dir;
+                            }
+
                         }
 
 
@@ -7159,6 +7185,7 @@ namespace WalkerProcessor {
                 dodge_melee_mode_enemy_long_reach = false;
                 dodge_melee_is_dragon = false;
                 dodge_melee_attacker = nullptr;
+                dodge_keep_distance_mode = false;
                 return true; //could not decide
             }
                 
@@ -7259,6 +7286,7 @@ namespace WalkerProcessor {
             dodge_melee_mode_enemy_long_reach = false;
             dodge_melee_is_dragon = false;
             dodge_melee_attacker = nullptr;
+            dodge_keep_distance_mode = false;
             result = true;
         }
 
@@ -7894,42 +7922,87 @@ namespace WalkerProcessor {
                         auto raycast_ref = MiscThings::GetRaycastRef(camera_pos, delta_pos, range, target_ref, 0b00000000000010010000000000000110); //projectile layer in player group
 
 
-                        bool raycast_hands_too = is_fire_and_forget_spell(true) || is_fire_and_forget_spell(false);
+                        bool raycast_hands_too = (is_fire_and_forget_spell(true) || is_fire_and_forget_spell(false)) && (distance.Length() > 300.0f || was_already_dead);
 
+                        raycast_hands_too &= !(target_ref->IsDead() && !was_already_dead);
+
+
+
+                        /*
                         RE::TESObjectREFR* raycast_ref_right = nullptr;
                         RE::TESObjectREFR* raycast_ref_left = nullptr;
+                        RE::TESObjectREFR* raycast_ref_top = nullptr;
+                        RE::TESObjectREFR* raycast_ref_bottom = nullptr;
+
+                        float raycast_distance_right = distance.Length();
+                        float raycast_distance_left = distance.Length();
+                        float raycast_distance_top = distance.Length();
+                        float raycast_distance_bottom = distance.Length();
+
+                        float raycast_distance = MiscThings::GetRaycastDistance(camera_pos, delta_pos, range, target_ref, 0b00000000000010010000000000000110);
+                        */
+
+                        bool raycast_hands_result = true; 
 
                         if (raycast_hands_too)
                         {
-                            auto delta_pos_norm = delta_pos / delta_pos.Length();
-                            RE::NiPoint3 orth_shift = { -delta_pos_norm.y, delta_pos_norm.x, 0.0f };
-                            orth_shift.Unitize();
+                            raycast_hands_result = MiscThings::raycastable_with_current_spell(target_ref, range, attack_action, true);
 
-                            float r = 70.0f;
-                            auto camera_pos_right = camera_pos + orth_shift * r;
-                            auto camera_pos_left = camera_pos - orth_shift * r;
+                            /*
+                            auto delta_pos_norm = delta_pos / delta_pos.Length();
+                            RE::NiPoint3 orth_shiftX = { -delta_pos_norm.y, delta_pos_norm.x, 0.0f };
+                            orth_shiftX.Unitize();
+
+                            RE::NiPoint3 orth_shiftZ = { 0.0f, 0.0f, 30.0f };
+
+
+
+
+                            auto camera_pos_hands = camera_pos;
+
+                            auto tempO = player->Get3D(true);
+                            auto playerRootNode = tempO ? tempO->AsNode() : nullptr;
+                            tempO = playerRootNode ? playerRootNode->GetObjectByName("Camera1st [Cam1]") : nullptr;
+                            auto playerCameraNode = tempO ? tempO->AsNode() : nullptr;
+
+                            if (playerCameraNode)
+                            {
+                                camera_pos_hands = playerCameraNode->world.translate;
+                            }
+
+
+
+
+                            float r = 30.0f;
+                            auto camera_pos_right = camera_pos_hands + orth_shiftX * r;
+                            auto camera_pos_left = camera_pos_hands - orth_shiftX * r;
+                            auto camera_pos_top = camera_pos_hands + orth_shiftZ;
+                            auto camera_pos_bottom = camera_pos_hands - orth_shiftZ;
 
                             auto delta_pos_right = aim_pos - camera_pos_right;
                             auto delta_pos_left = aim_pos - camera_pos_left;
+                            auto delta_pos_top = aim_pos - camera_pos_top;
+                            auto delta_pos_bottom = aim_pos - camera_pos_bottom;
 
                             raycast_ref_right = MiscThings::GetRaycastRef(camera_pos_right, delta_pos_right, range, target_ref, 0b00000000000010010000000000000110);
                             raycast_ref_left = MiscThings::GetRaycastRef(camera_pos_left, delta_pos_left, range, target_ref, 0b00000000000010010000000000000110);
+                            raycast_ref_top = MiscThings::GetRaycastRef(camera_pos_top, delta_pos_top, range, target_ref, 0b00000000000010010000000000000110);
+                            raycast_ref_bottom = MiscThings::GetRaycastRef(camera_pos_bottom, delta_pos_bottom, range, target_ref, 0b00000000000010010000000000000110);
 
 
-                            /*
-                            auto color1 = DebugAPI_IMPL::DrawDebug::Colors::RED;
-                            auto color2 = DebugAPI_IMPL::DrawDebug::Colors::RED;
+                            raycast_distance_right = MiscThings::GetRaycastDistance(camera_pos_right, delta_pos_right, range, target_ref, 0b00000000000010010000000000000110);
+                            raycast_distance_left = MiscThings::GetRaycastDistance(camera_pos_left, delta_pos_left, range, target_ref, 0b00000000000010010000000000000110);
+                            raycast_distance_top = MiscThings::GetRaycastDistance(camera_pos_top, delta_pos_top, range, target_ref, 0b00000000000010010000000000000110);
+                            raycast_distance_bottom = MiscThings::GetRaycastDistance(camera_pos_bottom, delta_pos_bottom, range, target_ref, 0b00000000000010010000000000000110);
 
-                            if (raycast_ref_right == target_ref)
-                                color1 = DebugAPI_IMPL::DrawDebug::Colors::GRN;
 
-                            if (raycast_ref_left == target_ref)
-                                color2 = DebugAPI_IMPL::DrawDebug::Colors::GRN;
-
-                            DebugAPI_IMPL::DebugAPI::GetSingleton()->LinesToDraw.clear();
-                            DebugAPI_IMPL::DrawDebug::draw_line(camera_pos_right, camera_pos_right + delta_pos_right, 5.0f, color1);
-                            DebugAPI_IMPL::DrawDebug::draw_line(camera_pos_left, camera_pos_left + delta_pos_left, 5.0f, color2);
-                            DebugAPI_IMPL::DebugAPI::GetSingleton()->Update();
+                            
+                            //DebugAPI_IMPL::DebugAPI::GetSingleton()->LinesToDraw.clear();
+                            //DebugAPI_IMPL::DrawDebug::draw_line(camera_pos_right, camera_pos_right + delta_pos_right, 5.0f, raycast_ref_right == target_ref ? DebugAPI_IMPL::DrawDebug::Colors::GRN : DebugAPI_IMPL::DrawDebug::Colors::RED);
+                            //DebugAPI_IMPL::DrawDebug::draw_line(camera_pos_left, camera_pos_left + delta_pos_left, 5.0f, raycast_ref_left == target_ref ? DebugAPI_IMPL::DrawDebug::Colors::GRN : DebugAPI_IMPL::DrawDebug::Colors::RED);
+                            //DebugAPI_IMPL::DrawDebug::draw_line(camera_pos_top, camera_pos_top + delta_pos_top, 5.0f, raycast_ref_top == target_ref ? DebugAPI_IMPL::DrawDebug::Colors::GRN : DebugAPI_IMPL::DrawDebug::Colors::RED);
+                            //DebugAPI_IMPL::DrawDebug::draw_line(camera_pos_bottom, camera_pos_bottom + delta_pos_bottom, 5.0f, raycast_ref_bottom == target_ref ? DebugAPI_IMPL::DrawDebug::Colors::GRN : DebugAPI_IMPL::DrawDebug::Colors::RED);
+                            //DebugAPI_IMPL::DebugAPI::GetSingleton()->Update();
                             */
 
                         }
@@ -7938,8 +8011,9 @@ namespace WalkerProcessor {
                         if (target_ref && target_ref->formID == 0xdb9d7 && raycast_ref && raycast_ref->formID == 0x80b2c)
                         {
                             raycast_ref = target_ref;
-                            raycast_ref_right = target_ref;
-                            raycast_ref_left = target_ref;
+                            raycast_hands_too = true;
+                            //raycast_ref_right = target_ref;
+                            //raycast_ref_left = target_ref;
                         }
                             
 
@@ -7950,7 +8024,8 @@ namespace WalkerProcessor {
                         if (raycast_ref && raycast_ref->formID == 0x14)
                             bool stop_here = false; //to detect when raycast caught player
 
-                        auto raycast_test = raycast_ref == target_ref && (start_attacking || attack_paused || raycast_was_on || !raycast_hands_too || (raycast_ref_right == target_ref && raycast_ref_left == target_ref));
+                        //auto raycast_test = raycast_ref == target_ref && (start_attacking || attack_paused || raycast_was_on || !raycast_hands_too || (raycast_ref_right == target_ref && raycast_ref_left == target_ref && raycast_ref_top == target_ref && raycast_ref_bottom == target_ref));
+                        auto raycast_test = (raycast_ref == target_ref || (start_attacking && raycast_ref && MiscThings::is_enemy_to_actor(raycast_ref))) && (start_attacking || attack_paused || raycast_was_on || raycast_hands_result);
                         bool target_visible = false;
 
                         float on_time = 0.4f;
@@ -9038,7 +9113,10 @@ namespace WalkerProcessor {
 
                 Observer::reset_threats();
 
-
+                if (interaction_after_walk == 3)
+                {
+                    last_switch_to_nearest_enemy_timestamp = std::chrono::steady_clock::now().time_since_epoch().count();
+                }
 
                 right_attack_cancel();
                 left_attack_cancel();
@@ -11831,6 +11909,12 @@ namespace WalkerProcessor {
             interaction_after_walk = interaction;
 
 
+            if (interaction_after_walk == 3)
+            {
+                last_switch_to_nearest_enemy_timestamp = std::chrono::steady_clock::now().time_since_epoch().count();
+            }
+
+
             if (interaction_after_walk == 3 && target_ref->IsActor() && target_ref->IsDead())
                 was_already_dead = true;
 
@@ -12685,7 +12769,7 @@ namespace WalkerProcessor {
                     return true;
 
                 auto weapon = (RE::TESObjectWEAP*)hand_contents;
-                if (!weapon->IsMelee())
+                if (weapon->IsWeapon() && !weapon->IsMelee())
                     return true;
             }
 
@@ -13136,7 +13220,7 @@ namespace WalkerProcessor {
 
         if (spell_mode && spell_ult_mode && spell_to_use)
         {
-            if (lock_camera_onto_target(target_ref, dtime, 1.0f, true, true))
+            if (lock_camera_onto_target(target_ref, dtime, 2.0f, true, true) && is_weapon_draw_ready())
             {
                 std::string spell_name = spell_to_use->GetFullName();
                 send_random_context("You are using ability: " + spell_name);
@@ -17620,6 +17704,8 @@ namespace WalkerProcessor {
 	void processor(float dtime)
 	{
 
+        auto player = RE::PlayerCharacter::GetSingleton();
+
         //MiscThings::friendly_fire_test(true);
 
         lock_camera_used_this_cycle = false;
@@ -17672,7 +17758,39 @@ namespace WalkerProcessor {
         }
 
 
-        
+       
+        if (Observer::get_keep_distance_mode() && interaction_after_walk == 3 && target_ref && !shout_mode && !spell_mode && !using_custom_path)
+        {
+            //switch to nearest enemy if we are in keep-distance mode. necessary for better keep distance combat in case initial target hides behind other enemies
+
+            if (player->GetDistance(target_ref) > 200.0f)
+            {
+                auto next_targets = MiscThings::get_player_attackers(true, nullptr, true, 4000.0f, true);
+
+
+                if (std::size(next_targets) > 0)
+                {
+                    long long now = std::chrono::steady_clock::now().time_since_epoch().count();
+                    float delta_nearest_enemy_switch = (double)(now - last_switch_to_nearest_enemy_timestamp) / 1000000000.0;
+
+                    if (delta_nearest_enemy_switch > 2.5f && (!start_attacking || (attack_action_time0 < 0.2f && attack_action_time1 < 0.2f)))
+                    {
+                        last_switch_to_nearest_enemy_timestamp = now;
+
+                        auto nearest_enemy = next_targets.at(0);
+
+                        if (nearest_enemy != target_ref && !(MiscThings::target_cant_attack(target_ref)))
+                        {
+                            walk_to_object_by_refr(nearest_enemy, 3);
+                            return;
+                        }
+                    }
+                }
+            }
+               
+
+
+        }
 
 
 
@@ -17686,25 +17804,134 @@ namespace WalkerProcessor {
 
             if (projectile_dir == RE::NiPoint3::Zero())
             {
-                auto temp = MiscThings::about_to_be_hit_by_melee_attack();
-                projectile_dir = temp.direction;
 
-                if (projectile_dir != RE::NiPoint3::Zero())
+                
+
+
+                if (!do_dodge_projectile)
                 {
-                    dodge_melee_mode = true;
-                    dodge_melee_mode_enemy_long_reach = temp.long_reach;
-                    dodge_melee_is_dragon = temp.is_dragon;
-                    dodge_melee_attacker = temp.attacker;
-                }
-                else
-                    if (!do_dodge_projectile)
+                    //keep distance check
+
+                    bool dont_check_melee_dodge = false;
+
+
+                    if (Observer::get_keep_distance_mode() && interaction_after_walk == 3 && !spell_ult_mode && !shout_mode)
                     {
-                        dodge_projectile_extra_dangerous = false;
-                        dodge_melee_mode = false;
-                        dodge_melee_mode_enemy_long_reach = false;
-                        dodge_melee_is_dragon = false;
-                        dodge_melee_attacker = nullptr;
+                        //vaalidate target ref
+                        if (target_ref && (!target_ref->formID || !target_ref->data.objectReference))
+                        {
+                            reset_walker();
+                            return;
+                        }
+
+
+                        RE::ObjectRefHandle my_handle{};
+                        if (target_ref)
+                            my_handle = target_ref->GetHandle();
+
+                        if (target_ref && (!my_handle || !my_handle.get() || !my_handle.get().get()))
+                        {
+                            reset_walker();
+                            return;
+                        }
+
+
+                        if (target_ref && target_ref->IsActor() && !target_ref->IsDead())
+                        {
+                            auto distance = player->GetDistance(target_ref);
+
+
+                            float threshold = 400.0f;
+
+                            float test_range = get_weapon_range(get_current_active_hand());
+
+                            if (test_range > threshold)
+                                threshold = 550.0f;
+
+                            if (test_range < 200.0f)
+                                threshold = 200.0f;
+
+                            if (distance < threshold && !(MiscThings::target_cant_attack(target_ref)) && close_enough())
+                            {
+
+                                auto nearby_attackers = MiscThings::get_player_attackers(true, target_ref, true, 1000.0f, true);
+
+
+                                RE::NiPoint3 sum_dir_attackers{};
+
+                                RE::NiPoint3 pos_dif = player->GetPosition() - target_ref->GetPosition();
+
+                                if (has_ranged_weapon_equipped(get_current_active_hand()) || (!MiscThings::target_is_attacking_non_player(target_ref) && !MiscThings::target_uses_ranged_weapon(target_ref)))
+                                {
+                                    float pos_dif_length = pos_dif.Length();
+                                    pos_dif = pos_dif / pos_dif_length / pos_dif_length;
+                                    sum_dir_attackers += pos_dif;
+                                }
+                                    
+
+                                for (auto attacker : nearby_attackers)
+                                {
+                                    auto pos_dif = player->GetPosition() - attacker->GetPosition();
+
+                                    if (has_ranged_weapon_equipped(get_current_active_hand()) || (!MiscThings::target_is_attacking_non_player(attacker) && !MiscThings::target_uses_ranged_weapon(attacker)))
+                                    {
+                                        auto pos_dif_length = pos_dif.Length();
+                                        sum_dir_attackers += pos_dif / pos_dif_length / pos_dif_length;
+                                    }
+
+                                }
+                                
+                                if (sum_dir_attackers != RE::NiPoint3::Zero())
+                                {
+                                    projectile_dir = sum_dir_attackers;
+                                    dodge_melee_mode = true;
+                                    dodge_melee_mode_enemy_long_reach = false;
+                                    dodge_melee_is_dragon = false;
+                                    dodge_melee_attacker = target_ref;
+                                    dodge_keep_distance_mode = true;
+                                    dont_check_melee_dodge = true;
+                                }
+
+                            }
+                        }
                     }
+
+
+
+                    if (!dont_check_melee_dodge)
+                    {
+                        auto temp = MiscThings::about_to_be_hit_by_melee_attack();
+                        projectile_dir = temp.direction;
+
+
+                        if (projectile_dir != RE::NiPoint3::Zero())
+                        {
+                            dodge_melee_mode = true;
+                            dodge_melee_mode_enemy_long_reach = temp.long_reach;
+                            dodge_melee_is_dragon = temp.is_dragon;
+                            dodge_melee_attacker = temp.attacker;
+                            dodge_keep_distance_mode = false;
+                        }
+                        else
+                        {
+                            dodge_projectile_extra_dangerous = false;
+                            dodge_melee_mode = false;
+                            dodge_melee_mode_enemy_long_reach = false;
+                            dodge_melee_is_dragon = false;
+                            dodge_melee_attacker = nullptr;
+                            dodge_keep_distance_mode = false;
+                        }
+                    }
+
+
+                }
+
+
+
+                
+
+
+                
 
 
             }
@@ -17730,6 +17957,7 @@ namespace WalkerProcessor {
                     dodge_melee_mode_enemy_long_reach = false;
                     dodge_melee_is_dragon = false;
                     dodge_melee_attacker = nullptr;
+                    dodge_keep_distance_mode = false;
                 }
             }
 
@@ -17776,6 +18004,7 @@ namespace WalkerProcessor {
                         dodge_melee_mode_enemy_long_reach = false;
                         dodge_melee_is_dragon = false;
                         dodge_melee_attacker = nullptr;
+                        dodge_keep_distance_mode = false;
                     }
 
 
@@ -17826,7 +18055,6 @@ namespace WalkerProcessor {
             //return; //dont walk until threat response is resolved
         }
             
-
 
 
         if (multiple_paths_quest_choice_confirming)
@@ -17952,7 +18180,7 @@ namespace WalkerProcessor {
 
         if (path_record_mode)
         {
-            auto player = RE::PlayerCharacter::GetSingleton();
+            //auto player = RE::PlayerCharacter::GetSingleton();
             auto player_pos = player->GetPosition();
 
             if (std::size(custom_path_record) == 0)
@@ -18002,7 +18230,7 @@ namespace WalkerProcessor {
 
         try
         {
-            auto player = RE::PlayerCharacter::GetSingleton();
+            //auto player = RE::PlayerCharacter::GetSingleton();
 
             if (!player)
                 return;
@@ -18205,7 +18433,7 @@ namespace WalkerProcessor {
                 {
                     if (!attack_paused)
                     {
-                        auto next_targets = MiscThings::get_player_attackers(false, target_ref, true);
+                        auto next_targets = MiscThings::get_player_attackers(false, target_ref, true, 9000.0f, true);
 
                         if (std::size(next_targets) > 0)
                         {
@@ -18519,6 +18747,25 @@ namespace WalkerProcessor {
                 }
 
                     
+
+                if (wait_a_little_before_walking)
+                {
+                    if (close_enough() || wait_a_little_before_walking_time > 1.0f)
+                    {
+                        wait_a_little_before_walking = false;
+                        wait_a_little_before_walking_time = 0.0f;
+                    }
+                    else
+                    {
+                        wait_a_little_before_walking_time += dtime;
+                        lock_camera_onto_target(target_ref, dtime);
+                        return;
+                    }
+                }
+
+
+
+
 
                 if (target_ref && target_ref->formID == 0x4e9bd && target_ref->IsDead()) //endgame alduin
                 {

@@ -2,6 +2,209 @@
 /* useful stuff
 
 
+//hand-raycasting before finalize
+
+
+//RE::TESObjectREFR* test_hound = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x10d418);
+        RE::TESObjectREFR* test_hound = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1bcee);
+        if (test_hound)
+        {
+            float pi = RE::NI_PI;
+
+
+            auto camera_pos = RE::PlayerCamera::GetSingleton()->pos;
+
+            auto aim_pos = WalkerProcessor::get_estimate_aim_pos(test_hound, true, false);
+
+            auto delta_pos = aim_pos - camera_pos;
+
+            auto delta_pos_norm = delta_pos / delta_pos.Length();
+            RE::NiPoint3 orth_shiftX = { -delta_pos_norm.y, delta_pos_norm.x, 0.0f };
+            RE::NiPoint3 orth_shiftY = MiscThings::rotate_around_axis(orth_shiftX, delta_pos_norm, pi / 2);
+            orth_shiftX.Unitize();
+            orth_shiftY.Unitize();
+
+
+            RE::NiPoint3 orth_shiftZ = { 0.0f, 0.0f, 30.0f };
+
+
+
+
+            auto camera_pos_hands = camera_pos;
+            auto camera_pos_hand_right = camera_pos;
+            auto camera_pos_hand_left = camera_pos;
+
+            auto tempO = player->Get3D(true);
+            auto playerRootNode = tempO ? tempO->AsNode() : nullptr;
+
+
+            auto temp = MiscThings::niav_recurse(playerRootNode);
+            auto temp_names = MiscThings::niav_recurse_names(playerRootNode);
+
+
+
+            tempO = playerRootNode ? playerRootNode->GetObjectByName("Camera1st [Cam1]") : nullptr;
+            auto playerCameraNode = tempO ? tempO->AsNode() : nullptr;
+
+            tempO = playerRootNode ? playerRootNode->GetObjectByName("NPC R MagicNode [RMag]") : nullptr;
+            auto right_caster_node = tempO ? tempO->AsNode() : nullptr;
+
+            tempO = playerRootNode ? playerRootNode->GetObjectByName("NPC L MagicNode [LMag]") : nullptr;
+            auto left_caster_node = tempO ? tempO->AsNode() : nullptr;
+
+            if (playerCameraNode)
+                camera_pos_hands = playerCameraNode->world.translate;
+
+            if (right_caster_node)
+                camera_pos_hand_right = right_caster_node->world.translate;
+
+            if (left_caster_node)
+                camera_pos_hand_left = left_caster_node->world.translate;
+
+            //{ x = 12.6857910f y = 53.9426270f z = -7.87097168f }
+
+            float r = 30.0f;
+
+            //53.942627f
+            //7.87097168f
+            //12.6857910f
+
+            auto camera_pos_right = camera_pos_hands - orth_shiftX * 12.6857910f - orth_shiftY * 7.87097168f + delta_pos_norm * 53.942627f;//camera_pos_hand_right;// camera_pos_hands - orth_shiftX * r;
+
+
+
+            //DebugAPI_IMPL::DebugAPI::GetSingleton()->LinesToDraw.clear();
+            //DebugAPI_IMPL::DrawDebug::draw_line(camera_pos_hands, camera_pos_hands + orth_shiftX * r, 5.0f, DebugAPI_IMPL::DrawDebug::Colors::GRN);
+            //DebugAPI_IMPL::DrawDebug::draw_line(camera_pos_hands, camera_pos_hands + orth_shiftY * r, 5.0f, DebugAPI_IMPL::DrawDebug::Colors::RED);
+            //DebugAPI_IMPL::DebugAPI::GetSingleton()->Update();
+
+
+
+            auto camera_pos_left = camera_pos_hands + orth_shiftX * r;
+            auto camera_pos_top = camera_pos_hands + orth_shiftZ;
+            auto camera_pos_bottom = camera_pos_hands - orth_shiftZ;
+
+            auto delta_pos_right = aim_pos - camera_pos_right;
+            auto delta_pos_left = aim_pos - camera_pos_left;
+            auto delta_pos_top = aim_pos - camera_pos_top;
+            auto delta_pos_bottom = aim_pos - camera_pos_bottom;
+
+
+            //auto projectile = (RE::BGSProjectile*)base_obj;
+
+            float r_proj = 10.0f;
+
+
+            auto hand_right = MiscThings::get_hand_contents(true);
+
+            if (hand_right)
+            {
+                if (hand_right->formType == RE::FormType::Spell || hand_right->formType == RE::FormType::Scroll)
+                {
+                    auto spell = (RE::SpellItem*)hand_right;
+
+                    if (spell->avEffectSetting && spell->avEffectSetting->data.projectileBase)
+                    {
+                        if (spell->avEffectSetting->data.projectileBase->data.collisionRadius > 0.0f)
+                            r_proj = spell->avEffectSetting->data.projectileBase->data.collisionRadius + 5.0f;
+                    }
+                }
+            }
+
+
+
+
+
+            std::vector<RE::NiPoint3> camera_subpos_right{};
+
+            RE::NiPoint3 shift_base = orth_shiftX * r_proj;
+
+            auto delta_pos_right_norm = delta_pos_right;
+            delta_pos_right_norm.Unitize();
+
+
+
+
+
+            for (int i = 0; i < 8; i++)
+            {
+                RE::NiPoint3 shift = MiscThings::rotate_around_axis(shift_base, delta_pos_right_norm, pi / 4 * i);
+                camera_subpos_right.push_back(camera_pos_right + shift);
+            }
+
+
+
+
+
+            auto raycast_ref_right = MiscThings::GetRaycastRef(camera_pos_right, delta_pos_right, 5000.0f, test_hound, 0b00000000000010010000000000000110);
+            auto raycast_ref_left = MiscThings::GetRaycastRef(camera_pos_left, delta_pos_left, 5000.0f, test_hound, 0b00000000000010010000000000000110);
+            auto raycast_ref_top = MiscThings::GetRaycastRef(camera_pos_top, delta_pos_top, 5000.0f, test_hound, 0b00000000000010010000000000000110);
+            auto raycast_ref_bottom = MiscThings::GetRaycastRef(camera_pos_bottom, delta_pos_bottom, 5000.0f, test_hound, 0b00000000000010010000000000000110);
+
+            float raycast_distance_right = MiscThings::GetRaycastDistance(camera_pos_right, delta_pos_right, 5000.0f, test_hound, 0b00000000000010010000000000000110);
+            float raycast_distance_left = MiscThings::GetRaycastDistance(camera_pos_left, delta_pos_left, 5000.0f, test_hound, 0b00000000000010010000000000000110);
+            float raycast_distance_top = MiscThings::GetRaycastDistance(camera_pos_top, delta_pos_top, 5000.0f, test_hound, 0b00000000000010010000000000000110);
+            float raycast_distance_bottom = MiscThings::GetRaycastDistance(camera_pos_bottom, delta_pos_bottom, 5000.0f, test_hound, 0b00000000000010010000000000000110);
+
+            float raycast_distance = MiscThings::GetRaycastDistance(camera_pos, delta_pos, 5000.0f, test_hound, 0b00000000000010010000000000000110);
+
+
+            auto raycast_ref = MiscThings::GetRaycastRef(camera_pos, delta_pos, 5000.0f, test_hound, 0b00000000000010010000000000000110);
+
+            //DebugAPI_IMPL::DebugAPI::GetSingleton()->LinesToDraw.clear();
+            //DebugAPI_IMPL::DrawDebug::draw_line(camera_pos_right, camera_pos_right + delta_pos_right, 5.0f, raycast_ref_right == test_hound ? DebugAPI_IMPL::DrawDebug::Colors::GRN : DebugAPI_IMPL::DrawDebug::Colors::RED);
+            //DebugAPI_IMPL::DrawDebug::draw_line(camera_pos_left, camera_pos_left + delta_pos_left, 5.0f, raycast_ref_left == test_hound ? DebugAPI_IMPL::DrawDebug::Colors::GRN : DebugAPI_IMPL::DrawDebug::Colors::RED);
+            //DebugAPI_IMPL::DrawDebug::draw_line(camera_pos_top, camera_pos_top + delta_pos_top, 5.0f, raycast_ref_top == test_hound ? DebugAPI_IMPL::DrawDebug::Colors::GRN : DebugAPI_IMPL::DrawDebug::Colors::RED);
+            //DebugAPI_IMPL::DrawDebug::draw_line(camera_pos_bottom, camera_pos_bottom + delta_pos_bottom, 5.0f, raycast_ref_bottom == test_hound ? DebugAPI_IMPL::DrawDebug::Colors::GRN : DebugAPI_IMPL::DrawDebug::Colors::RED);
+            //DebugAPI_IMPL::DebugAPI::GetSingleton()->Update();
+            
+
+
+DebugAPI_IMPL::DebugAPI::GetSingleton()->LinesToDraw.clear();
+DebugAPI_IMPL::DrawDebug::draw_line(camera_pos_right, camera_pos_right + delta_pos_right, 5.0f, raycast_ref == test_hound && raycast_distance_right >= (raycast_distance - 100.0f) ? DebugAPI_IMPL::DrawDebug::Colors::GRN : DebugAPI_IMPL::DrawDebug::Colors::RED);
+
+for (auto& subpos_right : camera_subpos_right)
+{
+    float subraycast_distance_right = MiscThings::GetRaycastDistance(subpos_right, delta_pos_right, 5000.0f, test_hound, 0b00000000000010010000000000000110);
+    DebugAPI_IMPL::DrawDebug::draw_line(subpos_right, subpos_right + delta_pos_right, 5.0f, raycast_ref == test_hound && subraycast_distance_right >= (raycast_distance - 100.0f) ? DebugAPI_IMPL::DrawDebug::Colors::GRN : DebugAPI_IMPL::DrawDebug::Colors::RED);
+
+}
+
+
+
+
+
+
+//DebugAPI_IMPL::DrawDebug::draw_line(camera_pos_left, camera_pos_left + delta_pos_left, 5.0f, raycast_ref == test_hound && raycast_distance_left >= (raycast_distance - 100.0f) ? DebugAPI_IMPL::DrawDebug::Colors::GRN : DebugAPI_IMPL::DrawDebug::Colors::RED);
+//DebugAPI_IMPL::DrawDebug::draw_line(camera_pos_top, camera_pos_top + delta_pos_top, 5.0f, raycast_ref == test_hound && raycast_distance_top >= (raycast_distance - 100.0f) ? DebugAPI_IMPL::DrawDebug::Colors::GRN : DebugAPI_IMPL::DrawDebug::Colors::RED);
+//DebugAPI_IMPL::DrawDebug::draw_line(camera_pos_bottom, camera_pos_bottom + delta_pos_bottom, 5.0f, raycast_ref == test_hound && raycast_distance_bottom >= (raycast_distance - 100.0f) ? DebugAPI_IMPL::DrawDebug::Colors::GRN : DebugAPI_IMPL::DrawDebug::Colors::RED);
+
+
+DebugAPI_IMPL::DebugAPI::GetSingleton()->Update();
+
+
+
+        }
+
+        /////////////////////////////////////////////////////////
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 void PathingHook::SetGroundPath(std::uintptr_t  a_subPtr, std::uintptr_t* a_newNode, std::uintptr_t* a_newData) {
     // This hook fires whenever an actor needs updated pathing,  including dragons in flyingstate == 0 (Landed)

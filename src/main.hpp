@@ -54,6 +54,18 @@ bool force_choice(std::vector<MenuOption> options, std::string message, int forc
 void unregister_all_actions();
 void unregister_all_actions2();
 
+
+
+bool register_keep_distance_short();
+bool unregister_keep_distance_short();
+bool register_keep_distance_long();
+bool unregister_keep_distance_long();
+bool unregister_keep_distance_long();
+bool is_keep_distance_short_action_registered();
+bool is_keep_distance_long_action_registered();
+
+
+
 namespace Hooks {
 	void add_debug_line(std::string line, bool specific = false);
 	void set_debug_text(std::string text);
