@@ -1006,6 +1006,78 @@ namespace MiscThings {
 
 
 
+    bool dragon_not_doing_dragonbreath(RE::TESObjectREFR* object)
+    {
+        if (object && object->IsActor() && MiscThings::is_dragon(object))
+        {
+            auto actor = (RE::Actor*)object;
+
+            //auto attack_state = actor->GetAttackState();
+            //if (attack_state == RE::ATTACK_STATE_ENUM::kDraw || attack_state == RE::ATTACK_STATE_ENUM::kSwing)
+
+            auto breath_caster = actor->GetMagicCaster(RE::MagicSystem::CastingSource::kOther);
+
+            if (breath_caster)
+            {
+                //return breath_caster->state.underlying() > 7;
+
+                /*
+                if (breath_caster->state.underlying() == 0)
+                {
+                    auto now = std::chrono::steady_clock::now().time_since_epoch().count();
+                    Hooks::add_debug_line(std::to_string(now) + " DRAGON BREATH STATE: " + std::to_string(breath_caster->state.underlying()), true);
+                }
+                  */  
+
+                return breath_caster->state.underlying() == 0;
+                
+
+
+            }
+            else
+                return true;
+
+
+        }
+
+        return false;
+    }
+
+
+    bool dragon_about_to_use_dragonbreath(RE::TESObjectREFR* object)
+    {
+        if (object && object->IsActor() && MiscThings::is_dragon(object))
+        {
+            auto actor = (RE::Actor*)object;
+
+            //auto attack_state = actor->GetAttackState();
+            //if (attack_state == RE::ATTACK_STATE_ENUM::kDraw || attack_state == RE::ATTACK_STATE_ENUM::kSwing)
+
+            auto breath_caster = actor->GetMagicCaster(RE::MagicSystem::CastingSource::kOther);
+
+            if (breath_caster && breath_caster->currentSpell && WalkerProcessor::is_concentration_spell(breath_caster->currentSpell))
+            {
+                /*
+                if (breath_caster->state.underlying() == 3)
+                {
+                    auto now = std::chrono::steady_clock::now().time_since_epoch().count();
+                    Hooks::add_debug_line(std::to_string(now) + " DRAGON BREATH STATE: " + std::to_string(breath_caster->state.underlying()), true);
+                }
+                */
+
+                return breath_caster->state.underlying() == 3;
+
+                //Hooks::add_debug_line("DRAGON BREATH STATE: " + std::to_string(state.underlying()), true);
+
+
+            }
+
+
+        }
+
+        return false;
+    }
+
 
 
     projectile_info projectile_flying_into_player_face()
@@ -30535,7 +30607,7 @@ namespace MiscThings {
     }
 
 
-    std::pair<bool, std::string> equip_spell_by_refr(RE::SpellItem* spell)
+    std::pair<bool, std::string> equip_spell_by_refr(RE::SpellItem* spell, bool force_left)
     {
 
         std::pair<bool, std::string> result{};
@@ -30575,7 +30647,7 @@ namespace MiscThings {
         }
 
         if (id != -1)
-            return equip_spell_by_index(id);
+            return equip_spell_by_index(id, force_left);
         else
             return { false, "You dont have this spell" };
     }
@@ -30583,7 +30655,7 @@ namespace MiscThings {
 
 
     //decided to leave its ability to cast too in case they get confused
-    std::pair<bool, std::string> equip_spell_by_index(int id, bool fast)
+    std::pair<bool, std::string> equip_spell_by_index(int id, bool fast, bool force_left)
     {
 
         //TODO: somehow get proper result of this action
@@ -30725,6 +30797,11 @@ namespace MiscThings {
                             }
                             */
 
+
+                            if (force_left)
+                            {
+                                right_hand = false;
+                            }
 
                             std::string equip_hand = "";
 

@@ -326,6 +326,9 @@ namespace MiscThings {
     bool target_is_attacking_non_player(RE::TESObjectREFR* object);
     bool target_uses_ranged_weapon(RE::TESObjectREFR* object);
 
+    bool dragon_about_to_use_dragonbreath(RE::TESObjectREFR* object);
+    bool dragon_not_doing_dragonbreath(RE::TESObjectREFR* object);
+
 
     std::string get_blocking_object_name2(RE::TESObjectREFR* a_ref);
 
@@ -399,7 +402,7 @@ namespace MiscThings {
     bool has_digits(std::string& str);
 
     std::pair<bool, std::string> cast_spell_by_index(int id, bool fast = false, bool player_issued = false, int target_index = -1);
-    std::pair<bool, std::string> equip_spell_by_index(int id, bool fast = false);
+    std::pair<bool, std::string> equip_spell_by_index(int id, bool fast = false, bool force_left = false);
 
     int player_overencumbered_by();
     bool puzzle_door_open(RE::TESObjectREFR* a_ref);
@@ -579,7 +582,7 @@ namespace MiscThings {
     float armor_damage_difference(RE::TESBoundObject* item, bool ignore_current = false);
 
     bool player_has_fishing_rod();
-    std::pair<bool, std::string> equip_spell_by_refr(RE::SpellItem* spell);
+    std::pair<bool, std::string> equip_spell_by_refr(RE::SpellItem* spell, bool force_left = false);
     int random_int_from_range(int min, int max);
 
 

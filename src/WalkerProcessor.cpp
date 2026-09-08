@@ -13,6 +13,9 @@
 
 namespace WalkerProcessor {
 
+
+    bool blocking_dragonbreath = false;
+
     long long last_switch_to_nearest_enemy_timestamp = 0;
 
     bool wait_a_little_before_walking = false;
@@ -6095,6 +6098,9 @@ namespace WalkerProcessor {
 
     void reset_walker()
     {
+
+        blocking_dragonbreath = false;
+
         wait_a_little_before_walking = false;
         wait_a_little_before_walking_time = 0.0f; 
 
@@ -6645,6 +6651,9 @@ namespace WalkerProcessor {
 
     void walk_again()
     {
+        blocking_dragonbreath = false;
+
+
         repath_if_walking = false;
         pre_repath_if_walking = false;
         pre_repath_timestamp = 0;
@@ -12399,13 +12408,12 @@ namespace WalkerProcessor {
     }
 
 
-    bool is_concentration_spell(bool right)
+
+    bool is_concentration_spell(RE::MagicItem* spell)
     {
         auto player = RE::PlayerCharacter::GetSingleton();
 
-        RE::MagicItem* spell = (RE::MagicItem*)MiscThings::get_hand_contents(right);
-
-
+        
         if (spell)
         {
             if (spell->GetFormType() == RE::FormType::Spell || spell->GetFormType() == RE::FormType::Scroll)
@@ -12443,6 +12451,16 @@ namespace WalkerProcessor {
 
         return false;
     }
+
+
+
+    bool is_concentration_spell(bool right)
+    {
+        RE::MagicItem* spell = (RE::MagicItem*)MiscThings::get_hand_contents(right);
+
+        return is_concentration_spell(spell);
+    }
+
 
 
     bool is_fire_and_forget_spell(RE::SpellItem* spell)
@@ -18028,6 +18046,67 @@ namespace WalkerProcessor {
                 }
             }
         }
+
+
+
+        if (Observer::get_dragonbreath_block_mode())
+        {
+            RE::TESObjectREFR* dragon_for_breath_test = nullptr;
+
+            if (MiscThings::is_dragon(target_ref))
+                dragon_for_breath_test = target_ref;
+            else
+                if (dragon_for_landing)
+                    dragon_for_breath_test = dragon_for_landing;
+
+            if (interaction_after_walk == 3 && dragon_for_breath_test)
+            {
+                if (!spell_mode && MiscThings::dragon_about_to_use_dragonbreath(dragon_for_breath_test))
+                {
+                    auto lesser_ward = (RE::SpellItem*)RE::TESForm::LookupByID(0x13018);
+                    if (lesser_ward && MiscThings::player_has_spell(lesser_ward) && MiscThings::get_player_mana() > 50.0f)
+                    {
+                        if (MiscThings::get_hand_contents(false) != lesser_ward)
+                        {
+                            MiscThings::equip_spell_by_refr(lesser_ward, true);
+                        }
+
+                        cast_spell_at_target(dragon_for_breath_test, lesser_ward);
+
+                        blocking_dragonbreath = true;
+                        return;
+                    }
+                }
+                else
+                {
+                    if (blocking_dragonbreath)
+                    {
+                        if (MiscThings::dragon_not_doing_dragonbreath(dragon_for_breath_test))
+                        {
+
+                            gave_attacking_info = false;
+                            attack_spell_cast_timeout = 0.0f;
+                            was_charging_ranged = false;
+                            was_casting_spell_left = false;
+                            try_dual_attack = false;
+                            attack_action_time1 = 0.0f;
+                            attack_action_timeout1 = 0.0f;
+                            attack_action_time0 = 0.0f;
+                            attack_action_timeout0 = 0.0f;
+                            spell_mode = false;
+                            attack_action = -1;
+                            blocking_dragonbreath = false;
+                            right_attack_cancel();
+                            left_attack_cancel();
+                            walk_again();
+                            return;
+                        }
+                    }
+                }
+            }
+        }
+        
+
             
         
 

@@ -82,7 +82,7 @@ namespace Observer {
 
 	RE::TESObjectREFR* first_detected_threat = nullptr;
 
-
+	bool dragonbreath_block_mode = false;
 	bool keep_distance_mode = false;
 
 
@@ -1025,6 +1025,11 @@ namespace Observer {
 	}
 
 
+	bool get_dragonbreath_block_mode()
+	{
+		return dragonbreath_block_mode;
+	}
+
 	bool get_keep_distance_mode()
 	{
 		return keep_distance_mode;
@@ -1205,15 +1210,27 @@ namespace Observer {
 	{
 		std::vector<MenuOption> threat_options;
 
+		bool has_ward = false;
+
+		auto lesser_ward = (RE::SpellItem*)RE::TESForm::LookupByID(0x13018);
+		if (lesser_ward && MiscThings::player_has_spell(lesser_ward))
+			has_ward = true;
+
 		if (any_attacker_sees_player)
 		{
 			threat_options.push_back({ 1, "Fight back" });
-			threat_options.push_back({ 2, "Fight back, and try to keep distance from enemies" });
+			if (has_ward && MiscThings::is_dragon(attacker))
+				threat_options.push_back({ 3, "Fight back, and try to block dragonbreath using ward spell" });
+			else
+				threat_options.push_back({ 2, "Fight back, and try to keep distance from enemies" });
 		}
 		else
 		{
 			threat_options.push_back({ 1, "Attack them" });
-			threat_options.push_back({ 2, "Attack them, and try to keep distance" });
+			if (has_ward && MiscThings::is_dragon(attacker))
+				threat_options.push_back({ 3, "Attack them, and try to block dragonbreath using ward spell" });
+			else
+				threat_options.push_back({ 2, "Attack them, and try to keep distance" });
 		}
 			
 
@@ -1240,10 +1257,10 @@ namespace Observer {
 			}
 		}
 
-		threat_options.push_back({ 3, "Run away" });
-		threat_options.push_back({ 4, "Ignore" + slow });
+		threat_options.push_back({ 4, "Run away" });
+		threat_options.push_back({ 5, "Ignore" + slow });
 		if (player_can_be_arrested && closest_guard)
-			threat_options.push_back({ 5, "Surrender to guards" });
+			threat_options.push_back({ 6, "Surrender to guards" });
 
 		return threat_options;
 	}
@@ -1251,7 +1268,9 @@ namespace Observer {
 
 	std::pair<bool, std::string> set_threat_response_choice(int id)
 	{
+
 		std::pair<bool, std::string> result{};
+
 
 		if (!threats_response_request_sent)
 		{
@@ -1260,7 +1279,20 @@ namespace Observer {
 		}
 		else
 		{
-			if ((id >= 1 && id <= 4) || (id == 5 && player_can_be_arrested))
+			bool dragonbreath_mode = false;
+
+			bool has_ward = false;
+			auto lesser_ward = (RE::SpellItem*)RE::TESForm::LookupByID(0x13018);
+			if (lesser_ward && MiscThings::player_has_spell(lesser_ward))
+				has_ward = true;
+
+			if (has_ward && MiscThings::is_dragon(first_detected_threat))
+				dragonbreath_mode = true;
+
+
+
+
+			if (id == 1 || id == 4 || id == 5 || (id == 2 && !dragonbreath_mode) || (id == 3 && dragonbreath_mode) || (id == 6 && player_can_be_arrested))
 			{
 				threats_response_choice = id;
 				threats_response_choice_valid = true;
@@ -1471,7 +1503,7 @@ namespace Observer {
 									{
 										register_allowed_actions();
 
-										if (threats_response_choice == 1 || threats_response_choice == 2)
+										if (threats_response_choice == 1 || threats_response_choice == 2 || threats_response_choice == 3)
 										{
 											runaway_in_a_row = 0;
 											if (DialogueProcessor::is_in_dialogue(nullptr))
@@ -1488,6 +1520,8 @@ namespace Observer {
 
 
 											keep_distance_mode = threats_response_choice == 2;
+											dragonbreath_block_mode = threats_response_choice == 3;
+
 
 											if (!attack_target)
 											{
@@ -1505,7 +1539,7 @@ namespace Observer {
 
 										}
 
-										if (threats_response_choice == 3)
+										if (threats_response_choice == 4)
 										{
 											std::string message = WalkerProcessor::run_away().second;
 
@@ -1530,14 +1564,14 @@ namespace Observer {
 											action_taken = true;
 										}
 
-										if (threats_response_choice == 4)
+										if (threats_response_choice == 5)
 										{
 											runaway_in_a_row = 0;
 											action_taken = true;
 										}
 
 
-										if (threats_response_choice == 5)
+										if (threats_response_choice == 6)
 										{
 											runaway_in_a_row = 0;
 											action_taken = true;
@@ -1549,7 +1583,7 @@ namespace Observer {
 									}
 									else
 									{
-										if (threats_response_choice != 3 && threats_response_choice != 4 && threats_response_choice != 5 && !WalkerProcessor::walker_active())
+										if (threats_response_choice != 4 && threats_response_choice != 5 && threats_response_choice != 6 && !WalkerProcessor::walker_active())
 										{
 											//walker inactive, but we have threats. reset threats
 											reset_threats();

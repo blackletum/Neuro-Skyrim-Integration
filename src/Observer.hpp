@@ -58,6 +58,7 @@ namespace Observer {
 
 
 	bool get_keep_distance_mode();
+	bool get_dragonbreath_block_mode();
 	std::pair<bool, std::string> set_keep_distance_mode(bool set);
 
 

@@ -165,6 +165,8 @@ namespace WalkerProcessor {
 	void walk_soltsheim_prison_grate2();
 
 	bool is_concentration_spell(bool right);
+	bool is_concentration_spell(RE::MagicItem* spell);
+
 	float get_spell_cost(bool right);
 	float get_spell_cost(RE::MagicItem* spell);
 
