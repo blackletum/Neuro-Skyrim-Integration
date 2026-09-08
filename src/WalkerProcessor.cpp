@@ -13019,7 +13019,7 @@ namespace WalkerProcessor {
                         else
                         {
                             //all self-cast non-both-hand spells fall here
-                            return 500.0f;
+                            return 3000.0f;
                         }
 
                     }

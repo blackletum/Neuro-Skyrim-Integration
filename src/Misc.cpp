@@ -1136,13 +1136,13 @@ namespace MiscThings {
                             {
                                 RE::NiPoint3 projectile_fly_vector{};
                                 RE::NiPoint3 projectile_orth1_vector{};
-                                RE::NiPoint3 projectile_orth2_vector{};
+                                //RE::NiPoint3 projectile_orth2_vector{};
 
                                 if (a_ref->Get3D())
                                 {
                                     projectile_fly_vector = a_ref->Get3D()->world.rotate.GetVectorY();
                                     projectile_orth1_vector = a_ref->Get3D()->world.rotate.GetVectorX();
-                                    projectile_orth2_vector = a_ref->Get3D()->world.rotate.GetVectorZ();
+                                    //projectile_orth2_vector = a_ref->Get3D()->world.rotate.GetVectorZ();
                                 }
                                 else
                                     return RE::BSContainer::ForEachResult::kContinue;
@@ -1209,7 +1209,99 @@ namespace MiscThings {
                                     }
                                     else
                                     {
-                                        //test 4 more positions
+                                        //test more positions
+
+                                        std::vector<RE::NiPoint3> subpos_vectors{};
+
+                                        auto pi = RE::NI_PI;
+
+                                        auto proj_vector_norm = projectile_fly_vector;
+                                        proj_vector_norm.Unitize();
+
+                                        auto projectile_orth_vector_norm = projectile_orth1_vector;
+                                        projectile_orth_vector_norm.Unitize();
+
+
+
+                                        for (int i = 0; i < 8; i++)
+                                        {
+                                            RE::NiPoint3 shift = MiscThings::rotate_around_axis(projectile_orth_vector_norm * aoe_radius, proj_vector_norm, pi / 4 * i);
+                                            subpos_vectors.push_back(projectile_pos + shift);
+                                        }
+
+                                        if (aoe_radius > 40.0f)
+                                        {
+                                            for (int i = 0; i < 8; i++)
+                                            {
+                                                RE::NiPoint3 shift = MiscThings::rotate_around_axis(projectile_orth_vector_norm * aoe_radius / 2.0f, proj_vector_norm, pi / 4 * i);
+                                                subpos_vectors.push_back(projectile_pos + shift);
+                                            }
+                                        }
+
+                                        float aoe_radius_for_calc = aoe_radius;
+
+
+
+                                        if (result.high_aoe && explosion)
+                                        {
+                                            aoe_radius_for_calc = explosion->data.radius;
+
+
+                                            for (int i = 0; i < 8; i++)
+                                            {
+                                                RE::NiPoint3 shift = MiscThings::rotate_around_axis(projectile_orth_vector_norm * aoe_radius_for_calc, proj_vector_norm, pi / 4 * i);
+                                                subpos_vectors.push_back(projectile_pos + shift);
+                                            }
+
+                                            if (aoe_radius_for_calc > 40.0f)
+                                            {
+                                                for (int i = 0; i < 8; i++)
+                                                {
+                                                    RE::NiPoint3 shift = MiscThings::rotate_around_axis(projectile_orth_vector_norm * aoe_radius_for_calc / 2.0f, proj_vector_norm, pi / 4 * i);
+                                                    subpos_vectors.push_back(projectile_pos + shift);
+                                                }
+                                            }
+
+                                            if (aoe_radius_for_calc > 80.0f)
+                                            {
+                                                for (int i = 0; i < 8; i++)
+                                                {
+                                                    RE::NiPoint3 shift = MiscThings::rotate_around_axis(projectile_orth_vector_norm * 20.0f, proj_vector_norm, pi / 4 * i);
+                                                    subpos_vectors.push_back(projectile_pos + shift);
+                                                }
+                                            }
+
+
+                                        }
+
+
+
+
+
+                                        for (auto subpos : subpos_vectors)
+                                        {
+                                            if (MiscThings::GetRaycastRef(subpos, projectile_fly_vector, 3000.0f, nullptr, 0b00001000000000000000000000000110) == player)
+                                            {
+                                                result.direction = projectile_fly_vector;
+                                                if (extra_dangerous)
+                                                    if (projectile_ref->shooter && projectile_ref->shooter.get() && projectile_ref->shooter.get().get())
+                                                        result.shooter = projectile_ref->shooter.get().get();
+
+                                                /*
+                                                DebugAPI_IMPL::DebugAPI::GetSingleton()->LinesToDraw.clear();
+                                                for (auto subpos_draw : subpos_vectors)
+                                                {
+                                                    DebugAPI_IMPL::DrawDebug::draw_line(subpos_draw, subpos_draw + projectile_fly_vector * 1000.0f);
+                                                }
+                                                DebugAPI_IMPL::DebugAPI::GetSingleton()->Update();
+                                                */
+
+
+                                                return RE::BSContainer::ForEachResult::kStop;
+                                            }
+                                        }
+
+                                        /*
                                         auto pos1 = projectile_pos + projectile_orth1_vector * aoe_radius;
                                         auto pos2 = projectile_pos - projectile_orth1_vector * aoe_radius;
                                         auto pos3 = projectile_pos + projectile_orth2_vector * aoe_radius;
@@ -1236,18 +1328,18 @@ namespace MiscThings {
                                                 auto pos7 = projectile_pos + projectile_orth2_vector * aoe_radius * 0.5f;
                                                 auto pos8 = projectile_pos - projectile_orth2_vector * aoe_radius * 0.5f;
 
-                                                /*
-                                                DebugAPI_IMPL::DebugAPI::GetSingleton()->LinesToDraw.clear();
-                                                DebugAPI_IMPL::DrawDebug::draw_line(pos1, pos1 + projectile_fly_vector * 500.0f);
-                                                DebugAPI_IMPL::DrawDebug::draw_line(pos2, pos2 + projectile_fly_vector * 500.0f);
-                                                DebugAPI_IMPL::DrawDebug::draw_line(pos3, pos3 + projectile_fly_vector * 500.0f);
-                                                DebugAPI_IMPL::DrawDebug::draw_line(pos4, pos4 + projectile_fly_vector * 500.0f);
-                                                DebugAPI_IMPL::DrawDebug::draw_line(pos5, pos5 + projectile_fly_vector * 500.0f);
-                                                DebugAPI_IMPL::DrawDebug::draw_line(pos6, pos6 + projectile_fly_vector * 500.0f);
-                                                DebugAPI_IMPL::DrawDebug::draw_line(pos7, pos7 + projectile_fly_vector * 500.0f);
-                                                DebugAPI_IMPL::DrawDebug::draw_line(pos8, pos8 + projectile_fly_vector * 500.0f);
-                                                DebugAPI_IMPL::DebugAPI::GetSingleton()->Update();
-                                                */
+                                                
+                                                //DebugAPI_IMPL::DebugAPI::GetSingleton()->LinesToDraw.clear();
+                                                //DebugAPI_IMPL::DrawDebug::draw_line(pos1, pos1 + projectile_fly_vector * 500.0f);
+                                                //DebugAPI_IMPL::DrawDebug::draw_line(pos2, pos2 + projectile_fly_vector * 500.0f);
+                                                //DebugAPI_IMPL::DrawDebug::draw_line(pos3, pos3 + projectile_fly_vector * 500.0f);
+                                                //DebugAPI_IMPL::DrawDebug::draw_line(pos4, pos4 + projectile_fly_vector * 500.0f);
+                                                //DebugAPI_IMPL::DrawDebug::draw_line(pos5, pos5 + projectile_fly_vector * 500.0f);
+                                                //DebugAPI_IMPL::DrawDebug::draw_line(pos6, pos6 + projectile_fly_vector * 500.0f);
+                                                //DebugAPI_IMPL::DrawDebug::draw_line(pos7, pos7 + projectile_fly_vector * 500.0f);
+                                                //DebugAPI_IMPL::DrawDebug::draw_line(pos8, pos8 + projectile_fly_vector * 500.0f);
+                                                //DebugAPI_IMPL::DebugAPI::GetSingleton()->Update();
+                                                
 
                                                 if (MiscThings::GetRaycastRef(pos5, projectile_fly_vector, 3000.0f, nullptr, 0b00001000000000000000000000000110) == player ||
                                                     MiscThings::GetRaycastRef(pos6, projectile_fly_vector, 3000.0f, nullptr, 0b00001000000000000000000000000110) == player ||
@@ -1262,6 +1354,8 @@ namespace MiscThings {
                                                     return RE::BSContainer::ForEachResult::kStop;
                                                 }
                                             }
+
+                                        */
                                     }
                                 }
                             }
@@ -30539,6 +30633,7 @@ namespace MiscThings {
 
     bool player_has_spell(RE::SpellItem* spell)
     {
+
         //REFRESH SPELLS. MIGHT HAVE SOMETHING NEW AND IT WILL NOT SEE REQUIRED SPELL
         auto get_spells_result = get_available_spells();
 
