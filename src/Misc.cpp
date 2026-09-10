@@ -19378,7 +19378,7 @@ namespace MiscThings {
             auto player_ref = RE::PlayerCharacter::GetSingleton()->AsReference();
 
 
-            if (quest->formID == 0x1f7a3)
+            if (quest && quest->formID == 0x1f7a3)
                 bool stop_here = false;
 
 
@@ -19386,11 +19386,17 @@ namespace MiscThings {
 
             if (run_on_who_flag == (int)RE::CONDITIONITEMOBJECT::kSelf)
             {
-                RE::ObjectRefHandle quest_ref_handle{};
-                target->GetTargetRef(quest_ref_handle, false, quest); //no tracked - try actual target
+                if (target)
+                {
+                    RE::ObjectRefHandle quest_ref_handle{};
+                    target->GetTargetRef(quest_ref_handle, false, quest); //no tracked - try actual target
 
-                if (quest_ref_handle && quest_ref_handle.get() && quest_ref_handle.get().get())
-                params.targetRef = quest_ref_handle.get().get();
+                    if (quest_ref_handle && quest_ref_handle.get() && quest_ref_handle.get().get())
+                        params.targetRef = quest_ref_handle.get().get();
+                }
+                else
+                    params.targetRef = player_ref;
+
             }
 
             if (run_on_who_flag == (int)RE::CONDITIONITEMOBJECT::kRef)
@@ -19403,14 +19409,19 @@ namespace MiscThings {
             {
                 int alias_id = condition->data.dataID;
 
-                if (quest->refAliasMap.find(alias_id) != quest->refAliasMap.end())
+                if (quest)
                 {
-                    auto alias_handle = quest->refAliasMap.find(alias_id)->second;
+                    if (quest->refAliasMap.find(alias_id) != quest->refAliasMap.end())
+                    {
+                        auto alias_handle = quest->refAliasMap.find(alias_id)->second;
 
-                    if (alias_handle && alias_handle.get() && alias_handle.get().get())
-                    params.targetRef = alias_handle.get().get();
-                } 
+                        if (alias_handle && alias_handle.get() && alias_handle.get().get())
+                            params.targetRef = alias_handle.get().get();
+                    }
+                }
+
             }
+           
 
             //params.targetRef = player_ref;
 
@@ -19428,18 +19439,21 @@ namespace MiscThings {
                 auto target = params.targetRef; //compare if this target ref is equal to alias ref
                 
                 int compare_alias_id = (int)condition->data.functionData.params[0];
-
-                if (quest->refAliasMap.find(compare_alias_id) != quest->refAliasMap.end())
+                if (quest)
                 {
-                    auto compare_alias_handle = quest->refAliasMap.find(compare_alias_id)->second;
-
-                    if (compare_alias_handle && compare_alias_handle.get() && compare_alias_handle.get().get())
+                    if (quest->refAliasMap.find(compare_alias_id) != quest->refAliasMap.end())
                     {
-                        auto compare_ref = compare_alias_handle.get().get();
+                        auto compare_alias_handle = quest->refAliasMap.find(compare_alias_id)->second;
 
-                        manual_check = compare_condition_function(condition->data.flags.opCode, target, compare_ref, condition->data.comparisonValue.f);
+                        if (compare_alias_handle && compare_alias_handle.get() && compare_alias_handle.get().get())
+                        {
+                            auto compare_ref = compare_alias_handle.get().get();
+
+                            manual_check = compare_condition_function(condition->data.flags.opCode, target, compare_ref, condition->data.comparisonValue.f);
+                        }
                     }
                 }
+
             }
 
 
@@ -26707,6 +26721,14 @@ namespace MiscThings {
                             }
 
 
+                            if (object->IsWeapon() && WalkerProcessor::is_casting_ritual_spell())
+                            {
+                                result.first = false;
+                                result.second = "You are concentrated on casting Master-level spell... Wait a little before casting new spell";
+                                return result;
+                            }
+
+
                             if (!probe_mode && object->IsWeapon() && is_casting_ult())
                             {
                                 result.first = true;
@@ -26804,6 +26826,14 @@ namespace MiscThings {
                                     }
 
 
+                                    if (object->IsWeapon() && WalkerProcessor::is_casting_ritual_spell())
+                                    {
+                                        result.first = false;
+                                        result.second = "You are concentrated on casting Master-level spell... Wait a little before casting new spell";
+                                        return result;
+                                    }
+
+
 
                                     if (entry_entry->extraLists && entry_entry->extraLists->size() > 0)
                                     {
@@ -26852,6 +26882,15 @@ namespace MiscThings {
                             }
                             else
                             {
+
+                                if (WalkerProcessor::is_casting_ritual_spell())
+                                {
+                                    result.first = false;
+                                    result.second = "You are concentrated on casting Master-level spell... Wait a little before casting new spell";
+                                    return result;
+                                }
+
+
                                 auto entry = inventory.find(object);
 
                                 if (entry != inventory.end() && entry->second.second.get())
@@ -26872,8 +26911,15 @@ namespace MiscThings {
                                             actor_equip->EquipObject((RE::Actor*)player_ref, object); //normal equip
                                 }
                                 else
-                                    if (!probe_mode)
-                                        actor_equip->EquipObject((RE::Actor*)player_ref, object); //normal equip
+                                {
+                                    result.first = false;
+                                    result.second = "You dont have this item anymore";
+                                    return result;
+                                }
+
+
+                                    //if (!probe_mode)
+                                    //    actor_equip->EquipObject((RE::Actor*)player_ref, object); //normal equip
 
                             }
                                 
@@ -27852,6 +27898,17 @@ namespace MiscThings {
 
                     auto category = get_object_category(item_form, item, without_text_category);
 
+
+
+                    if (item->formType == RE::FormType::Scroll)
+                    {
+                        auto descr = get_spell_description((RE::SpellItem*)item);
+
+                        if (descr != "")
+                            item_name += " - " + descr;
+
+                    }
+
                     result.second += category.second;
                     result.second += value_text;
                     result.second += actions + " ";
@@ -28669,6 +28726,45 @@ namespace MiscThings {
     }
 
 
+    std::string get_spell_description(RE::SpellItem* spell)
+    {
+        if (spell && (spell->formType == RE::FormType::Scroll || spell->formType == RE::FormType::Spell))
+        {
+            std::string description = "";
+
+            auto effect = spell->GetAVEffect();
+
+            std::string descr = "";
+
+            if (effect)
+            {
+
+                descr = effect->magicItemDescription;
+                descr = fix_spell_description(descr, spell);
+
+
+            }
+
+            if (descr == "")
+            {
+                RE::BSString temp_string;
+
+                spell->GetDescription(temp_string, spell, 'MANC');
+
+                descr = temp_string;
+                descr = fix_spell_description(descr, spell);
+
+            }
+
+            return descr;
+        }
+
+        return "";
+    }
+
+
+
+
     std::string get_casting_perk_info_by_spell_name(std::string name)
     {
         auto get_spells_result = get_available_spells();
@@ -28805,30 +28901,7 @@ namespace MiscThings {
                     std::string name = a_spell->GetFullName();
                     std::string description = "";
 
-
-                    auto effect = a_spell->GetAVEffect();
-
-                    std::string descr = "";
-
-                    if (effect)
-                    {
-
-                        descr = effect->magicItemDescription;
-                        descr = fix_spell_description(descr, a_spell);
-
-
-                    }
-
-                    if (descr == "")
-                    {
-                        RE::BSString temp_string;
-
-                        a_spell->GetDescription(temp_string, a_spell, 'MANC');
-
-                        descr = temp_string;
-                        descr = fix_spell_description(descr, a_spell);
-
-                    }
+                    std::string descr = get_spell_description(a_spell);
 
                     description = " " + descr;
 
@@ -28969,9 +29042,31 @@ namespace MiscThings {
                         {
                             switch (a_spell->formID)
                             {
+                            case (0xc1e8b):
+                            case (0xed09a):
+                            case (0xed09b):
                             case (0xed09c):
-                                *passive_effects += name + " - " + description + "\n"; //weakness to sunlight for some reason has no display object but is displayed
+                            {
+                                bool any_effect_active = false;
+                                for (auto& effect : a_spell->effects)
+                                {
+                                    if (effect)
+                                    {
+                                        if (!effect->conditions || MiscThings::recursive_quest_condition_check(effect->conditions.head, nullptr, nullptr))
+                                        {
+                                            any_effect_active = true;
+                                            break;
+                                        }
+                                    }
+                                }
+                                if (any_effect_active)
+                                {
+                                    *passive_effects += name + " - " + description + "\n"; //weakness to sunlight for some reason has no display object but is displayed
+                                }
+                                
                                 break;
+                            }
+
                             }
                         }
 
@@ -30074,6 +30169,14 @@ namespace MiscThings {
         auto player_actor = (RE::Actor*)(player->AsReference());
 
 
+        if (WalkerProcessor::is_casting_ritual_spell())
+        {
+            result.first = false;
+            result.second = "You are concentrated on casting Master-level spell... Wait a little before casting new spell";
+            return result;
+        }
+
+
         if (std::size(spells) <= 0)
         {
             auto get_spells_result = get_available_spells();
@@ -31037,6 +31140,15 @@ namespace MiscThings {
 
         auto player = RE::PlayerCharacter::GetSingleton();
         auto player_actor = (RE::Actor*)(player->AsReference());
+
+
+
+        if (WalkerProcessor::is_casting_ritual_spell())
+        {
+            result.first = false;
+            result.second = "You are concentrated on casting Master-level spell... Wait a little before casting new spell";
+            return result;
+        }
 
 
 

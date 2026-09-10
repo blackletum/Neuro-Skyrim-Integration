@@ -987,6 +987,14 @@ namespace WalkerProcessor {
         std::pair<bool, std::string> result{};
 
 
+        if (WalkerProcessor::is_casting_ritual_spell())
+        {
+            result.first = false;
+            result.second = "You are concentrated on casting Master-level spell... Wait a little before walking";
+            return result;
+        }
+
+
         result.first = true;
         result.second = "[You start moving sneakily...]";
 
@@ -1012,6 +1020,14 @@ namespace WalkerProcessor {
         result.second = "[You stop moving sneakily...]";
 
         sneak_mode_on = false;
+
+
+        if (WalkerProcessor::is_casting_ritual_spell())
+        {
+            result.first = false;
+            result.second = "You are concentrated on casting Master-level spell... Wait a little before walking";
+            return result;
+        }
 
 
         unregister_stop_sneak();
@@ -5797,6 +5813,16 @@ namespace WalkerProcessor {
     }
 
 
+
+
+    bool is_casting_ritual_spell()
+    {
+        return (attack_action_time0 > 0.0f || attack_action_time1 > 0.0f) && has_ritual_spell_equipped();
+    }
+
+
+
+
     bool is_casting_walker2(bool right)
     {
         bool result = false;
@@ -8881,7 +8907,12 @@ namespace WalkerProcessor {
 
 
 
-
+        if (WalkerProcessor::is_casting_ritual_spell())
+        {
+            result.first = false;
+            result.second = "You are concentrated on casting Master-level spell... Wait a little before walking";
+            return result;
+        }
 
 
 
@@ -10209,6 +10240,15 @@ namespace WalkerProcessor {
                 result.second = "You need to wait a little...";
                 return result;
             }
+        }
+
+
+
+        if (WalkerProcessor::is_casting_ritual_spell())
+        {
+            result.first = false;
+            result.second = "You are concentrated on casting Master-level spell... Wait a little before walking";
+            return result;
         }
 
 

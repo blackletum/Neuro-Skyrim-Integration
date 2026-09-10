@@ -21,6 +21,7 @@ namespace MiscThings {
     bool player_has_deseases();
 
     std::string fix_potion_description(std::string description, RE::AlchemyItem* potion);
+    std::string get_spell_description(RE::SpellItem* spell);
 
     bool cast_spell_recently();
 

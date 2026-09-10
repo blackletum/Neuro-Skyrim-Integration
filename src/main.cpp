@@ -22,6 +22,8 @@
 // add ability to shoot the sun with auriel bow
 
 
+
+////////////////////////////////////////////////////////////////// combat stuff for later //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //combat-only commands? that appear instead of map/wait? (they should be super compact, maybe even no description)
 //candidate commands:
 //tactical retreat (run away from enemies for a little)/full retreat (plain runaway action)
@@ -38,10 +40,11 @@
 // switching from spells has no restrictions when low mana (<20%?)
 // spells that dont take hand have no restrictions in any mode
 // some interactive commands for non-spell combat (power attack for melee, aim carefully for bows, block for twohanded/shield)
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 
 
 //TODO hearthfire dlc
-
 
 //TODO that seducers AE quest
 
