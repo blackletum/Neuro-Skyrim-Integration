@@ -5925,12 +5925,12 @@ namespace Observer {
 							if (old_right_hand->GetFormType() == RE::FormType::Weapon)
 							{
 								if (player->GetItemCount((RE::TESBoundObject*)old_right_hand) > 0 && (left_hand != old_right_hand || player->GetItemCount((RE::TESBoundObject*)old_right_hand) > 1))
-									player_equip->EquipObject(player, (RE::TESBoundObject*)old_right_hand, nullptr, 1, left_slot, true, false, false);
+									player_equip->EquipObject(player, (RE::TESBoundObject*)old_right_hand, nullptr, 1, right_slot, true, false, false);
 							}
 							else
 								if (old_right_hand->GetFormType() == RE::FormType::Spell)
 									if (MiscThings::player_has_spell((RE::SpellItem*)old_right_hand))
-										player_equip->EquipSpell(player, (RE::SpellItem*)old_right_hand, left_slot);
+										player_equip->EquipSpell(player, (RE::SpellItem*)old_right_hand, right_slot);
 					}
 
 
