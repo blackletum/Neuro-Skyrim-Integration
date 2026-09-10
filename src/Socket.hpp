@@ -53,7 +53,7 @@ namespace Capabilities
 
     namespace FightKeepDistanceShort
     {
-        constexpr char Name[] = "get_closer_to_enemies";
+        constexpr char Name[] = "stay_closer_to_enemies";
         constexpr char Desc[] =
             R"()";
         constexpr neurosdk_action Action = { .name = Name, .description = Desc };//, .json_schema = JsonSchema };
