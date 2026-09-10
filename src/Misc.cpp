@@ -3496,6 +3496,9 @@ namespace MiscThings {
         {
             switch (target->formID)
             {
+            case (0x27de2):
+                return 110.0f; //tusk powder, repair white phial quest
+
             case (0x2c361): //namira shrine
                 return 250.0f;
 
@@ -8750,6 +8753,23 @@ namespace MiscThings {
             switch (quest->formID)
             {
 
+            case (0xc1acc): //red eagle
+            {
+                if (target && target->formID == 0xa91a7)
+                {
+                    //check door, redirect to forsworn if no key
+                    auto locked_door = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x9fd4e);
+                    if (locked_door && MiscThings::is_door_locked(locked_door))
+                    {
+                        auto forsworn_boss = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x2c9a0);
+                        if (forsworn_boss)
+                            return forsworn_boss;
+                    }
+                }
+                break;
+            }
+
+
             case (0x1cf26): //whiterun rescue guy from thalmor ms09
             {
                 if (quest->currentStage == 60 && target && target->formID == 0x159df) //bad door
@@ -8875,6 +8895,21 @@ namespace MiscThings {
             }
         
 
+
+        if (target && target->formID == 0x2c25d) //unmelting snow for white phial repair
+        {
+            if (player_worldspace && player_worldspace->formID == 0x3c)
+            {
+                if (player_pos.z < 36764.5f)
+                {
+                    auto redirect_unmelting_snow = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x714545b);
+                    {
+                        if (redirect_unmelting_snow)
+                            return redirect_unmelting_snow;
+                    }
+                }
+            }
+        }
 
 
         if (target && target->formID == 0x2004349 && parent_cell && parent_cell->formID == 0x2004346)
@@ -20007,6 +20042,140 @@ namespace MiscThings {
         }
 
 
+
+        RE::TESQuest* red_eagle_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("dunRebelsCairnQST");
+        
+
+        if (red_eagle_quest && red_eagle_quest->currentStage >= 21)
+        {
+            if (!(red_eagle_quest->data.flags.all(RE::QuestFlag::kKeepInstance)))
+            {
+
+                //sword inserted. now need to phantom-guide through the rest of this dungeon
+
+                //if boss isnt dead - redirect to boss if sword is inserted, redirect to pedestal if sword is not inserted
+                //if boss is dead - redirect to pedestal if it contains sword
+
+                quest this_quest{};
+
+                this_quest.id = id;
+                this_quest.quest = red_eagle_quest;
+                this_quest.name = "Find out about Red Eagle legend";
+                this_quest.target = nullptr;
+
+                std::string displaytext = "";
+
+                auto objective = MiscThings::get_quest_objective_by_index(this_quest.quest, 22);
+
+
+
+
+                auto sword_pedestal = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xa05c0);
+                auto sword_pedestal_activator = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xa05a9);
+                //auto secret_door = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xc149d);
+
+                auto boss = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xc14b3);
+                auto sword_activator_trap_linker = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xa05c4);
+
+
+                bool add_the_quest = false;
+                RE::TESObjectREFR* target_for_quest = nullptr;
+                std::string objective_name = "";
+
+                if (sword_pedestal_activator)
+                {
+                    if (red_eagle_quest->currentStage == 21)
+                    {
+                        //quest autoupdates when we take the sword back, to stage of 21
+                        if (sword_pedestal_activator)
+                        {
+                            add_the_quest = true;
+                            target_for_quest = sword_pedestal_activator;
+                            objective_name = "Unlock the secret door";
+                        }
+
+                    }
+                    else
+                    {
+                        if (boss && !boss->IsDisabled() && !boss->IsDead())
+                        {
+                            add_the_quest = true;
+                            target_for_quest = boss;
+                            objective_name = "Explore the crypt";
+                        }
+                        else
+                        {
+                            //boss is dead. need to take upgraded sword from the pedestal if its there
+
+                            auto object_p = General::Script::GetObject(sword_activator_trap_linker, "dunRebelsCairnSwordInStoneManager");
+                            if (object_p)
+                            {
+                                bool stop_here = false;
+
+                                RE::BSFixedString prop_name = "::RebelsCairnBaseSwordActivator_var";
+                                RE::TESObjectREFR* base_sword_activator = General::Script::GetVariable<RE::TESObjectREFR*>(object_p, prop_name);
+                                prop_name = "::RebelsCairnUpgradedSwordActivator_var";
+                                RE::TESObjectREFR* upgraded_sword_activator = General::Script::GetVariable<RE::TESObjectREFR*>(object_p, prop_name);
+
+                                if (base_sword_activator && upgraded_sword_activator)
+                                {
+                                    if (!upgraded_sword_activator->IsDisabled())
+                                    {
+                                        add_the_quest = true;
+                                        target_for_quest = sword_pedestal_activator;
+                                        objective_name = "Check the Red Eagle Sword";
+                                    }
+                                    else
+                                        ;//sword is taken. do nothing
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                
+
+
+
+                if (add_the_quest)
+                {
+                    displaytext = objective_name;
+
+                    std::string target_name = "";
+
+                    this_quest.displaytext += replace_aliases(this_quest.quest, displaytext);
+
+                    this_quest.target_name = target_name;
+
+                    this_quest.objective = objective;
+
+                    this_quest.description = "";
+                    this_quest.category = 0;
+
+                    this_quest.estimate_distance = 0.0f;
+
+                    this_quest.phantom_objective = true;
+
+                    this_quest.phantom_target = target_for_quest;
+
+                    if (Apocrypha::in_apocrypha())
+                        this_quest.estimate_distance = 0.0f;
+                    else
+                        this_quest.estimate_distance = get_quest_target_distance(nullptr, this_quest.quest, nullptr, this_quest.phantom_target);
+
+                    sortable_quests.push_back(this_quest);
+
+
+
+                    id++;
+                    got_any_quests = true;
+                }
+            }
+
+            
+
+
+        }
 
         //meridia quest
         RE::TESQuest* meridia_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("DA09");

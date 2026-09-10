@@ -47,15 +47,10 @@
 
 //  RANDOM QUESTS TODO
 
-//TODO white phial, i think it needs some ice from top of the mountain that might be unreachable. actually test it (stonebank is somehow interactive even without quest; its also not really far up so can be done, but doesnt work out of the box)
-//TODO 3 amulet pieces quest (that starts with saartal boss in the magnus eye room)
-
 //TODO dwemer shield daedra
 //TODO black armor daedra
 //TODO black sword daedra
 //TODO dlc etherium book quest
-
-//TODO that fire nordic sword quest triggered by some book
 
 //TODO mage sidequests
 //TODO dawnguard sidequests
@@ -73,7 +68,6 @@
 
 //raised zombies count as enemies sometimes (silver hands for example)
 //check autosave after wait
-//spider cave
 
 
 //remember bad corpses for resurrection (those who are too powerful) and dont target them again automatically (maybe just filter in get_nearest_corpse function, it shouldnt affect manual targeting anyway since no search used.. test it maybe wrong)

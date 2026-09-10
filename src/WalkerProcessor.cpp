@@ -19103,6 +19103,57 @@ namespace WalkerProcessor {
                     }
 
 
+
+
+
+
+
+                    auto redirect_unmelting_snow = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x714545b);
+
+                    if (target_ref == redirect_unmelting_snow)
+                    {
+                        auto unmelting_snow = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x2c25d);
+
+                        if (unmelting_snow && player->GetDistance(redirect_unmelting_snow) < 200.0f)
+                        {
+                            walk_again(); //soft reset
+                            using_custom_path = true;
+                            custom_path = CustomWalkerPaths::white_phial_snow_climb;
+                            dont_quicksave_after_custom_path = true;
+                            allow_interrupt_custom_walk = false;
+                            walk_again_when_finished = true;
+                            target_ref = unmelting_snow;
+                            interaction_after_walk = 1;
+                            return;
+                        }
+                    }
+
+                    if (player->GetWorldspace() && player->GetWorldspace()->formID == 0x3c && player->GetPositionZ() >= 36764.5f)
+                    {
+                        if (redirect_unmelting_snow && player->GetDistance(redirect_unmelting_snow) < 2000.0f)
+                        {
+                            auto unmelting_snow = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x2c25d);
+
+                            if (target_ref != redirect_unmelting_snow && target_ref != unmelting_snow)
+                            {
+                                walk_again(); //soft reset
+                                using_custom_path = true;
+
+                                CustomWalkerPaths::template_path.clear();
+                                CustomWalkerPaths::template_path.push_back(player->GetPosition());
+                                CustomWalkerPaths::template_path.push_back(redirect_unmelting_snow->GetPosition());
+                                dont_shift = true;
+                                custom_path = CustomWalkerPaths::template_path;
+                                dont_quicksave_after_custom_path = false;
+                                allow_interrupt_custom_walk = false;
+                                walk_again_when_finished = true;
+                                return;
+                            }
+                        }
+                    }
+
+
+
                     auto bloodlet_throne_custompath_marker = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x70d0d2a);
 
                     if (target_ref == bloodlet_throne_custompath_marker && target_ref)
