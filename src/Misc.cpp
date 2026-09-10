@@ -19369,6 +19369,15 @@ namespace MiscThings {
 
 
 
+    bool is_scroll(RE::TESForm* form)
+    {
+        if (form)
+            return form->formType == RE::FormType::Scroll;
+
+        return false;
+    }
+
+
     bool recursive_quest_condition_check(RE::TESConditionItem* condition, RE::TESQuest* quest, RE::TESQuestTarget* target)
     {
         if (condition)

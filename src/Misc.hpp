@@ -22,6 +22,7 @@ namespace MiscThings {
 
     std::string fix_potion_description(std::string description, RE::AlchemyItem* potion);
     std::string get_spell_description(RE::SpellItem* spell);
+    bool is_scroll(RE::TESForm* form);
 
     bool cast_spell_recently();
 
