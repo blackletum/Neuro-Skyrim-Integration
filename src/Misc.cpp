@@ -26352,6 +26352,29 @@ namespace MiscThings {
 
 
 
+    std::string get_potion_description(RE::AlchemyItem* potion)
+    {
+        if (potion && potion->formType == RE::FormType::AlchemyItem)
+        {
+            if (potion->GetAVEffect())
+            {
+                std::string result = potion->GetAVEffect()->magicItemDescription.c_str();
+
+                result = fix_potion_description(result, potion);
+
+                if (result != "")
+                    result = "[" + result + "]";
+
+                return result;
+            }
+            
+        }
+
+        return "";
+    }
+
+
+
     RE::ActorValue what_does_potion_restore(RE::AlchemyItem* potion)
     {
         if (potion && potion->formType == RE::FormType::AlchemyItem)
@@ -27807,6 +27830,9 @@ namespace MiscThings {
             if (item_form->formType == RE::FormType::Ingredient || item_form->formType == RE::FormType::AlchemyItem)
                 ;// actions += "[Can consume]";
 
+            if (item_form->formType == RE::FormType::AlchemyItem)
+                actions += get_potion_description((RE::AlchemyItem*)item);
+
 
             actions += get_enchantment_info(item);
 
@@ -28208,6 +28234,63 @@ namespace MiscThings {
 
         return true;
     }
+
+
+
+
+
+    std::string fix_potion_description(std::string description, RE::AlchemyItem* potion)
+    {
+        bool something_found = false;
+
+        if (auto pos = description.find("<"); pos != std::string::npos)
+        {
+            auto pos2 = description.find(">");
+            if ((pos < (pos2 - 1)) && pos2 < description.length())
+            {
+                std::string keyword = description.substr(pos + 1, pos2 - pos - 1);
+
+
+                std::string replacement = "???";
+
+                if (keyword == "mag" || keyword == "MAG")
+                    if (potion->effects.front())
+                    {
+                        something_found = true;
+                        replacement = std::to_string((int)potion->effects.front()->GetMagnitude());
+                    }
+
+                if (keyword == "dur")
+                    if (potion->effects.front())
+                    {
+                        something_found = true;
+                        replacement = std::to_string((int)potion->effects.front()->GetDuration());
+                    }
+
+
+                if (is_digits(keyword, true))
+                {
+                    something_found = true;
+                    replacement = keyword;
+                }
+
+
+
+                if (replacement != "???")
+                {
+                    description.erase(pos, pos2 - pos + 1);
+                    description.insert(pos, replacement);
+                }
+            }
+
+        }
+
+        if (something_found)
+            return fix_potion_description(description, potion);
+        else
+            return description;
+    }
+
 
 
     std::string fix_spell_description(std::string description, RE::SpellItem* spell)

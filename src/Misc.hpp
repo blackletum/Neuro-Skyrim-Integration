@@ -20,6 +20,8 @@ namespace MiscThings {
 
     bool player_has_deseases();
 
+    std::string fix_potion_description(std::string description, RE::AlchemyItem* potion);
+
     bool cast_spell_recently();
 
     void notify_walker_to_stop_autolockpick_on_enemies();
