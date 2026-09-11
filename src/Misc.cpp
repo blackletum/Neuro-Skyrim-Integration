@@ -92,6 +92,49 @@ namespace MiscThings {
 
 
 
+    std::string get_actor_info(RE::Actor* actor)
+    {
+        if (actor && actor->IsActor())
+        {
+            std::string level = "Lvl " + std::to_string(actor->GetLevel());
+            
+            auto actor_base = actor->GetActorBase();
+
+            std::string npc_class_name = "";
+
+            if (actor_base)
+            {
+                auto npc_class = actor_base->npcClass;
+                if (npc_class)
+                    npc_class_name = npc_class->fullName;
+            }
+
+            std::string health = "HP: " + std::to_string((int)actor->GetActorValue(RE::ActorValue::kHealth));
+
+            if (level != "")
+                level += ", ";
+
+            if (health != "")
+                health += ", ";
+
+            //if (npc_class_name != "")
+            //    npc_class_name += "; ";
+
+            std::string result = level + health + npc_class_name;
+
+            if (result != "")
+                result = ", " + result;
+
+            return result;
+        }
+
+
+        return "";
+    }
+
+
+
+
 
     bool ignores_friendly_hits(RE::TESObjectREFR* object)
     {

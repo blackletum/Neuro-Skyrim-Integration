@@ -1440,6 +1440,10 @@ namespace Observer {
 
 
 									attacked_by += MiscThings::insert_object_into_list_and_get_info(attacker);
+
+									attacked_by += MiscThings::get_actor_info(attacker);
+
+
 									attacked_by += "; ";
 									auto crime_faction = attacker->GetCrimeFaction();
 									if (crime_faction)

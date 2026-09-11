@@ -18,6 +18,8 @@ namespace MiscThings {
     bool is_torch(RE::TESForm* object);
 
 
+    std::string get_actor_info(RE::Actor* actor);
+
     bool player_has_deseases();
 
     std::string fix_potion_description(std::string description, RE::AlchemyItem* potion);
