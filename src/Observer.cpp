@@ -3375,6 +3375,7 @@ namespace Observer {
 		bool reanimating;
 		int wakeup;
 		RE::TESRace* race; //for werewolf/vampiric transformations
+		int knock_state;
 	};
 
 
@@ -3608,7 +3609,7 @@ namespace Observer {
 
 									auto race = actor_ref->GetRace();
 
-									old_object_state state = { a_ref->IsDead(), is_fleeing,  new_target, (int)actor_ref->actorState1.flyState, ghost_state, -1, -1, (int)actor_ref->actorState2.reanimating, (int)actor_ref->actorState1.sitSleepState, race };
+									old_object_state state = { a_ref->IsDead(), is_fleeing,  new_target, (int)actor_ref->actorState1.flyState, ghost_state, -1, -1, (int)actor_ref->actorState2.reanimating, (int)actor_ref->actorState1.sitSleepState, race, (int)actor_ref->GetKnockState()};
 									objects_to_track.insert({ a_ref, state });
 								}
 								else
@@ -3632,7 +3633,7 @@ namespace Observer {
 
 									auto race = actor_ref->GetRace();
 
-									old_object_state new_state = { a_ref->IsDead(), is_fleeing, new_target, old_state.action_flags, ghost_state, old_state.trap_firing , old_state.destructible_state, (int)actor_ref->actorState2.reanimating, (int)actor_ref->actorState1.sitSleepState, race };
+									old_object_state new_state = { a_ref->IsDead(), is_fleeing, new_target, old_state.action_flags, ghost_state, old_state.trap_firing , old_state.destructible_state, (int)actor_ref->actorState2.reanimating, (int)actor_ref->actorState1.sitSleepState, race, (int)actor_ref->GetKnockState()};
 
 
 									if (old_state.pillar_face_code != new_state.pillar_face_code) //used this flag for ghosts
@@ -3688,6 +3689,46 @@ namespace Observer {
 										}
 									}
 
+
+									if (old_state.knock_state != new_state.knock_state)
+									{
+										bool dont_add = false;
+
+										objects_to_track.insert_or_assign(a_ref, new_state);
+
+										std::string victim_name = MiscThings::insert_object_into_list_and_get_info(a_ref);
+										std::string message_text = "";
+
+										bool you_mode = false;
+
+										if (a_ref == player)
+										{
+											you_mode = true;
+											victim_name = "You";
+										}
+											
+
+										if (new_state.knock_state == (int)RE::KNOCK_STATE_ENUM::kExplode)
+										{
+											std::string is_are = you_mode ? " are " : " is ";
+
+											message_text = "[" + victim_name + is_are + " knocked down!]";
+										}
+
+										if (new_state.knock_state == (int)RE::KNOCK_STATE_ENUM::kNormal)
+										{
+											std::string is_are = you_mode ? " are " : " is ";
+
+											message_text = "[" + victim_name + " got up]";
+										}
+
+
+										if (!dont_add && message_text != "")
+										{
+											detect_events_send_result_silent = true;
+											detect_events_result.push_back(message_text);
+										}
+									}
 
 									if (old_state.dead != new_state.dead)
 									{
@@ -3945,7 +3986,7 @@ namespace Observer {
 								//{
 									if (objects_to_track.find(a_ref) == objects_to_track.end())
 									{
-										old_object_state state = { 0, 0, 0, 0, 0, -1, -1, 0, 0, 0 };
+										old_object_state state = { 0, 0, 0, 0, 0, -1, -1, 0, 0, 0, 0 };
 										RE::ExtraDataList* extralist = &a_ref->extraList;
 										auto extra = extralist->GetByType(RE::ExtraDataType::kAction);
 										int pillar_face = MiscThings::get_pillar_face_name(a_ref);
@@ -3975,7 +4016,7 @@ namespace Observer {
 										int activation = MiscThings::two_state_activator_state(a_ref);
 										int destructible_state = MiscThings::get_destructible_state(a_ref);
 
-										old_object_state new_state = { 0, 0, 0, activation, pillar_face, trap_firing, destructible_state, 0, 0, 0 };
+										old_object_state new_state = { 0, 0, 0, activation, pillar_face, trap_firing, destructible_state, 0, 0, 0, 0 };
 
 
 										if (base_type == RE::FormType::Door)// && a_ref->GetDisplayFullName() == "")
