@@ -1,7 +1,5 @@
 
 
-//TODO: all new opened menus reset_walking
-
 
 #include "RandomMessageBoxProcessor.hpp"
 #include "main.hpp"

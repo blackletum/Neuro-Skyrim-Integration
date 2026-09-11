@@ -1,6 +1,5 @@
 
 
-//TODO: reasons for perk unavailability
 //TODO: optimal pathfinding
 
 

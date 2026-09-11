@@ -1,7 +1,5 @@
 
 
-//TODO: fix local map
-
 #include "InputActions.hpp"
 #include "MapProcessor.hpp"
 #include "main.hpp"

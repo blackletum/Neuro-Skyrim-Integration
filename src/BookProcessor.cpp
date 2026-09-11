@@ -2,10 +2,6 @@
 
 
 
-//TODO: make lock move faster (need to send inputs more frequently - DIDNT WORK???)
-//TODO: lock level info 
-//TODO: it looks a bit like shit.. need to smooth it somehow
-
 #include "InputActions.hpp"
 #include "BookProcessor.hpp"
 #include "main.hpp"

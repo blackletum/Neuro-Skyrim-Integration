@@ -5,8 +5,6 @@
 #include "Observer.hpp"
 #include "Misc.hpp"
 #include "main.hpp"
-//TODO: at least put it in groups. maybe tell what can be done with each group
-
 
 
 namespace Observer {

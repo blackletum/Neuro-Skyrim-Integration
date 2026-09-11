@@ -1,8 +1,5 @@
 
 
-//TODO: quest items?
-//TODO: print player and vendor's gold somewhere
-
 #include "InputActions.hpp"
 #include "BarterProcessor.hpp"
 #include "main.hpp"

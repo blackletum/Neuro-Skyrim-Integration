@@ -23,7 +23,7 @@ bool sprint_mode_stop = false;
 bool launch_sprint = false;
 float launch_sprint_time = 0.0f;
 
-
+bool long_cast_ult_fast_mode = false;
 bool long_cast_ult = false;
 float use_ult_time = 0.0f;
 bool canceled_inputs = false;
@@ -77,6 +77,7 @@ void reset_input_processor()
     were_casting_something_left = false;
     were_casting_something_right = false;
     long_cast_ult = false;
+    long_cast_ult_fast_mode = false;
     use_ult_time = 0.0f;
     canceled_inputs = false;
 
@@ -1441,10 +1442,11 @@ void make_stop_sprint()
 }
 
 
-void make_long_ult_cast()
+void make_long_ult_cast(bool fast)
 {
     if (!long_cast_ult)
     {
+        long_cast_ult_fast_mode = fast;
         long_cast_ult = true;
         use_ult_time = 0.0f;
         use_ult_prestart_done = false;
@@ -1604,7 +1606,7 @@ void input_processor(float dtime)
             {
                 if (use_ult_prestart_done)
                 {
-                    if (use_ult_time < 2.0f)
+                    if (use_ult_time < 1.5f || (long_cast_ult_fast_mode && use_ult_time < 0.1f))
                     {
                         use_ult_time += dtime;
                         start_use_ult();

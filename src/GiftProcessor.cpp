@@ -1,7 +1,5 @@
 
 
-//TODO: 2 enchantments per item
-
 #include "InputActions.hpp"
 #include "GiftProcessor.hpp"
 #include "main.hpp"

@@ -30816,7 +30816,7 @@ namespace MiscThings {
 
 
                                     if (!fast)
-                                        make_long_ult_cast();
+                                        make_long_ult_cast(unlocked_words == 1);
                                     else
                                         use_ult();
 

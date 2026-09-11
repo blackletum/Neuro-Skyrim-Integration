@@ -83,7 +83,7 @@ void confirm_noblock();
 void press_t();
 
 void input_processor(float dtime);
-void make_long_ult_cast();
+void make_long_ult_cast(bool fast = false);
 void reset_input_processor();
 
 
