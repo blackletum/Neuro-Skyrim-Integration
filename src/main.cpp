@@ -48,11 +48,12 @@
 
 //TODO that seducers AE quest
 
+//TODO fishing?
+
 //  RANDOM QUESTS TODO
 
 //TODO dwemer shield daedra
 //TODO black armor daedra
-//TODO black sword daedra
 //TODO dlc etherium book quest
 
 //TODO mage sidequests

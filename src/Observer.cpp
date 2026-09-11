@@ -2288,6 +2288,19 @@ namespace Observer {
 							//}
 
 
+							if (a_ref->formID == 0xfe472 || a_ref->formID == 0x4a39d) //ebony blade and book next to it. make it lower range
+							{
+								if (!MiscThings::is_object_in_the_list(a_ref) && player->GetDistance(a_ref) < 250.0f)
+								{
+									std::string info = MiscThings::insert_object_into_list_and_get_info(a_ref);
+									if (info != "")
+										interesting_buffer.insert_or_assign(a_ref, info);
+								}
+
+								raw_object_list.pop_back();
+								continue;
+							}
+
 
 							if (a_ref->formID == 0xab105) //ysgramor statue
 							{

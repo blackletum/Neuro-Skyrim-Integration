@@ -15394,8 +15394,10 @@ namespace WalkerProcessor {
                         auto mzulft_door = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x7d419);
                         auto haunted_house_door = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x7be26);
                         auto haunted_house_door2 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x18bf9);
+                        auto mephala_door = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4a38c);
 
-                        if ((target_ref == mzulft_door && mzulft_door) || (target_ref == haunted_house_door && haunted_house_door) || (target_ref == haunted_house_door2 && haunted_house_door2))
+
+                        if ((target_ref == mzulft_door && mzulft_door) || (target_ref == haunted_house_door && haunted_house_door) || (target_ref == haunted_house_door2 && haunted_house_door2) || (target_ref == mephala_door && mephala_door))
                         {
                             ;
                         }
@@ -15435,13 +15437,14 @@ namespace WalkerProcessor {
                         auto mzulft_door = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x7d419);
                         auto haunted_house_door = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x7be26);
                         auto haunted_house_door2 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x18bf9);
+                        auto mephala_door = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4a38c);
 
                         auto attackers = MiscThings::get_player_attackers(false, nullptr, true);
 
                         if (stop_autolockpick)
                             attackers.clear();
 
-                        if (std::size(attackers) > 0 || (mzulft_door && target_ref == mzulft_door) || (haunted_house_door && target_ref == haunted_house_door) || (target_ref == haunted_house_door2 && haunted_house_door2))
+                        if (std::size(attackers) > 0 || (mzulft_door && target_ref == mzulft_door)|| (mephala_door && target_ref == mephala_door) || (haunted_house_door && target_ref == haunted_house_door) || (target_ref == haunted_house_door2 && haunted_house_door2))
                         {
                             LockpickProcessor::reset_lockpicking();
                             confirm(); //lockpick it
@@ -22147,13 +22150,14 @@ namespace WalkerProcessor {
                                                                         auto mzulft_door = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x7d419);
                                                                         auto haunted_house_door = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x7be26);
                                                                         auto haunted_house_door2 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x18bf9);
+                                                                        auto mephala_door = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4a38c);
 
                                                                         auto attackers = MiscThings::get_player_attackers(false, nullptr, true);
 
                                                                         if (stop_autolockpick)
                                                                             attackers.clear();
 
-                                                                        if (std::size(attackers) > 0 || (target_ref == mzulft_door && mzulft_door) || (target_ref == haunted_house_door && haunted_house_door) || (target_ref == haunted_house_door2 && haunted_house_door2))
+                                                                        if (std::size(attackers) > 0 || (target_ref == mzulft_door && mzulft_door) || (target_ref == mephala_door && mephala_door) || (target_ref == haunted_house_door && haunted_house_door) || (target_ref == haunted_house_door2 && haunted_house_door2))
                                                                         {
                                                                             LockpickProcessor::reset_lockpicking();
                                                                             confirm(); //lockpick it
@@ -22719,6 +22723,7 @@ namespace WalkerProcessor {
                                                                     auto mzulft_door = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x7d419);
                                                                     auto haunted_house_door = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x7be26);
                                                                     auto haunted_house_door2 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x18bf9);
+                                                                    auto mephala_door = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4a38c);
 
                                                                     auto attackers = MiscThings::get_player_attackers(false, nullptr, true);
 
@@ -22726,7 +22731,7 @@ namespace WalkerProcessor {
                                                                         attackers.clear();
 
 
-                                                                    if (std::size(attackers) > 0 || (get_targeted_ref() == mzulft_door && mzulft_door) || (get_targeted_ref() == haunted_house_door && haunted_house_door) || (get_targeted_ref() == haunted_house_door2 && haunted_house_door2))
+                                                                    if (std::size(attackers) > 0 || (get_targeted_ref() == mzulft_door && mzulft_door) || (get_targeted_ref() == mephala_door && mephala_door) || (get_targeted_ref() == haunted_house_door && haunted_house_door) || (get_targeted_ref() == haunted_house_door2 && haunted_house_door2))
                                                                     {
                                                                         LockpickProcessor::reset_lockpicking();
                                                                         confirm(); //lockpick it
@@ -23163,6 +23168,8 @@ namespace WalkerProcessor {
                                                     auto mzulft_door = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x7d419);
                                                     auto haunted_house_door = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x7be26);
                                                     auto haunted_house_door2 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x18bf9);
+                                                    auto mephala_door = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4a38c);
+
 
                                                     auto attackers = MiscThings::get_player_attackers(false, nullptr, true);
 
@@ -23170,7 +23177,7 @@ namespace WalkerProcessor {
                                                         attackers.clear();
 
 
-                                                    if ((std::size(attackers) > 0 && runaway_mode) || (mzulft_door && get_targeted_ref() == mzulft_door) || (haunted_house_door && get_targeted_ref() == haunted_house_door) || (get_targeted_ref() == haunted_house_door && haunted_house_door))
+                                                    if ((std::size(attackers) > 0 && runaway_mode) || (mzulft_door && get_targeted_ref() == mzulft_door) || (mephala_door && get_targeted_ref() == mephala_door) || (haunted_house_door && get_targeted_ref() == haunted_house_door) || (get_targeted_ref() == haunted_house_door && haunted_house_door))
                                                     {
                                                         LockpickProcessor::reset_lockpicking();
                                                         confirm(); //lockpick it

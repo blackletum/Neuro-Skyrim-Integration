@@ -19225,6 +19225,15 @@ namespace MiscThings {
                         if (alias_id == 37)
                             return "Hjerim House";
                     }
+
+                    if (quest->formID == 0x4a37b)
+                    {
+                        if (alias_id == 3)
+                            return "Balgruuf";
+
+                        if (alias_id == 11)
+                            return "Farengar";
+                    }
                     //std::string result = "";
                     //result = alias->aliasName;
                     //return result;
