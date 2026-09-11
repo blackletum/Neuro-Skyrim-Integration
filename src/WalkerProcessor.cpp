@@ -4634,7 +4634,7 @@ namespace WalkerProcessor {
         bool lookat_used = false;
 
 
-        if ((target->IsHumanoid() || MiscThings::is_seeker(target)) && !MiscThings::dont_use_head_node(target))// && !target->IsDead())
+        if ((target->IsHumanoid() || MiscThings::is_seeker(target)) && !MiscThings::dont_use_head_node(target) && !(target->IsActor() && ((RE::Actor*)target)->GetLifeState() == RE::ACTOR_LIFE_STATE::kBleedout))// && !target->IsDead())
         {
             auto target_actor = (RE::Actor*)target;
 
