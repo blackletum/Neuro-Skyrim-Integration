@@ -1130,6 +1130,9 @@ namespace MiscThings {
 
         if (player)
         {
+
+            //DebugAPI_IMPL::DebugAPI::GetSingleton()->LinesToDraw.clear();
+
             RE::TES::GetSingleton()->ForEachReferenceInRange(player, 3000.0f,
                 //player->GetParentCell()->ForEachReferenceInRange(player->GetPosition(), 3000.0,
                 [&](RE::TESObjectREFR* a_ref) {
@@ -1312,13 +1315,23 @@ namespace MiscThings {
                                                     RE::NiPoint3 shift = MiscThings::rotate_around_axis(projectile_orth_vector_norm * 20.0f, proj_vector_norm, pi / 4 * i);
                                                     subpos_vectors.push_back(projectile_pos + shift);
                                                 }
+
+                                                for (int i = 0; i < 8; i++)
+                                                {
+                                                    RE::NiPoint3 shift = MiscThings::rotate_around_axis(projectile_orth_vector_norm * aoe_radius_for_calc, proj_vector_norm, pi / 4 * i + pi/8);
+                                                    subpos_vectors.push_back(projectile_pos + shift);
+                                                }
+
                                             }
 
 
                                         }
 
 
-
+                                        //for (auto subpos_draw : subpos_vectors)
+                                        //{
+                                        //    DebugAPI_IMPL::DrawDebug::draw_line(subpos_draw, subpos_draw + projectile_fly_vector * 1000.0f);
+                                        //}
 
 
                                         for (auto subpos : subpos_vectors)
@@ -1408,6 +1421,8 @@ namespace MiscThings {
                     return RE::BSContainer::ForEachResult::kContinue;
                 });
         }
+
+       // DebugAPI_IMPL::DebugAPI::GetSingleton()->Update();
 
         return result;
     }
