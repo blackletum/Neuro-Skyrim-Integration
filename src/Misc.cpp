@@ -98,16 +98,16 @@ namespace MiscThings {
         {
             std::string level = "Lvl " + std::to_string(actor->GetLevel());
             
-            auto actor_base = actor->GetActorBase();
+            //auto actor_base = actor->GetActorBase();
 
             std::string npc_class_name = "";
 
-            if (actor_base)
-            {
-                auto npc_class = actor_base->npcClass;
-                if (npc_class)
-                    npc_class_name = npc_class->fullName;
-            }
+            //if (actor_base)
+            //{
+            //    auto npc_class = actor_base->npcClass;
+            //   if (npc_class)
+            //        npc_class_name = npc_class->fullName;
+            //}
 
             std::string health = "HP: " + std::to_string((int)actor->GetActorValue(RE::ActorValue::kHealth));
 
