@@ -26776,9 +26776,19 @@ namespace MiscThings {
                             if (object->IsWeapon() && WalkerProcessor::is_casting_ritual_spell())
                             {
                                 result.first = false;
-                                result.second = "You are concentrated on casting Master-level spell... Wait a little before casting new spell";
+                                result.second = "You are concentrated on casting Master-level spell... Wait a little before equipping new weapons";
                                 return result;
                             }
+
+
+                            if (WalkerProcessor::get_blocking_dragonbreath())
+                            {
+                                result.first = false;
+                                result.second = "You are concentrated on blocking dragonbreath with Ward spell, Wait a little before equipping new weapons";
+                                return result;
+                            }
+
+
 
 
                             if (!probe_mode && object->IsWeapon() && is_casting_ult())
@@ -26881,7 +26891,15 @@ namespace MiscThings {
                                     if (object->IsWeapon() && WalkerProcessor::is_casting_ritual_spell())
                                     {
                                         result.first = false;
-                                        result.second = "You are concentrated on casting Master-level spell... Wait a little before casting new spell";
+                                        result.second = "You are concentrated on casting Master-level spell... Wait a little before equipping items";
+                                        return result;
+                                    }
+
+
+                                    if (WalkerProcessor::get_blocking_dragonbreath())
+                                    {
+                                        result.first = false;
+                                        result.second = "You are concentrated on blocking dragonbreath with Ward spell, Wait a little before equipping items";
                                         return result;
                                     }
 
@@ -26938,7 +26956,7 @@ namespace MiscThings {
                                 if (WalkerProcessor::is_casting_ritual_spell())
                                 {
                                     result.first = false;
-                                    result.second = "You are concentrated on casting Master-level spell... Wait a little before casting new spell";
+                                    result.second = "You are concentrated on casting Master-level spell... Wait a little before equipping items";
                                     return result;
                                 }
 
@@ -30228,6 +30246,13 @@ namespace MiscThings {
             return result;
         }
 
+        if (WalkerProcessor::get_blocking_dragonbreath())
+        {
+            result.first = false;
+            result.second = "You are concentrated on blocking dragonbreath with Ward spell, Wait a little before casting new spell";
+            return result;
+        }
+
 
         if (std::size(spells) <= 0)
         {
@@ -31198,7 +31223,15 @@ namespace MiscThings {
         if (WalkerProcessor::is_casting_ritual_spell())
         {
             result.first = false;
-            result.second = "You are concentrated on casting Master-level spell... Wait a little before casting new spell";
+            result.second = "You are concentrated on casting Master-level spell... Wait a little before equipping new spell";
+            return result;
+        }
+
+
+        if (WalkerProcessor::get_blocking_dragonbreath())
+        {
+            result.first = false;
+            result.second = "You are concentrated on blocking dragonbreath with Ward spell, Wait a little before equipping new spell";
             return result;
         }
 

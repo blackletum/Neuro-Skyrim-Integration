@@ -669,6 +669,12 @@ namespace WalkerProcessor {
     */
 
 
+    bool get_blocking_dragonbreath()
+    {
+        return blocking_dragonbreath;
+    }
+
+
     void remember_stuck_position()
     {
         auto player = RE::PlayerCharacter::GetSingleton();
@@ -990,7 +996,14 @@ namespace WalkerProcessor {
         if (WalkerProcessor::is_casting_ritual_spell())
         {
             result.first = false;
-            result.second = "You are concentrated on casting Master-level spell... Wait a little before walking";
+            result.second = "You are concentrated on casting Master-level spell... Wait a little before doing this";
+            return result;
+        }
+
+        if (WalkerProcessor::get_blocking_dragonbreath())
+        {
+            result.first = false;
+            result.second = "You are concentrated on blocking dragonbreath with Ward spell, Wait a little before doing this";
             return result;
         }
 
@@ -1025,7 +1038,15 @@ namespace WalkerProcessor {
         if (WalkerProcessor::is_casting_ritual_spell())
         {
             result.first = false;
-            result.second = "You are concentrated on casting Master-level spell... Wait a little before walking";
+            result.second = "You are concentrated on casting Master-level spell... Wait a little before doing this";
+            return result;
+        }
+
+
+        if (WalkerProcessor::get_blocking_dragonbreath())
+        {
+            result.first = false;
+            result.second = "You are concentrated on blocking dragonbreath with Ward spell, Wait a little before doing this";
             return result;
         }
 
@@ -8910,7 +8931,15 @@ namespace WalkerProcessor {
         if (WalkerProcessor::is_casting_ritual_spell())
         {
             result.first = false;
-            result.second = "You are concentrated on casting Master-level spell... Wait a little before walking";
+            result.second = "You are concentrated on casting Master-level spell... Wait a little before walking somewhere else";
+            return result;
+        }
+
+
+        if (WalkerProcessor::get_blocking_dragonbreath())
+        {
+            result.first = false;
+            result.second = "You are concentrated on blocking dragonbreath with Ward spell, Wait a little before walking somewhere else";
             return result;
         }
 
@@ -10092,6 +10121,22 @@ namespace WalkerProcessor {
 
 
 
+
+        if (WalkerProcessor::is_casting_ritual_spell())
+        {
+            result.first = false;
+            result.second = "You are concentrated on casting Master-level spell... Wait a little before walking";
+            return result;
+        }
+
+        if (WalkerProcessor::get_blocking_dragonbreath())
+        {
+            result.first = false;
+            result.second = "You are concentrated on blocking dragonbreath with Ward spell, Wait a little before walking somewhere else";
+            return result;
+        }
+
+
         if (last_quest_chosen)
         {
             if (!MiscThings::quest_is_hidden(last_quest_chosen, last_quest_objective_chosen))
@@ -10248,6 +10293,13 @@ namespace WalkerProcessor {
         {
             result.first = false;
             result.second = "You are concentrated on casting Master-level spell... Wait a little before walking";
+            return result;
+        }
+
+        if (WalkerProcessor::get_blocking_dragonbreath())
+        {
+            result.first = false;
+            result.second = "You are concentrated on blocking dragonbreath with Ward spell, Wait a little before walking somewhere else";
             return result;
         }
 

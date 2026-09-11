@@ -167,7 +167,7 @@ namespace WalkerProcessor {
 	bool is_concentration_spell(bool right);
 	bool is_concentration_spell(RE::MagicItem* spell);
 
-
+	bool get_blocking_dragonbreath();
 	bool is_casting_ritual_spell();
 
 
