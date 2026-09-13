@@ -44,6 +44,13 @@
 
 
 
+//TODO ingol barrow
+//TODO plant ring
+//TODO falmer cave near winterhold
+//TODO other quests
+//TODO mzulft red nirnroot potentially unreachable because cave entrance only works for mainquestline
+
+
 //TODO hearthfire dlc
 
 //TODO that seducers AE quest
