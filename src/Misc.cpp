@@ -8746,6 +8746,48 @@ namespace MiscThings {
             return nullptr;
 
 
+        //falmer's pit dungeon redirects
+        if (target)
+        {
+            if (target->formID == 0x2731d) //entrance to exit-cave
+            {
+                //cannot actually check door bar here because it doesnt exist yet.
+                //just redirect blindly, assuming it can never properly lead us like this
+                // 
+                //auto door_bar = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x3f241);
+                //if (door_bar && MiscThings::two_state_activator_state(door_bar) == 1)
+                //{
+                    auto normal_entrance = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x819f9);
+                    if (normal_entrance)
+                        return normal_entrance;
+                //}
+            }
+
+
+            if (target->formID == 0x372bc) //the pit cave itself. this is unreachable "door back" that is hanging under ceiling. 100% redirect to only door that can be reached
+            {
+                auto normal_entrance = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x256d1);
+                if (normal_entrance)
+                    return normal_entrance;
+            }
+
+
+
+
+            if (target->formID == 0x2748e) //elevator inside of the cave
+            {
+                auto door_bar = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x3f241);
+                if (door_bar && MiscThings::two_state_activator_state(door_bar) == 1)
+                {
+                    auto normal_entrance = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x27327);
+                    if (normal_entrance)
+                        return normal_entrance;
+                }
+            }
+        }
+
+
+
         if (parent_cell && parent_cell->formID == 0x151f5) //yngols barrow
         {
             if (target)
@@ -18583,10 +18625,13 @@ namespace MiscThings {
                             RE::NiPoint3 rotated_shift_vector = rotate_vector_by_angles(base_shift_vector, object_angles);
                             return  rotated_shift_vector;
                         }
-
-                        if (model.find("DoorDeadBolt01") != std::string::npos) //exclude markers. for some reason their model state is not 0 even though the model doesnt exist
+                        
+                        if (model.find("DoorDeadBolt01") != std::string::npos || model.find("DoorDeadBoltDbl01") != std::string::npos) //exclude markers. for some reason their model state is not 0 even though the model doesnt exist
                         {
                             RE::NiPoint3 base_shift_vector = { 0.0f, 5.0f, 75.0f };
+
+                            base_shift_vector = base_shift_vector * object->GetScale();
+
                             RE::NiPoint3 rotated_shift_vector = rotate_vector_by_angles(base_shift_vector, object_angles);
                             return  rotated_shift_vector;
                         }
