@@ -2257,6 +2257,18 @@ namespace Observer {
 							auto base_type = base_obj->GetFormType();
 
 
+							if (base_obj && base_obj->formID == 0x43499)
+							{
+								if (!MiscThings::is_object_in_the_list(a_ref) && player->GetDistance(a_ref) < 250.0f)
+								{
+
+									std::string info = MiscThings::insert_object_into_list_custom_name(" Bouncing glowing orb", a_ref);
+									if (info != "")
+										interesting_buffer.insert_or_assign(a_ref, info);
+								}
+							}
+
+
 							//hazards and statics already filtered in foreach scan
 
 							//if (base_type == RE::FormType::Hazard)

@@ -3554,6 +3554,9 @@ namespace MiscThings {
         {
             switch (target->formID)
             {
+            case (0xb63ef):
+                return 400.0f; //yngols barrow, one of first pillars. lies slightly out of navmesh and cant be pathfound close enough
+            
             case (0x27de2):
                 return 110.0f; //tusk powder, repair white phial quest
 
@@ -8741,6 +8744,59 @@ namespace MiscThings {
 
         if (!quest)
             return nullptr;
+
+
+        if (parent_cell && parent_cell->formID == 0x151f5) //yngols barrow
+        {
+            if (target)
+            {
+
+                if (target->formID == 0x43512) //normal shit exit
+                {
+                    auto gate_final = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x2e22c);
+                    if (gate_final && MiscThings::two_state_activator_state(gate_final) == 0)
+                    {
+                        auto cool_exit = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x2e227);
+                        if (cool_exit)
+                            return cool_exit;
+                    }
+                }
+
+                if (target->formID == 0x2e227) //cool exit
+                {
+                    auto gate_final = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x2e22c);
+                    if (gate_final && MiscThings::two_state_activator_state(gate_final) == 1)
+                    {
+                        auto normal_exit = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x43512);
+                        if (normal_exit)
+                            return normal_exit;
+                    }
+                }
+
+
+                auto target_pos = target->GetPosition();
+
+                if (target_pos.x >= -296.6f && player_pos.x < -296.6f)
+                {
+                    auto gate1 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xb63f7);
+                    if (gate1 && MiscThings::two_state_activator_state(gate1) == 1)
+                    {
+                        auto redirect1 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x714a55c);
+                        if (redirect1)
+                            return redirect1;
+                    }
+                }
+
+                //did not return. either gate is open now or player is behind it
+
+                if (target_pos.x >= -296.f)
+                {
+                    auto claw = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xb634d);
+                    if (claw && player->GetItemCount(claw->GetBaseObject()) <= 0)
+                        return claw;
+                }
+            }
+        }
 
 
         if (parent_cell && parent_cell->formID == 0x152a7) //cronvangr cave1
@@ -16910,6 +16966,16 @@ namespace MiscThings {
                             result = " [position Hawk]";
                     }
 
+                    if (project_name.find("PuzzleDoor") != std::string::npos && project_name.find("Wheel05") != std::string::npos)
+                    {
+                        if (code == 1)
+                            result = " [position Owl]";
+                        if (code == 2)
+                            result = " [position Wolf]";
+                        if (code == 3)
+                            result = " [position Butterfly]";
+                    }
+
                     if (project_name.find("CasCoffinPuzzleBrazier01") != std::string::npos)
                     {
                         if (code == 1)
@@ -23050,6 +23116,8 @@ namespace MiscThings {
             }
 
 
+
+
             if (name == "Broken Shackle") //broken riften jail escape
                 return "";
 
@@ -23234,9 +23302,13 @@ namespace MiscThings {
             if (refr->formID == 0x40275f5) //apocrypha book2 final book duplicate
                 return "";
 
+            if (refr->formID == 0x4350d) //yngols barrow debug lever
+                return "";
 
             auto base_obj = refr->GetBaseObject();
             auto base_type = base_obj->GetFormType();
+
+            
 
             if (base_type == RE::FormType::Activator)
             {
