@@ -295,6 +295,21 @@ RE::TESBoundObject* get_plant_mode_object(RE::TESObjectREFR* container)
 	auto player = RE::PlayerCharacter::GetSingleton();
 
 
+	if (container && container->formID == 0xda28f) //plant viola's ring, windhelm
+	{
+		auto plant_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("Favor019");
+		if (plant_quest)
+		{
+			if (plant_quest->currentStage == 10)
+			{
+				auto ring = (RE::TESBoundObject*)RE::TESBoundObject::LookupByID(0x403A9);
+				if (ring)
+					return ring;
+			}
+		}
+	}
+
+
 	RE::TESObjectREFR* klimmek_chest = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x9c614);
 
 	if (container == klimmek_chest && klimmek_chest)

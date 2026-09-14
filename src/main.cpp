@@ -44,13 +44,9 @@
 
 
 
-//TODO plant ring
 //TODO falmer cave near winterhold
 //TODO other quests
 //TODO mzulft red nirnroot potentially unreachable because cave entrance only works for mainquestline
-
-
-//TODO yngols barrow - test route through purchasing of claw from winterhold trader and getting actual ingol's barrow quest
 
 //TODO hearthfire dlc
 
