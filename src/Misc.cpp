@@ -20149,6 +20149,44 @@ namespace MiscThings {
 
                                                     found_objective = true;
                                                 }
+                                                else
+                                                {
+                                                    //some quests that have weird conditioning (riekling find 10 grass quest)
+                                                    if (the_quest->formID == 0x401a50c && the_quest->currentStage == 20)
+                                                    {
+                                                        quest this_quest{};
+
+                                                        this_quest.id = id;
+                                                        this_quest.quest = the_quest;
+                                                        this_quest.name = the_quest->GetFullName();
+                                                        this_quest.target = nullptr;
+
+                                                        std::string displaytext = "";
+                                                        displaytext = objective->displayText;
+
+                                                        std::string target_name = "";
+
+                                                        this_quest.displaytext += replace_aliases(the_quest, displaytext);
+
+                                                        this_quest.target_name = target_name;
+
+                                                        this_quest.objective = objective;
+                                                        this_quest.description = "";
+                                                        this_quest.category = 0;
+
+                                                        this_quest.estimate_distance = 0.0f;
+
+                                                        this_quest.phantom_objective = false;
+
+
+                                                        sortable_quests.push_back(this_quest);
+
+                                                        id++;
+                                                        got_any_quests = true;
+
+                                                        found_objective = true;
+                                                    }
+                                                }
                                             }
                                         }
                                     }

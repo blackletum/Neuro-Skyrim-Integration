@@ -61,7 +61,6 @@
 
 //TODO mage sidequests
 //TODO dawnguard sidequests
-//TODO soltsheim riekling quests
 //TODO soltsheim blacksmith quests
 
 //////////////////////////////////////////////////////

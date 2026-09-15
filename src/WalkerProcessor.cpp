@@ -10501,7 +10501,10 @@ namespace WalkerProcessor {
                     {
                         auto quest_targets = objective->targets;
  
+                        int num_target = 0;
+
                         for (auto* target : std::span(quest_targets, objective->numTargets)) {
+                            num_target++;
                             if (target)
                             {
                                 if (quest_entry.quest)
@@ -10616,14 +10619,14 @@ namespace WalkerProcessor {
                                             if (phantom_objective || quest_ref_handle.get())
                                             {
                                                 RE::TESObjectREFR* quests_target_ref = nullptr;
-                                                
+
                                                 auto helgen_tower_marker = RE::TESObjectREFR::LookupByID(0xe24c3);
 
                                                 if (!phantom_objective)
                                                     quests_target_ref = quest_ref_handle.get().get();
                                                 else
                                                     quests_target_ref = get_phantom_target(quest_entry.quest, quest_entry.objective);
-                                                    
+
 
                                                 bool quest_is_questionable = false;
 
@@ -10864,18 +10867,18 @@ namespace WalkerProcessor {
                                                 reminder_target_name = "[id " + std::to_string(quest_entry.id) + "] " + quest_entry.name + ": " + quest_entry.displaytext;
                                                 reminder_start_pos = player->GetPosition();
 
-                                               //MiscThings::insert_quest_into_list_and_get_info(quest);
+                                                //MiscThings::insert_quest_into_list_and_get_info(quest);
 
 
-                                                
+
 
                                                 solitude_prison_out_of_bounds_check();
-                                                
+
 
 
                                                 have_target_to_walk = true;
                                                 interaction_after_walk = -1;
-                                                
+
 
                                                 RE::TESObjectREFR* madesi = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x19ddc);
                                                 auto madesi_ring_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("TG00");
@@ -10929,7 +10932,7 @@ namespace WalkerProcessor {
 
 
                                                 //if (distance > 40000.0f)
-                                                    big_distance = " Distance to target: " + std::to_string((int)distance / 100) + " m. ";
+                                                big_distance = " Distance to target: " + std::to_string((int)distance / 100) + " m. ";
 
 
                                                 std::string long_description = get_quest_journal_description_if_never_shown(current_quest_followed);
@@ -10962,7 +10965,7 @@ namespace WalkerProcessor {
                                                                     std::string advice = big_distance + " Closest fast-travel location: " + good_fasttravel_location + ". (You can use map to fast travel)";
                                                                     add_delayed_message(advice);
                                                                 }
-                                                                
+
 
                                                                 //unlock map if we can actually fast travel
                                                                 if (!get_open_map_action_status())
@@ -10999,7 +11002,7 @@ namespace WalkerProcessor {
 
                                                                         add_delayed_message(advice);
                                                                     }
-                                                                    
+
 
                                                                     if (!get_open_map_action_status())
                                                                     {
@@ -11030,6 +11033,15 @@ namespace WalkerProcessor {
                                             }
 
                                         break;
+                                    }
+                                    else
+                                    {
+                                        if (quest_entry.quest->formID == 0x401a50c && quest_entry.quest->currentStage == 20 && num_target == 3) //find 10 grass for rieklings
+                                        {
+                                            result.first = false;
+                                            result.second = "You dont have 10 Scathecraw yet. You need to find it yourself (it usually grows in Solstheim, try to collect it when you walk there)";
+                                            return result;
+                                        }
                                     }
                                 }
                             }

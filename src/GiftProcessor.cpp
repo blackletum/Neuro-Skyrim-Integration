@@ -61,6 +61,51 @@ way_to_fill way{};
 
 
 
+/*
+int get_category_selected_index()
+{
+	RE::GFxValue var1;
+	RE::UI* ui = RE::UI::GetSingleton();
+	if (ui)
+		if (const auto menu = ui->GetMenu<RE::ContainerMenu>(); menu)
+			if (menu->uiMovie)
+				if (menu->uiMovie->GetVariable(&var1, "_root.Menu_mc.InventoryLists_mc.CategoriesListHolder.List_mc.iSelectedIndex"))
+					return var1.GetNumber();
+
+	return -1;
+}
+*/
+
+
+bool is_giving()
+{
+	RE::UI* ui = RE::UI::GetSingleton();
+	RE::GFxValue var1;
+
+	auto menu = ui->GetMenu<RE::GiftMenu>();
+
+	if (ui && menu && ui->IsMenuOpen(RE::GiftMenu::MENU_NAME))
+		if (menu->uiMovie)
+		{
+			auto target_handle = menu->GetGifterRefHandle();
+
+			RE::NiPointer<RE::TESObjectREFR> container_refr_p{};
+
+			if (RE::LookupReferenceByHandle(target_handle, container_refr_p))
+			{
+				auto container_refr = container_refr_p.get();
+
+				if (container_refr)
+				{
+					if (container_refr->formID == 0x14) //player
+						return true;
+				}
+			}
+		}
+
+
+	return false;
+}
 
 
 
@@ -156,6 +201,27 @@ std::string get_force_message()
 					std::string action = " wants to gift you something";
 
 					result = name + action + ". Select item to take. ";
+
+					if (is_giving())
+					{
+						auto receiver_handle = menu->GetReceiverRefHandle();
+
+						RE::NiPointer<RE::TESObjectREFR> receiver_refr_p{};
+
+						if (RE::LookupReferenceByHandle(receiver_handle, receiver_refr_p))
+						{
+							auto receiver_refr = receiver_refr_p.get();
+
+							if (receiver_refr)
+								name = receiver_refr->GetDisplayFullName();
+						}
+
+
+
+
+						result = "You can give something to " + name + ". Select item to give. ";
+					}
+
 				}
 				
 			}
@@ -169,6 +235,10 @@ std::string get_force_message()
 
 	return result;
 }
+
+
+
+
 
 
 
@@ -696,7 +766,7 @@ std::pair<bool, std::string> set_item_choice(int id)
 	}
 
 
-	if (id == -2)
+	if (id == -2 && !is_giving())
 	{
 		//take all
 		RE::UI* ui = RE::UI::GetSingleton();
@@ -837,8 +907,9 @@ void processor(float dtime)
 				{
 					if (!item_choice_request_sent)
 					{
+						std::string give_take = is_giving() ? "give" : "take";
 
-						if (force_choice(get_items_options(), "There is nothing to take. ", force_type::gift_item))
+						if (force_choice(get_items_options(), "There is nothing to " + give_take + ". ", force_type::gift_item))
 						{
 							missing_item_detected = false;
 							last_cursor_move = 0;

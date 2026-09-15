@@ -3906,9 +3906,34 @@ namespace Observer {
 											else
 												new_target = true;
 
+
 											if (p_target)
 											{
 												auto target_refr = p_target.get();
+
+
+												if (a_ref->formID == 0x40208d3) //riekling house riekling
+												{
+													auto door = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4016ffb);
+													auto target_name = MiscThings::insert_object_into_list_and_get_info(door);
+													std::string actor_name = MiscThings::insert_object_into_list_and_get_info(a_ref);
+
+
+													std::string interaction_name = " went through ";
+
+													if (target_name != "" && actor_name != "" && a_ref && door && a_ref->GetDistance(door) < 100.0f)
+													{
+														std::string message = "[" + actor_name + interaction_name + target_name + "]";
+														if (!a_ref->IsDead())
+														{
+															//detect_events_send_result_silent = true;
+															detect_events_result.push_back(message);
+														}
+													}
+
+
+												}
+
 												if (target_refr && target_refr != player_ref && a_ref && a_ref != player_ref)
 												{
 													std::string target_short_name = target_refr->GetDisplayFullName();
@@ -3919,6 +3944,7 @@ namespace Observer {
 
 														auto target_base_obj = target_refr->GetBaseObject();
 														auto target_base_type = target_base_obj->GetFormType();
+
 
 														if (target_base_type == RE::FormType::Furniture)
 														{
