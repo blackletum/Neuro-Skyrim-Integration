@@ -2222,6 +2222,7 @@ namespace Observer {
 
 							auto base_type = a_ref->GetBaseObject()->formType;
 
+
 							if (base_type != RE::FormType::Hazard && !(base_type == RE::FormType::Static && !frozen_falmers_condition))
 								raw_object_list.push_back(a_ref->GetHandle());
 
@@ -2773,7 +2774,7 @@ namespace Observer {
 
 										if (base_type == RE::FormType::Container)
 										{
-											if (!MiscThings::is_object_in_the_list(a_ref) && (jail_condition_raycastable || ignore_raycast || MiscThings::raycastable(a_ref, 1000.0f)))
+											if (!MiscThings::is_object_in_the_list(a_ref) && (jail_condition_raycastable || ignore_raycast || MiscThings::raycastable(a_ref, 1200.0f)))
 											{
 												std::string info = MiscThings::insert_object_into_list_and_get_info(a_ref);
 												if (info != "")
@@ -5239,6 +5240,13 @@ namespace Observer {
 												std::string name = MiscThings::insert_object_into_list_custom_name("[Flammable] Big beehive", a_ref);
 
 												detect_events_result.push_back(name + " is on fire");
+											}
+
+											if (new_state.destructible_state == 5)
+											{
+												std::string name = MiscThings::insert_object_into_list_custom_name("[Destructible] Wooden Plank", a_ref);
+
+												detect_events_result.push_back(name + " was destroyed");
 											}
 
 											if (new_state.destructible_state == 200)

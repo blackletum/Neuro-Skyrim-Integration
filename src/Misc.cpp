@@ -1607,6 +1607,49 @@ namespace MiscThings {
     }
 
 
+    bool inside_bloodskal_puzzle_zone(RE::TESObjectREFR* object)
+    {
+        if (!object)
+            object = RE::PlayerCharacter::GetSingleton();
+
+        if (object)
+        {
+            auto object_pos = object->GetPosition();
+            auto object_cell = object->GetParentCell();
+            //auto riften_worldspace = RE::TESForm::LookupByID(0x16bb4);
+
+            if (object_cell && object_cell->formID == 0x40142fc) //raven rock mine
+            {
+                if (object_pos.z < 100.0f)
+                {
+                    RE::NiPoint2 a = { 5033.21240, 8375.37207 }; //-5733.7241
+                    RE::NiPoint2 b = { 5033.21240, 5721.29834 }; //-5633.2554
+                    RE::NiPoint2 c = { 8984.13867, 5721.29834 }; //-5640.6494
+                    RE::NiPoint2 d = { 8984.13867, 8375.37207 }; //-5724.9077
+
+                    RE::NiPoint2 p = { object_pos.x, object_pos.y };
+                    if (MiscThings::is_inside_of_rectangle(p, a, b, c, d))
+                        return true;
+
+                    a = { 6557.32764, 12785.7842 };
+                    b = { 1785.88037, 10475.1299 };
+                    c = { 3801.63922, 6312.63487 };
+                    d = { 8573.08649, 8623.28917 };
+
+                    p = { object_pos.x, object_pos.y };
+                    if (MiscThings::is_inside_of_rectangle(p, a, b, c, d))
+                        return true;
+
+                }
+            }
+        }
+
+        return false;
+    }
+
+
+
+
     bool inside_volkihar_balcony(RE::TESObjectREFR* object)
     {
         if (!object)
@@ -5175,6 +5218,29 @@ namespace MiscThings {
     const std::map<uint32_t, interesting_places> settlements =
     {
 
+
+        //raven rock (soltsheim dark elf village)
+{
+    0x400eeb5,
+    {
+        "Raven Rock",
+
+        {
+            {0x4018293, 1, "Trader", 1}, //trader
+            {0x4018291, 2, "Tavern [Provides bed, jobs and food/booze]", 2}, //tavern
+            {0x40182a2, 3, "Alchemist [Provides potions and ingredients. Probably has alchemist table]", 3}, //alchemist
+            {0x401828f, 4, "Blacksmith [Weapons, armor, materials for crafting. Might have crafting workbenches around]", 4}, //blacksmith
+            {0x4017ef1, 7, "Temple [Has shrines]", 8}, //church
+            {0x401827f, 5, "First Councilor (Village boss)", 6}, //
+            {0x4018281, 11, "Second Councilor", 9}  //
+        }
+
+    }
+},
+
+
+
+
         //mage college
 {
     0x0001380e, //hall of elements, special checks for other locations in other places
@@ -5524,7 +5590,7 @@ namespace MiscThings {
         auto player = RE::PlayerCharacter::GetSingleton();
         auto player_worldspace = player->GetWorldspace();
         auto player_cell = player->GetParentCell();
-        auto tamriel_worldspace = RE::TESForm::LookupByID(0x3c);
+        //auto tamriel_worldspace = RE::TESForm::LookupByID(0x3c);
 
         
         //if (std::size(settlements) < 2)
@@ -5536,7 +5602,7 @@ namespace MiscThings {
             return RE::TESForm::LookupByID(0x0001380e);
 
 
-        if (tamriel_worldspace && player_worldspace == tamriel_worldspace)
+        if (player_worldspace && (player_worldspace->formID == 0x3c || player_worldspace->formID == 0x4000800))
         {
             //check cells
 
@@ -5590,6 +5656,19 @@ namespace MiscThings {
                 {
                     switch (player_cell->formID)
                     {
+                    case (0x4017ec0): //raven rock tavern
+                    case (0x4017ec3): //raven rock temple
+                    case (0x4017ec1): //raven rock jarls house
+                    {
+                        auto settlement_worldspace = settlements.find(0x400eeb5);
+
+                        if (settlement_worldspace != settlements.end())
+                            return RE::TESForm::LookupByID(settlement_worldspace->first);
+
+                        break;
+                    }
+
+
                     case (0x165a3): //whiterun palace1
                     case (0x80c6a): //whiterun palace2
                         //new
@@ -5695,8 +5774,8 @@ namespace MiscThings {
 
         auto player_worldspace = player->GetWorldspace();
         auto player_cell = player->GetParentCell();
-        auto tamriel_worldspace = RE::TESForm::LookupByID(0x3c);
-
+        //auto tamriel_worldspace = RE::TESForm::LookupByID(0x3c);
+        //auto solstheim_worldspace = player->GetWorldspace();
 
         //if (std::size(settlements) < 2)
 
@@ -5706,7 +5785,7 @@ namespace MiscThings {
         if (college_of_winterhold_settlement_condition())
             return true;
 
-        if (tamriel_worldspace && player_worldspace == tamriel_worldspace)
+        if (player_worldspace && (player_worldspace->formID == 0x3c || player_worldspace->formID == 0x4000800))
         {
             //check cells
 
@@ -5760,6 +5839,10 @@ namespace MiscThings {
                 {
                     switch (player_cell->formID)
                     {
+                    case (0x4017ec0): //raven rock tavern
+                    case (0x4017ec3): //raven rock temple
+                    case (0x4017ec1): //raven rock jarls house
+
                     case (0x165a3): //whiterun palace1
                     case (0x80c6a): //whiterun palace2
                     case (0x16df2): //markarth palace
@@ -5810,7 +5893,7 @@ namespace MiscThings {
         auto player = RE::PlayerCharacter::GetSingleton();
         auto player_worldspace = player->GetWorldspace();
         auto player_cell = player->GetParentCell();
-        auto tamriel_worldspace = RE::TESForm::LookupByID(0x3c);
+        //auto tamriel_worldspace = RE::TESForm::LookupByID(0x3c);
 
 
         //if (std::size(settlements) < 2)
@@ -5820,7 +5903,7 @@ namespace MiscThings {
         if (college_of_winterhold_settlement_condition())
             return false;
 
-        if (tamriel_worldspace && player_worldspace == tamriel_worldspace)
+        if (player_worldspace && (player_worldspace->formID == 0x3c || player_worldspace->formID == 0x4000800))
         {
             //check cells
 
@@ -5873,6 +5956,11 @@ namespace MiscThings {
                 {
                     switch (player_cell->formID)
                     {
+                    case (0x4017ec0): //raven rock tavern
+                    case (0x4017ec3): //raven rock temple
+                    case (0x4017ec1): //raven rock jarls house
+
+
                     case (0x165a3): //whiterun palace1
                     case (0x80c6a): //whiterun palace2
                     case (0x16df2): //markarth palace
@@ -8787,6 +8875,68 @@ namespace MiscThings {
         }
 
 
+
+        if (parent_cell && parent_cell->formID == 0x40142fc) //raven rock mine
+        {
+            if (target)
+            {
+                auto target_pos = target->GetPosition();
+
+
+                //first locked door (planks dont block pathfinding)
+                if (target_pos.y > -786.0f && player_pos.y <= -786.0f)
+                {
+                    auto keyed_door = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x401b08f);
+                    if (keyed_door && MiscThings::is_door_locked(keyed_door, true) && !MiscThings::is_door_locked(keyed_door))
+                    {
+                        auto redirect = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x714f65d);
+                        if (redirect)
+                            return redirect;
+                    }
+                }
+
+
+                //target.y > 5000.0f && player.y <= 5000.0f
+                if (target_pos.y > 5000.0f && player_pos.y <= 5000.0f)
+                {
+                    auto gate1 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4026838);
+                    if (gate1 && MiscThings::two_state_activator_state(gate1) == 1)
+                    {
+                        auto redirect_torch = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x403146a);
+                        if (redirect_torch)
+                            return redirect_torch;
+                    }
+                }
+
+                if (MiscThings::inside_bloodskal_puzzle_zone(player) && !MiscThings::inside_bloodskal_puzzle_zone(target))
+                {
+                    auto gate2 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x401faba);
+                    if (gate2 && MiscThings::two_state_activator_state(gate2) == 1)
+                    {
+                        auto redirect = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4020a4a);
+                        if (redirect)
+                            return redirect;
+                    }
+                }
+
+
+                //player inside of puzzle or past puzzle, and target isnt. cant go back - need to exit through end exit
+                if ((MiscThings::inside_bloodskal_puzzle_zone(player) || player_pos.y > 8228.0f) &&
+                    !(MiscThings::inside_bloodskal_puzzle_zone(target) || target_pos.y > 8228.0f))
+                {
+                    auto final_exit = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x401b0ee);
+                    if (final_exit)
+                    {
+                        return final_exit;
+                    }
+                }
+
+
+
+
+
+            }
+        }
 
         if (parent_cell && parent_cell->formID == 0x151f5) //yngols barrow
         {
@@ -14429,6 +14579,18 @@ namespace MiscThings {
             return ""; //if its open - it should not block
 
 
+        if (base_type == RE::FormType::MovableStatic)
+        {
+            auto movable_static_obj = (RE::BGSMovableStatic*)base_obj;
+            std::string model = movable_static_obj->GetModel();
+
+            if (model.find("ShipwreckBoards0") != std::string::npos)
+            {
+                std::string name = MiscThings::insert_object_into_list_custom_name("[Destructible] Wooden Plank", a_ref);
+
+                result = name;
+            }
+        }
 
         if (base_type == RE::FormType::Activator)
         {
@@ -14475,6 +14637,9 @@ namespace MiscThings {
 
                 result = name;
             }
+
+
+
 
             if (model.find("StockadeBarricade") != std::string::npos)
             {
@@ -14663,6 +14828,25 @@ namespace MiscThings {
 
             switch (object->formID)
             {
+                case (0x4026838): //ravenrock mine gate that has handle slightly far
+                {
+                    auto handle = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x402683c); //redwater den first gate
+
+                    if (handle)
+                    {
+                        if (!MiscThings::is_object_in_the_list(handle))
+                        {
+                            auto temp_result = MiscThings::insert_object_into_list_and_get_info(handle);
+
+                            if (temp_result != "")
+                                send_random_context("You see: " + temp_result, false);
+                        }
+                    }
+                    break;
+                }
+
+
+
                 case (0x72434): //saartal 6 pillars puzzle 1, just in case player somehow doesnt detect some of them
                 {
                     auto pillar1 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x723eb);
@@ -15298,6 +15482,30 @@ namespace MiscThings {
         {
             auto base_type = base_obj->GetFormType();
 
+
+            if (base_type == RE::FormType::MovableStatic)
+            {
+                auto movable_static_obj = (RE::BGSMovableStatic*)base_obj;
+                std::string model = movable_static_obj->GetModel();
+
+                if (model.find("ShipwreckBoards0") != std::string::npos)
+                {
+
+                    auto object_p = MiscThings::General::Script::GetObject(web, "defaultDisableHavokOnLoad");
+
+                    if (object_p)
+                    {
+                        RE::BSFixedString prop_name = "::beenSimmed_var";
+                        bool broken = MiscThings::General::Script::GetVariable<bool>(object_p, prop_name);
+
+                        if (broken)
+                            return 5;
+                        else
+                            return -1;
+                    }
+                }
+            }
+
             if (base_type == RE::FormType::Activator)
             {
                 auto static_obj = (RE::TESObjectACTI*)base_obj;
@@ -15313,6 +15521,7 @@ namespace MiscThings {
                     else
                         result = -1;
                 }
+
 
                 if (model.find("StockadeBarricade") != std::string::npos)
                 {
@@ -23391,7 +23600,18 @@ namespace MiscThings {
             auto base_obj = refr->GetBaseObject();
             auto base_type = base_obj->GetFormType();
 
-            
+            if (base_type == RE::FormType::MovableStatic)
+            {
+                auto movable_static_obj = (RE::BGSMovableStatic*)base_obj;
+                std::string model = movable_static_obj->GetModel();
+
+                if (model.find("ShipwreckBoards0") != std::string::npos)
+                {
+                    std::string name = MiscThings::insert_object_into_list_custom_name("[Destructible] Wooden Plank", refr);
+
+                    result = name;
+                }
+            }
 
             if (base_type == RE::FormType::Activator)
             {
@@ -23405,6 +23625,8 @@ namespace MiscThings {
 
                     result = name;
                 }
+
+
 
                 if (model.find("StockadeBarricade") != std::string::npos)
                 {
