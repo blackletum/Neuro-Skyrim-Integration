@@ -72,9 +72,6 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////DO ALL THIS
 
-//do something with dawnguard cave. its really hard to reach because its behind the mountain and fast-travel advice leads to some mine that is on the other side.
-
-
 //fix werewolf combat (killcam shit, power attacks have no effect, not attacking sometimes)
 
 

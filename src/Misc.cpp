@@ -7570,8 +7570,19 @@ namespace MiscThings {
 
                         if (distance_player_location > 70000.0f && distance_quest_location < min_distance)
                         {
-                            min_distance = distance_quest_location;
-                            sublocation_name = marker_name;
+                            if (quest_target_ref && quest_target_ref->formID == 0x2002f71) //dawnguard first cave entrance
+                            {
+                                if (real_marker->GetPositionX() >= quest_target_ref->GetPositionX())
+                                {
+                                    min_distance = distance_quest_location;
+                                    sublocation_name = marker_name;
+                                }
+                            }
+                            else
+                            {
+                                min_distance = distance_quest_location;
+                                sublocation_name = marker_name;
+                            }
                         }
                     }
                 }
@@ -7688,8 +7699,20 @@ namespace MiscThings {
                             //if player is farther from location than 350m and this is the closest location to quest, put it as candidate
                             if (distance_player_location > 35000.0f && distance_quest_location < min_distance)
                             {
-                                min_distance = distance_quest_location;
-                                sublocation_name = marker_name;
+                                if (quest_target_ref && quest_target_ref->formID == 0x2002f71) //dawnguard first cave entrance
+                                {
+                                    if (real_marker->GetPositionX() > quest_target_ref->GetPositionX())
+                                    {
+                                        min_distance = distance_quest_location;
+                                        sublocation_name = marker_name;
+                                    }
+                                }
+                                else
+                                {
+                                    min_distance = distance_quest_location;
+                                    sublocation_name = marker_name;
+                                }
+
                             }
                         }
                     }
