@@ -21608,7 +21608,27 @@ namespace MiscThings {
 
             if (quest->data.questType == RE::QUEST_DATA::Type::kDLC01_Vampire)
                 return "[Dawnguard] ";
-            
+
+            if (quest->data.questType == RE::QUEST_DATA::Type::kDaedric)
+            {
+                if ((quest->formID == 0x28ad6 && quest->currentStage >= 0) ||
+                    (quest->formID == 0x4d8d6 && quest->currentStage >= 0) ||
+                    (quest->formID == 0x1bfc4 && quest->currentStage >= 0) ||
+                    (quest->formID == 0x2d512 && quest->currentStage >= 40) ||
+                    (quest->formID == 0x2a49a && quest->currentStage >= 50) ||
+                    (quest->formID == 0x3b681 && quest->currentStage >= 80) ||
+                    (quest->formID == 0x240b8 && quest->currentStage >= 13) ||
+                    (quest->formID == 0x4a37b && quest->currentStage >= 25) ||
+                    (quest->formID == 0x4e4e1 && quest->currentStage >= 0) ||
+                    (quest->formID == 0x22f08 && quest->currentStage >= 80) ||
+                    (quest->formID == 0x2c358 && quest->currentStage >= 10) ||
+                    (quest->formID == 0x8998d && quest->currentStage >= 10) ||
+                    (quest->formID == 0x1bb9b && quest->currentStage >= 165) ||
+                    (quest->formID == 0x2ac68 && quest->currentStage >= 100) ||
+                    (quest->formID == 0x242af && quest->currentStage >= 50)
+                    )
+                return "[Daedra]";
+            }
         }
 
         return "";

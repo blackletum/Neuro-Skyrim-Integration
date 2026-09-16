@@ -72,9 +72,6 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////DO ALL THIS
 
-
-//point of no return warning
-//daedric quests should be tagged as daedric after certain stage (unique stage for every quest, just go through them all)
 //do something with dawnguard cave. its really hard to reach because its behind the mountain and fast-travel advice leads to some mine that is on the other side.
 
 
