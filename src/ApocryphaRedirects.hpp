@@ -25,6 +25,9 @@ namespace Apocrypha {
 		bool clear_path;
 		bool correct_custom_path;
 		bool append_to_normal_path;
+		bool allow_interrupt_custom_path;
+		bool dont_save_after_custom_walk;
+		bool dont_shift;
 	};
 
 

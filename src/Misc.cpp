@@ -2396,8 +2396,8 @@ namespace MiscThings {
                     auto acti = (RE::TESObjectACTI*)base_obj;
                     std::string model = acti->GetModel();
                     
-                    if (model.find("ApoParArchGates01") != std::string::npos)
-                        return false; //these can be 2-state so all states can be blocking
+                    if (model.find("ApoParArchGates01") != std::string::npos && !(RE::PlayerCharacter::GetSingleton()->parentCell && RE::PlayerCharacter::GetSingleton()->parentCell->formID == 0x401e9a2))
+                        return false; //these can be 2-state so all states can be blocking. exclude book3, there all of them are normal
 
                     if (//model.find("PortImpGate01") != std::string::npos ||
                         model.find("NorRetractableBridge01") != std::string::npos ||
@@ -14549,7 +14549,14 @@ namespace MiscThings {
             auto hermaeus_activator = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xf5b04);
             return MiscThings::insert_object_into_list_and_get_info(hermaeus_activator);
         }
+
+        case (0x4033cc7)://bloodskal puzzle gate
+        {
+            return MiscThings::insert_object_into_list_custom_name("Massive Stone Gate with Glowing Red Runes on it", a_ref);
         }
+        }
+
+
 
 
 
@@ -14597,6 +14604,20 @@ namespace MiscThings {
             auto static_obj = (RE::TESObjectACTI*)base_obj;
 
             std::string model = static_obj->GetModel();
+
+            if (model.find("ApoPlatBStairAnim01") != std::string::npos)
+            {
+                std::string name = MiscThings::insert_object_into_list_custom_name("Apocrypha Stairs", a_ref);
+
+                result = name;
+            }
+
+            if (model.find("ApoParArchGates01") != std::string::npos)
+            {
+                std::string name = MiscThings::insert_object_into_list_custom_name("Apocrypha Gate", a_ref);
+
+                result = name;
+            }
 
             if (model.find("CasExtMainTowerGate01") != std::string::npos)
             {
@@ -14828,6 +14849,43 @@ namespace MiscThings {
 
             switch (object->formID)
             {
+
+            case (0x40389b7): //apocrypha book3 gate2
+            {
+                auto handle = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x40389b2); //redwater den first gate
+
+                if (handle)
+                {
+                    if (!MiscThings::is_object_in_the_list(handle))
+                    {
+                        auto temp_result = MiscThings::insert_object_into_list_and_get_info(handle);
+
+                        if (temp_result != "")
+                            send_random_context("You see: " + temp_result, false);
+                    }
+                }
+                break;
+            }
+
+            case (0x40375bc): //apocrypha book3 gate4
+            {
+                auto handle = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x40389c5); //redwater den first gate
+
+                if (handle)
+                {
+                    if (!MiscThings::is_object_in_the_list(handle))
+                    {
+                        auto temp_result = MiscThings::insert_object_into_list_and_get_info(handle);
+
+                        if (temp_result != "")
+                            send_random_context("You see: " + temp_result, false);
+                    }
+                }
+                break;
+            }
+
+
+
                 case (0x4026838): //ravenrock mine gate that has handle slightly far
                 {
                     auto handle = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x402683c); //redwater den first gate
@@ -23591,7 +23649,7 @@ namespace MiscThings {
             if (!no_chains)
                 chain_insert_twin_object(refr);
 
-            if (refr->formID == 0x40275f5) //apocrypha book2 final book duplicate
+            if (refr->formID == 0x40275f5 || refr->formID == 0x40275e6) //apocrypha final books duplicates
                 return "";
 
             if (refr->formID == 0x4350d) //yngols barrow debug lever

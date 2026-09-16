@@ -1676,7 +1676,7 @@ namespace Observer {
 			switch (object->formID)
 			{
 
-			//atronach team 1
+				//atronach team 1
 			case (0x9b2a6):
 			{
 				auto transformation = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x9b2a3);
@@ -2030,6 +2030,27 @@ namespace Observer {
 				return MiscThings::insert_object_into_list_and_get_info(object) + " disappeared";
 			}
 
+			//dlc2 bloodskal puzzle fissures
+			case (0x4033cda):
+			case (0x4033cdb):
+			case (0x4033cdc):
+			case (0x4033cd9):
+			case (0x4033cd8):
+			case (0x4033ccb):
+			{
+				auto info = MiscThings::insert_object_into_list_and_get_info(object);
+				if (info != "")
+					return info + " activated, the gate mechanism moved";
+			}
+
+			case (0x4033cdd): //final fissure
+			{
+				quicksave();
+
+				auto info = MiscThings::insert_object_into_list_and_get_info(object);
+				if (info != "")
+					return info + " activated, the gate mechanism moved... the gates are opening!";
+			}
 
 
 			}
@@ -2669,7 +2690,6 @@ namespace Observer {
 											}
 
 
-
 											float scan_distance_norm = scan_distance;
 											if (a_ref->formID == 0xC3B29)
 												scan_distance = 130.0f;
@@ -2994,7 +3014,21 @@ namespace Observer {
 												{
 													std::string info = MiscThings::insert_object_into_list_and_get_info(a_ref);
 													if (info != "")
-														interesting_buffer.insert_or_assign(a_ref, info);
+													{
+														if (a_ref->formID == 0x401ee1a) //black book in bloodskal dungeon
+														{
+															if (!WalkerProcessor::is_fighting() && !WalkerProcessor::is_walking_important_path())
+															{
+																WalkerProcessor::look_at_object_by_refr(a_ref, true, 1.0f);
+																send_random_context("You see: " + info, false); //large chests are not silent and immidiate 
+															}
+															else
+																interesting_buffer.insert_or_assign(a_ref, info);
+														}
+														else
+															interesting_buffer.insert_or_assign(a_ref, info);
+													}
+														
 												}
 											}
 										}
@@ -3054,6 +3088,30 @@ namespace Observer {
 													}
 												}
 
+										}
+									}
+
+									if (base_obj && base_obj->formID == 0x4033cca) //bloodskal dlc2 puzzle
+									{
+										if (player->GetDistance(a_ref) < 1500.0f && !MiscThings::is_object_in_the_list(a_ref))
+										{
+											std::string fissure_name = " Glowing Red Fissure on the edge of the gate";
+											auto object_p = MiscThings::General::Script::GetObject(a_ref, "DLC2BloodskalHitTriggerScript");
+
+											if (object_p)
+											{
+												RE::BSFixedString prop_name = "triggerOnVertProjectile";
+
+												if (MiscThings::General::Script::GetProperty<bool>(object_p, prop_name))
+													fissure_name = " Vertical" + fissure_name;
+												else
+													fissure_name = " Horizontal" + fissure_name;
+											}
+
+											std::string info = MiscThings::insert_object_into_list_custom_name(fissure_name, a_ref);
+
+											if (info != "")
+												interesting_buffer.insert_or_assign(a_ref, info);
 										}
 									}
 
@@ -4463,6 +4521,30 @@ namespace Observer {
 
 															}
 
+															if (extra_anim_graph->animGraphMgr->variableCache.animationGraph->projectName == "ApoParArchGates01")
+															{
+																std::string name = MiscThings::insert_object_into_list_custom_name("Apocrypha Gate", a_ref);
+
+																if (activation == 0)
+																	detect_events_result.push_back("[ " + name + " opened]");
+
+																if (activation == 1)
+																	detect_events_result.push_back("[ " + name + " closed]");
+
+															}
+
+															if (extra_anim_graph->animGraphMgr->variableCache.animationGraph->projectName == "ApoPlatBStairAnim01")
+															{
+																std::string name = MiscThings::insert_object_into_list_custom_name("Apocrypha Stairs", a_ref);
+
+																if (activation == 0)
+																	detect_events_result.push_back("[ " + name + " slided forward]");
+
+																if (activation == 1)
+																	detect_events_result.push_back("[ " + name + " slided backward]");
+
+															}
+														
 
 															if (extra_anim_graph->animGraphMgr->variableCache.animationGraph->projectName == "DLC2DweRetractableStairScript")
 															{
@@ -4730,7 +4812,7 @@ namespace Observer {
 
 																if (activation == 0)
 																{
-																	if (a_ref->formID == 0x725b5) //saartal pillars2
+																	if (a_ref->formID == 0x725b5 || a_ref->formID == 0x401faba) //saartal pillars2
 																		quicksave(true);
 
 																	detect_events_result.push_back("[ " + name + " opened]");
@@ -5067,12 +5149,24 @@ namespace Observer {
 											{
 												std::string name = MiscThings::insert_object_into_list_custom_name("Trap swinging blade", a_ref);
 												detect_events_result.push_back("[ " + name + " deactivated]");
+
+												if (player_cell && player_cell->formID == 0x40142fc) //bloodskal mine 1 with 500000 blades past puzzle door
+												{
+													detect_events_send_result_silent = true;
+												}
+
 											}
 
 											if (new_state.trap_firing == 6)
 											{
 												std::string name = MiscThings::insert_object_into_list_custom_name("Trap swinging blade", a_ref);
 												detect_events_result.push_back("[ " + name + " started swinging!]");
+
+												if (player_cell && player_cell->formID == 0x40142fc) //bloodskal mine 1 with 500000 blades past puzzle door
+												{
+													detect_events_send_result_silent = true;
+												}
+
 											}
 
 											if (new_state.trap_firing == 7)

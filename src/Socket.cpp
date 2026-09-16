@@ -1503,6 +1503,9 @@ bool neuro::NeuroSocket::Tick(float dtime) //const neurosdk_message_action_t& aC
                         case force_type::container_type:
                             command_result = ContainerProcessor::set_container_type(json.id); break;
 
+                        case force_type::bloodskal_puzzle_type_attack:
+                            command_result = WalkerProcessor::set_bloodskal_type_attack_choice(json.id); break;
+
 
                         default:
                         {

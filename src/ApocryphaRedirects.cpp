@@ -1177,7 +1177,22 @@ namespace Apocrypha {
 
 
 
+    bool inside_book3_endzone(RE::TESObjectREFR* object)
+    {
+        if (object)
+        {
+            auto cell = object->GetParentCell();
+            auto object_pos = object->GetPosition();
 
+            if (cell && cell->formID == 0x401e9a2)
+            {
+                if (object_pos.x < 11482.0f && object_pos.y < -6000.0f && object_pos.z > 1383.0f)
+                    return true;
+            }
+        }
+
+        return false;
+    }
 
 
 
@@ -3141,6 +3156,167 @@ namespace Apocrypha {
 
 
 
+    apocrypha_result book3(RE::TESObjectREFR* target, int current_action, int current_apocrypha_id)
+    {
+        apocrypha_result result{};
+
+        auto player = RE::PlayerCharacter::GetSingleton();
+        auto player_pos = player->GetPosition();
+
+        auto dummy = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x70c1a25);
+
+        if (!target || !dummy)
+            return result;
+
+        auto target_pos = target->GetPosition();
+
+
+        if (target->formID == 0x401edf7 || current_action == 1 || inside_book3_endzone(player)) //final book
+        {
+            //check all obstacles and redirect through them
+            RE::NiPoint3 dummy_target_pos = RE::NiPoint3::Zero();
+
+
+            RE::TESObjectREFR* gate1 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x40389b5);
+            RE::TESObjectREFR* gate2 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x40389b7);
+            RE::TESObjectREFR* gate3 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4037606);
+            RE::TESObjectREFR* staircase = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x40389be);
+            RE::TESObjectREFR* gate4 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x40375bc);
+
+            RE::TESObjectREFR* scrye1 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4038974);
+            RE::TESObjectREFR* scrye2 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x40389b2);
+            RE::TESObjectREFR* scrye3 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x40389bd);
+            RE::TESObjectREFR* scrye_staircase = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x40376bc);
+            RE::TESObjectREFR* scrye4 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x40389c5);
+
+            if (gate1 && gate2 && gate3 && staircase && gate4 && scrye1 && scrye2 && scrye3 && scrye_staircase && scrye4)
+            {
+
+                if (MiscThings::two_state_activator_state(gate1) == 1)
+                    dummy_target_pos = { 10740.0801, -2835.28760, 1372.06689 };
+                else
+                    if (MiscThings::two_state_activator_state(gate2) == 1)
+                        dummy_target_pos = {10974.1387, -3401.17310, 1378.40125 };
+                    else
+                        if (MiscThings::two_state_activator_state(gate3) == 1)
+                            dummy_target_pos = {11904.3779, -5488.08398, 1372.06689 };
+                        else
+                        {
+                            if (current_action == 0)
+                            {
+                                if (inside_book3_endzone(target) && !inside_book3_endzone(player))
+                                {
+                                    result.action = 2; //initiate
+                                    result.dont_save_interaction = false;
+                                    result.dont_save_target = false;
+
+                                    ApocryphaCustomPaths::template_path.clear();
+                                    ApocryphaCustomPaths::template_path.push_back({ 10644.8945, -7030.08057, 1199.69873 });
+                                    ApocryphaCustomPaths::template_path.push_back({ 10928.9111, -7609.82227, 1436.06677 });
+
+
+                                    dummy_target_pos = { 10928.9111, -7609.82227, 1436.06677 };
+                                    dummy->MoveTo(player);
+                                    MiscThings::SetPosition_moveto(dummy, dummy_target_pos);
+
+                                    result.dont_save_after_custom_walk = true;
+                                    result.allow_interrupt_custom_path = true;
+                                    result.custom_path = ApocryphaCustomPaths::template_path;
+                                    result.target = dummy;
+                                    result.append_to_normal_path = true;
+                                    result.interaction = -1;
+                                    return result;
+                                }
+                                else
+                                    if (!inside_book3_endzone(target) && inside_book3_endzone(player))
+                                    {
+                                        //same but backwards (with additional check, replacing start pos with player's pos)
+
+                                        result.action = 2; //initiate
+                                        result.dont_save_interaction = false;
+                                        result.dont_save_target = false;
+
+                                        ApocryphaCustomPaths::template_path.clear();
+
+                                        if (player_pos.GetDistance({ 10928.9111, -7609.82227, 1436.06677 }) < 200.0f)
+                                            ApocryphaCustomPaths::template_path.push_back(player_pos);
+                                        else
+                                            ApocryphaCustomPaths::template_path.push_back({ 10928.9111, -7609.82227, 1436.06677 });
+
+
+                                        ApocryphaCustomPaths::template_path.push_back({ 10644.8945, -7030.08057, 1199.69873 });
+
+
+
+                                        dummy_target_pos = { 10644.8945, -7030.08057, 1199.69873 };
+                                        dummy->MoveTo(player);
+                                        MiscThings::SetPosition_moveto(dummy, dummy_target_pos);
+
+                                        result.dont_shift = true;
+                                        result.dont_save_after_custom_walk = true;
+                                        result.allow_interrupt_custom_path = true;
+                                        result.custom_path = ApocryphaCustomPaths::template_path;
+                                        result.target = dummy;
+                                        result.append_to_normal_path = true;
+                                        result.interaction = -1;
+                                        return result;
+                                    }
+                            }
+                            
+                        }
+                            //if (MiscThings::two_state_activator_state(staircase) == 1)
+                            //    dummy_target_pos = {10928.9111, -7609.82227, 1436.06677 };
+                            //else
+                            //    if (MiscThings::two_state_activator_state(gate4) == 1)
+                            //        dummy_target_pos = {10928.9111, -7609.82227, 1436.06677 };
+
+            }
+
+            if (dummy_target_pos != RE::NiPoint3::Zero())
+            {
+                //result.dont_save_id = true;
+                result.action = 1;
+
+                dummy->MoveTo(player);
+                MiscThings::SetPosition_moveto(dummy, dummy_target_pos);
+
+                result.target = dummy;
+                //result.dont_save_target = true;
+                //result.dont_save_interaction = true;
+                //result.dont_save_action = true;
+                return result;
+            }
+            else
+            {
+                if (current_action != 0 && current_action != 2)
+                {
+                    result.action = -999; //end of this section
+                    return result;
+                }
+                else
+                {
+                    if (current_action == 2)
+                    {
+                        if (player->GetDistance(dummy) < 100.0f)
+                        {
+                            result.action = -999; //end of this section
+                            return result;
+                        }
+                    }
+                }
+            }
+
+
+
+        }
+
+        return result;
+
+    }
+
+
+
+
 
 
     int last_zone = 0;
@@ -3169,6 +3345,12 @@ namespace Apocrypha {
         //detect where we are and give redirections accordingly
         auto player_pos = player->GetPosition();
 
+
+        //book3
+        if (parent_cell && parent_cell->formID == 0x401e9a2)
+        {
+            return book3(target, current_action, current_apocrypha_id);
+        }
 
         //book2
         if (parent_cell && parent_cell->formID == 0x401ede2)

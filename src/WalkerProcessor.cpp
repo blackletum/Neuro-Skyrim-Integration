@@ -14,6 +14,19 @@
 namespace WalkerProcessor {
 
 
+
+    bool bloodskal_powerattack_request_sent = false;
+    bool bloodskal_powerattack_choice_valid = false;
+    int bloodskal_powerattack_choice = -1;
+    bool bloodskal_powerattack_choice_defined = false;
+
+
+    bool bloodskal_must_powerattack = false;
+    bool must_powerattack_horizontal = false;
+    bool must_powerattack_horizontal_right = false;
+    RE::TESObjectREFR* attack_target_after_walk = nullptr;
+
+
     bool blocking_dragonbreath = false;
 
     long long last_switch_to_nearest_enemy_timestamp = 0;
@@ -4121,6 +4134,13 @@ namespace WalkerProcessor {
             switch (target_ref->formID)
             {
 
+            case (0x401edf7): //black book3 (bloodskal) inside apocrypha final
+            {
+                if (temp_result->formID == 0x40275e6)
+                    return target_ref;
+                break;
+            }
+
             case (0x401ee14): //black book2 inside apocrypha final
             {
                 if (temp_result->formID == 0x40275f5)
@@ -6145,6 +6165,15 @@ namespace WalkerProcessor {
 
     void reset_walker()
     {
+        bloodskal_powerattack_choice_defined = false;
+        bloodskal_powerattack_request_sent = false;
+        bloodskal_powerattack_choice_valid = false;
+        bloodskal_powerattack_choice = -1;
+
+        bloodskal_must_powerattack = false;
+        must_powerattack_horizontal = false;
+        must_powerattack_horizontal_right = false;
+        attack_target_after_walk = nullptr;
 
         blocking_dragonbreath = false;
 
@@ -6698,6 +6727,10 @@ namespace WalkerProcessor {
 
     void walk_again()
     {
+        bloodskal_must_powerattack = false;
+        must_powerattack_horizontal = false;
+        must_powerattack_horizontal_right = false;
+
         blocking_dragonbreath = false;
 
 
@@ -7813,6 +7846,20 @@ namespace WalkerProcessor {
                             range = 10000.0f;
 
 
+                        auto hands = MiscThings::get_hand_contents(true);
+                        if (hands && hands->formID == 0x401aea4)
+                        {
+
+                            //bloodskal blade. if range is large - must power attack
+                            if (range > 500.0f)
+                                bloodskal_must_powerattack = true;
+                            else
+                                bloodskal_must_powerattack = false;
+                        }
+                        else
+                            bloodskal_must_powerattack = false;
+
+
                         /* //this is absolute bullshit dont do this
                         if (MiscThings::is_dragon(target_ref))
                         {
@@ -8097,7 +8144,23 @@ namespace WalkerProcessor {
                             dragon_coef = true;
                         }
 
-
+                        if (target_ref)
+                        {
+                            switch (target_ref->formID)
+                            {
+                            case (0x4033cda):
+                            case (0x4033cdb):
+                            case (0x4033cdc):
+                            case (0x4033cdd):
+                            case (0x4033cd9):
+                            case (0x4033cd8):
+                            case (0x4033ccb):
+                            {
+                                //bloodskal fissures
+                                raycast_test = true;
+                            }
+                            }
+                        }
 
 
                         if (raycast_test || ignore_raycast)
@@ -8335,6 +8398,27 @@ namespace WalkerProcessor {
 
         if (targeted_ref == target_ref)
             return false;
+
+        if (target_ref)
+        {
+            switch (target_ref->formID)
+            {
+            case (0x4033cda):
+            case (0x4033cdb):
+            case (0x4033cdc):
+            case (0x4033cdd):
+            case (0x4033cd9):
+            case (0x4033cd8):
+            case (0x4033ccb):
+            {
+                //bloodskal fissures
+                return false;
+            }
+            }
+        }
+
+
+
 
         if (player && target_ref)
         {
@@ -9246,6 +9330,24 @@ namespace WalkerProcessor {
                     target_ref = object->second.object;
 
 
+
+                if (interaction == 3 && target_ref && target_ref->GetBaseObject() && target_ref->GetBaseObject()->formID == 0x4033cca)
+                {
+                    //bloodskal puzzle fissures
+                    if (player->GetParentCell() && player->GetParentCell()->formID == 0x40142fc)
+                    {
+                        auto redirect_marker = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x715475e);
+                        if (redirect_marker && player->GetDistance(redirect_marker) > 200.0f)
+                        {
+                            attack_target_after_walk = target_ref;
+                            target_ref = redirect_marker;
+                            interaction = -1;
+                        }
+                            
+                    }
+                }
+
+
                 kilkreath_parkour_check(target_ref);
 
 
@@ -10137,6 +10239,27 @@ namespace WalkerProcessor {
         }
 
 
+        auto player = RE::PlayerCharacter::GetSingleton();
+        auto parent_cell = player->GetParentCell();
+
+        RE::TESObjectREFR* book3_final = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x401edf7);
+        if (parent_cell && parent_cell->formID == 0x401e9a2 && book3_final && player->GetDistance(book3_final) < 500.0f)
+        {
+            RE::TESObjectREFR* reward1 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x401edf7);
+            RE::TESObjectREFR* to_soltsheim = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x40275e7);
+
+            if (reward1 && !reward1->IsDisabled() && to_soltsheim && to_soltsheim->IsDisabled())
+            {
+                reset_walker();
+                result.first = false;
+                result.second = "[The Book offers you several rewards, you need to pick one of provided options (interactive objects nearby)]";
+                do_delayed_poke();
+                return result;
+            }
+        }
+
+
+
         if (last_quest_chosen)
         {
             if (!MiscThings::quest_is_hidden(last_quest_chosen, last_quest_objective_chosen))
@@ -10423,6 +10546,25 @@ namespace WalkerProcessor {
         if (MiscThings::is_quest_list_valid())
         {
             
+            auto parent_cell = player->GetParentCell();
+
+            RE::TESObjectREFR* book3_final = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x401edf7);
+            if (parent_cell && parent_cell->formID == 0x401e9a2 && book3_final && player->GetDistance(book3_final) < 500.0f)
+            {
+                RE::TESObjectREFR* reward1 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x401edf7);
+                RE::TESObjectREFR* to_soltsheim = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x40275e7);
+
+                if (reward1 && !reward1->IsDisabled() && to_soltsheim && to_soltsheim->IsDisabled())
+                {
+                    reset_walker();
+                    result.first = false;
+                    result.second = "[The Book offers you several rewards, you need to pick one of provided options (interactive objects nearby)]";
+                    do_delayed_poke();
+                    return result;
+                }
+            }
+
+
             auto player_ref = player->AsReference();
 
             auto quest_list = MiscThings::get_p_quest_list();
@@ -10712,6 +10854,7 @@ namespace WalkerProcessor {
                                                         }
                                                     }
                                                 }
+                                                
 
 
 
@@ -13160,6 +13303,14 @@ namespace WalkerProcessor {
                     }
                     else
                     {
+                        if (weapon && weapon->formID == 0x401aea4) //bloodskal blade
+                        {
+                            if (MiscThings::get_player_stamina() > 1.0f)
+                            {
+                                return 1500.0f;
+                            }
+                        }
+
                         return 120.0f;
                     }
                 }
@@ -13445,6 +13596,86 @@ namespace WalkerProcessor {
 
 
 
+        if (bloodskal_must_powerattack && !bloodskal_powerattack_choice_defined)
+        {
+            try_power_attack = true;
+
+            bool force_power_attack_type = false;
+
+            if (target_ref)
+            {
+                switch (target_ref->formID)
+                {
+                case (0x4033cda):
+                case (0x4033cdb):
+                case (0x4033cdc):
+                case (0x4033cdd):
+                case (0x4033cd9):
+                case (0x4033cd8):
+                case (0x4033ccb):
+                {
+                    //bloodskal fissures
+                    force_power_attack_type = true;
+                }
+                }
+            }
+
+
+            if (force_power_attack_type)
+            {
+                auto hands = MiscThings::get_hand_contents(true);
+                if (hands && hands->formID == 0x401aea4)
+                {
+                    //bloodskal blade
+
+                    if (!bloodskal_powerattack_request_sent)
+                    {
+                        unregister_all_actions();
+
+                        if (force_choice({ {0, "Doesnt matter"},{1, "Horizontal attack"}, {2, "Vertical attack"} }, "Do you want to do specific type of attack?", force_type::bloodskal_puzzle_type_attack))
+                        {
+                            bloodskal_powerattack_request_sent = true;
+
+                            if (player && player->IsSneaking())
+                            {
+                                if (sneak_mode_on)
+                                    turn_sneak_off();
+
+                                crouch(); //uncrouch
+                            }
+
+
+                        }
+
+                        return false; //wait for response
+                    }
+                    else
+                    {
+                        if (bloodskal_powerattack_choice_valid)
+                        {
+                            register_allowed_actions();
+
+                            if (bloodskal_powerattack_choice == 1)
+                                must_powerattack_horizontal = true;
+
+                            if (bloodskal_powerattack_choice == 0)
+                                must_powerattack_horizontal = MiscThings::coinflip();
+
+                            if (must_powerattack_horizontal)
+                                must_powerattack_horizontal_right = MiscThings::coinflip();
+
+                            bloodskal_powerattack_choice_defined = true;
+
+                        }
+                        else
+                            return false; //wait for response
+                    }
+                }
+            }
+            
+
+        }
+            
 
         bool actually_attacked = false;
 
@@ -14003,6 +14234,15 @@ namespace WalkerProcessor {
                                     {
                                         if (can_power_attack && try_power_attack && !goto_attack_used)
                                         {
+                                            if (must_powerattack_horizontal)
+                                            {
+                                                if (must_powerattack_horizontal_right)
+                                                    right();
+                                                else
+                                                    left();
+                                            }
+
+
                                             if (attack_action_time0 < get_attack_time(true) * 0.2f || attack_action_time0 > get_attack_time(true) * 0.9f)
                                             {
                                                 right_attack();
@@ -14042,7 +14282,8 @@ namespace WalkerProcessor {
                                         if (!(dodge_melee_mode && do_dodge_projectile))
                                             if (player->GetDistance(target_ref, true) > 80.0f * target_ref->GetScale())
                                             {
-                                                cursor_up();
+                                                if (!bloodskal_must_powerattack)
+                                                    cursor_up();
                                                 attack_target_needs_to_come_closer = true;
                                             }
                                             else
@@ -14064,7 +14305,8 @@ namespace WalkerProcessor {
                                         if (!(dodge_melee_mode && do_dodge_projectile))
                                             if (is_melee_weapon(true) && player->GetDistance(target_ref, true) > 100.0f * target_ref->GetScale() && (!is_stealthwalking(sneak_probe_sneak_checked) || sneak_failed))
                                             {
-                                                cursor_up();
+                                                if (!bloodskal_must_powerattack)
+                                                    cursor_up();
                                                 attack_target_needs_to_come_closer = true;
                                             }
                                             else
@@ -14638,6 +14880,16 @@ namespace WalkerProcessor {
 
                                     if (can_power_attack && try_power_attack && !goto_attack_used)
                                     {
+
+                                        if (must_powerattack_horizontal)
+                                        {
+                                            if (must_powerattack_horizontal_right)
+                                                right();
+                                            else
+                                                left();
+                                        }
+
+
                                         if (attack_action_time1 < get_attack_time(false) * 0.2f || attack_action_time1 > get_attack_time(false) * 0.9f)
                                         {
                                             left_attack();
@@ -14668,7 +14920,8 @@ namespace WalkerProcessor {
                                         if (!(dodge_melee_mode && do_dodge_projectile))
                                             if (player->GetDistance(target_ref, true) > 100.0f)
                                             {
-                                                cursor_up();
+                                                if (!bloodskal_must_powerattack)
+                                                    cursor_up();
                                                 attack_target_needs_to_come_closer = true;
                                             }
                                             else
@@ -14689,7 +14942,8 @@ namespace WalkerProcessor {
                                                 if (!(dodge_melee_mode && do_dodge_projectile))
                                                     if (player->GetDistance(target_ref, true) > 80.0f * target_ref->GetScale())
                                                     {
-                                                        cursor_up();
+                                                        if (!bloodskal_must_powerattack)
+                                                            cursor_up();
                                                         attack_target_needs_to_come_closer = true;
                                                     }
                                                     else
@@ -14708,7 +14962,8 @@ namespace WalkerProcessor {
                                                 if (!(dodge_melee_mode && do_dodge_projectile))
                                                     if (is_melee_weapon(false) && player->GetDistance(target_ref, true) > 100.0f * target_ref->GetScale() && (!is_stealthwalking(sneak_probe_sneak_checked) || sneak_failed))
                                                     {
-                                                        cursor_up();
+                                                        if (!bloodskal_must_powerattack)
+                                                            cursor_up();
                                                         attack_target_needs_to_come_closer = true;
                                                     }
                                                     else
@@ -17547,7 +17802,36 @@ namespace WalkerProcessor {
     }
 
 
+    std::pair<bool, std::string> set_bloodskal_type_attack_choice(int id)
+    {
+        std::pair<bool, std::string> result{};
 
+        if (!bloodskal_powerattack_request_sent)
+        {
+            register_allowed_actions();
+
+            result.first = true;
+            result.second = "[Error]";
+        }
+        else
+        {
+            if (id == 0 || id == 1 || id == 2)
+            {
+                register_allowed_actions();
+
+                bloodskal_powerattack_choice_valid = true;
+                bloodskal_powerattack_choice = id;
+                result.first = true;
+                result.second = "[Processing...]";
+            }
+            else
+            {
+                result.first = false;
+                result.second = "[Invalid choice ID]";
+            }
+        }
+        return result;
+    }
 
 
     std::pair<bool, std::string> set_ruin_pillar_choice(int id)
@@ -19065,6 +19349,26 @@ namespace WalkerProcessor {
                     }
                 }
 
+
+                if (target_ref && target_ref->formID == 0x715475e)
+                {
+                    //bloodskal puzzle redirect for attacks
+                    if (player->GetDistance(target_ref) < 150.0f)
+                    {
+                        if (attack_target_after_walk)
+                        {
+                            target_ref = attack_target_after_walk;
+                            interaction_after_walk = 3;
+                        }
+                        else
+                        {
+                            send_random_context("Error! Cant find target", false);
+                            reset_walker();
+                        }
+                    }
+                }
+
+
                 
 
                 auto dragon_landing_marker = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x7121d4f);
@@ -19566,6 +19870,14 @@ namespace WalkerProcessor {
                             path = custom_path;
                         }
 
+                        if (apocrypha_redirects.allow_interrupt_custom_path)
+                            allow_interrupt_custom_walk = true;
+
+                        if (apocrypha_redirects.dont_save_after_custom_walk)
+                            dont_quicksave_after_custom_path = true;
+
+                        if (apocrypha_redirects.dont_shift)
+                            dont_shift = true;
 
                         using_custom_path = true;
 
@@ -21484,10 +21796,16 @@ namespace WalkerProcessor {
                                                             fail_text += "You can try attacking it to destroy it]";
                                                         else
                                                         {
-                                                            fail_text += "Maybe you need to interact with something nearby to go past it]";
-                                                            MiscThings::check_unseen_levers_if_no_levers(2000.0f);
+                                                            if (potential_block.find("with Glowing Red Runes") != std::string::npos)
+                                                            {
+                                                                fail_text += "Maybe the Bloodskal Blade has something to do with it? It also has these Glowing fissures around it... Looks like a puzzle]";
+                                                            }
+                                                            else
+                                                            {
+                                                                fail_text += "Maybe you need to interact with something nearby to go past it]";
+                                                                MiscThings::check_unseen_levers_if_no_levers(2000.0f);
+                                                            }
                                                         }
-                                                            
                                                     }
                                                     else
                                                     {
@@ -22665,8 +22983,15 @@ namespace WalkerProcessor {
                                                                     fail_text += "You can try attacking it to destroy it]";
                                                                 else
                                                                 {
-                                                                    fail_text += "Maybe you need to interact with something nearby to go past it]";
-                                                                    MiscThings::check_unseen_levers_if_no_levers(2000.0f);
+                                                                    if (blocking_name.find("with Glowing Red Runes") != std::string::npos)
+                                                                    {
+                                                                        fail_text += "Maybe the Bloodskal Blade has something to do with it? It also has these Glowing fissures around it... Looks like a puzzle]";
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        fail_text += "Maybe you need to interact with something nearby to go past it]";
+                                                                        MiscThings::check_unseen_levers_if_no_levers(2000.0f);
+                                                                    }
                                                                 }
 
                                                                 
@@ -22979,8 +23304,15 @@ namespace WalkerProcessor {
                                                                     fail_text += "You can try attacking it to destroy it]";
                                                                 else
                                                                 {
-                                                                    fail_text += "Maybe you need to interact with something nearby to go past it]";
-                                                                    MiscThings::check_unseen_levers_if_no_levers(2000.0f);
+                                                                    if (potential_block.find("with Glowing Red Runes") != std::string::npos)
+                                                                    {
+                                                                        fail_text += "Maybe the Bloodskal Blade has something to do with it? It also has these Glowing fissures around it... Looks like a puzzle]";
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        fail_text += "Maybe you need to interact with something nearby to go past it]";
+                                                                        MiscThings::check_unseen_levers_if_no_levers(2000.0f);
+                                                                    }
                                                                 }
                                                             }
                                                             else
@@ -23014,8 +23346,15 @@ namespace WalkerProcessor {
                                                         fail_text += "You can try attacking it to destroy it]";
                                                     else
                                                     {
-                                                        fail_text += "Maybe you need to interact with something nearby to go past it]";
-                                                        MiscThings::check_unseen_levers_if_no_levers(2000.0f);
+                                                        if (potential_block.find("with Glowing Red Runes") != std::string::npos)
+                                                        {
+                                                            fail_text += "Maybe the Bloodskal Blade has something to do with it? It also has these Glowing fissures around it... Looks like a puzzle]";
+                                                        }
+                                                        else
+                                                        {
+                                                            fail_text += "Maybe you need to interact with something nearby to go past it]";
+                                                            MiscThings::check_unseen_levers_if_no_levers(2000.0f);
+                                                        }
                                                     }
                                                 }
                                                 else
@@ -23056,8 +23395,15 @@ namespace WalkerProcessor {
                                                         fail_text += "You can try attacking it to destroy it]";
                                                     else
                                                     {
-                                                        fail_text += "Maybe you need to interact with something nearby to go past it]";
-                                                        MiscThings::check_unseen_levers_if_no_levers(2000.0f);
+                                                        if (blocking_name.find("with Glowing Red Runes") != std::string::npos)
+                                                        {
+                                                            fail_text += "Maybe the Bloodskal Blade has something to do with it? It also has these Glowing fissures around it... Looks like a puzzle]";
+                                                        }
+                                                        else
+                                                        {
+                                                            fail_text += "Maybe you need to interact with something nearby to go past it]";
+                                                            MiscThings::check_unseen_levers_if_no_levers(2000.0f);
+                                                        }
                                                     }
 
                                                     send_random_context(fail_text, false);
@@ -23107,8 +23453,15 @@ namespace WalkerProcessor {
                                                             fail_text += "You can try attacking it to destroy it]";
                                                         else
                                                         {
-                                                            fail_text += "Maybe you need to interact with something nearby to go past it]";
-                                                            MiscThings::check_unseen_levers_if_no_levers(2000.0f);
+                                                            if (potential_block.find("with Glowing Red Runes") != std::string::npos)
+                                                            {
+                                                                fail_text += "Maybe the Bloodskal Blade has something to do with it? It also has these Glowing fissures around it... Looks like a puzzle]";
+                                                            }
+                                                            else
+                                                            {
+                                                                fail_text += "Maybe you need to interact with something nearby to go past it]";
+                                                                MiscThings::check_unseen_levers_if_no_levers(2000.0f);
+                                                            }
                                                         }
                                                     }
                                                     else
