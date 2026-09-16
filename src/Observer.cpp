@@ -1025,12 +1025,12 @@ namespace Observer {
 
 	bool get_dragonbreath_block_mode()
 	{
-		return dragonbreath_block_mode;
+		return dragonbreath_block_mode && !(MiscThings::is_werewolf() || MiscThings::is_vampirelord());
 	}
 
 	bool get_keep_distance_mode()
 	{
-		return keep_distance_mode;
+		return keep_distance_mode && !(MiscThings::is_werewolf() || MiscThings::is_vampirelord());
 	}
 
 	std::pair<bool, std::string> set_keep_distance_mode(bool set)

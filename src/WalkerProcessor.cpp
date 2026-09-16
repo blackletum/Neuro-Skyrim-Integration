@@ -23,6 +23,7 @@ namespace WalkerProcessor {
 
     bool bloodskal_must_powerattack = false;
     bool must_powerattack_horizontal = false;
+    bool must_powerattack_front = false;
     bool must_powerattack_horizontal_right = false;
     RE::TESObjectREFR* attack_target_after_walk = nullptr;
 
@@ -3260,20 +3261,30 @@ namespace WalkerProcessor {
             if (!use_y)
                 mouse_y = 0.0f;
 
-            if (abs(mouse_x) > 100.0f)
+            float threshold_x = 100.0f;
+            float threshold_y = 50.0f;
+
+            if (MiscThings::is_werewolf())
             {
-                if (mouse_x < 0.0f)
-                    mouse_x = -100.0f;
-                else
-                    mouse_x = 100.0f;
+                threshold_x *= 2.0f;
+                threshold_y *= 2.0f;
             }
 
-            if (abs(mouse_y) > 50.0f)
+
+            if (abs(mouse_x) > threshold_x)
+            {
+                if (mouse_x < 0.0f)
+                    mouse_x = -threshold_x;
+                else
+                    mouse_x = threshold_x;
+            }
+
+            if (abs(mouse_y) > threshold_y)
             {
                 if (mouse_y < 0.0f)
-                    mouse_y = -50.0f;
+                    mouse_y = -threshold_y;
                 else
-                    mouse_y = 50.0f;
+                    mouse_y = threshold_y;
             }
 
             /*
@@ -4877,6 +4888,10 @@ namespace WalkerProcessor {
             speed_koef = 1.0f;
 
 
+        if (MiscThings::is_werewolf())
+            if (speed_koef < 2.0f)
+                speed_koef = 2.0f;
+
         auto player = RE::PlayerCharacter::GetSingleton();
 
         if (!target || !player)
@@ -6172,6 +6187,7 @@ namespace WalkerProcessor {
 
         bloodskal_must_powerattack = false;
         must_powerattack_horizontal = false;
+        must_powerattack_front = false;
         must_powerattack_horizontal_right = false;
         attack_target_after_walk = nullptr;
 
@@ -6729,6 +6745,7 @@ namespace WalkerProcessor {
     {
         bloodskal_must_powerattack = false;
         must_powerattack_horizontal = false;
+        must_powerattack_front = false;
         must_powerattack_horizontal_right = false;
 
         blocking_dragonbreath = false;
@@ -12889,6 +12906,9 @@ namespace WalkerProcessor {
                                     result = 1.0f / speed + 0.1f;
 
                             }
+                            else
+                                if (MiscThings::is_werewolf())
+                                    result = 1.0f;
                         }
             }
 
@@ -13368,6 +13388,9 @@ namespace WalkerProcessor {
 
     bool attack_target(float dtime)
     {
+        if ((MiscThings::is_werewolf() || MiscThings::is_vampirelord()) && MiscThings::killcam_active())
+            return false; //wait for it (this doesnt fix anything unfortunately)
+
 
         if (MiscThings::is_on_horse())
         {
@@ -14243,7 +14266,18 @@ namespace WalkerProcessor {
                                             }
 
 
-                                            if (attack_action_time0 < get_attack_time(true) * 0.2f || attack_action_time0 > get_attack_time(true) * 0.9f)
+                                            if (must_powerattack_front)
+                                                cursor_up();
+
+
+
+                                            float powerattack_threshold = 0.2f;
+
+                                            if (MiscThings::is_werewolf())
+                                                powerattack_threshold = 0.01f;
+
+
+                                            if ((attack_action_time0 < get_attack_time(true) * powerattack_threshold || attack_action_time0 > get_attack_time(true) * 0.9f))
                                             {
                                                 right_attack();
                                                 if (try_dual_attack && dualhanding_two_weapons)
@@ -14512,7 +14546,15 @@ namespace WalkerProcessor {
                             {
                                 float power_attack_chance = (float)std::rand() / RAND_MAX;
                                 if (power_attack_chance > 0.5)
+                                {
+                                    if (MiscThings::is_werewolf() && MiscThings::coinflip())
+                                        must_powerattack_front = true;
+                                    else
+                                        must_powerattack_front = false;
+
                                     try_power_attack = true;
+                                }
+                                    
                             }
 
 
@@ -14526,7 +14568,7 @@ namespace WalkerProcessor {
                             if (attack_target_needs_to_come_closer && target_ref->IsActor() && target_ref->IsHumanoid())
                                 dual_attack_chance = 0.0f;
 
-                            if (dualhanding_two_weapons && dual_attack_chance > 0.4)
+                            if (dualhanding_two_weapons && dual_attack_chance > 0.4 && !(MiscThings::is_werewolf() && try_power_attack))
                                 try_dual_attack = true;
 
                             attack_target_needs_to_come_closer = false;
@@ -14889,8 +14931,16 @@ namespace WalkerProcessor {
                                                 left();
                                         }
 
+                                        if (must_powerattack_front)
+                                            cursor_up();
 
-                                        if (attack_action_time1 < get_attack_time(false) * 0.2f || attack_action_time1 > get_attack_time(false) * 0.9f)
+
+                                        float powerattack_threshold = 0.2f;
+
+                                        if (MiscThings::is_werewolf())
+                                            powerattack_threshold = 0.01f;
+
+                                        if ((attack_action_time1 < get_attack_time(false) * powerattack_threshold || attack_action_time1 > get_attack_time(false) * 0.9f))
                                         {
                                             left_attack();
                                             if (try_dual_attack && dualhanding_two_weapons)
@@ -15167,7 +15217,14 @@ namespace WalkerProcessor {
                             {
                                 float power_attack_chance = (float)std::rand() / RAND_MAX;
                                 if (power_attack_chance > 0.5)
+                                {
+                                    if (MiscThings::is_werewolf() && MiscThings::coinflip())
+                                        must_powerattack_front = true;
+                                    else
+                                        must_powerattack_front = false;
+
                                     try_power_attack = true;
+                                }
                             }
 
 
@@ -15179,7 +15236,7 @@ namespace WalkerProcessor {
                             if (attack_target_needs_to_come_closer && target_ref->IsActor() && target_ref->IsHumanoid())
                                 dual_attack_chance = 0.0f;
 
-                            if (dualhanding_two_weapons && dual_attack_chance > 0.4)
+                            if (dualhanding_two_weapons && dual_attack_chance > 0.4 && !(MiscThings::is_werewolf() && try_power_attack))
                                 try_dual_attack = true;
 
                             attack_target_needs_to_come_closer = false;
@@ -18302,10 +18359,16 @@ namespace WalkerProcessor {
                         }
                     }
 
-
+                    if (MiscThings::is_werewolf() || MiscThings::is_vampirelord())
+                    {
+                        dont_check_melee_dodge = true;
+                    }
 
                     if (!dont_check_melee_dodge)
                     {
+
+
+
                         auto temp = MiscThings::about_to_be_hit_by_melee_attack();
                         projectile_dir = temp.direction;
 

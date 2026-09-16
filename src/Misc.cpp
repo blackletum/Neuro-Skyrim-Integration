@@ -72,6 +72,29 @@ namespace MiscThings {
 
 
 
+    bool killcam_active()
+    {
+        auto camera = RE::PlayerCamera::GetSingleton();
+        if (camera)
+        {
+            auto camera_state = camera->currentState;
+            if (camera_state)
+            {
+                if (camera_state->id != RE::CameraStates::CameraState::kThirdPerson)
+                    bool stop_here = false;
+
+                return camera_state->id == RE::CameraStates::CameraState::kAnimated || camera_state->id == RE::CameraStates::CameraState::kPCTransition;
+            }
+        }
+
+        //auto vats = RE::VATS::GetSingleton();
+        //if (vats)
+        //    return vats->mode == RE::VATS::VATS_MODE::kKillCam;
+
+        return false;
+    }
+
+
 
 
     RE::NiPoint3 rotate_around_axis(RE::NiPoint3 v, RE::NiPoint3 axis, float radians)
@@ -2570,6 +2593,25 @@ namespace MiscThings {
                         return true;
                     }
                 }
+
+
+                //water stream 2
+                a = { 33790.4492f, 73524.4062f };//, -1103.65869
+                b = { 29499.4238f, 68562.9844f };// , -1095.44202
+                c = { 28610.4570f, 69312.9453f };// , -1113.10095
+                d = { 32719.0918f, 74096.6562f };// , -1104.09680
+
+                if (player_pos.z > 6300.0f && player_pos.z < 8500.0f)
+                {
+                    RE::NiPoint2 p = { player_pos.x, player_pos.y };
+                    if (is_inside_of_rectangle(p, a, b, c, d))
+                    {
+                        return true;
+                    }
+                }
+
+
+
             }
         }
 
@@ -12069,7 +12111,13 @@ namespace MiscThings {
                 return true; 
         }
 
-
+        if (quest && quest->formID == 0x4035e2f) //visit werewolfs in solstheim. hide until we have beast form or we are in beast form
+        {
+            if (!MiscThings::is_werewolf() && !MiscThings::player_has_spell((RE::SpellItem*)RE::TESForm::LookupByID(0x92C48)))
+            {
+                return true;
+            }
+        }
 
         if (MiscThings::inside_meridia_flybox()) //meridia quest
         {

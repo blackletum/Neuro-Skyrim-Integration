@@ -461,6 +461,9 @@ namespace MiscThings {
     int get_destructible_state(RE::TESObjectREFR* web);
     std::string get_potential_blocking_object(float range = 1400.0f, RE::TESObjectREFR* ignore_ref = nullptr);
 
+
+    bool killcam_active();
+
     float get_weird_threshold(float original_threshold, RE::TESObjectREFR* target);
 
     bool object_is_interactive(RE::TESObjectREFR* object);
