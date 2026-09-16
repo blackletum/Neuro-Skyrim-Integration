@@ -66,6 +66,7 @@ namespace WalkerProcessor {
 	std::pair<bool, std::string> set_multiple_path_quest_choice(int id);
 
 	std::pair<bool, std::string> set_bloodskal_type_attack_choice(int id);
+	std::pair<bool, std::string> set_point_of_no_return_choice(int id);
 
 	std::pair<bool, std::string> walk_to_object_by_refr(RE::TESObjectREFR* target, int action, bool surrender_to_guards_mode = false, std::string custom_name = "", bool inc_barter_history_upon_arrival = false);
 

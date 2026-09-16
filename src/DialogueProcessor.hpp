@@ -69,7 +69,8 @@
         barter_spent_a_lot,
         barter_vendor_confirm_sell_legendary,
         container_type,
-        bloodskal_puzzle_type_attack
+        bloodskal_puzzle_type_attack,
+        point_of_no_return_confirm
     };
 
     int get_active_force();

@@ -14,6 +14,12 @@
 namespace WalkerProcessor {
 
 
+    bool point_of_no_return_request_sent = false;
+    bool point_of_no_return_choice_valid = false;
+    bool point_of_no_return_choice = false;
+    bool point_of_no_return_choice_defined = false;
+
+
 
     bool bloodskal_powerattack_request_sent = false;
     bool bloodskal_powerattack_choice_valid = false;
@@ -6180,6 +6186,12 @@ namespace WalkerProcessor {
 
     void reset_walker()
     {
+        point_of_no_return_request_sent = false;
+        point_of_no_return_choice_valid = false;
+        point_of_no_return_choice = false;
+        point_of_no_return_choice_defined = false;
+
+
         bloodskal_powerattack_choice_defined = false;
         bloodskal_powerattack_request_sent = false;
         bloodskal_powerattack_choice_valid = false;
@@ -17891,6 +17903,40 @@ namespace WalkerProcessor {
     }
 
 
+
+    std::pair<bool, std::string> set_point_of_no_return_choice(int id)
+    {
+        std::pair<bool, std::string> result{};
+
+        if (!point_of_no_return_request_sent)
+        {
+            register_allowed_actions();
+
+            result.first = true;
+            result.second = "[Error]";
+        }
+        else
+        {
+            if (id == 0 || id == 1)
+            {
+                register_allowed_actions();
+
+                point_of_no_return_choice_valid = true;
+                point_of_no_return_choice = id;
+                result.first = true;
+                result.second = "[Processing...]";
+            }
+            else
+            {
+                result.first = false;
+                result.second = "[Invalid choice ID]";
+            }
+        }
+        return result;
+    }
+
+
+
     std::pair<bool, std::string> set_ruin_pillar_choice(int id)
     {
         std::pair<bool, std::string> result{};
@@ -19276,6 +19322,97 @@ namespace WalkerProcessor {
                     reset_walker();
                     return;
                 }
+
+
+
+
+                if (!point_of_no_return_choice_defined && target_ref && target_ref->formID == 0x45921 && interaction_after_walk != 3)
+                {
+
+                    auto skuldafn_fly_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("MQ303");
+
+                    if (skuldafn_fly_quest && skuldafn_fly_quest->currentStage >= 45)
+                    {
+                        if (!point_of_no_return_request_sent)
+                        {
+                            unregister_all_actions();
+
+                            if (force_choice({ {0, "No"},{1, "Yes"} }, "You are about to go past the point of no return (after you fly to Skuldafn, all quests except Main Quest will be locked, and you will not be able to come back until you finish Main Quest). Do you confirm that you wish to do it, and proceed with Main Quest?", force_type::point_of_no_return_confirm))
+                            {
+                                point_of_no_return_request_sent = true;
+                            }
+
+                            return; //wait for response
+                        }
+                        else
+                        {
+                            if (point_of_no_return_choice_valid)
+                            {
+                                register_allowed_actions();
+
+                                if (!point_of_no_return_choice)
+                                {
+                                    reset_walker();
+
+                                    if (MiscThings::is_quest_list_valid())
+                                    {
+                                        auto quests = MiscThings::get_p_quest_list();
+
+                                        std::vector<int> quest_candidates{};
+
+                                        if (quests)
+                                        {
+                                            for (auto& quest_from_list : *quests)
+                                            {
+                                                if (quest_from_list.quest && !MiscThings::quest_is_hidden(quest_from_list.quest) && quest_from_list.quest->formID != 0x46ef0 && quest_from_list.estimate_distance > 100.0f && quest_from_list.estimate_distance < 500000.0f)
+                                                    quest_candidates.push_back(quest_from_list.id);
+                                            }
+
+
+                                            if (std::size(quest_candidates) > 0)
+                                            {
+                                                int pos = MiscThings::random_int_from_range(0, std::size(quest_candidates) - 1);
+
+                                                if (pos < std::size(quest_candidates))
+                                                {
+                                                    auto result_id = quest_candidates.at(pos);
+
+                                                    last_quest_chosen = nullptr;
+                                                    last_quest_objective = nullptr;
+                                                    last_quest_chosen_name = "";
+                                                    last_quest_objective_chosen = nullptr;
+                                                    last_quest_target = nullptr;
+                                                    last_quest = nullptr;
+
+                                                    walk_to_quest_by_index(result_id, true);
+
+                                                    reset_walker();
+
+                                                    return;
+                                                }
+                                           }
+                                            
+
+                                        }
+                                    }
+
+                                    
+                                }
+                                    
+
+                                point_of_no_return_choice_defined = true;
+
+                                return;
+
+                            }
+                            else
+                                return; //wait for response
+                        }
+                    }
+
+                }
+
+
 
                     
                 if (target_ref)

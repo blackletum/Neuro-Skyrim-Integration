@@ -1506,6 +1506,10 @@ bool neuro::NeuroSocket::Tick(float dtime) //const neurosdk_message_action_t& aC
                         case force_type::bloodskal_puzzle_type_attack:
                             command_result = WalkerProcessor::set_bloodskal_type_attack_choice(json.id); break;
 
+                        case force_type::point_of_no_return_confirm:
+                            command_result = WalkerProcessor::set_point_of_no_return_choice(json.id); break;
+
+
 
                         default:
                         {
