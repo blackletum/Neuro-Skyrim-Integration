@@ -430,6 +430,7 @@ namespace MiscThings {
             case (0x1C4E6):
             case (0x956B5):
             case (0x400cfb6):
+            case (0x401aea4):
                     return true;
             }
 
@@ -12216,6 +12217,24 @@ namespace MiscThings {
         if (quest && quest->formID == 0x6000912)
         {
             return true;
+        }
+
+
+        //speak to degaine pointer quest. hide it if we already have/failed/completed steal dibella statue quest
+        if (quest && quest->formID == 0xc5940)
+        {
+            auto steal_statue_quest = (RE::TESQuest*)RE::TESForm::LookupByID(0xd45f4);
+
+
+            if (steal_statue_quest)
+            {
+                auto steal_statue_quest_stage = steal_statue_quest->GetCurrentStageID();
+
+                if (steal_statue_quest_stage >= 10)
+                {
+                    return true;
+                }
+            }
         }
 
 

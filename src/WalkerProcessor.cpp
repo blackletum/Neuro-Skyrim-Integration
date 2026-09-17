@@ -13369,7 +13369,7 @@ namespace WalkerProcessor {
                     {
                         if (weapon && weapon->formID == 0x401aea4) //bloodskal blade
                         {
-                            if (MiscThings::get_player_stamina() > 20.0f)
+                            if (MiscThings::get_player_stamina() > 10.0f)
                             {
                                 return 1500.0f;
                             }
@@ -13964,7 +13964,7 @@ namespace WalkerProcessor {
                     attack_action = !(bool)nettlebane_hand; //not bitwise
             } 
 
-            float stamina_state = MiscThings::get_player_stamina() / MiscThings::get_player_max_stamina();
+            float stamina_state = MiscThings::get_player_stamina();// / MiscThings::get_player_max_stamina();
 
             bool goto_attack_used = false;
             
