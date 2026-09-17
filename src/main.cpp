@@ -57,10 +57,10 @@
 
 //TODO black armor daedra
 //TODO dlc etherium book quest
+//TODO goldur amulet quest
 
 //TODO mage sidequests
 //TODO dawnguard sidequests
-//TODO soltsheim blacksmith quests
 
 //////////////////////////////////////////////////////
 // RANDOM STUFF

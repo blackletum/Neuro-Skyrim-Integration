@@ -466,6 +466,9 @@ namespace MiscThings {
 
     float get_weird_threshold(float original_threshold, RE::TESObjectREFR* target, int interaction = -1);
 
+
+    RE::TESObjectREFR* get_furniture_occupant(RE::TESObjectREFR* furniture_refr);
+
     bool object_is_interactive(RE::TESObjectREFR* object);
 
     bool ignore_faraway_interior(RE::TESObjectREFR* object);

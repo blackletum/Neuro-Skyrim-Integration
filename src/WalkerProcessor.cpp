@@ -10736,6 +10736,15 @@ namespace WalkerProcessor {
                                     if (conditions_met)
                                     {
 
+
+                                        if (quest_entry.quest && quest_entry.quest->formID == 0x4d8d6 && quest_entry.quest->currentStage == 10 && !MiscThings::player_has_follower())
+                                        {
+                                            result.first = false;
+                                            result.second = "For this quest, you need to sacrifice someone at the altar. But nobody is currently following you. Find a friend or hire someone to sacrifice before proceeding with this quest (ask them to follow you)";
+                                            return result;
+                                        }
+
+
                                         if (!ignore_specified_target && target != quest_entry.target && !phantom_objective)
                                             continue;
 
@@ -16199,7 +16208,60 @@ namespace WalkerProcessor {
                                     if (!dont_tell_result)
                                     {
 
-                                        if (target_ref->formID == 0x26460) //serpent cave, pressure plate. trigger puzzle force
+                                        if (target_ref && target_ref->formID == 0x83041) //boethias altar. generate advice
+                                        {
+                                            
+                                            auto boethiah_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("DA02");
+
+                                            if (boethiah_quest && boethiah_quest->currentStage == 10)
+                                            {
+                                                //active phase.
+                                                if (MiscThings::player_has_follower())
+                                                {
+                                                    //need to decide if we are in do-me-a-favor mode or not.
+                                                    //if yes - then say something like "you ask your follower to touch the altar..."
+
+                                                    RE::TESObjectREFR* furniture_occupant = MiscThings::get_furniture_occupant(target_ref);
+
+                                                    if (furniture_occupant)
+                                                    {
+                                                        auto occupant_name = MiscThings::insert_object_into_list_and_get_info(furniture_occupant);
+                                                        send_random_context(occupant_name + " is trapped by sacrificial pillar. Boethiah Priest wants you to kill them... (attack " + occupant_name + " if you want to proceed with quest)", false);
+                                                        reset_walker();
+                                                        return true;
+                                                    }
+                                                    else
+                                                    {
+                                                        if (player->HasActorDoingCommand())
+                                                        {
+                                                            confirm();
+                                                            send_random_context("[You tell your follower to walk to " + target_name + "...", false);
+                                                            reset_walker();
+                                                            return true;
+                                                        }
+                                                        else
+                                                        {
+                                                            send_random_context("[You look at " + target_name + "... You need to tell your follower to touch it (use [I need you to do something] dialogue option, then interact with altar again)]", false);
+                                                            reset_walker();
+                                                            return true;
+                                                        }
+                                                    }
+
+
+                                                }
+                                                else
+                                                {
+                                                    send_random_context("[You look at " + target_name + "... You need to find someone to sacrifice at this altar (ask some friend to follow you, or hire someone)]", false);
+                                                    reset_walker();
+                                                    return true;
+                                                }
+                                            }
+
+
+
+                                        }
+
+                                        if (target_ref && target_ref->formID == 0x26460) //serpent cave, pressure plate. trigger puzzle force
                                         {
                                             Observer::set_quest_puzzle_type(6);
                                             reset_walker();
@@ -16210,7 +16272,7 @@ namespace WalkerProcessor {
                                         if (!target_is_interactive())
                                             no_result = " Nothing happens...";
 
-                                        if (target_ref->GetBaseObject() && target_ref->GetBaseObject()->formID == 0x201a952)
+                                        if (target_ref && target_ref->GetBaseObject() && target_ref->GetBaseObject()->formID == 0x201a952)
                                             no_result = ""; //just dont say anything
 
 
@@ -16236,6 +16298,7 @@ namespace WalkerProcessor {
                                                     {
                                                         send_random_context("[Interacting with " + target_name + "..." + no_result + lever_advice + "... You need to destroy it to proceed]", false);
                                                         reset_walker();
+                                                        return true;
                                                     }
                                                     else
                                                         send_random_context("[Interacting with " + target_name + "..." + no_result + lever_advice + "]", true);
@@ -22991,6 +23054,7 @@ namespace WalkerProcessor {
 
 
                                                                         if (result_target && !move_obstacle_failed)
+                                                                        {
                                                                             if (result_target->CanBeMoved())
                                                                             {
                                                                                 bool is_target_an_alive_actor = false;
@@ -23002,7 +23066,7 @@ namespace WalkerProcessor {
                                                                                     if (attempts_to_move_obstacle < 3)
                                                                                     {
                                                                                         tried_sneak_jump = false;
-                                                                                        
+
                                                                                         try_to_remove_obstacle_mode = true;
                                                                                     }
                                                                                     else
@@ -23015,6 +23079,11 @@ namespace WalkerProcessor {
                                                                             }
                                                                             else
                                                                             {
+
+                                                                                move_obstacle_failed = true; //cant move alive actors
+                                                                                locking_failed = false;
+                                                                                return; //i am not sure why it was not like this initially. remove if bad
+
                                                                                 if (interaction_after_walk == 3)
                                                                                 {
                                                                                     reset_walker();
@@ -23028,7 +23097,7 @@ namespace WalkerProcessor {
                                                                                     {
                                                                                         last_fight_long_ago = true;
                                                                                     }
-                                                                                    
+
                                                                                     last_time_new_fight = now;
 
                                                                                     auto next_targets = MiscThings::get_player_attackers(false, nullptr, true);
@@ -23060,8 +23129,9 @@ namespace WalkerProcessor {
                                                                                 {
                                                                                     path_is_blocked_result(result_target);
                                                                                 }
-                                                                                
+
                                                                             }
+                                                                        }
                                                                         else
                                                                         {
 

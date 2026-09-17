@@ -72,6 +72,38 @@ namespace MiscThings {
 
 
 
+    RE::TESObjectREFR* get_furniture_occupant(RE::TESObjectREFR* furniture_refr)
+    {
+        RE::TESObjectREFR* result = nullptr;
+
+        if (furniture_refr)
+        {
+            
+            RE::TES::GetSingleton()->ForEachReferenceInRange(furniture_refr, 1000.0f,
+                [&](RE::TESObjectREFR* a_ref) {
+
+                    if (a_ref && !a_ref->IsDisabled())
+                    {
+                        if (a_ref->IsActor())
+                        {
+                            auto actor = (RE::Actor*)a_ref;
+                            if (actor->GetOccupiedFurniture() && actor->GetOccupiedFurniture().get().get() == furniture_refr)
+                            {
+                                result = a_ref;
+                                return RE::BSContainer::ForEachResult::kStop;
+                            }
+                        }
+
+                    }
+                    return RE::BSContainer::ForEachResult::kContinue;
+                });
+        }
+
+        return result;
+    }
+
+
+
     bool killcam_active()
     {
         auto camera = RE::PlayerCamera::GetSingleton();
@@ -3667,6 +3699,10 @@ namespace MiscThings {
         {
             switch (target->formID)
             {
+
+            case (0x83041): //boethias altar
+                return 200.0f;
+
 
             case (0x26460):
             {
@@ -21087,6 +21123,60 @@ namespace MiscThings {
                 }
             }
         }
+
+
+
+        //da02 boethiah quest
+        RE::TESQuest* boethiah_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("DA02");
+
+        if (boethiah_quest && boethiah_quest->currentStage == 12)
+        {
+            //last objective completed, new is not shown. will not happen unless player quits dialogue inbetween which is possible so cover it here
+
+            quest this_quest{};
+
+            this_quest.id = id;
+            this_quest.quest = boethiah_quest;
+            this_quest.name = boethiah_quest->GetFullName();
+            this_quest.target = nullptr;
+
+            std::string displaytext = "";
+
+            auto objective = MiscThings::get_quest_objective_by_index(this_quest.quest, 101);
+            if (objective)
+                displaytext = objective->displayText;
+
+            std::string target_name = "";
+
+            this_quest.displaytext += replace_aliases(this_quest.quest, displaytext);
+
+            this_quest.target_name = target_name;
+
+            this_quest.objective = objective;
+            this_quest.description = "";
+            this_quest.category = 0;
+
+            this_quest.estimate_distance = 0.0f;
+
+            this_quest.phantom_objective = true;
+
+            this_quest.phantom_target = MiscThings::get_alias_ref_by_name(boethiah_quest, "DeadFriend");
+
+            if (Apocrypha::in_apocrypha())
+                this_quest.estimate_distance = 0.0f;
+            else
+                this_quest.estimate_distance = get_quest_target_distance(nullptr, this_quest.quest, nullptr, this_quest.phantom_target);
+
+
+            sortable_quests.push_back(this_quest);
+
+
+
+            id++;
+            got_any_quests = true;
+
+        }
+
 
         
         //da16 erandur skull quest
