@@ -2204,7 +2204,7 @@ namespace Observer {
 
 				auto player_cell = player->GetParentCell();
 
-				bool frozen_falmers_condition = player_cell && player_cell->formID == 0x200384f;
+				bool frozen_falmers_condition = player_cell && (player_cell->formID == 0x200384f);// || player_cell->formID == 0x361fa);
 
 
 				std::map<RE::TESObjectREFR*, int> current_objects{};
@@ -2306,6 +2306,17 @@ namespace Observer {
 				}
 			}
 
+			auto base_obj = object->GetBaseObject();
+
+			if (base_obj && base_obj->formID == 0x88895)
+			{
+				if (MiscThings::raycastable(object, 1000.0f))
+				{
+					return " Dwemer Barrel filled with Green Liquid";
+				}
+			}
+
+
 		}
 
 		return "";
@@ -2341,7 +2352,7 @@ namespace Observer {
 			if (player_cell && player_cell->IsInteriorCell())
 				scan_distance = 3000.0f;
 
-			bool frozen_falmers_condition = player_cell && player_cell->formID == 0x200384f;
+			bool frozen_falmers_condition = player_cell && (player_cell->formID == 0x200384f);// || player_cell->formID == 0x361fa);
 
 
 
@@ -2411,7 +2422,6 @@ namespace Observer {
 										interesting_buffer.insert_or_assign(a_ref, info);
 								}
 							}
-
 
 							//hazards and statics already filtered in foreach scan
 
@@ -4992,6 +5002,30 @@ namespace Observer {
 																}
 
 															}
+
+
+															if (anim_name == "PortGatePole02")
+															{
+																if (!no_spam)
+																{
+																	std::string name = MiscThings::insert_object_into_list_custom_name("Metal pole gate", a_ref);
+
+																	if (activation == 0)
+																	{
+																		detect_events_result.push_back("[ " + name + " opened]");
+																		no_spam = true;
+																	}
+
+
+																	if (activation == 1)
+																	{
+																		detect_events_result.push_back("[ " + name + " closed]");
+																		no_spam = true;
+																	}
+																}
+
+															}
+
 
 															if (anim_name == "PortGatePole01")
 															{

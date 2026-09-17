@@ -8936,9 +8936,25 @@ namespace MiscThings {
             return nullptr;
 
 
-        //falmer's pit dungeon redirects
+        
         if (target)
         {
+            //btardamz (peryite quest, last room exit post boss)
+            if (target->formID == 0x3e053) //elevator
+            {
+                auto locked_door = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x3e13a);
+                if (locked_door && MiscThings::is_door_locked(locked_door))
+                {
+                    auto boss_with_key = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x45f8e);
+                    if (boss_with_key)
+                        return boss_with_key;
+                }
+            }
+
+
+
+
+            //falmer's pit dungeon redirects
             if (target->formID == 0x2731d) //entrance to exit-cave
             {
                 //cannot actually check door bar here because it doesnt exist yet.
@@ -14976,6 +14992,12 @@ namespace MiscThings {
                 if (extra_anim_graph->animGraphMgr->variableCache.animationGraph->projectName == "PortGatePole01")
                 {
                     std::string name = MiscThings::insert_object_into_list_custom_name("Nordic metal pole gate", a_ref);
+                    result = name;
+                }
+
+                if (extra_anim_graph->animGraphMgr->variableCache.animationGraph->projectName == "PortGatePole02")
+                {
+                    std::string name = MiscThings::insert_object_into_list_custom_name("Metal pole gate", a_ref);
                     result = name;
                 }
 

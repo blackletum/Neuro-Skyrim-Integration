@@ -55,7 +55,6 @@
 
 //  RANDOM QUESTS TODO
 
-//TODO dwemer shield daedra
 //TODO black armor daedra
 //TODO dlc etherium book quest
 
