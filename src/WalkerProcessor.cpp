@@ -13,6 +13,16 @@
 
 namespace WalkerProcessor {
 
+    bool close_enough_force_success = false;
+
+    float carry_item_was_lost_timer = 0.0f;
+    bool carry_item_instead_of_interaction = false;
+    bool carry_item_keep_carrying = false;
+    RE::TESObjectREFR* carry_item_item_carried = nullptr;
+    RE::TESObjectREFR* carry_item_item_to_walk_to = nullptr;
+    RE::NiPoint3 carry_item_drop_position = RE::NiPoint3::Zero();
+
+
 
     bool point_of_no_return_request_sent = false;
     bool point_of_no_return_choice_valid = false;
@@ -4904,6 +4914,10 @@ namespace WalkerProcessor {
             return false;
 
 
+        if (carry_item_keep_carrying && speed_koef > 0.5f)
+            speed_koef = 0.5f;
+
+
 
         bool dont_send_inputs = false;
 
@@ -6186,6 +6200,21 @@ namespace WalkerProcessor {
 
     void reset_walker()
     {
+
+        if (carry_item_keep_carrying)
+            uncarry();
+
+        close_enough_force_success = false;
+
+        carry_item_was_lost_timer = 0.0f;
+        carry_item_instead_of_interaction = false;
+        carry_item_keep_carrying = false;
+        carry_item_item_carried = nullptr;
+        carry_item_item_to_walk_to = nullptr;
+        carry_item_drop_position = RE::NiPoint3::Zero();
+
+
+
         point_of_no_return_request_sent = false;
         point_of_no_return_choice_valid = false;
         point_of_no_return_choice = false;
@@ -7571,6 +7600,9 @@ namespace WalkerProcessor {
         if (midcombat_reanimate_cast_done)
             return true;
 
+        if (close_enough_force_success)
+            return true;
+
 
         if (close_enough_force_fail && (!MiscThings::is_dragon(target_ref) || close_enough_force_fail_reason_friendly_fire))
         {
@@ -8347,7 +8379,7 @@ namespace WalkerProcessor {
                         }
 
 
-                        float weird_threshold2 = MiscThings::get_weird_threshold(threshold2, target_ref);
+                        float weird_threshold2 = MiscThings::get_weird_threshold(threshold2, target_ref, interaction_after_walk);
 
                         if (weird_threshold2 != 0.0f)
                         {
@@ -8385,7 +8417,7 @@ namespace WalkerProcessor {
                             distance.z = 0.0f;
                         }
 
-                        float weird_threshold2 = MiscThings::get_weird_threshold(threshold2, target_ref);
+                        float weird_threshold2 = MiscThings::get_weird_threshold(threshold2, target_ref, interaction_after_walk);
 
                         if (weird_threshold2 != 0.0f)
                         {
@@ -13337,7 +13369,7 @@ namespace WalkerProcessor {
                     {
                         if (weapon && weapon->formID == 0x401aea4) //bloodskal blade
                         {
-                            if (MiscThings::get_player_stamina() > 1.0f)
+                            if (MiscThings::get_player_stamina() > 20.0f)
                             {
                                 return 1500.0f;
                             }
@@ -15641,6 +15673,71 @@ namespace WalkerProcessor {
                 return true;
 
 
+            if (carry_item_instead_of_interaction && !carry_item_keep_carrying)
+            {
+                carry();
+
+
+                auto temp_carry_item_instead_of_interaction = carry_item_instead_of_interaction;
+                auto temp_carry_item_keep_carrying = carry_item_keep_carrying;
+                auto temp_carry_item_item_carried = carry_item_item_carried;
+                auto temp_carry_item_item_to_walk_to = carry_item_item_to_walk_to;
+                auto temp_carry_item_drop_position = carry_item_drop_position;
+
+                auto temp = walk_to_object_by_refr(carry_item_item_to_walk_to, 1);
+
+                carry_item_instead_of_interaction = temp_carry_item_instead_of_interaction;
+                carry_item_keep_carrying = temp_carry_item_keep_carrying;
+                carry_item_item_carried = temp_carry_item_item_carried;
+                carry_item_item_to_walk_to = temp_carry_item_item_to_walk_to;
+                carry_item_drop_position = temp_carry_item_drop_position;
+
+                carry_item_keep_carrying = true;
+
+                auto carry_item_name = MiscThings::insert_object_into_list_and_get_info(carry_item_item_carried);
+
+                if (temp.first)
+                    send_random_context("You grab " + carry_item_name + "...", true);
+                else
+                    send_random_context("Cannot grab this item for some reason", false);
+                
+                
+
+                return false;
+            }
+
+            if (carry_item_keep_carrying)
+            {
+                //this means we arrived to the target where we have to drop the item, but it is not resetting,
+                //meaning locking camera is not enough. need to move body a little
+
+                if (carry_item_item_carried)
+                {
+                    auto player_pos_carry = player->GetPosition();
+                    auto carry_item_pos = carry_item_item_carried->GetPosition();
+                    auto target_pos_copy = carry_item_drop_position;
+
+                    player_pos_carry.z = 0.0f;
+                    carry_item_pos.z = 0.0f;
+                    target_pos_copy.z = 0.0f;
+
+                    if (player_pos_carry.GetDistance(target_pos_copy) > player_pos_carry.GetDistance(carry_item_pos))
+                        cursor_up();
+                    else
+                        cursor_down();
+
+                    close_enough_force_success = true;
+
+                }
+                else
+                    reset_walker();
+
+
+                return false;
+            }
+                
+
+
             if (confirming_closed_door_interaction)
             {
                 if (door_is_closed_choice_valid)
@@ -16101,6 +16198,15 @@ namespace WalkerProcessor {
                                     std::string no_result = "";
                                     if (!dont_tell_result)
                                     {
+
+                                        if (target_ref->formID == 0x26460) //serpent cave, pressure plate. trigger puzzle force
+                                        {
+                                            Observer::set_quest_puzzle_type(6);
+                                            reset_walker();
+                                            reset_backup_pickup();
+                                            return true;
+                                        }
+
                                         if (!target_is_interactive())
                                             no_result = " Nothing happens...";
 
@@ -16231,6 +16337,16 @@ namespace WalkerProcessor {
         case (2):
         {
             //pickpocket
+
+
+            if (target_ref && target_ref->formID == 0x26460) //serpent cave, pressure plate. fake pickpocket to make normal interaction
+            {
+                send_random_context("[Interacting with " + MiscThings::insert_object_into_list_and_get_info(target_ref) + "... Nothing Happens]", true);
+                reset_walker();
+                reset_backup_pickup();
+                return true;
+            }
+
 
             auto player = RE::PlayerCharacter::GetSingleton();
 
@@ -18125,6 +18241,56 @@ namespace WalkerProcessor {
 
 
 
+    void drop_some_item_onto_position(RE::NiPoint3 pos_to_drop, RE::TESObjectREFR* object_to_walk_to)
+    {
+        if (MiscThings::is_objects_around_valid())
+        {
+            auto object_list = MiscThings::get_p_objects_around();
+
+            auto player = RE::PlayerCharacter::GetSingleton();
+
+            if (object_list && player)
+            {
+                float min_dist = FLT_MAX;
+                RE::TESObjectREFR* nearest_object = nullptr;
+
+                for (auto& object : *object_list)
+                {
+                    if (object.second.object && object.second.object->GetBaseObject() && object.second.object->GetBaseObject()->IsInventoryObject())
+                    {
+                        if (player->GetDistance(object.second.object) < min_dist)
+                        {
+                            min_dist = player->GetDistance(object.second.object);
+                            nearest_object = object.second.object;
+                        }
+                    }
+                }
+
+
+                if (nearest_object)
+                {
+                    carry_item_instead_of_interaction = true;
+                    carry_item_item_carried = nearest_object;
+                    carry_item_item_to_walk_to = object_to_walk_to;
+                    carry_item_drop_position = pos_to_drop;
+                    walk_to_object_by_refr(nearest_object, 1);
+
+                    auto carry_item_name = MiscThings::insert_object_into_list_and_get_info(carry_item_item_carried);
+                    send_random_context("You walk to " + carry_item_name + "...", true);
+
+                }
+                else
+                {
+                    send_random_context("Cannot find anything to grab", false);
+                }
+            }
+        }
+    }
+
+
+
+
+
 
     void complete_visit_college_quest()
     {
@@ -18222,8 +18388,8 @@ namespace WalkerProcessor {
         //Hooks::add_debug_line("walker_processor called", true);
 
 
-        if (target_ref)
-            bool test = MiscThings::actor_has_ward_equipped(target_ref);
+        //if (target_ref)
+        //    bool test = MiscThings::actor_has_ward_equipped(target_ref);
 
 
 
@@ -18267,7 +18433,56 @@ namespace WalkerProcessor {
         }
 
 
-       
+        if (carry_item_keep_carrying)
+        {
+            carry();
+
+            if (carry_item_item_carried)
+            {
+
+                if (player->GetGrabbedRef())
+                {
+                    if (carry_item_item_carried->GetPosition().GetDistance(carry_item_drop_position) < 40.0f)
+                    {
+                        uncarry();
+                        reset_walker();
+                        return;
+                    }
+                }
+                else
+                {
+                    //not carrying anything. restart carry if goes on for too long
+                    if (carry_item_was_lost_timer > 1.0f)
+                    {
+                        carry_item_was_lost_timer = 0.0f;
+                        uncarry();
+
+                        auto target_object_where_to_drop = carry_item_item_to_walk_to;
+                        auto target_object_drop_pos = carry_item_drop_position;
+                        reset_walker();
+
+                        drop_some_item_onto_position(target_object_drop_pos, target_object_where_to_drop);
+
+                        return;
+
+                    }
+                    else
+                        carry_item_was_lost_timer += dtime;
+                }
+
+
+            }
+            else
+            {
+                reset_walker();
+                return;
+            }
+        }
+            
+
+
+
+
         if (Observer::get_keep_distance_mode() && interaction_after_walk == 3 && target_ref && !shout_mode && !spell_mode && !using_custom_path)
         {
             //switch to nearest enemy if we are in keep-distance mode. necessary for better keep distance combat in case initial target hides behind other enemies

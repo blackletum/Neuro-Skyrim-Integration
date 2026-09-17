@@ -1580,6 +1580,33 @@ namespace MiscThings {
     }
 
 
+    bool inside_serpent_cave_box(RE::TESObjectREFR* object)
+    {
+        if (!object)
+            object = RE::PlayerCharacter::GetSingleton();
+
+        if (object)
+        {
+            auto object_pos = object->GetPosition();
+            auto object_cell = object->GetParentCell();
+
+            if (object_cell && object_cell->formID == 0x151fa) //serpent cave
+            {
+                RE::NiPoint2 a = { 4237.76367, 1174.55872 }; //-5733.7241
+                RE::NiPoint2 b = { 4294.57324, 2983.31372 }; //-5633.2554
+                RE::NiPoint2 c = { -1100.77554, 1342.23213 }; //-5640.6494
+                RE::NiPoint2 d = { -1043.96597, 3150.98713 }; //-5724.9077
+
+                RE::NiPoint2 p = { object_pos.x, object_pos.y };
+                if (MiscThings::is_inside_of_rectangle(p, a, b, c, d))
+                    return true;
+            }
+        }
+
+
+        return false;
+    }
+
 
     bool inside_meridia_flybox()
     {
@@ -3555,7 +3582,7 @@ namespace MiscThings {
 
 
 
-    float get_weird_threshold(float original_threshold, RE::TESObjectREFR* target)
+    float get_weird_threshold(float original_threshold, RE::TESObjectREFR* target, int interaction)
     {
         float result = 0.0f;
 
@@ -3639,6 +3666,15 @@ namespace MiscThings {
         {
             switch (target->formID)
             {
+
+            case (0x26460):
+            {
+                if (interaction == -1) //serpent cave. depends on the interaction
+                    return 40.0f;
+                break;
+            }
+                
+               
             case (0xb63ef):
                 return 400.0f; //yngols barrow, one of first pillars. lies slightly out of navmesh and cant be pathfound close enough
             
@@ -8939,7 +8975,32 @@ namespace MiscThings {
             }
         }
 
-
+        if (parent_cell && parent_cell->formID == 0x151fa)
+        {
+            if (MiscThings::inside_serpent_cave_box(target) && !MiscThings::inside_serpent_cave_box(player))
+            {
+                auto gate = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xd2815);
+                if (MiscThings::two_state_activator_state(gate) == 1)
+                {
+                    auto redirect_vase = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x27d98);
+                    if (redirect_vase)
+                        return redirect_vase;
+                }
+            }
+            else
+            {
+                if (!MiscThings::inside_serpent_cave_box(target) && MiscThings::inside_serpent_cave_box(player))
+                {
+                    auto gate = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xd2815);
+                    if (MiscThings::two_state_activator_state(gate) == 1)
+                    {
+                        auto alternative_exit = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x5ce72);
+                        if (alternative_exit)
+                            return alternative_exit;
+                    }
+                }
+            }
+        }
 
         if (parent_cell && parent_cell->formID == 0x40142fc) //raven rock mine
         {
@@ -14920,6 +14981,27 @@ namespace MiscThings {
 
             switch (object->formID)
             {
+
+            case (0xd2815): //serpent cave gate
+            {
+                auto handle = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x26460); //pressure plate
+
+                if (handle)
+                {
+                    if (!MiscThings::is_object_in_the_list(handle))
+                    {
+                        auto obj_name = MiscThings::insert_object_into_list_custom_name("Heavy wooden gate", object);
+                        auto temp_result = MiscThings::insert_object_into_list_custom_name("[Interactive] Pressure Plate, linked to " + obj_name, handle);
+
+                        if (temp_result != "")
+                            send_random_context("You see: " + temp_result, false);
+                    }
+                }
+                break;
+            }
+
+
+
 
             case (0x40389b7): //apocrypha book3 gate2
             {

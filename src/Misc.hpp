@@ -464,7 +464,7 @@ namespace MiscThings {
 
     bool killcam_active();
 
-    float get_weird_threshold(float original_threshold, RE::TESObjectREFR* target);
+    float get_weird_threshold(float original_threshold, RE::TESObjectREFR* target, int interaction = -1);
 
     bool object_is_interactive(RE::TESObjectREFR* object);
 

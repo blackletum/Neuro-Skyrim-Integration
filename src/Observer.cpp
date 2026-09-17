@@ -328,6 +328,14 @@ namespace Observer {
 				break;
 			}
 
+			case 6:
+			{
+				min_range = 1;
+				max_range = 4;
+
+				break;
+			}
+
 			default:
 			{
 				reset_quest_puzzles();
@@ -960,6 +968,120 @@ namespace Observer {
 
 				break;
 			}
+
+
+
+			case 6:
+			{
+				if (!puzzle_request_was_sent)
+				{
+					std::vector<MenuOption> options{};
+					//options.push_back({ 1, "Run around a keystone" });
+					options.push_back({ 1, "Stand on the Pressure Plate" });
+					options.push_back({ 2, "Put something onto the Pressure Plate" });
+					options.push_back({ 3, "Interact with the Pressure Plate" });
+					options.push_back({ 4, "Attack the Pressure Plate" });
+
+					auto player = RE::PlayerCharacter::GetSingleton();
+
+					unregister_all_actions(); //no pause - unregister here
+
+					if (force_choice(options, "You walked up to the Pressure Plate, that is linked to the Wooden Gate. What will you do?", force_type::timed_quest_puzzle))
+					{
+						puzzle_request_was_sent = true;
+
+						//if (!puzzle_pause_was_made && !MiscThings::is_game_paused())
+						//{
+						//	puzzle_request_was_sent = true;
+						//	puzzle_pause_was_made = true;
+						//	MiscThings::pause_game();
+						//}
+					}
+				}
+				else
+				{
+					if (puzzle_choice_valid)
+					{
+
+						register_allowed_actions();
+
+						if (false && puzzle_pause_was_made)
+						{
+							if (MiscThings::is_game_paused())
+							{
+								MiscThings::unpause_game();
+							}
+							//set_universal_block(0.5f);
+							puzzle_pause_was_made = false;
+							return;
+
+						}
+
+						pause_puzzle_scan_time = 5.0f;
+
+						switch (puzzle_choice)
+						{
+							//case 1:
+							//{
+							//	reset_quest_puzzles();
+							//	break;
+							//}
+						case 1:
+						{
+							register_allowed_actions();
+
+							RE::TESObjectREFR* pressure_plate = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x26460);
+							WalkerProcessor::walk_to_object_by_refr(pressure_plate, -1); //the idea is, if interaction is -1 (no interaction) - it will try to come super close, standing on it in result
+							pause_puzzle_scan_time = 10.0f;
+							reset_quest_puzzles();
+							break;
+						}
+						case 2:
+						{
+							register_allowed_actions();
+
+							RE::TESObjectREFR* pressure_plate = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x26460);
+
+							if (pressure_plate)
+								WalkerProcessor::drop_some_item_onto_position(pressure_plate->GetPosition(), pressure_plate);
+
+							pause_puzzle_scan_time = 10.0f;
+							reset_quest_puzzles();
+							break;
+						}
+						case 3:
+						{
+							RE::TESObjectREFR* pressure_plate = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x26460);
+							WalkerProcessor::walk_to_object_by_refr(pressure_plate, 2);
+							pause_puzzle_scan_time = 20.0f;
+							reset_quest_puzzles();
+							break;
+						}
+						case 4:
+						{
+							RE::TESObjectREFR* pressure_plate = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x26460);
+							WalkerProcessor::walk_to_object_by_refr(pressure_plate, 3);
+							pause_puzzle_scan_time = 20.0f;
+							reset_quest_puzzles();
+							break;
+						}
+
+						default:
+						{
+							register_allowed_actions();
+
+							reset_quest_puzzles();
+							break;
+						}
+						}
+					}
+				}
+
+
+				break;
+			}
+
+
 
 
 
