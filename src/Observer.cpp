@@ -6474,7 +6474,7 @@ namespace Observer {
 		//MiscThings::cant_shout_yet();
 
 		auto parent_cell = player->GetParentCell();
-
+		auto player_pos = player->GetPosition();
 
 
 		//MiscThings::friendly_fire_test(true, nullptr);

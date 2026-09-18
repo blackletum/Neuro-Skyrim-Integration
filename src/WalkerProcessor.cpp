@@ -4338,11 +4338,16 @@ namespace WalkerProcessor {
         {
             std::string blocking_name = MiscThings::get_blocking_object_name2(targeted_ref);
 
+            if (targeted_ref && targeted_ref->formID == 0x85ddc) //forlungur floor gate with rotating doors
+                if (target_ref && target_ref->formID == 0xab6f9) //forlungur quest target
+                    return blocking_name;
+
             if (blocking_name != "" && !turning_around)
             {
                 
                 if (last_blocking_targeted_ref == targeted_ref)
                 {
+
                     if (have_blocking_targeted_time > 0.4f && walker_active_time > 2.0f)//0.15f)
                     {
                         //have_door_targeted_time = 0.0f;
@@ -19577,6 +19582,38 @@ namespace WalkerProcessor {
 
 
 
+        
+
+                RE::ObjectRefHandle my_handle{};
+                if (target_ref)
+                    my_handle = target_ref->GetHandle();
+
+                if (target_ref && (!my_handle || !my_handle.get() || !my_handle.get().get()))
+                {
+                    reset_walker();
+                    return;
+                }
+
+
+                if (parent_cell && parent_cell->formID == 0x15280) //forlungur part1
+                {
+                    if (MiscThings::is_player_swimming())
+                    {
+                        auto forlungur_floor_gate = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xab687);
+                        
+                        if (target_ref && target_ref->formID != 0xad884 && forlungur_floor_gate && player->GetDistance(forlungur_floor_gate) < 500.0f && MiscThings::two_state_activator_state(forlungur_floor_gate) == 0)
+                        {
+                            auto lever = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xad884);
+                            if (lever && !MiscThings::is_object_in_the_list(lever))
+                                auto temp_lever_info = MiscThings::insert_object_into_list_and_get_info(lever);
+
+                            send_random_context("Floor gate suddenly opened, and you fell into the water. It looks like you cannot get out until the floor gate is closed again... Maybe there is something nearby that can help?", false);
+                            reset_walker();
+                            return;
+                        }
+                    }
+                }
+
 
 
                 if (target_ref && (!target_ref->formID || !target_ref->data.objectReference || target_ref == player_ref))
@@ -19588,17 +19625,6 @@ namespace WalkerProcessor {
                         return;
                     }
                     reset_walker();
-                }
-                    
-
-                RE::ObjectRefHandle my_handle{};
-                if (target_ref)
-                    my_handle = target_ref->GetHandle();
-
-                if (target_ref && (!my_handle || !my_handle.get() || !my_handle.get().get()))
-                {
-                    reset_walker();
-                    return;
                 }
 
 
@@ -19848,6 +19874,30 @@ namespace WalkerProcessor {
 
 
                 
+                if (target_ref && target_ref->formID == 0x70c1a25) //dummy from apocrypha. reused in forlungur (experiment)
+                {
+                    if (parent_cell && parent_cell->formID == 0x15280)
+                    {
+                        if (player->GetPositionX() >= 5710.0f) //its the bridge
+                        {
+                            if (player->GetDistance(target_ref) < 150.0f)
+                            {
+                                auto forlungur_bridge = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xab5a4);
+                                if (forlungur_bridge && MiscThings::two_state_activator_state(forlungur_bridge) == 0)
+                                {
+                                    send_random_context("You stand on a cliff, and see a bridge on the other side... You need to somehow lower the bridge to walk to the other side. Is there anything around that can help?", false);
+                                    look_at_object_by_refr(forlungur_bridge);
+                                    return;
+                                }
+
+                            }
+                        }
+                    }
+                }
+
+
+
+
 
                 auto dragon_landing_marker = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x7121d4f);
 

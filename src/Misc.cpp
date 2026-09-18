@@ -8980,6 +8980,55 @@ namespace MiscThings {
         
         if (target)
         {
+            auto target_pos = target->GetPosition();
+
+            //forlungur (goldur's quest, near solitude)
+            if (target->formID == 0xab6f8) //exit door
+            {
+                auto gate1 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xad7d0);
+                if (MiscThings::two_state_activator_state(gate1) == 1)
+                {
+                    if (player_pos.x < 7500.0f)
+                    {
+                        //not in starting area.
+                        auto redirect = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xad76d);
+                        if (redirect)
+                            return redirect;
+                    }
+                }
+            }
+
+            //forlungur bridge
+            if (player_pos.x > 5710.0f && target_pos.x <= 5710.0f)
+            {
+                auto bridge = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xab5a4);
+                if (bridge && MiscThings::two_state_activator_state(bridge) == 0)
+                {
+                    auto dummy = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x70c1a25);
+                    if (dummy)
+                    {
+                        dummy->MoveTo(player);
+                        MiscThings::SetPosition_moveto(dummy, {6026.07080, 8787.54590, 878.517090});
+
+                        return dummy;
+                    }
+                }
+            }
+
+
+            //forlungur room2 redirect to cool exit
+            if (target->formID == 0xab6fa)
+            {
+                auto claw_key = (RE::TESBoundObject*)RE::TESForm::LookupByID(0xab7bb);
+                if (player->GetItemCount(claw_key) > 0)
+                {
+                    auto cool_door = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xab6fb);
+                    if (cool_door)
+                        return cool_door;
+                }
+            }
+
+
             //btardamz (peryite quest, last room exit post boss)
             if (target->formID == 0x3e053) //elevator
             {
@@ -12581,6 +12630,12 @@ namespace MiscThings {
         if (!lever)
             return "";
 
+        if (lever->formID == 0xad749)
+            return " It falls, revealing the passage behind it..."; //forlungur sarcophagus 
+
+
+        bool is_chain = false;
+
         auto object_p = General::Script::GetObject(lever, "defaultPillarPuzzleLever");
 
         if (!object_p)
@@ -12590,7 +12645,19 @@ namespace MiscThings {
             {
                 object_p = General::Script::GetObject(lever, "defaultPillarPuzzleLeverNoFurn");
                 if (!object_p)
-                    return "";
+                {
+                    object_p = General::Script::GetObject(lever, "defaultPillarPuzzlePullBarNoFurn");
+                    if (!object_p)
+                    {
+                        return "";
+                    }
+                    else
+                    {
+                        is_chain = true;
+                        goto normal_pillar;
+                    }
+                        
+                }
                 else
                 {
                     goto normal_pillar;
@@ -12611,15 +12678,17 @@ namespace MiscThings {
                 bool door_opened = General::Script::GetProperty<bool>(object_p, prop_name4);
 
 
-                std::string advice = "Check surroundings to see if there is something linked to the lever that needs to be fixed";
+                std::string lever_chain = is_chain ? "chain" : "lever";
+
+                std::string advice = "Check surroundings to see if there is something linked to the " + lever_chain + " that needs to be fixed";
 
                 std::string pillar_check = check_very_interesting_objects();
                 if (pillar_check.find("Pillar"))
-                    advice = "There are puzzle pillars nearby, interact with them until they are all in correct positions so lever opens the path";
+                    advice = "There are puzzle pillars nearby, interact with them until they are all in correct positions so " + lever_chain + " opens the path";
 
 
                 if (pillars_solved < 2 || !(alt_solution || puzzle_solved))
-                    return " Something is wrong. The lever did not do anything..." + advice;
+                    return " Something is wrong. The " + lever_chain + " did not do anything..." + advice;
                 else
                 {
                     if (pillars_solved == 2)
@@ -12627,21 +12696,21 @@ namespace MiscThings {
                         if (alt_solution)
                         {
                             if (!door_opened)
-                                return " Something is wrong. The lever opened a gate, but the passage behind that gate is blocked... you need to open another gate" + advice;
+                                return " Something is wrong. The " + lever_chain + " opened a gate, but the passage behind that gate is blocked... you need to open another gate" + advice;
                             else
-                                return " The lever closed some gate...";
+                                return " The " + lever_chain + " closed some gate...";
                         }
                         else
                             if (puzzle_solved)
                                 if (!door_opened)
-                                    return " Looks like the lever opened the correct gate... you can probably continue with your quest now";
+                                    return " Looks like the " + lever_chain + " opened the correct gate... you can probably continue with your quest now";
                                 else
-                                    return " The lever closed some gate...";
+                                    return " The " + lever_chain + " closed some gate...";
                             else
-                                return " Something is wrong. The lever did not do anything..." + advice;
+                                return " Something is wrong. The " + lever_chain + " did not do anything..." + advice;
                     }
                     else
-                        return " Something is wrong. The lever did not do anything..." + advice;
+                        return " Something is wrong. The " + lever_chain + " did not do anything..." + advice;
                 }
             }
         }
@@ -12649,26 +12718,28 @@ namespace MiscThings {
         {
         normal_pillar:
 
+            std::string lever_chain = is_chain ? "chain" : "lever";
+
             RE::BSFixedString prop_name = "numPillarsSolved";
             int pillars_solved = General::Script::GetProperty<int>(object_p, prop_name);
 
             RE::BSFixedString prop_name2 = "pillarCount";
             int pillars_need = General::Script::GetProperty<int>(object_p, prop_name2);
 
-            std::string advice = "Check surroundings to see if there is something linked to the lever that needs to be fixed";
+            std::string advice = "Check surroundings to see if there is something linked to the " + lever_chain + " that needs to be fixed";
 
             std::string pillar_check = check_very_interesting_objects();
             if (pillar_check.find("Pillar"))
-                advice = "There are puzzle pillars nearby, interact with them until they are all in correct positions so lever opens the path";
+                advice = "There are puzzle pillars nearby, interact with them until they are all in correct positions so " + lever_chain + " opens the path";
 
             //if (lever->formID == 0xf13b0) //saartal pillar puzzle 2 lever
             //    advice += ". Looks like when you turn some of the pillars, "
 
 
             if (pillars_solved < pillars_need)
-                return " Something is wrong. The lever activated a trap instead of opening the door. " + advice;
+                return " Something is wrong. The " + lever_chain + " activated a trap instead of opening the door. " + advice;
             else
-                return " Looks like the lever opened something...";
+                return " Looks like the " + lever_chain + " opened something...";
         }
     }
 
@@ -14762,6 +14833,12 @@ namespace MiscThings {
         {
             return MiscThings::insert_object_into_list_custom_name("Massive Stone Gate with Glowing Red Runes on it", a_ref);
         }
+
+
+        case (0xad749): //forlungur interactive sarcophagus lid
+        {
+            return MiscThings::insert_object_into_list_and_get_info(a_ref);
+        }
         }
 
 
@@ -15063,6 +15140,29 @@ namespace MiscThings {
 
             switch (object->formID)
             {
+
+            case (0x85ddc): //forlungur floor gate near rotating doors
+            {
+                auto pillar1 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x85dd7);
+                auto pillar2 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x85dd8);
+                auto pillar3 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x85dd9);
+
+                if (pillar1 && pillar2 && pillar3)
+                {
+                    if (!MiscThings::is_object_in_the_list(pillar1) || !MiscThings::is_object_in_the_list(pillar2) || !MiscThings::is_object_in_the_list(pillar3))
+                    {
+                        auto temp_result = MiscThings::insert_object_into_list_and_get_info(pillar1);
+                        temp_result += "; " + MiscThings::insert_object_into_list_and_get_info(pillar2);
+                        temp_result += "; " + MiscThings::insert_object_into_list_and_get_info(pillar3);
+
+                        if (temp_result != "")
+                            send_random_context("You see: " + temp_result, false);
+                    }
+                }
+
+                break;
+            }
+
 
             case (0xd2815): //serpent cave gate
             {
@@ -15517,6 +15617,9 @@ namespace MiscThings {
                                 if (model.find("Lever") != std::string::npos || model.find("Chain") != std::string::npos)
                                     if (player->GetDistance(object_around.second.object) < 3000.0f)
                                         return; //we have some lever or chain. not interesting anymore
+
+                                if (object_around.second.object->formID == 0xad749) //forlungur sarcophagus door, dont need to reveal anything, its interactive by itself. a bunch of levers only confuse
+                                    return;
                             }
 
                         }
@@ -18591,12 +18694,19 @@ namespace MiscThings {
     {
         if (object)
         {
-
             auto player = RE::PlayerCharacter::GetSingleton();
             auto base_obj = object->GetBaseObject();
 
             if (player)
             {
+                if (object->formID == 0xad884) //forlungur part1 lever for floor gate
+                {
+                    if (MiscThings::is_player_swimming() && player->GetDistance(object) < 500.0f)
+                        return true;
+                }
+
+
+
                 auto player_pos = player->GetPosition();
 
                 auto player_ref = player->AsReference();
@@ -23968,6 +24078,12 @@ namespace MiscThings {
 
             if (refr->formID == 0x4350d) //yngols barrow debug lever
                 return "";
+
+
+            if (refr->formID == 0x10f60e || refr->formID == 0xc81e3 || refr->formID == 0xadb74) //forlungur underwater stuff
+                return "";
+
+
 
             auto base_obj = refr->GetBaseObject();
             auto base_type = base_obj->GetFormType();
@@ -33088,6 +33204,19 @@ namespace MiscThings {
 
                 if (a_ref && a_ref->IsActor())
                 {
+
+                    if (player_cell && player_cell->formID == 0x15280) //forlungur
+                    {
+                        auto object_pos = a_ref->GetPosition();
+                        if (object_pos.x < 1412.5f && object_pos.y > 8654.0f && object_pos.z > -220.0f && !(player_pos.x < 1412.5f && player_pos.y > 8654.0f && player_pos.z > -220.0f))
+                        {
+                            auto rotating_door = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x85d9d);
+                            if (rotating_door && MiscThings::two_state_activator_state(rotating_door) == 1)
+                                return RE::BSContainer::ForEachResult::kContinue; //they start fighting through the wall
+                        }
+                    }
+
+
                     if (a_ref->formID == 0x6dfa0)
                         return RE::BSContainer::ForEachResult::kContinue; //spider in avanchenzel who is under the floor
 

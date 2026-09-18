@@ -56,7 +56,7 @@
 //  RANDOM QUESTS TODO
 
 //TODO dlc etherium book quest
-//TODO goldur amulet quest
+//TODO goldur amulet quest continue
 
 //TODO mage sidequests
 //TODO dawnguard sidequests
