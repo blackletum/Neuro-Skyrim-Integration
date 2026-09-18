@@ -18050,6 +18050,11 @@ namespace MiscThings {
                                             }
 
 
+                                            if (var_string.find("Slay the other cultists") != std::string::npos) //boethiah pre-fight quicksave
+                                            {
+                                                quicksave(true);
+                                            }
+
                                             var_string = "New subquest: " + insert_quest_into_list_and_get_info(var_string);
                                             WalkerProcessor::test_new_very_close_quest();
 

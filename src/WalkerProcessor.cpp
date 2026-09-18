@@ -23079,10 +23079,15 @@ namespace WalkerProcessor {
                                                                             }
                                                                             else
                                                                             {
+                                                                                auto next_targets = MiscThings::get_player_attackers(false, nullptr, true);
 
-                                                                                move_obstacle_failed = true; //cant move alive actors
-                                                                                locking_failed = false;
-                                                                                return; //i am not sure why it was not like this initially. remove if bad
+                                                                                if (std::size(next_targets) <= 1)
+                                                                                {
+                                                                                    move_obstacle_failed = true;
+                                                                                    locking_failed = false;
+                                                                                    return;
+                                                                                }
+
 
                                                                                 if (interaction_after_walk == 3)
                                                                                 {
