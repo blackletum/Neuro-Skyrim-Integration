@@ -55,7 +55,6 @@
 
 //  RANDOM QUESTS TODO
 
-//TODO black armor daedra
 //TODO dlc etherium book quest
 //TODO goldur amulet quest
 

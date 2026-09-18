@@ -7760,6 +7760,9 @@ namespace MiscThings {
                                     quest_target_ref = quest_ref_handle.get().get();
 
 
+                            if (marker_name == "Fort Dawnguard")
+                                bool stop_here = false; //REMOVE THIS
+
                             //distance from quest to location
                             auto distance_quest_location = get_quest_target_distance(target, quest, real_marker, phantom_target);
 
@@ -7767,6 +7770,8 @@ namespace MiscThings {
                             
                             //distance from player to fast travel location
                             auto distance_player_location = player->GetDistance(real_marker, true, true);
+
+                            
 
 
                             //if player is farther from location than 350m and this is the closest location to quest, put it as candidate
