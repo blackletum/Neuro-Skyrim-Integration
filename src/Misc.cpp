@@ -7799,7 +7799,7 @@ namespace MiscThings {
         }
 
         //if distance from location to quest is less than 200m
-        if (min_distance <= 20000.0f && sublocation_name != "")
+        if (min_distance <= 25000.0f && sublocation_name != "")
         {
             return sublocation_name;
         }
@@ -22953,6 +22953,8 @@ namespace MiscThings {
 
     bool is_container_empty(RE::TESObjectREFR* object)
     {
+        //this is not exactly precise. sometimes gives non-empty on empty containers
+
         if (object)
         {
             if (object->formID == 0xf3922) //whiterun house container
@@ -22978,13 +22980,19 @@ namespace MiscThings {
                         {
                             if (extra_changes->changes->entryList)
                             {
+                                bool has_any_entries = false;
                                 for (auto entry : *extra_changes->changes->entryList)
                                 {
+                                    has_any_entries = true;
                                     if (entry && entry->countDelta > 0)
                                         return false;
                                 }
 
-                                return extra_changes->changes->changed;
+
+                                if (has_any_entries)
+                                    return true; //has entries. all entries have count 0.
+                                else
+                                    return extra_changes->changes->changed; //there were no entries
                             }
                             else
                                 return true;
