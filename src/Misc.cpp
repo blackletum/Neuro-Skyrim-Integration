@@ -2670,7 +2670,66 @@ namespace MiscThings {
                     }
                 }
 
+                //water stream 3
+                a = { 65346.8359f, 65206.6836f };//, -1103.65869
+                b = { 65156.2969f, 69035.0000f };// , -1095.44202
+                c = { 63648.2891f, 69124.0469f };// , -1113.10095
+                d = { 64278.0352f, 65339.1562f };// , -1104.09680
 
+                RE::NiPoint2 p = { player_pos.x, player_pos.y };
+                if (is_inside_of_rectangle(p, a, b, c, d))
+                {
+                    return true;
+                }
+
+                //water stream 4
+                a = { 65436.3125f, 72163.0625f };//, -1103.65869
+                b = { 67247.4219f, 75381.8906f };// , -1095.44202
+                c = { 66104.6484f, 75816.2344f };// , -1113.10095
+                d = { 64444.1406f, 72733.2031f };// , -1104.09680
+
+                p = { player_pos.x, player_pos.y };
+                if (is_inside_of_rectangle(p, a, b, c, d))
+                {
+                    return true;
+                }
+
+                //water stream 5
+                a = { 61942.9102f, 77923.5938f };//, -1103.65869
+                b = { 59641.4102f, 76301.9531f };// , -1095.44202
+                c = { 58968.0469f, 77300.9453f };// , -1113.10095
+                d = { 61120.3086f, 78857.1406f };// , -1104.09680
+
+                p = { player_pos.x, player_pos.y };
+                if (is_inside_of_rectangle(p, a, b, c, d))
+                {
+                    return true;
+                }
+
+                //water stream 6
+                a = { 54197.5352f, 69299.1641f };//, -1103.65869
+                b = { 58407.7539f, 71674.7656f };// , -1095.44202
+                c = { 57872.7461f, 72566.3750f };// , -1113.10095
+                d = { 53587.1758f, 70957.5391f };// , -1104.09680
+
+                p = { player_pos.x, player_pos.y };
+                if (is_inside_of_rectangle(p, a, b, c, d))
+                {
+                    return true;
+                }
+
+
+                //water stream 7
+                a = { 37045.0703f, 86211.0156f };//, -1103.65869
+                b = { 36606.3008f, 83213.0703f };// , -1095.44202
+                c = { 37627.1797f, 83144.3750f };// , -1113.10095
+                d = { 37799.1406f, 85963.0625f };// , -1104.09680
+
+                p = { player_pos.x, player_pos.y };
+                if (is_inside_of_rectangle(p, a, b, c, d))
+                {
+                    return true;
+                }
 
             }
         }
