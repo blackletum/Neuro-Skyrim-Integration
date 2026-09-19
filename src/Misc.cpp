@@ -10423,7 +10423,7 @@ namespace MiscThings {
         //mushroom door to inside
         if (target && target->formID == 0x403bd84)
         {
-            auto mushroom_door_normal = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4018281);
+            auto mushroom_door_normal = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x40177cb);
 
             if (mushroom_door_normal)
                 return mushroom_door_normal;
