@@ -8834,6 +8834,29 @@ namespace MiscThings {
    
 
 
+    bool is_inside_geirmund_hall_multilevel_room(RE::TESObjectREFR* object)
+    {
+        if (object)
+        {
+            auto object_pos = object->GetPosition();
+            auto object_cell = object->GetParentCell();
+
+            if (object_cell && object_cell->formID == 0xa5a71)
+            {
+                RE::NiPoint2 a = { -2944.19116, -696.851929 }; //-5733.7241
+                RE::NiPoint2 b = { -2944.19116, -3571.25024 }; //-5633.2554
+                RE::NiPoint2 c = { -1128.85107, -3571.25024 }; //-5640.6494
+                RE::NiPoint2 d = { -1128.85107, -696.851929 }; //-5724.9077
+
+                RE::NiPoint2 p = { object_pos.x, object_pos.y };
+                if (MiscThings::is_inside_of_rectangle(p, a, b, c, d))
+                    return true;
+            }
+        }
+
+        return false;
+    }
+
 
     bool is_inside_of_riften_watchtower(RE::TESObjectREFR* object)
     {
@@ -8982,6 +9005,96 @@ namespace MiscThings {
         {
             auto target_pos = target->GetPosition();
 
+
+            //geirmund hall
+            if (parent_cell && parent_cell->formID == 0xa5a71)
+            {
+                bool player_in_starting_zone = player_pos.x > -1338.35f && player_pos.z > -574.0f;
+                bool target_in_starting_zone = target_pos.x > -1338.35f && target_pos.z > -574.0f;
+
+                if (!(player_in_starting_zone && target_in_starting_zone))
+                {
+                    auto gate1 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xa5bfb);
+                    if (gate1 && MiscThings::two_state_activator_state(gate1) == 1)
+                    {
+                        auto redirect_mushroom = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xa606f);
+                        if (redirect_mushroom)
+                            return redirect_mushroom;
+                    }
+
+
+                    auto locked_door = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x2db07);
+                    if (locked_door && MiscThings::is_door_locked(locked_door, true))
+                    {
+                        auto redirect_ench_table = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xa0aa8);
+                        if (redirect_ench_table)
+                            return redirect_ench_table;
+                    }
+
+
+                    auto bridge1 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xa5dd6);
+                    if (bridge1 && MiscThings::two_state_activator_state(bridge1) == 0) //for bridges 0 is up = closed
+                    {
+                        auto dummy = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x70c1a25);
+                        if (dummy)
+                        {
+                            dummy->MoveTo(player);
+                            MiscThings::SetPosition_moveto(dummy, { -2078.39526, -2678.36353, -475.285889 });
+
+                            return dummy;
+                        }
+                    }
+
+
+                    auto bridge2 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xa5dd3);
+                    if (bridge2 && MiscThings::two_state_activator_state(bridge2) == 0) //for bridges 0 is up = closed
+                    {
+                        auto dummy = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x70c1a25);
+                        if (dummy)
+                        {
+                            dummy->MoveTo(player);
+                            MiscThings::SetPosition_moveto(dummy, { -2067.03613, -1962.35718, -497.413849 });
+
+                            return dummy;
+                        }
+                    }
+
+
+                    auto secret_door1 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xa5e6a);
+                    if (secret_door1 && MiscThings::two_state_activator_state(secret_door1) == 1)
+                    {
+                        auto boss = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xa5e68);
+                        if (boss && !boss->IsDead() && !boss->IsDisabled())
+                            return boss;
+                    }
+                    
+
+                    if (target_in_starting_zone)
+                    {
+                        auto secret_door2 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xa5ada);
+                        if (secret_door2 && MiscThings::two_state_activator_state(secret_door2) == 1)
+                        {
+                            auto dummy = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x70c1a25);
+                            if (dummy)
+                            {
+                                dummy->MoveTo(player);
+                                MiscThings::SetPosition_moveto(dummy, { -1211.33337, 1353.70935, 9.81826496 });
+
+                                return dummy;
+                            }
+                        }
+                    }
+
+
+                }
+
+            }
+
+
+
+
+
+            ///////////////////////////////////////////////////////
             //forlungur (goldur's quest, near solitude)
             if (target->formID == 0xab6f8) //exit door
             {
@@ -9028,7 +9141,8 @@ namespace MiscThings {
                 }
             }
 
-
+            
+            ///////////////////////////////////////////////////////
             //btardamz (peryite quest, last room exit post boss)
             if (target->formID == 0x3e053) //elevator
             {
@@ -9043,7 +9157,7 @@ namespace MiscThings {
 
 
 
-
+            ///////////////////////////////////////////////////////
             //falmer's pit dungeon redirects
             if (target->formID == 0x2731d) //entrance to exit-cave
             {
@@ -15140,6 +15254,31 @@ namespace MiscThings {
 
             switch (object->formID)
             {
+
+            case (0xa5bfb): //geirmund hall gate with pillars
+            {
+                auto pillar1 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xa5ce5);
+                auto pillar2 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xa5ce9);
+                auto pillar3 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xa5ce7);
+                auto pillar4 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xa5ce2);
+
+                if (pillar1 && pillar2 && pillar3 && pillar4)
+                {
+                    if (!MiscThings::is_object_in_the_list(pillar1) || !MiscThings::is_object_in_the_list(pillar2) || !MiscThings::is_object_in_the_list(pillar3) || !MiscThings::is_object_in_the_list(pillar4))
+                    {
+                        auto temp_result = MiscThings::insert_object_into_list_and_get_info(pillar1);
+                        temp_result += "; " + MiscThings::insert_object_into_list_and_get_info(pillar2);
+                        temp_result += "; " + MiscThings::insert_object_into_list_and_get_info(pillar3);
+                        temp_result += "; " + MiscThings::insert_object_into_list_and_get_info(pillar4);
+
+                        if (temp_result != "")
+                            send_random_context("You see: " + temp_result, false);
+                    }
+                }
+
+                break;
+            }
+
 
             case (0x85ddc): //forlungur floor gate near rotating doors
             {
@@ -33225,6 +33364,85 @@ namespace MiscThings {
                     }
 
 
+                    if (player_cell && player_cell->formID == 0xa5a71) //geirmund hall
+                    {
+                        bool player_inside_badroom = is_inside_geirmund_hall_multilevel_room(player);
+                        bool object_inside_badroom = is_inside_geirmund_hall_multilevel_room(a_ref);
+
+                        bool player_low_level = player_pos.z < -800.0f;
+                        bool object_low_level = a_ref->GetPositionZ() < -800.0f;
+
+                        if (player_inside_badroom || object_inside_badroom)
+                        {
+                            if (player_low_level)
+                            {
+                                if (object_inside_badroom)
+                                {
+                                    if (!object_low_level)
+                                        return RE::BSContainer::ForEachResult::kContinue; //player inside low level of the room, target is in upper level badroom. skip
+                                    else
+                                        ;//player inside low level of the room, target is also there. accept
+                                }
+                                else
+                                {
+                                    if (player_inside_badroom)
+                                        return RE::BSContainer::ForEachResult::kContinue; //player inside low level of the room, target is not in the room. skip
+                                    else
+                                        ;//player not in the room and object is not in the room. accept
+                                }
+                            }
+                            else
+                            {
+                                //player inside high level of room
+                                if (player_inside_badroom)
+                                {
+                                    if (!object_low_level)
+                                    {
+                                        //target is also in high level. need to check bridges.
+                                        if (a_ref->GetPosition().GetDistance({ -2066.37769, -2157.45752, -643.189331 }) < 400.0f)
+                                        {
+                                            //object is between bridges. check only first bridge.
+                                            auto bridge1 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xa5dd6);
+                                            if (bridge1 && MiscThings::two_state_activator_state(bridge1) == 0)
+                                                return RE::BSContainer::ForEachResult::kContinue; //bridge is up, cant reach enemy
+                                            else
+                                                ;//bridge is down, accept
+                                        }
+                                        else
+                                        {
+                                            if (a_ref->GetPositionY() > -2157.0f)
+                                            {
+                                                //target is not between bridges. object is behind bridges. check both bridges
+
+                                                auto bridge1 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xa5dd6);
+                                                auto bridge2 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xa5dd3);
+
+                                                if (bridge1 && bridge2 && (MiscThings::two_state_activator_state(bridge1) == 0 || MiscThings::two_state_activator_state(bridge2) == 0))
+                                                    return RE::BSContainer::ForEachResult::kContinue; //both bridges are up. cant reach
+                                                else
+                                                    ;//both bridges are down. accept
+                                            }
+                                            else
+                                            {
+                                                ;//target is before both bridges. accept
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        else
+                        {
+                            //player not in bad room. but target still can be in it. check that too
+                            if (object_inside_badroom)
+                            {
+
+                            }
+                        }
+
+                    }
+
+
                     if (a_ref->formID == 0x6dfa0)
                         return RE::BSContainer::ForEachResult::kContinue; //spider in avanchenzel who is under the floor
 
@@ -33310,14 +33528,19 @@ namespace MiscThings {
         //auto player_pos = player_ref->GetPosition();
 
 
+            bool low_hp_far_condition = player_cell && player_cell->formID == 0xa5a71; //geirmund hall. boss spawns 2 clones with 1 hp. 
+
+
         std::sort(result.begin(), result.end(), [&](RE::Actor* left, RE::Actor* right) {
             //return left->GetDistance(player) > right->GetDistance(player); //switch > to < for inversed order. this is last->closest
             RE::NiPoint3 pos_left = left->GetPosition();
             RE::NiPoint3 pos_right = right->GetPosition();
 
-            bool left_immortal = is_immortal(left);
-            bool right_immortal = is_immortal(right);;
+            bool left_immortal = is_immortal(left) || (low_hp_far_condition && left->GetActorValueMax(RE::ActorValue::kHealth) == 1);
+            bool right_immortal = is_immortal(right) || (low_hp_far_condition && right->GetActorValueMax(RE::ActorValue::kHealth) == 1);
             
+
+
             if (left_immortal != right_immortal)
                 return left_immortal < right_immortal;
 

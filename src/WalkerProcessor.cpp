@@ -3403,7 +3403,7 @@ namespace WalkerProcessor {
                     else
                     {
                         //if (!MiscThings::is_werewolf() && !MiscThings::is_vampirelord() && !MiscThings::is_on_horse() && !player->IsRunning() && !was_slowwalking && !turning_around && !always_shift)
-                        if (!MiscThings::is_on_horse() && !player->IsRunning() && !was_slowwalking && !turning_around && !always_shift && !player->IsBlocking())
+                        if (!MiscThings::is_on_horse() && !player->IsRunning() && !was_slowwalking && !turning_around && !always_shift && !player->IsBlocking() && player->actorState1.knockState == RE::KNOCK_STATE_ENUM::kNormal)
                         {
                             //test if we are slowwalking for some reason
                             anti_slowwalk_timer += dtime_maybe_bad;
@@ -4430,7 +4430,7 @@ namespace WalkerProcessor {
             (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x33f0f), //malborn door1
             (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x33f4b), //malborn door1
             (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1f146), //potema master door
-
+            (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x2db07), //geirmund hall door
         };
 
         if (MiscThings::get_door_teleport(target) != "")
@@ -7818,7 +7818,8 @@ namespace WalkerProcessor {
                     if (target_ref->IsActor() && !was_already_dead && target_ref->IsDead())
                         return true; //target died
 
-
+                    if (target_ref->IsDisabled() && !was_already_dead)
+                        return true; //target is disabled
 
                     if (target_ref->formID == 0x200a58b && MiscThings::get_hand_contents(get_current_active_hand()) && MiscThings::get_hand_contents(get_current_active_hand())->formID == 0x1a4cc)
                         return true;
@@ -15395,6 +15396,28 @@ namespace WalkerProcessor {
                     return true;
                 }
 
+                if (target_ref->IsActor() && target_ref->IsDisabled() && !was_already_dead)
+                {
+                    //target is disabled
+                    right_attack_cancel();
+                    left_attack_cancel();
+
+                    auto now = std::chrono::steady_clock::now().time_since_epoch().count();
+
+                    if (post_attack_advice_time == 0)
+                        post_attack_advice_time = now;
+
+                    float delta_post_attack_advice = (double)(now - post_attack_advice_time) / 1000000000.0;
+
+                    if (delta_post_attack_advice > 20.0f)
+                    {
+                        post_attack_advice_time = now;
+
+                        MiscThings::post_attack_advice();
+                    }
+
+                    return true;
+                }
 
                 if (target_ref->IsActor() && !was_already_dead && !target_ref->IsDisabled())
                 {
@@ -18586,7 +18609,7 @@ namespace WalkerProcessor {
 
 
 
-        if (!has_ritual_spell_equipped() && !MiscThings::have_force_only_menu_open() && !is_casting_ult() && !RE::UI::GetSingleton()->IsMenuOpen(RE::TweenMenu::MENU_NAME) && !RE::UI::GetSingleton()->IsMenuOpen(RE::LevelUpMenu::MENU_NAME) && !RE::UI::GetSingleton()->IsMenuOpen(RE::StatsMenu::MENU_NAME))
+        if (!using_custom_path && !has_ritual_spell_equipped() && !MiscThings::have_force_only_menu_open() && !is_casting_ult() && !RE::UI::GetSingleton()->IsMenuOpen(RE::TweenMenu::MENU_NAME) && !RE::UI::GetSingleton()->IsMenuOpen(RE::LevelUpMenu::MENU_NAME) && !RE::UI::GetSingleton()->IsMenuOpen(RE::StatsMenu::MENU_NAME))
         {
             //dodging
 
@@ -19874,9 +19897,9 @@ namespace WalkerProcessor {
 
 
                 
-                if (target_ref && target_ref->formID == 0x70c1a25) //dummy from apocrypha. reused in forlungur (experiment)
+                if (target_ref && target_ref->formID == 0x70c1a25) //dummy from apocrypha. reused in other dungeons
                 {
-                    if (parent_cell && parent_cell->formID == 0x15280)
+                    if (parent_cell && parent_cell->formID == 0x15280) //forlungur
                     {
                         if (player->GetPositionX() >= 5710.0f) //its the bridge
                         {
@@ -19893,6 +19916,58 @@ namespace WalkerProcessor {
                             }
                         }
                     }
+
+
+                    if (parent_cell && parent_cell->formID == 0xa5a71) //geirmund hall
+                    {
+                        if (player->GetPositionY() < -2300.0f) //bridge1
+                        {
+                            if (player->GetDistance(target_ref) < 150.0f)
+                            {
+                                auto geirmund_bridge1 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xa5dd6);
+                                if (geirmund_bridge1 && MiscThings::two_state_activator_state(geirmund_bridge1) == 0)
+                                {
+                                    auto reveal_lever1 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xa5dd9);
+                                    if (!MiscThings::is_object_in_the_list(reveal_lever1))
+                                    {
+                                        auto info = MiscThings::insert_object_into_list_and_get_info(reveal_lever1);
+                                        if (info != "")
+                                            send_random_context("You see: " + info, true);
+                                    }
+                                        
+
+                                    send_random_context("You stand on a cliff, and see a bridge on the other side... You need to somehow lower the bridge to walk to the other side. Is there anything around that can help?", false);
+                                    look_at_object_by_refr(geirmund_bridge1);
+                                    return;
+                                }
+
+                            }
+                        }
+
+                        if (player->GetPositionY() >= -2300.0f) //bridge2
+                        {
+                            if (player->GetDistance(target_ref) < 150.0f)
+                            {
+                                auto geirmund_bridge2 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xa5dd3);
+                                if (geirmund_bridge2 && MiscThings::two_state_activator_state(geirmund_bridge2) == 0)
+                                {
+                                    auto reveal_lever2 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xe7387);
+                                    if (!MiscThings::is_object_in_the_list(reveal_lever2))
+                                    {
+                                        auto info = MiscThings::insert_object_into_list_and_get_info(reveal_lever2);
+                                        if (info != "")
+                                            send_random_context("You see: " + info, true);
+                                    }
+
+                                    send_random_context("You stand on a cliff, and see another bridge... You need to somehow lower this bridge too. Is there anything around that can help?", false);
+                                    look_at_object_by_refr(geirmund_bridge2);
+                                    return;
+                                }
+
+                            }
+                        }
+                    }
+
                 }
 
 
@@ -19988,9 +20063,75 @@ namespace WalkerProcessor {
 
                 
 
+
+                if (target_ref && using_custom_path)
+                {
+                    if (parent_cell && parent_cell->formID == 0xa5a71) //geirmund hall. boss fight pillars
+                    {
+                        auto target_pos = target_ref->GetPosition();
+
+                        RE::NiPoint3 pillar1_pos = { -3873.18066, 95.3016510, -712.697327 };
+                        RE::NiPoint3 pillar2_pos = { -2966.58423, 196.040222, -692.194580 };
+
+                        bool target_on_pillar1 = target_pos.GetDistance(pillar1_pos) < 150.0f && target_pos.z > -750.0f;
+                        bool target_on_pillar2 = target_pos.GetDistance(pillar2_pos) < 150.0f && target_pos.z > -750.0f;
+
+                        bool player_on_pillar1 = player->GetPosition().GetDistance(pillar1_pos) < 120.0f && player->GetPositionZ() > -750.0f;
+                        bool player_on_pillar2 = player->GetPosition().GetDistance(pillar2_pos) < 120.0f && player->GetPositionZ() > -750.0f;
+
+                        if ((player_on_pillar1 && !target_on_pillar1) || (player_on_pillar2 && !target_on_pillar2) || target_ref->IsDisabled() || target_ref->IsDead() || close_enough())
+                        {
+                            using_custom_path = false;
+                            walk_again();
+                            return;
+                        }
+                    }
+                }
+
                 if (target_ref && !using_custom_path)
                 {
                     
+                    if (parent_cell && parent_cell->formID == 0xa5a71) //geirmund hall. boss fight pillars
+                    {
+                        auto target_pos = target_ref->GetPosition();
+
+                        RE::NiPoint3 pillar1_pos = { -3873.18066, 95.3016510, -712.697327 };
+                        RE::NiPoint3 pillar2_pos = { -2966.58423, 196.040222, -692.194580 };
+
+                        bool target_on_pillar1 = target_pos.GetDistance(pillar1_pos) < 150.0f && target_pos.z > -750.0f;
+                        bool target_on_pillar2 = target_pos.GetDistance(pillar2_pos) < 150.0f && target_pos.z > -750.0f;
+
+                        bool player_on_pillar1 = player->GetPosition().GetDistance(pillar1_pos) < 150.0f && player->GetPositionZ() > -750.0f;
+                        bool player_on_pillar2 = player->GetPosition().GetDistance(pillar2_pos) < 150.0f && player->GetPositionZ() > -750.0f;
+
+                        if (target_on_pillar1 && !player_on_pillar1 && !close_enough())
+                        {
+                            walk_again(); //soft reset
+                            using_custom_path = true;
+                            custom_path = CustomWalkerPaths::geirmund_hall_boss_pillar1;
+                            dont_quicksave_after_custom_path = true;
+                            allow_interrupt_custom_walk = true;
+                            walk_again_when_finished = true;
+                            return;
+                        }
+
+                        if (target_on_pillar2 && !player_on_pillar2 && !close_enough())
+                        {
+                            walk_again(); //soft reset
+                            using_custom_path = true;
+                            custom_path = CustomWalkerPaths::geirmund_hall_boss_pillar2;
+                            dont_quicksave_after_custom_path = true;
+                            allow_interrupt_custom_walk = true;
+                            walk_again_when_finished = true;
+                            return;
+                        }
+
+                    }
+
+
+
+
+
                     if (target_ref == alftand_door)
                     {
                         //doing some redirections 
