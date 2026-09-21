@@ -3785,6 +3785,7 @@ namespace MiscThings {
 
             case (0x401753b):
             case (0x40175ba): //nchardak sealed doors
+            case (0x4026ad5):
                 return 30.0f;
 
             case (0x18312): //bard's dungeon first chain
@@ -9171,21 +9172,25 @@ namespace MiscThings {
             }
 
             //forlungur bridge
-            if (player_pos.x > 5710.0f && target_pos.x <= 5710.0f)
+            if (parent_cell && parent_cell->formID == 0x15280)
             {
-                auto bridge = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xab5a4);
-                if (bridge && MiscThings::two_state_activator_state(bridge) == 0)
+                if (player_pos.x > 5710.0f && target_pos.x <= 5710.0f)
                 {
-                    auto dummy = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x70c1a25);
-                    if (dummy)
+                    auto bridge = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xab5a4);
+                    if (bridge && MiscThings::two_state_activator_state(bridge) == 0)
                     {
-                        dummy->MoveTo(player);
-                        MiscThings::SetPosition_moveto(dummy, {6026.07080, 8787.54590, 878.517090});
+                        auto dummy = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x70c1a25);
+                        if (dummy)
+                        {
+                            dummy->MoveTo(player);
+                            MiscThings::SetPosition_moveto(dummy, { 6026.07080, 8787.54590, 878.517090 });
 
-                        return dummy;
+                            return dummy;
+                        }
                     }
                 }
             }
+
 
 
             //forlungur room2 redirect to cool exit

@@ -24111,6 +24111,15 @@ namespace WalkerProcessor {
                                                 if (blocking_name != "" && almost_stuck())
                                                 {
                                                     //blocking object_detected
+
+
+                                                    if (quest_mode && target_ref && target_ref->formID == 0x4026ad5) //nchardak entrance. need to wait for neloth
+                                                    {
+                                                        send_random_context("[ " + blocking_name + " blocks the path... Probably need to wait for Neloth, maybe he knows how to open it...", false);
+                                                        reset_walker();
+                                                        return;
+                                                    }
+
                                                     std::string fail_text = "[ " + blocking_name + " blocks the path. ";
 
                                                     if (blocking_name.find("estructib") != std::string::npos)
