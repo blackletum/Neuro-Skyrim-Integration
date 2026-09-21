@@ -1845,7 +1845,23 @@ namespace Hooks {
                         if (player_worldspace && player_worldspace->formID == 0x3c && player->GetPosition().GetDistance({ -60488.1445, 120750.820, -9233.74316 }) < 600.0f)
                             WalkerProcessor::reset_walker(); //got out of potema dungeon after killing potema, reset walker so it doesnt slide down automatically
 
+                        auto parent_cell = player->GetParentCell();
 
+                        if (parent_cell)
+                        {
+                            switch (parent_cell->formID)
+                            {
+                            case (0x40142f1):
+                            case (0x40173b3):
+                            case (0x40173b2):
+                            {
+                                WalkerProcessor::reset_walker(); //nchardak. redirects break because there are too many of them and they must trigger right away (pedestals give weird info)
+                                break;
+                            }
+
+                            }
+                            
+                        }
 
                         if (MiscThings::is_prelast_saveloading())
                         {

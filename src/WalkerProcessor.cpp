@@ -9326,6 +9326,11 @@ namespace WalkerProcessor {
 
                             result.first = true;
                             result.second = "You keep attacking...";
+
+
+                            if (MiscThings::is_player_swimming())
+                                result.second = "You are swimming and cannot attack!";
+
                             return result;
                         }
 
@@ -15591,6 +15596,9 @@ namespace WalkerProcessor {
                             }
 
                             std::string message = "You keep attacking...";
+
+                            if (MiscThings::is_player_swimming())
+                                message = "You are swimming and cannot attack!";
 
                             if (no_weapons_equipped)
                                 message = "You dont have anything that can deal damage in your hands! Equip weapons or offensive spells to deal damage";

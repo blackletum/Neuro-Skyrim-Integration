@@ -10745,6 +10745,10 @@ namespace MiscThings {
 
                     auto stage = quest->GetCurrentStageID();
 
+                    if (stage < 270)
+                        return nelot;
+
+
                     if (stage < 400)
                     {
                         //first part, need to grab all cubes. bottom part first
