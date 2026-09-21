@@ -8072,6 +8072,35 @@ namespace Observer {
 				}
 				else
 				{
+
+					auto ranger_perk = (RE::BGSPerk*)RE::TESForm::LookupByID(0x58F63);
+					if (ranger_perk)
+					{
+						if (!player->HasPerk(ranger_perk))
+						{
+							if (MiscThings::get_hand_contents(true) && MiscThings::get_hand_contents(true)->formID == 0x80665ed)
+							{
+								bool test123 = false;
+								player->GetGraphVariableBool("bPerkQuickShot", test123);
+								if (!test123)
+									player->SetGraphVariableBool("bPerkQuickShot", true);
+							}
+							else
+							{
+								bool test123 = false;
+								player->GetGraphVariableBool("bPerkQuickShot", test123);
+								if (test123)
+									player->SetGraphVariableBool("bPerkQuickShot", false);
+							}
+
+						}
+					}
+
+
+
+
+
+
 					//magic resistance potions in fight
 					//also check if we are not too far from last death point
 

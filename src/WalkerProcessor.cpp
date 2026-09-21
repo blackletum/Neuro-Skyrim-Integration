@@ -5248,6 +5248,9 @@ namespace WalkerProcessor {
                 if (!shout_mode && speed_koef < 2.0f && has_bow_equipped(get_current_active_hand())) //bows have reduced mouse sensitivity while charging
                     speed_koef = 2.0f;
 
+                if ((MiscThings::get_hand_contents(true) && MiscThings::get_hand_contents(true)->formID == 0x80665ed))
+                    speed_shift = RE::NiPoint3::Zero();
+
 
                 target_center += speed_shift;
             }
@@ -5264,10 +5267,12 @@ namespace WalkerProcessor {
 
             if (shout_mode && !force_speed_correction)
                 arc_shift = 0.0f;
-
+            
             if (!has_bow_equipped(true) && !has_crossbow_equipped(get_current_active_hand()))
                 arc_shift = 0.0f;
 
+            if ((MiscThings::get_hand_contents(true) && MiscThings::get_hand_contents(true)->formID == 0x80665ed))
+                arc_shift = 0.0f;
 
             target_center.z += arc_shift;
 
@@ -11261,6 +11266,18 @@ namespace WalkerProcessor {
                                             result.second = "You dont have 10 Scathecraw yet. You need to find it yourself (it usually grows in Solstheim, try to collect it when you walk there)";
                                             return result;
                                         }
+
+                                        if (quest_entry.quest->formID == 0x4038ebf && parent_cell && parent_cell->formID == 0x4016feb) //find mead for nord from thirsk
+                                        {
+                                            auto mead = (RE::TESBoundObject*)RE::TESForm::LookupByID(0x403572f);
+
+                                            if (mead && player->GetItemCount(mead) <= 0)
+                                            {
+                                                result.first = false;
+                                                result.second = "You are in Thirsk... Nord asked you to bring him some mead from here... You need to look around and find it";
+                                                return result;
+                                            }
+                                        }
                                     }
                                 }
                             }
@@ -16594,6 +16611,21 @@ namespace WalkerProcessor {
                     reset_walker();
                     MiscThings::set_darkfall_bridge_after_reached();
                     send_random_context("You walked across a wooden bridge over a pit, but this part of the cave looks like dead end...", false);
+                    return "";
+                }
+
+                if (target_ref && target_ref->formID == 0x401d995) //dlc2 hrothmunds barrow, the stone with axe
+                {
+                    reset_walker();
+                    send_random_context("You walked up to some altar, made of piece of rock with runes on it. Some axe is stuck in this rock.", false);
+                    return "";
+                }
+
+
+                if (target_ref && target_ref->formID == 0x402bf1a) //dlc2 hrothmunds barrow, where we need to wait for Bujold
+                {
+                    reset_walker();
+                    send_random_context("You walked up to Hrothmund's barrow... You need to wait until Bujold arrives here", false);
                     return "";
                 }
 
@@ -22936,6 +22968,17 @@ namespace WalkerProcessor {
                                                                                     
                                                                                     bool dont_autointerract = false;
 
+
+                                                                                    if (quest_mode && target_ref && target_ref->formID == 0x4029e58)
+                                                                                    {
+                                                                                        send_random_context("You are in the middle of Thirsk... the nord asked you to bring him some Ashfire Mead... You need to look around and try to find it", false);
+                                                                                        reset_walker();
+                                                                                        return;
+                                                                                    }
+
+
+
+
                                                                                     if ((quest_mode || explore_mode) && result_target)
                                                                                     {
                                                                                         
@@ -22983,8 +23026,6 @@ namespace WalkerProcessor {
                                                                                             if (bard_quest && bard_quest->currentStage == 135)
                                                                                                 dont_autointerract = true;
                                                                                         }
-
-
 
                                                                                         RE::TESObjectREFR* college_entrance_spell_target = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x51190);
 

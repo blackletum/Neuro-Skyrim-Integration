@@ -20599,7 +20599,7 @@ namespace MiscThings {
 
 
 
-
+        std::unordered_map<uint32_t, bool> quests_to_have_only_one_target{};
 
 
 
@@ -20659,6 +20659,9 @@ namespace MiscThings {
                                             if (conditions_met)
                                             {
                                                 quest this_quest{};
+
+                                                if (quests_to_have_only_one_target.find(the_quest->formID) != quests_to_have_only_one_target.end())
+                                                    continue;
 
 
                                                 if (is_bad_jailquest(the_quest, target))
@@ -20746,6 +20749,17 @@ namespace MiscThings {
                                                 }
 
                                                 found_objective = true;
+
+
+
+                                                switch (the_quest->formID)
+                                                {
+                                                case (0x401a50b): //retake thirsk, 20 rieklings
+                                                {
+                                                    quests_to_have_only_one_target.insert({ the_quest->formID, true });
+                                                    break;
+                                                }
+                                                }
                                             }
                                         }
                                     }
@@ -20844,8 +20858,6 @@ namespace MiscThings {
         }
         
 
-
-       
         //for (auto quest_target : player_quest_targets)
         for (auto player_objective : player_objectives)
         {
@@ -20905,6 +20917,8 @@ namespace MiscThings {
                                                 {
                                                     quest this_quest{};
 
+                                                    if (quests_to_have_only_one_target.find(the_quest->formID) != quests_to_have_only_one_target.end())
+                                                        continue;
 
                                                     if (is_bad_jailquest(the_quest, target))
                                                         continue;
@@ -20963,6 +20977,16 @@ namespace MiscThings {
                                                     got_any_quests = true;
 
                                                     found_objective = true;
+
+
+                                                    switch (the_quest->formID)
+                                                    {
+                                                    case (0x401a50b): //retake thirsk, 20 rieklings
+                                                    {
+                                                        quests_to_have_only_one_target.insert({ the_quest->formID, true });
+                                                        break;
+                                                    }
+                                                    }
                                                 }
                                                 else
                                                 {
@@ -21094,6 +21118,72 @@ namespace MiscThings {
                 }
             }
         }
+
+
+
+
+        //dlc1 soul cairn quest
+        RE::TESQuest* dlc2_bring_mead_thirsk_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("DLC2ThirskFFElmus");
+
+        if (dlc2_bring_mead_thirsk_quest)
+        {
+            //if quest is displayed and not completed but its not in the list - its the portal objective not being shown
+
+            if ((dlc2_bring_mead_thirsk_quest->data.flags.all(RE::QuestFlag::kDisplayedInHUD) || dlc2_bring_mead_thirsk_quest->data.flags.all(RE::QuestFlag::kEnabled)) && !dlc2_bring_mead_thirsk_quest->data.flags.all(RE::QuestFlag::kCompleted))
+            {
+                auto parent_cell = player->GetParentCell();
+
+                if (parent_cell && parent_cell->formID == 0x4016feb)
+                {
+                    auto mead = (RE::TESBoundObject*)RE::TESForm::LookupByID(0x403572f);
+
+                    if (mead && player->GetItemCount(mead) <= 0)
+                    {
+                        quest this_quest{};
+
+                        this_quest.id = id;
+                        this_quest.quest = dlc2_bring_mead_thirsk_quest;
+                        this_quest.name = dlc2_bring_mead_thirsk_quest->GetFullName();
+                        this_quest.target = nullptr;
+
+                        std::string displaytext = "";
+
+                        auto objective = MiscThings::get_quest_objective_by_index(this_quest.quest, 10);
+                        if (objective)
+                            displaytext = objective->displayText;
+
+                        std::string target_name = "";
+
+                        this_quest.displaytext += replace_aliases(this_quest.quest, displaytext);
+
+                        this_quest.target_name = target_name;
+
+                        this_quest.objective = objective;
+                        this_quest.description = "";
+                        this_quest.category = 0;
+
+                        this_quest.estimate_distance = 0.0f;
+
+                        this_quest.phantom_objective = true;
+
+                        this_quest.phantom_target = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4029e58); //some barrel
+
+                        if (Apocrypha::in_apocrypha())
+                            this_quest.estimate_distance = 0.0f;
+                        else
+                            this_quest.estimate_distance = get_quest_target_distance(nullptr, this_quest.quest, nullptr, this_quest.phantom_target);
+
+                        sortable_quests.push_back(this_quest);
+
+                        id++;
+                        got_any_quests = true;
+
+                    }
+                }
+            }
+        }
+
+
 
 
 

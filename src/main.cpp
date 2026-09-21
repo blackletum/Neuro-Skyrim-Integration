@@ -51,7 +51,7 @@
 
 //TODO that seducers AE quest
 
-//TODO fishing?
+//TODO fishing quests?
 
 //  RANDOM QUESTS TODO
 
