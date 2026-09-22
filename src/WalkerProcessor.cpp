@@ -13,6 +13,7 @@
 
 namespace WalkerProcessor {
 
+
     bool close_enough_force_success = false;
 
     float carry_item_was_lost_timer = 0.0f;
@@ -481,6 +482,8 @@ namespace WalkerProcessor {
 
     bool using_custom_path = false;
     bool custom_path_use_z_for_path_point_reached = false;
+    bool ban_custom_path_interrupt_after_append = false;
+
 
     bool start_attacking = false;
     float attacking_inanimate_object_time = 0.0f;
@@ -1248,7 +1251,7 @@ namespace WalkerProcessor {
 
     bool is_walking_important_path()
     {
-        return using_custom_path && !allow_interrupt_custom_walk;
+        return using_custom_path && !allow_interrupt_custom_walk && !(ban_custom_path_interrupt_after_append && !custom_path_appended);
     }
 
     bool is_surrendering()
@@ -2552,6 +2555,9 @@ namespace WalkerProcessor {
                                 if (last_point.GetDistance(custom_path.at(0)) < 200.0f)
                                 {
                                     custom_path_appended = true;
+                                    if (ban_custom_path_interrupt_after_append)
+                                        ban_custom_path_interrupt_after_append = false;
+
                                     path.insert(path.end(), custom_path.cbegin(), custom_path.cend()); //append custom path
                                 }
 
@@ -6549,6 +6555,8 @@ namespace WalkerProcessor {
                 quicksave(true);
         }
 
+        ban_custom_path_interrupt_after_append = false;
+
         custom_path_use_z_for_path_point_reached = false;
 
         dont_quicksave_after_custom_path = false;
@@ -10298,8 +10306,33 @@ namespace WalkerProcessor {
             }
         }
 
+        /* //replaced this with change of conditions for the quest itself. this thing is still relevant for book3 (from bloodskal) - but probably only if we somehow enter that book before book2. pretty low chance
+        auto player = RE::PlayerCharacter::GetSingleton();
+        auto parent_cell = player->GetParentCell();
 
+        if (parent_cell && parent_cell->formID == 0x401ede2) //apocrypha book2 highly likely to be first book where hermaeus will greet player. tell player to wait a little until he finishes his intro speech
+        {
+            if (player->GetPosition().GetDistance({ 7917.69774, -4353.098635, -2651.0885 }) < 4300.0f)
+            {
+                //book2 zone 1
 
+                auto hermaeus_speaker = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x0403219a);
+                if (hermaeus_speaker && !hermaeus_speaker->IsDisabled())
+                {
+                    auto book2_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("123");
+                    if (book2_quest)
+                    {
+                        if (!(book2_quest->data.flags.all(RE::QuestFlag::kDisplayedInHUD) || book2_quest->data.flags.all(RE::QuestFlag::kEnabled)) && !book2_quest->data.flags.all(RE::QuestFlag::kCompleted))
+                        {
+                            result.first = false;
+                            result.second = "You are in Apocrypha... Hermaeus Mora is saying something... better to wait until he finishes talking...";
+                            return result;
+                        }
+                    }
+                }
+            }
+        }
+        */
 
         if (WalkerProcessor::is_casting_ritual_spell())
         {
@@ -20525,6 +20558,7 @@ namespace WalkerProcessor {
                         backup_interaction_made = false;
                         current_apocrypha_action = 0;
                         current_apocrypha_id = 0;
+                        ban_custom_path_interrupt_after_append = false;
                         invalidate_path();
 
                         return;
@@ -20590,6 +20624,8 @@ namespace WalkerProcessor {
 
                         using_custom_path = true;
 
+                        if (!custom_path_appended)
+                            ban_custom_path_interrupt_after_append = apocrypha_redirects.ban_custom_path_interrupt_after_append;
 
                         if (!apocrypha_redirects.dont_save_id)
                             current_apocrypha_id = apocrypha_redirects.id;

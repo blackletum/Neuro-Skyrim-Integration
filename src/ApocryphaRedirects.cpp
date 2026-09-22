@@ -290,9 +290,9 @@ namespace Apocrypha {
         RE::NiPoint3 bridge2_start = { 4901.15137, -4358.97705, -2669.25537 };
         RE::NiPoint3 bridge2_end = { 5592.51611, -4379.97217, -2684.11206 };
 
-        RE::NiPoint3 island2_edge = { 6421.02246, -2961.57056, -2668.45312 };
-
-
+        //RE::NiPoint3 island2_edge = { 6421.02246, -2961.57056, -2668.45312 };
+        //RE::NiPoint3 island2_edge = { 6472.41504, -3171.90088, -2682.35352 };
+        RE::NiPoint3 island2_edge = { 6472.41504, -3000.90088, -2682.35352 };
 
 
         if (!bridge1 || !bridge1_activator || !swinging_pass_part1 || !dummy || !exit_book || !bridge2 || !bridge2_activator || !swinging_pass_part2)
@@ -325,7 +325,7 @@ namespace Apocrypha {
         }
 
 
-        if (player_pos.GetDistance(custom_path_end) < 80.0f)
+        if (player_pos.GetDistance(custom_path_end) < 80.0f) //TRY 60 HERE
             {
                 result.action = action_after_custom_path_end; //end of this section
                 reset_apocrypha_redirects();
@@ -353,12 +353,14 @@ namespace Apocrypha {
                 }
             }
 
-            if (current_apocrypha_id == 12)
+            if (current_apocrypha_id == 12 || current_apocrypha_id == 121)
             {
-                if (player_pos.GetDistance(bridge2_end) > 300.0f && player_pos.GetDistance(pass2_tip_pos) < 100.0f)
+                if (player_pos.GetDistance(bridge2_end) > 300.0f && player_pos.GetDistance(pass2_tip_pos) < 80.0f)
                 {
-                    result.dont_save_id = true;
+                    //result.dont_save_id = true;
                     result.action = 3;
+
+                    result.id = 121;
 
                     dummy->MoveTo(player);
                     MiscThings::SetPosition_moveto(dummy, bridge2_end);
@@ -371,7 +373,7 @@ namespace Apocrypha {
                 }
                 else
                 {
-                    if (player_pos.GetDistance(bridge2_end) <= 300.0f)
+                    if (player_pos.GetDistance(bridge2_end) <= 240.0f)
                     {
                         result.action = 2; //initiate
                         result.dont_save_interaction = false;
@@ -392,6 +394,70 @@ namespace Apocrypha {
                         result.target = exit_book;
                         result.interaction = 1;
                         return result;
+                    }
+                    else
+                    {
+                        if (current_apocrypha_id == 121)
+                        {
+                            result.action = 3;
+
+                            result.id = 121;
+
+                            dummy->MoveTo(player);
+                            MiscThings::SetPosition_moveto(dummy, bridge2_end);
+
+                            result.target = dummy;
+                            result.dont_save_target = true;
+                            result.dont_save_interaction = true;
+                            result.dont_save_action = true;
+                            return result;
+                        }
+                        /*
+                        result.dont_save_id = true;
+                        result.action = 3;
+
+                        dummy->MoveTo(player);
+                        MiscThings::SetPosition_moveto(dummy, bridge2_end);
+
+                        result.target = dummy;
+                        result.dont_save_target = true;
+                        result.dont_save_interaction = true;
+                        result.dont_save_action = false;
+                        return result;
+                        */
+
+                        //return result; //do nothing and wait
+                        
+                        //walk closer to the tip
+                        /*
+                        if (current_action == 3)
+                        {
+                            result.action = 2; //initiate
+                            result.dont_save_interaction = true;
+                            result.dont_save_target = true;
+
+                            ApocryphaCustomPaths::template_path.clear();
+                            ApocryphaCustomPaths::template_path.push_back(player_pos);
+                            ApocryphaCustomPaths::template_path.push_back(pass2_tip_pos);
+
+                            //dummy->MoveTo(player);
+                            //MiscThings::SetPosition_moveto(dummy, pass2_tip_pos);
+
+                            result.custom_path = ApocryphaCustomPaths::template_path;
+
+                            result.target = dummy;
+
+                            //check_custom_path_end = true;
+                            //custom_path_end = pass2_tip_pos;
+                            //action_after_custom_path_end = -999;
+
+                            result.id = 12;
+
+                            result.interaction = 1;
+                            return result;
+                        }
+                        //go to swinging pass
+                        */
                     }
                 }
             }
@@ -702,7 +768,7 @@ namespace Apocrypha {
                             }
                             else
                             {
-                                if (player_pos.GetDistance(island2_edge) > 100.0f)
+                                if (player_pos.GetDistance(island2_edge) > 80.0f)
                                 {
                                     //go to island edge
                                     result.action = 2; //initiate
@@ -730,7 +796,7 @@ namespace Apocrypha {
                                 {
                                     //we are on the edge of island. wait for pass to swing close to us, then go to pass edge
 
-                                    if (pass2_tip_pos.GetDistance(player_pos) < 300.0f)
+                                    if (pass2_tip_pos.GetDistance(player_pos) < 320.0f && MiscThings::two_state_activator_state(swinging_pass_part2) == 0)
                                     {
                                         //go to swinging pass
                                         result.action = 2; //initiate
@@ -748,9 +814,9 @@ namespace Apocrypha {
 
                                         result.target = dummy;
 
-                                        check_custom_path_end = true;
-                                        custom_path_end = pass2_tip_pos;
-                                        action_after_custom_path_end = -999;
+                                        //check_custom_path_end = true;
+                                        //custom_path_end = pass2_tip_pos;
+                                        //action_after_custom_path_end = -999;
 
                                         result.id = 12;
 
@@ -1222,6 +1288,7 @@ namespace Apocrypha {
         RE::TESObjectREFR* exit_book = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x40388de);
 
         RE::TESObjectREFR* passage_onetime1 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4037d42);
+        //RE::TESObjectREFR* passage_onetime1 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4037d4b);
         RE::TESObjectREFR* passage_onetime2 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4037d41);
 
         RE::TESObjectREFR* bridge_lurker = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4037d4d);
@@ -2438,15 +2505,19 @@ namespace Apocrypha {
                                 {
                                     if (MiscThings::two_state_activator_state(gate_switch) == 0)
                                     {
-                                        result.action = 1; //initiate
-                                        result.dont_save_interaction = false;
-                                        result.dont_save_target = false;
-                                        result.custom_path = {};
-                                        result.target = scrye_switch1;
-                                        result.interaction = 1;
-                                        //result.clear_path = true;
+                                        if (MiscThings::two_state_activator_state(scrye_switch1) == 1)
+                                        {
+                                            result.action = 1; //initiate
+                                            result.dont_save_interaction = false;
+                                            result.dont_save_target = false;
+                                            result.custom_path = {};
+                                            result.target = scrye_switch1;
+                                            result.interaction = 1;
+                                            //result.clear_path = true;
 
-                                        return result;
+                                            return result;
+                                        }
+
                                     }
                                 }
                                 else
@@ -2472,7 +2543,7 @@ namespace Apocrypha {
                                                     action_after_custom_path_end = -999;
 
                                                     result.append_to_normal_path = true;
-
+                                                    result.ban_custom_path_interrupt_after_append = true;
 
                                                     result.id = 70;
 
@@ -2536,15 +2607,19 @@ namespace Apocrypha {
                                                             else
                                                             {
                                                                 //to scrye2
-                                                                result.action = 1; //initiate
-                                                                result.dont_save_interaction = false;
-                                                                result.dont_save_target = false;
-                                                                result.custom_path = {};
-                                                                result.target = scrye_switch2;
-                                                                result.interaction = 1;
-                                                                //result.clear_path = true;
+                                                                if (MiscThings::two_state_activator_state(scrye_switch2) == 1)
+                                                                {
+                                                                    result.action = 1; //initiate
+                                                                    result.dont_save_interaction = false;
+                                                                    result.dont_save_target = false;
+                                                                    result.custom_path = {};
+                                                                    result.target = scrye_switch2;
+                                                                    result.interaction = 1;
+                                                                    //result.clear_path = true;
 
-                                                                return result;
+                                                                    return result;
+                                                                }
+
                                                             }
                                                         }
                                                     }

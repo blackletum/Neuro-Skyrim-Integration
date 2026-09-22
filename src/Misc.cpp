@@ -16381,12 +16381,65 @@ namespace MiscThings {
 
 
         //
+        object_p = General::Script::GetObject(activator, "DLC2dunBookLevel4BendControl");
+
+        if (object_p)
+        {
+
+            auto activator_3d = activator->Get3D();
+            if (activator_3d)
+            {
+                auto root_node = activator_3d->GetObjectByName("ApoBendingHallway01.nif");
+                auto edge_node = activator_3d->GetObjectByName("bone08");
+                if (root_node && edge_node)
+                {
+                    auto root_pos = root_node->world.translate;
+                    auto edge_pos = edge_node->world.translate;
+
+                    auto distance = root_pos.GetDistance(edge_pos);
+                    distance *= activator->GetScale();
+
+                    //1792.00061 - normal
+                    //1657.46191 - bent
+
+                    if (distance > 1780.0f)
+                        return 1; //normal
+                    else
+                        if (distance < 1670.0f)
+                            return 0; //finished bending
+                        else
+                            return 2; //in process of bending
+
+                }
+            }
+            
+            bool stop_here = false;
+            /*
+            auto tempO = activator->Get3D(true);
+            auto playerRootNode = tempO ? tempO->AsNode() : nullptr;
+
+
+            auto temp = MiscThings::niav_recurse(playerRootNode);
+            auto temp_names = MiscThings::niav_recurse_names(playerRootNode);
+
+            bool stop_here = false;
+            */
+        }
+
 
 
         object_p = General::Script::GetObject(activator, "DLC2dunBookLevel4Bend");
 
         if (object_p)
         {
+
+            auto tempO = activator->Get3D(true);
+            auto playerRootNode = tempO ? tempO->AsNode() : nullptr;
+
+
+            auto temp = MiscThings::niav_recurse(playerRootNode);
+            auto temp_names = MiscThings::niav_recurse_names(playerRootNode);
+
             bool stop_here = false;
         }
 
@@ -33601,8 +33654,8 @@ namespace MiscThings {
                     }
 
 
-                    if (a_ref->formID == 0x6dfa0)
-                        return RE::BSContainer::ForEachResult::kContinue; //spider in avanchenzel who is under the floor
+                    if (a_ref->formID == 0x6dfa0 || a_ref->formID == 0x401c8f1)
+                        return RE::BSContainer::ForEachResult::kContinue; //spider in avanchenzel who is under the floor and centurion in nchardak that is under water
 
                     if (a_ref->formID == 0x45921)
                     {

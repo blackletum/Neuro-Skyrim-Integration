@@ -28,6 +28,7 @@ namespace Apocrypha {
 		bool allow_interrupt_custom_path;
 		bool dont_save_after_custom_walk;
 		bool dont_shift;
+		bool ban_custom_path_interrupt_after_append;
 	};
 
 
