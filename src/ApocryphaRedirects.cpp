@@ -2686,7 +2686,7 @@ namespace Apocrypha {
 
         auto target_pos = target->GetPosition();
 
-        if (!inside_book1_zone1(target))
+        if (!inside_book1_zone1(target) || (target && target->formID == 0x40339a9))
         {
             RE::TESObjectREFR* exit_book = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x40339a9);
 
@@ -2724,7 +2724,7 @@ namespace Apocrypha {
 
         auto target_pos = target->GetPosition();
 
-        if (!inside_book1_zone2(target))
+        if (!inside_book1_zone2(target) || (target && target->formID == 0x4031363))
         {
             RE::TESObjectREFR* exit_book_back = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x40339a7);
             RE::TESObjectREFR* book_pickup = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x40313ae);
@@ -2866,7 +2866,7 @@ namespace Apocrypha {
         }
 
 
-        if (!inside_book1_zone3(target))
+        if (!inside_book1_zone3(target) || (target && target->formID == 0x403143c))
         {
             if (MiscThings::two_state_activator_state(gate2) != 0)
             {
@@ -2913,7 +2913,7 @@ namespace Apocrypha {
 
         auto target_pos = target->GetPosition();
 
-        if (!inside_book1_zone4(target))
+        if (!inside_book1_zone4(target) || (target && target->formID == 0x40335fe))
         {
             RE::TESObjectREFR* exit_book_back = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4033645);
             RE::TESObjectREFR* bending_passage1 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x403b1d4);
@@ -3099,7 +3099,7 @@ namespace Apocrypha {
 
         auto target_pos = target->GetPosition();
 
-        if (!inside_book1_zone5(target))
+        if (!inside_book1_zone5(target) || (target && target->formID == 0x40313ce))
         {
             RE::TESObjectREFR* exit_book_back = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x40334b4);
             RE::TESObjectREFR* exit_book = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x40313ce);
@@ -3163,7 +3163,7 @@ namespace Apocrypha {
 
         auto target_pos = target->GetPosition();
 
-        if (!inside_book1_zone6(target))
+        if (!inside_book1_zone6(target) || (target && target->formID == 0x40334b4))
         {
             RE::TESObjectREFR* exit_book_back = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x402c3e1);
             RE::TESObjectREFR* exit_book = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x40334b4);
@@ -3192,7 +3192,7 @@ namespace Apocrypha {
             else
             {
                 //there is nothing else to do here
-                //if ((int)MiscThings::get_word_of_power(word_of_power_zone) > 0)
+                if ((int)MiscThings::get_word_of_power(word_of_power_zone) > 0)
                 {
                     result.action = 1; //initiate
                     result.dont_save_interaction = false;

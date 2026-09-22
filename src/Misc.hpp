@@ -258,6 +258,8 @@ namespace MiscThings {
     void destroy_barricade(RE::TESObjectREFR* barricade);
 
     bool is_on_horse();
+    bool is_on_dragon();
+    RE::TESObjectREFR* get_players_current_mount();
 
     bool is_running_allowed_in_current_cell();
 

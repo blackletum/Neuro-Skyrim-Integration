@@ -13,6 +13,9 @@
 
 namespace WalkerProcessor {
 
+    float dragon_lock_timer = 0.0f;
+    float dragon_attack_timer = 0.0f;
+
 
     bool close_enough_force_success = false;
 
@@ -3065,6 +3068,10 @@ namespace WalkerProcessor {
     void walk_to_point(float dtime_maybe_bad)
     {
 
+        if (MiscThings::is_on_dragon())
+            return;
+
+
         if (lock_camera_while_walking)
             lock_camera_onto_target(target_ref, dtime_maybe_bad);
 
@@ -4901,6 +4908,9 @@ namespace WalkerProcessor {
     bool lock_camera_onto_target(RE::TESObjectREFR* target, float dtime, float speed_koef, bool force_speed_correction, bool force_high_precision)
     {
 
+        if (MiscThings::is_on_dragon())
+            return true;
+
         //Hooks::add_debug_line("LOCK_CAMERA_CALLED", true);
 
         if (input_wants_to_look_down() || (start_attacking && (MiscThings::is_summon_spell(get_current_active_hand()) || MiscThings::is_cast_on_ground_spell(get_current_active_hand()))))
@@ -6216,6 +6226,8 @@ namespace WalkerProcessor {
 
     void reset_walker()
     {
+        dragon_lock_timer = 0.0f;
+        dragon_attack_timer = 0.0f;
 
         if (carry_item_keep_carrying)
             uncarry();
@@ -7620,6 +7632,17 @@ namespace WalkerProcessor {
 
         if (close_enough_force_success)
             return true;
+
+
+        if (MiscThings::is_on_dragon())
+        {
+            if (interaction_after_walk == 3)
+                return true;
+            else
+                if (target_ref->GetDistance(player) < 5000.0f)
+                    return true;
+        }
+
 
 
         if (close_enough_force_fail && (!MiscThings::is_dragon(target_ref) || close_enough_force_fail_reason_friendly_fire))
@@ -13505,6 +13528,291 @@ namespace WalkerProcessor {
         if ((MiscThings::is_werewolf() || MiscThings::is_vampirelord()) && MiscThings::killcam_active())
             return false; //wait for it (this doesnt fix anything unfortunately)
 
+        if (MiscThings::is_on_dragon())
+        {
+            auto player = RE::PlayerCharacter::GetSingleton();
+            auto dragon = (RE::Actor*)MiscThings::get_players_current_mount();
+
+            auto camera = RE::PlayerCamera::GetSingleton();
+            if (camera && camera->cameraTarget && camera->cameraTarget.get() && camera->cameraTarget.get().get())
+            {
+                auto camera_target_handle = camera->cameraTarget.get().get();
+
+
+                bool stop_here = false;
+            }
+
+            auto target_locked = player->playerFlags.dragonRideTargetLocked;
+
+            if (!target_locked)
+            {
+                if (dragon_lock_timer <= 0.0f)
+                {
+                    jump();
+                    dragon_lock_timer = 5.0f;
+                }
+                else
+                    dragon_lock_timer -= dtime;
+                    
+            }
+            else
+            {
+                if (dragon && MiscThings::is_dragon(dragon))
+                {
+                    auto dragon_combat_controller = dragon->combatController;
+                    if (dragon_combat_controller)
+                    {
+                        if (!(dragon_combat_controller->targetHandle && dragon_combat_controller->targetHandle.get() && dragon_combat_controller->targetHandle.get().get()))
+                        {
+                            if (dragon_attack_timer <= 0.0f)
+                            {
+                                crouch();
+                                dragon_attack_timer = 5.0f;
+                            }
+                            else
+                                dragon_attack_timer -= dtime;
+                        }
+                    }
+                }
+                else
+                {
+                    return true;
+                }
+            }
+                
+
+
+
+
+            //testing for end of attack
+            /*
+            bool became_neutral_condition = was_enemy_from_start && !MiscThings::is_enemy_to_actor(target_ref) && !(target_ref->IsActor() && target_ref->IsDead());
+
+            if (became_neutral_condition)
+            {
+                send_random_context("Enemy stopped fighting", true);
+                return true;
+            }
+            */
+
+            if (target_ref->IsActor() && target_ref->IsDisabled() && !was_already_dead)
+            {
+                //target is disabled
+                right_attack_cancel();
+                left_attack_cancel();
+
+                auto now = std::chrono::steady_clock::now().time_since_epoch().count();
+
+                if (post_attack_advice_time == 0)
+                    post_attack_advice_time = now;
+
+                float delta_post_attack_advice = (double)(now - post_attack_advice_time) / 1000000000.0;
+
+                if (delta_post_attack_advice > 20.0f)
+                {
+                    post_attack_advice_time = now;
+
+                    MiscThings::post_attack_advice();
+                }
+
+                return true;
+            }
+
+            if (target_ref->IsActor() && !was_already_dead && !target_ref->IsDisabled())
+            {
+                if (target_ref->IsDead())
+                {
+
+                    right_attack_cancel();
+                    left_attack_cancel();
+
+                    auto now = std::chrono::steady_clock::now().time_since_epoch().count();
+
+                    if (post_attack_advice_time == 0)
+                        post_attack_advice_time = now;
+
+                    float delta_post_attack_advice = (double)(now - post_attack_advice_time) / 1000000000.0;
+
+                    if (delta_post_attack_advice > 20.0f)
+                    {
+                        post_attack_advice_time = now;
+
+                        MiscThings::post_attack_advice();
+                    }
+
+                    //if its far away - need to notify player because detect_events has low range
+
+                    if (target_ref && target_ref->IsActor() && target_ref->GetDistance(player) > 2000.0f)
+                    {
+                        bool dont_add = false;
+
+                        std::string victim_name = MiscThings::insert_object_into_list_and_get_info(target_ref);
+                        std::string message_text = "[" + victim_name + " died]";
+
+                        auto target_actor = (RE::Actor*)target_ref;
+                        auto killer = target_actor->myKiller;
+                        if (killer)
+                        {
+                            if (target_ref == player) //have dedicated message for that
+                                dont_add = true;
+
+                            auto killer_ptr = killer.get();
+                            if (killer_ptr)
+                            {
+                                auto killer_actor = killer_ptr.get();
+
+
+                                if (MiscThings::is_intro2() && killer_actor == target_ref && target_actor->race->fullName == "Dragon Race")
+                                    dont_add = true;
+
+                                if (killer_actor)
+                                {
+                                    std::string killer_name = MiscThings::insert_object_into_list_and_get_info(killer_actor);
+                                    if (killer_actor == player)
+                                        killer_name = "You";
+
+                                    message_text = "[" + killer_name + " killed " + victim_name + "]";
+
+                                }
+                            }
+                        }
+                        else
+                        {
+                            if (target_ref == player) //have dedicated message for that
+                                dont_add = true;
+                        }
+
+                        if (!dont_add)
+                        {
+                            send_random_context(message_text);
+                        }
+                    }
+
+
+                    return true;
+                }
+                else
+                {
+                    active_attacking_time += dtime;
+
+                    auto target_actor = (RE::Actor*)target_ref;
+
+
+                    if (last_checked_enemy_health == -1.0f)
+                    {
+                        int max_health = target_actor->GetActorValueMax(RE::ActorValue::kHealth);
+                        int cur_health = target_actor->GetActorValue(RE::ActorValue::kHealth);
+
+                        last_checked_enemy_health = cur_health;
+                    }
+
+                    if (active_attacking_time > 20.0f)
+                    {
+                        active_attacking_time = 0.0f;
+
+
+                        if (has_ranged_weapon_equipped(get_current_active_hand()))//    has_bow_equipped(true) || has_crossbow_equipped(true))
+                        {
+                            int max_health = target_actor->GetActorValueMax(RE::ActorValue::kHealth);
+                            int cur_health = target_actor->GetActorValue(RE::ActorValue::kHealth);
+
+                            if (last_checked_enemy_health != -1.0f)
+                            {
+                                if (last_checked_enemy_health >= cur_health)
+                                {
+                                    //hp did not decrease since last change, we are probably missing the shots. need to switch position, make close enough fail for 10 seconds
+                                    close_enough_force_fail = true;
+                                    close_enough_force_fail_time_start = std::chrono::steady_clock::now().time_since_epoch().count();
+                                }
+                            }
+                            else
+                            {
+                                last_checked_enemy_health = cur_health;
+                            }
+                        }
+
+
+                        if (MiscThings::is_immortal(target_actor) && !MiscThings::player_brawling())
+                        {
+
+                            auto odahviing = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x45921);
+                            auto redirect_marker = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x10828C);
+
+                            auto capture_dragon_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("MQ301");
+
+                            if (capture_dragon_quest)
+                            {
+                                if (capture_dragon_quest->GetCurrentStageID() < 200)
+                                {
+                                    if (odahviing && redirect_marker)
+                                    {
+                                        auto odahviing_actor = (RE::Actor*)odahviing;
+
+                                        if (target_ref == odahviing)
+                                        {
+                                            if (!MiscThings::is_flying(odahviing))
+                                            {
+                                                send_random_context("You are trying to lure Odahviing into the trap...", true);
+                                                target_ref = redirect_marker;
+                                                interaction_after_walk = 3;
+                                                return false;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                            //alduin
+                            if (target_actor->GetActorValue(RE::ActorValue::kHealth) < 10 && target_actor->formID != 0x4e9bd)
+                            {
+                                send_random_context("Attacking doesnt work... They are not dying. You can try to run away or ignore the fight instead.", false);
+                                Observer::reset_threats(); //so it can actually offer choice to run or ignore
+                                reset_walker();
+                                return true;
+                            }
+                        }
+
+                        std::string message = "You keep attacking...";
+
+                        if (MiscThings::is_player_swimming())
+                            message = "You are swimming and cannot attack!";
+
+                        send_random_context(message, false);
+                    }
+
+
+                    if (MiscThings::is_immortal(target_actor) && target_actor->GetActorValue(RE::ActorValue::kHealth) < 2)
+                    {
+                        auto attackers = MiscThings::get_player_attackers(false, target_ref, true);
+
+                        if (std::size(attackers) > 0)
+                        {
+                            //there are other targets nearby. switch target
+                            return true;
+                        }
+                        else
+                        {
+                            if (MiscThings::player_brawling())
+                            {
+                                return true;
+                            }
+                            else
+                            {
+                                if (active_attacking_time > 5.0f)
+                                {
+                                    send_random_context("Attacking doesnt work... They are not dying. You can try to run away or ignore the fight instead.", false);
+                                    Observer::reset_threats(); //so it can actually offer choice to run or ignore
+                                    reset_walker();
+                                    return true;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            return false;
+        }
 
         if (MiscThings::is_on_horse())
         {
@@ -18589,7 +18897,7 @@ namespace WalkerProcessor {
         }
 
 
-        if (have_target_to_walk && interaction_after_walk != 0 && MiscThings::is_on_horse() && close_enough() && !(target_ref && target_ref->IsActor() && ((RE::Actor*)target_ref)->IsAMount()))
+        if (have_target_to_walk && interaction_after_walk != 0 && (MiscThings::is_on_horse() || (MiscThings::is_on_dragon() && !MiscThings::is_flying(MiscThings::get_players_current_mount()))) && close_enough() && !(target_ref && target_ref->IsActor() && ((RE::Actor*)target_ref)->IsAMount()))
         {
             confirm();
             set_universal_block(1.0f);
@@ -19689,6 +19997,18 @@ namespace WalkerProcessor {
                     reset_walker();
                     return;
                 }
+
+
+                if (have_target_to_walk && MiscThings::is_on_dragon())
+                {
+                    if (!path_valid)
+                    {
+                        path.clear();
+                        path_valid = true;
+                        path.push_back(target_ref->GetPosition());
+                    }
+                }
+
 
 
                 if (parent_cell && parent_cell->formID == 0x15280) //forlungur part1

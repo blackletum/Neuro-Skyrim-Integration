@@ -14873,12 +14873,94 @@ namespace MiscThings {
             if (player_actor)
             {
                 if (player_actor->IsOnMount())
+                {
+                    if (auto extra = player_actor->extraList.GetByType(RE::ExtraDataType::kInteraction); extra)
+                    {
+                        auto extra_interaction = (RE::ExtraInteraction*)extra;
+                        if (extra_interaction && extra_interaction->interaction.get() && extra_interaction->interaction.get()->actor && extra_interaction->interaction.get()->actor.get() && extra_interaction->interaction.get()->actor.get().get())
+                        {
+                            auto target_interaction = extra_interaction->interaction.get()->actor.get().get();
+                            if (MiscThings::is_dragon(target_interaction))
+                                return false;
+                        }
+                    }
+
                     return true;
+                }
+                    
             }
         }
 
         return false;
     }
+
+
+    RE::TESObjectREFR* get_players_current_mount()
+    {
+        auto player = RE::PlayerCharacter::GetSingleton();
+        if (player)
+        {
+            auto player_actor = (RE::Actor*)player->AsReference();
+            //auto extralist = &player->extraList;
+            //auto horse_data = extralist->GetByType(RE::ExtraDataType::kHorse);
+
+            //if (horse_data)
+
+            if (player_actor)
+            {
+                if (player_actor->IsOnMount())
+                {
+                    if (auto extra = player_actor->extraList.GetByType(RE::ExtraDataType::kInteraction); extra)
+                    {
+                        auto extra_interaction = (RE::ExtraInteraction*)extra;
+                        if (extra_interaction && extra_interaction->interaction.get() && extra_interaction->interaction.get()->actor && extra_interaction->interaction.get()->actor.get() && extra_interaction->interaction.get()->actor.get().get())
+                        {
+                            return extra_interaction->interaction.get()->actor.get().get();
+                        }
+                    }
+                }
+            }
+        }
+
+        return nullptr;;
+    }
+
+
+
+    bool is_on_dragon()
+    {
+        auto player = RE::PlayerCharacter::GetSingleton();
+        if (player)
+        {
+            auto player_actor = (RE::Actor*)player->AsReference();
+            //auto extralist = &player->extraList;
+            //auto horse_data = extralist->GetByType(RE::ExtraDataType::kHorse);
+
+            //if (horse_data)
+
+            if (player_actor)
+            {
+                if (player_actor->IsOnMount())
+                {
+                    if (auto extra = player_actor->extraList.GetByType(RE::ExtraDataType::kInteraction); extra)
+                    {
+                        auto extra_interaction = (RE::ExtraInteraction*)extra;
+                        if (extra_interaction && extra_interaction->interaction.get() && extra_interaction->interaction.get()->actor && extra_interaction->interaction.get()->actor.get() && extra_interaction->interaction.get()->actor.get().get())
+                        {
+                            auto target_interaction = extra_interaction->interaction.get()->actor.get().get();
+                            if (MiscThings::is_dragon(target_interaction))
+                                return true;
+                        }
+                    }
+                }
+            }
+        }
+
+        return false;
+    }
+
+
+
 
     std::string get_blocking_object_name2(RE::TESObjectREFR* a_ref)
     {
@@ -15003,6 +15085,9 @@ namespace MiscThings {
         case (0x63cfa):
         case (0x63cfc):
         case (0x63cfe):
+
+        case (0x402a74b): //apocrypha book1 zone 3 gate
+        case (0x403363f): //apocrypha book1 zone 3 gate
             return "";
 
         case (0xf5b03): //hermaeus mora after ogma infinium pickup
@@ -32279,14 +32364,28 @@ namespace MiscThings {
             int picked = random_int_from_range(0, amount_of_shouts - 1);
 
             auto dragonrend = (RE::TESShout*)RE::TESForm::LookupByID(0x44250);
-                                                                                                    //odaving
-            if (MiscThings::is_dragon(target) && (MiscThings::is_flying(target) || target->formID == 0x45921) && MiscThings::player_has_spell((RE::SpellItem*)dragonrend))
+                                                                                                    //odaving                                                  
+            if (MiscThings::is_dragon(target) && (MiscThings::is_flying(target) || target->formID == 0x45921) && MiscThings::player_has_spell((RE::SpellItem*)dragonrend) && target->formID != 0x40179d8)
                 WalkerProcessor::shout_at_target(target, dragonrend);
             else
-                WalkerProcessor::shout_at_target(target, shouts_available.at(picked));
+            {
+                if (target->formID == 0x4019acc)
+                {
+                    auto bend_will = (RE::TESShout*)RE::TESForm::LookupByID(0x40179d8);
+                    if (bend_will && MiscThings::player_has_spell((RE::SpellItem*)bend_will))
+                        WalkerProcessor::shout_at_target(target, bend_will);
+                    else
+                        WalkerProcessor::shout_at_target(target, shouts_available.at(picked)); //normal
+                }
+                else
+                    WalkerProcessor::shout_at_target(target, shouts_available.at(picked)); //normal
+            }
+                
         }
 
     }
+
+    
 
 
 

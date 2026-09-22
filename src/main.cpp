@@ -44,6 +44,8 @@
 
 
 
+//miraak fight (save after his speech, fix pathfinding not working after he dies and is held by hermaeus mora, add context on whats happening (miraak killed dragon/tries to escape/hermaeus caught him)
+
 //TODO other quests
 //TODO mzulft red nirnroot potentially unreachable because cave entrance only works for mainquestline
 
@@ -1857,6 +1859,9 @@ namespace Hooks {
                             case (0x40142f1):
                             case (0x40173b3):
                             case (0x40173b2):
+                            case (0x403b065): //apocrypha book1 zone (4?)
+                            case (0x403109d): //apocrypha book1 zone (6?)
+                            case (0x401c155): //apocrypha book1 zone (7?)
                             {
                                 WalkerProcessor::reset_walker(); //nchardak. redirects break because there are too many of them and they must trigger right away (pedestals give weird info)
                                 break;
