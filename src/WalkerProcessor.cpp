@@ -2389,6 +2389,40 @@ namespace WalkerProcessor {
                             {
                                 if (target_ref)
                                 {
+                                    if (Apocrypha::inside_book1_bossfight(player) && target_ref && target_ref->formID == 0x401fb99 && target_ref->GetPositionZ() < 10300.0f)
+                                    {
+                                        //auto miraak = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x401fb99); //miraak
+                                        
+                                        //if (miraak)
+                                        //{
+                                            auto dlc2mq06_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("DLC2MQ06");
+
+                                            if (dlc2mq06_quest)
+                                            {
+                                                auto stage = dlc2mq06_quest->currentStage;
+                                                if (stage >= 400 && stage < 500)
+                                                {
+
+                                                    auto dummy = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x70c1a25);
+                                                    auto player = RE::PlayerCharacter::GetSingleton();
+
+                                                    if (dummy)
+                                                    {
+                                                        RE::NiPoint3 dummy_target_pos = { 2485.86475, 17093.5703, 10657.4336 };
+                                                        dummy->MoveTo(player);
+                                                        MiscThings::SetPosition_moveto(dummy, dummy_target_pos);
+
+                                                        look_at_object_by_refr(dummy, true, 1.0f, true);
+                                                    }
+
+                                                    return;
+                                                }
+                                            }
+                                        //}
+                                    }
+
+
+
                                     if (target_is_too_high() && !close_enough())
                                     {
                                         if (!too_high_notified)
@@ -9716,7 +9750,7 @@ namespace WalkerProcessor {
                 if (have_target_to_walk)
                 {
                     
-                    if (target_ref != object)
+                    if (target_ref != object || interaction_after_walk != -1)
                         reset_walker();
                     else
                     {
@@ -10329,6 +10363,25 @@ namespace WalkerProcessor {
             }
         }
 
+        auto player = RE::PlayerCharacter::GetSingleton();
+
+        if (Apocrypha::inside_book1_bossfight(player))
+        {
+            auto dlc2mq06_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("DLC2MQ06");
+
+            if (dlc2mq06_quest)
+            {
+                auto stage = dlc2mq06_quest->currentStage;
+                if (stage == 550)
+                {
+                    result.first = false;
+                    result.second = "You have just defeated Miraak... Hermaeus Mora is saying something... better to wait until he finishes talking...";
+                    return result;
+                }
+            }
+        }
+
+
         /* //replaced this with change of conditions for the quest itself. this thing is still relevant for book3 (from bloodskal) - but probably only if we somehow enter that book before book2. pretty low chance
         auto player = RE::PlayerCharacter::GetSingleton();
         auto parent_cell = player->GetParentCell();
@@ -10372,7 +10425,6 @@ namespace WalkerProcessor {
         }
 
 
-        auto player = RE::PlayerCharacter::GetSingleton();
         auto parent_cell = player->GetParentCell();
 
         RE::TESObjectREFR* book3_final = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x401edf7);
@@ -13763,7 +13815,7 @@ namespace WalkerProcessor {
                             }
 
                             //alduin
-                            if (target_actor->GetActorValue(RE::ActorValue::kHealth) < 10 && target_actor->formID != 0x4e9bd)
+                            if (target_actor->GetActorValue(RE::ActorValue::kHealth) < 10 && target_actor->formID != 0x4e9bd && target_actor->formID != 0x401fb99)
                             {
                                 send_random_context("Attacking doesnt work... They are not dying. You can try to run away or ignore the fight instead.", false);
                                 Observer::reset_threats(); //so it can actually offer choice to run or ignore
@@ -13798,7 +13850,7 @@ namespace WalkerProcessor {
                             }
                             else
                             {
-                                if (active_attacking_time > 5.0f)
+                                if (active_attacking_time > 5.0f && target_actor->formID != 0x401fb99)
                                 {
                                     send_random_context("Attacking doesnt work... They are not dying. You can try to run away or ignore the fight instead.", false);
                                     Observer::reset_threats(); //so it can actually offer choice to run or ignore
@@ -15926,8 +15978,8 @@ namespace WalkerProcessor {
                                     }
                                 }
 
-                                                                                                                        //alduin
-                                if (target_actor->GetActorValue(RE::ActorValue::kHealth) < 10 && target_actor->formID != 0x4e9bd)
+                                                                                                                        //alduin                //miraak
+                                if (target_actor->GetActorValue(RE::ActorValue::kHealth) < 10 && target_actor->formID != 0x4e9bd && target_actor->formID != 0x401fb99)
                                 {
                                     send_random_context("Attacking doesnt work... They are not dying. You can try to run away or ignore the fight instead.", false);
                                     Observer::reset_threats(); //so it can actually offer choice to run or ignore
@@ -15964,8 +16016,8 @@ namespace WalkerProcessor {
                                     return true;
                                 }
                                 else
-                                {
-                                    if (active_attacking_time > 5.0f)
+                                {                                                               //miraak
+                                    if (active_attacking_time > 5.0f && target_actor->formID != 0x401fb99)
                                     {
                                         send_random_context("Attacking doesnt work... They are not dying. You can try to run away or ignore the fight instead.", false);
                                         Observer::reset_threats(); //so it can actually offer choice to run or ignore

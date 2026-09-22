@@ -39,7 +39,7 @@ namespace Apocrypha {
 	bool in_apocrypha(RE::TESObjectREFR* object = nullptr);
 
 
-
+	bool inside_book1_bossfight(RE::TESObjectREFR* object);
 
 
 }

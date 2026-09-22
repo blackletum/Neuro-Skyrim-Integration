@@ -33655,12 +33655,18 @@ namespace MiscThings {
         bool snow_veil_gate_condition = player_cell && player_cell->formID == 0x15208 && !(player_pos.x > 4027.3f && player_pos.y < 2224.7f);
         bool labyrinthian_shit_gate_condition = player_cell && player_cell->formID == 0x91872 && player_pos.x < -901.0f && player_pos.y < 230.0f;
 
+        bool apocrypha_ignore_dragons = Apocrypha::inside_book1_bossfight(player);
+
+
         RE::TES::GetSingleton()->ForEachReferenceInRange(player_ref, 9000.0f,
             //player->GetParentCell()->ForEachReferenceInRange(player->GetPosition(), 3000.0,
             [&](RE::TESObjectREFR* a_ref) {
 
                 if (a_ref && a_ref->IsActor())
                 {
+                    if (apocrypha_ignore_dragons && MiscThings::is_dragon(a_ref))
+                        return RE::BSContainer::ForEachResult::kContinue; //busy fighting miraak
+
 
                     if (player_cell && player_cell->formID == 0x15280) //forlungur
                     {

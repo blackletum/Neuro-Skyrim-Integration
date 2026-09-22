@@ -41,6 +41,9 @@ namespace Observer {
 
 
 
+	int old_dlc2mq06_stage = 0;
+
+
 	RE::BGSLocation* old_player_loc = nullptr;
 
 
@@ -6705,6 +6708,7 @@ namespace Observer {
 		static auto da09_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("DA09"); //meridiah quest
 		static auto mg01_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("MG01"); //mage guild demonstate spell entry quest
 
+		static auto dlc2mq06_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("DLC2MQ06"); //final quest
 
 
 		if (threshold_quest && !observers_green_light)
@@ -6906,6 +6910,12 @@ namespace Observer {
 						dlc_redwater_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("DLC1dunRedwaterDenQST");
 
 
+					if (dlc2mq06_quest)
+						old_dlc2mq06_stage = dlc2mq06_quest->currentStage;
+					else
+						dlc2mq06_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("DLC2MQ06");
+
+
 
 					if (da10_quest)
 						old_da10_stage = da10_quest->currentStage;
@@ -7069,6 +7079,62 @@ namespace Observer {
 				else
 					dlc_redwater_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("DLC1dunRedwaterDenQST");
 
+
+
+				if (dlc2mq06_quest)
+				{
+					//fight is long and technically has moments to chill. save inbetween phases
+					int dlc2mq06_quest_stage = dlc2mq06_quest->currentStage;
+
+					if (old_dlc2mq06_stage != dlc2mq06_quest_stage)
+					{
+						bool hp_is_fine = MiscThings::player_hp_more_than(50.0f);
+
+						switch (dlc2mq06_quest_stage)
+						{
+						case (420):
+						{
+							send_random_context("Miraak kills a dragon and restores own health!", false);
+							if (hp_is_fine) quicksave(true);
+							break;
+						}
+
+						case (440):
+						{
+							send_random_context("Miraak kills another dragon and restores own health!", false);
+							if (hp_is_fine) quicksave(true);
+							break;
+						}
+
+						case (460):
+						{
+							send_random_context("Miraak kills third dragon and restores own health!", false);
+							if (hp_is_fine) quicksave(true);
+							break;
+						}
+
+						case (500):
+						{
+							send_random_context("Miraak tries to escape!", false);
+							if (hp_is_fine) quicksave(true);
+							break;
+						}
+
+						case (520):
+						{
+							send_random_context("Miraak is caught by Hermaeus Mora...", false);
+							//NOSAVE
+							break;
+						}
+
+						}
+					}
+
+					old_dlc2mq06_stage = dlc2mq06_quest_stage;
+
+				}
+				else
+					dlc2mq06_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("DLC2MQ06");
 
 
 				if (da10_quest)

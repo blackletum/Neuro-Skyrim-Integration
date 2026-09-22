@@ -1242,6 +1242,22 @@ namespace Apocrypha {
     }
 
 
+    bool inside_book1_bossfight(RE::TESObjectREFR* object)
+    {
+        if (object)
+        {
+            auto worldspace = object->GetWorldspace();
+            if (worldspace && worldspace->formID == 0x401c0b2)
+            {
+                auto object_pos = object->GetPosition();
+                if (object_pos.GetDistance({ 2513.86865, 17125.2344, 10561.0732 }) < 4000.0f)
+                    return true;
+            }
+        }
+        return false;
+    }
+
+
 
     bool inside_book3_endzone(RE::TESObjectREFR* object)
     {
@@ -3163,6 +3179,8 @@ namespace Apocrypha {
 
         auto target_pos = target->GetPosition();
 
+
+
         if (!inside_book1_zone6(target) || (target && target->formID == 0x40334b4))
         {
             RE::TESObjectREFR* exit_book_back = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x402c3e1);
@@ -3226,6 +3244,85 @@ namespace Apocrypha {
 
         return result;
 
+    }
+
+
+
+    apocrypha_result book1_zone_bossfight(RE::TESObjectREFR* target, int current_action, int current_apocrypha_id)
+    {
+        apocrypha_result result{};
+
+        RE::TESObjectREFR* exit_book = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x40334b4);
+
+        if (!exit_book || !target)
+            return result;
+
+
+        if (!inside_book1_bossfight(target))
+        {
+            result.action = 1; //initiate
+            result.dont_save_interaction = false;
+            result.dont_save_target = false;
+            result.custom_path = {};
+            result.target = exit_book;
+            result.interaction = 1;
+            //result.clear_path = true;
+
+            return result;
+        }
+        else
+        {
+            //if its miraak who is in cutscene and is unreachable
+
+            if (target->formID == 0x401fb99) //miraak
+            {
+                auto dlc2mq06_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("DLC2MQ06");
+
+                if (dlc2mq06_quest)
+                {
+                    auto stage = dlc2mq06_quest->currentStage;
+
+                    if (stage == 500 || stage == 520 || stage == 550)
+                    {
+                        //stages when he is restrained and may be unreachable. redirect to some position and look at miraak when close to it
+
+                        auto dummy = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x70c1a25);
+                        auto player = RE::PlayerCharacter::GetSingleton();
+
+                        if (dummy)
+                        {
+
+
+                            RE::NiPoint3 dummy_target_pos = { 2485.86475, 17093.5703, 10657.4336 };
+                            auto player_pos = player->GetPosition();
+
+                            if (player_pos.GetDistance(dummy_target_pos) > 500.0f)
+                            {
+                                dummy->MoveTo(player);
+                                MiscThings::SetPosition_moveto(dummy, dummy_target_pos);
+                                result.target = dummy;
+                                result.interaction = -1;
+                                return result;
+                            }
+                            else
+                            {
+                                result.action = 3;
+                                result.target = target;
+                                result.dont_save_target = true;
+                                result.dont_save_interaction = true;
+                                result.dont_save_action = true;
+                                return result;
+                            }
+                        }
+                    }
+                }
+            }
+            // //walk here, when ~400 close, look at miraak until he dies
+        }
+
+
+
+        return result;
     }
 
 
@@ -3574,6 +3671,21 @@ namespace Apocrypha {
         }
 
 
+
+        if (inside_book1_bossfight(player))
+        {
+            int zone = 7;
+            if (last_zone != zone && last_zone != 0)
+            {
+                last_zone = zone;
+                result.action = -888;
+                return result;
+            }
+            else
+                last_zone = zone;
+
+            return book1_zone_bossfight(target, current_action, current_apocrypha_id);
+        }
 
 
 
