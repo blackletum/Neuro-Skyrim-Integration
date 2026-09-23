@@ -2530,7 +2530,21 @@ namespace Observer {
 									{
 										if (!WalkerProcessor::is_fighting() && !WalkerProcessor::is_walking_important_path() && !Observer::threat_response_choice_pending())
 										{
-											if (player_ref->GetDistance(a_ref) < 2000.0f)
+											float word_of_power_range = 2000.0f;
+
+											auto extra_primitive = (RE::ExtraPrimitive*)a_ref->extraList.GetByType(RE::ExtraDataType::kPrimitive);
+
+											if (extra_primitive)
+											{
+												auto test_range = ((WalkerProcessor::myPrimitive*)extra_primitive->primitive)->bounds.x / 2.0f;
+
+												if (test_range > 2000.0f && test_range < 7000.0f)
+													word_of_power_range = test_range;
+											}
+											
+												
+
+											if (player_ref->GetDistance(a_ref) < word_of_power_range)
 											{
 												auto notification_info = objects_for_extra_notification.find(a_ref);
 

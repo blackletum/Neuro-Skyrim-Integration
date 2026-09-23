@@ -4455,13 +4455,7 @@ namespace WalkerProcessor {
 
 
 
-    struct myPrimitive
-    {
-        uint32_t unk1;
-        uint32_t unk2;
-        uint32_t unk3;
-        RE::NiPoint3 bounds;
-    };
+
 
 
     void cut_navmesh_on_target(RE::TESObjectREFR* target)
@@ -10955,6 +10949,7 @@ namespace WalkerProcessor {
                                         }
 
                                         if (phantom_objective || quest_ref_handle)
+                                        {
                                             if (phantom_objective || quest_ref_handle.get())
                                             {
                                                 RE::TESObjectREFR* quests_target_ref = nullptr;
@@ -11051,7 +11046,7 @@ namespace WalkerProcessor {
                                                         }
                                                     }
                                                 }
-                                                
+
 
 
 
@@ -11371,6 +11366,17 @@ namespace WalkerProcessor {
 
                                                 return result;
                                             }
+                                        }
+                                        else
+                                        {
+                                            //no target ref.
+                                            if (quest_entry.quest && quest_entry.quest->formID == 0x40209ae) //find skaal werebear brother. he spawns at random encounter. notify
+                                            {
+                                                result.first = false;
+                                                result.second = "Cannot find target for this quest...";
+                                                return result;
+                                            }
+                                        }
 
                                         break;
                                     }

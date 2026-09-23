@@ -4,6 +4,15 @@
 
 namespace WalkerProcessor {
 
+
+	struct myPrimitive
+	{
+		uint32_t unk1;
+		uint32_t unk2;
+		uint32_t unk3;
+		RE::NiPoint3 bounds;
+	};
+
 	void processor(float dtime);
 	void lower_processor(float dtime);
 

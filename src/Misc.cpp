@@ -9324,9 +9324,17 @@ namespace MiscThings {
                     auto gate2 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x401faba);
                     if (gate2 && MiscThings::two_state_activator_state(gate2) == 1)
                     {
-                        auto redirect = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4020a4a);
-                        if (redirect)
-                            return redirect;
+                        //auto redirect = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4020a4a); //something isnt right about this marker. replaced with dummy below
+                        //if (redirect)
+                        //    return redirect;
+                        auto dummy = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x70c1a25);
+                        if (dummy)
+                        {
+                            dummy->MoveTo(player);
+                            MiscThings::SetPosition_moveto(dummy, { 6759.80664, 12458.7930, -411.177551 });
+
+                            return dummy;
+                        }
                     }
                 }
 
@@ -9341,7 +9349,18 @@ namespace MiscThings {
                         return final_exit;
                     }
                 }
+                
 
+                if (target->formID == 0x401b0ee)
+                {
+                    auto gate3 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x401b09d);
+                    if (gate3 && MiscThings::two_state_activator_state(gate3) == 1)
+                    {
+                        auto redirect = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4027204); //something isnt right about this marker. replaced with dummy below
+                        if (redirect)
+                            return redirect;
+                    }
+                }
 
 
 
