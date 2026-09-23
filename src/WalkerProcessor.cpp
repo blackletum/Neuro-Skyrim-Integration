@@ -5953,7 +5953,8 @@ namespace WalkerProcessor {
 
     bool is_casting_ritual_spell()
     {
-        return (attack_action_time0 > 0.0f || attack_action_time1 > 0.0f) && has_ritual_spell_equipped();
+        auto player = RE::PlayerCharacter::GetSingleton();
+        return (attack_action_time0 > 0.0f || attack_action_time1 > 0.0f) && has_ritual_spell_equipped() && player->IsAnimationDriven() && !player->IsStaggering() && !player->IsStaggered() && !player->actorState2.recoil && player->actorState1.knockState == RE::KNOCK_STATE_ENUM::kNormal;
     }
 
 
@@ -8266,6 +8267,8 @@ namespace WalkerProcessor {
 
                         //auto raycast_test = raycast_ref == target_ref && (start_attacking || attack_paused || raycast_was_on || !raycast_hands_too || (raycast_ref_right == target_ref && raycast_ref_left == target_ref && raycast_ref_top == target_ref && raycast_ref_bottom == target_ref));
                         auto raycast_test = (raycast_ref == target_ref || (start_attacking && raycast_ref && MiscThings::is_enemy_to_actor(raycast_ref))) && (start_attacking || attack_paused || raycast_was_on || raycast_hands_result);
+                        raycast_test |= start_attacking && WalkerProcessor::is_casting_ritual_spell();
+
                         bool target_visible = false;
 
                         float on_time = 0.4f;
@@ -12964,7 +12967,7 @@ namespace WalkerProcessor {
 
 
         if (has_ritual_spell_equipped())
-            return 5.0f;
+            return 2.0f;
 
         auto player = RE::PlayerCharacter::GetSingleton();
         if (player)
@@ -13002,7 +13005,7 @@ namespace WalkerProcessor {
         {
 
             if (has_ritual_spell_equipped())
-                return 3.6f;
+                return 3.8f;
 
 
             //auto left_spell = player->selectedSpells[0];
