@@ -71,7 +71,6 @@
 
 //test solstheim more
 //fix healing not healing
-//fix ult-on-target bugging out if ult is on cooldown
 //more solstheim quests. pirate quest. check what other quests are there. dwemer bow dungeon quest
 
 

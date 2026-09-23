@@ -13996,6 +13996,27 @@ namespace WalkerProcessor {
                 std::string spell_name = spell_to_use->GetFullName();
                 send_random_context("You are using ability: " + spell_name);
                 use_ult();
+
+
+                if (target_ref && !MiscThings::is_enemy_to_actor(target_ref))
+                {
+                    if (!midcombat_reanimate_cast)
+                        reset_walker();
+                    else
+                    {
+                        spell_mode = false;
+                        spell_ult_mode = false;
+                        spell_to_use = nullptr;
+                        midcombat_reanimate_cast_done = true;// midcombat_reanimate_cast = false; //now done in interact_with_target function to properly change target
+                    }
+                }
+                else
+                {
+                    spell_mode = false;
+                    spell_ult_mode = false;
+                    spell_to_use = nullptr;
+                }
+
                 return true;
             }
             else
