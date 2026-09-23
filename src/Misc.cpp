@@ -31760,7 +31760,7 @@ namespace MiscThings {
                     }
                     else
                     {
-                        if (slot_id == 0x00013F44 || slot_id == 0x00013F42 || slot_id == 0x00013F43) //either hand
+                        if (slot_id == 0x00013F44 || slot_id == 0x00013F42 || slot_id == 0x00013F43 || slot_id == 0x00013f45) //either hand
                         {
 
                             //tolfdir ward casting scene
@@ -32094,9 +32094,9 @@ namespace MiscThings {
                                         }
                                         else
                                         {
-                                            if (WalkerProcessor::is_fighting())
+                                            if (WalkerProcessor::is_fighting() && !WalkerProcessor::is_running_away())
                                             {
-                                                auto current_walker_target = WalkerProcessor::get_current_target();
+                                                auto current_walker_target = (MiscThings::is_self_cast_spell(right_hand) && !MiscThings::is_offensive_spell(right_hand)) ? nullptr : WalkerProcessor::get_current_target();
                                                 if (current_walker_target)
                                                 {
                                                     WalkerProcessor::cast_spell_at_target(current_walker_target, spell);
@@ -32633,7 +32633,7 @@ namespace MiscThings {
                     }
                     else
                     {
-                        if (slot_id == 0x00013F44 || slot_id == 0x00013F42 || slot_id == 0x00013F43) //either hand
+                        if (slot_id == 0x00013F44 || slot_id == 0x00013F42 || slot_id == 0x00013F43 || slot_id == 0x00013f45) //either hand
                         {
 
                             auto slot = get_free_slot(is_offensive_spell(spell), true);
@@ -32799,6 +32799,9 @@ namespace MiscThings {
 
                             }
 
+
+                            if (slot_id == 0x00013f45)
+                                equip_hand = " in both hands";
 
 
                             result.first = true;

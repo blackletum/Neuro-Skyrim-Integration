@@ -70,7 +70,6 @@
 ///////////DO ALL THIS
 
 //test solstheim more
-//fix healing not healing
 //more solstheim quests. pirate quest. check what other quests are there. dwemer bow dungeon quest
 
 
