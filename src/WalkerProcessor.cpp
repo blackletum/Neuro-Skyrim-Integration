@@ -13,6 +13,10 @@
 
 namespace WalkerProcessor {
 
+
+    bool do_universal_dodging = false;
+
+
     float dragon_lock_timer = 0.0f;
     float dragon_attack_timer = 0.0f;
 
@@ -458,6 +462,7 @@ namespace WalkerProcessor {
     bool dodge_melee_is_dragon = false;
     RE::TESObjectREFR* dodge_melee_attacker = nullptr;
     bool dodge_projectile_extra_dangerous = false;
+    bool dodge_projectile_try_to_keep_one_direction = false;
     RE::TESObjectREFR* dodge_projectile_blast_target = nullptr;
 
     float attack_spell_cast_timeout = 0.0f;
@@ -703,6 +708,13 @@ namespace WalkerProcessor {
         return false;
     }
     */
+
+
+    void set_universal_dodging(bool set)
+    {
+        do_universal_dodging = set;
+    }
+
 
 
     bool get_blocking_dragonbreath()
@@ -1182,6 +1194,8 @@ namespace WalkerProcessor {
 
     void clear_loop_evasion() //basically load of save reset
     {
+        do_universal_dodging = false;
+
         autoloader_door_evasion_mode_tried_onetime = false;
 
 
@@ -7396,7 +7410,7 @@ namespace WalkerProcessor {
             }
                 
 
-            if (dodge_projectile_extra_dangerous && dodge_projectile_extra_dangerous_last_direction != dodge_direction)
+            if ((dodge_projectile_extra_dangerous || dodge_projectile_try_to_keep_one_direction) && dodge_projectile_extra_dangerous_last_direction != dodge_direction)
             {
                 if (dodge_projectile_extra_dangerous_last_direction >= 0 && dodge_projectile_extra_dangerous_last_direction <= 7)
                     if (MiscThings::getbit(dodge_projectile_allowed_dirs, dodge_projectile_extra_dangerous_last_direction))
@@ -7407,7 +7421,7 @@ namespace WalkerProcessor {
                     dodge_projectile_extra_dangerous_last_direction = dodge_direction; //remember current direction so it tries to do same direction on next try
             }
             else
-                if (!dodge_projectile_extra_dangerous)
+                if (!(dodge_projectile_extra_dangerous || dodge_projectile_try_to_keep_one_direction))
                     dodge_projectile_extra_dangerous_last_direction = -1;
 
 
@@ -7488,6 +7502,7 @@ namespace WalkerProcessor {
             //else
             //    dodge_direction = 0;
             dodge_projectile_extra_dangerous = false;
+            dodge_projectile_try_to_keep_one_direction = false;
             dodge_melee_mode = false; //so it doesnt block attack_target's attempt to come closer
             dodge_melee_mode_enemy_long_reach = false;
             dodge_melee_is_dragon = false;
@@ -19232,6 +19247,7 @@ namespace WalkerProcessor {
                         else
                         {
                             dodge_projectile_extra_dangerous = false;
+                            dodge_projectile_try_to_keep_one_direction = false;
                             dodge_melee_mode = false;
                             dodge_melee_mode_enemy_long_reach = false;
                             dodge_melee_is_dragon = false;
@@ -19278,7 +19294,15 @@ namespace WalkerProcessor {
                 }
             }
 
-
+            if (projectile_dir == RE::NiPoint3::Zero() && do_universal_dodging)
+            {
+                auto camera = RE::PlayerCamera::GetSingleton();
+                if (camera && camera->cameraRoot)
+                {
+                    projectile_dir = camera->cameraRoot->world.rotate.GetVectorY();
+                    dodge_projectile_try_to_keep_one_direction = true;
+                }
+            }
 
 
             if (projectile_dir != RE::NiPoint3::Zero())
@@ -19297,11 +19321,14 @@ namespace WalkerProcessor {
 
                     if (delta_dodge_info > 5.0f)
                     {
-                        if (MiscThings::coinflip() && MiscThings::coinflip())
-                            if (MiscThings::coinflip())
-                                send_random_context("You are dodging...", true);
-                            else
-                                send_random_context("You are evading attack...", true);
+                        if (dodge_projectile_try_to_keep_one_direction)
+                            send_random_context("You are trying to get away from burning Apocrypha Water", true);
+                        else
+                            if (MiscThings::coinflip() && MiscThings::coinflip())
+                                if (MiscThings::coinflip())
+                                    send_random_context("You are dodging...", true);
+                                else
+                                    send_random_context("You are evading attack...", true);
 
                         last_dodge_info_timestamp = now;
                     }

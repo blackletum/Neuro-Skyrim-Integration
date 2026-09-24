@@ -5,7 +5,7 @@
 #include "Observer.hpp"
 #include "Misc.hpp"
 #include "main.hpp"
-
+#include "ApocryphaRedirects.hpp"
 
 namespace Observer {
 
@@ -6525,8 +6525,6 @@ namespace Observer {
 		//MiscThings::friendly_fire_test(true, nullptr);
 
 
-
-		
 		//RE::TESObjectREFR* test_hound = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x10d418);
 		RE::TESObjectREFR* test_hound = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1bcee);
 		if (test_hound)
@@ -8204,6 +8202,55 @@ namespace Observer {
 						}
 					}
 
+
+
+					if (Apocrypha::in_apocrypha())
+					{
+						//auto effect_list = player->GetActiveEffectList();
+
+						bool water_damage_active = false;
+
+						RE::TESCondition condition{};
+						RE::TESConditionItem condition_item{};
+						condition.head = &condition_item;
+						condition.head->data.functionData.function = RE::FUNCTION_DATA::FunctionID::kIsInDangerousWater;
+						auto handle = player->GetHandle();
+						condition.head->data.runOnRef = handle;
+						condition.head->data.comparisonValue.f = 1.0;
+						condition.head->data.comparisonValue.g = nullptr;
+						condition.head->data.flags.opCode = RE::CONDITION_ITEM_DATA::OpCode::kEqualTo;
+						water_damage_active = !condition.IsTrue(player, player);
+						condition.head = nullptr;
+
+
+						/*
+						if (effect_list)
+						{
+							for (auto effect : *effect_list)
+							{
+								if (effect && effect->spell && effect->spell->formID == 0x402a6cb) //apocrypha water damage
+								{
+									if (effect->conditionStatus && !effect->flags.any(RE::ActiveEffect::Flag::kInactive))
+										water_damage_active = true;
+									
+									break;
+								}
+							}
+						}
+						*/
+
+						bool needs_dodging = false;
+
+						if (water_damage_active)
+						{
+							if (MiscThings::player_hp_less_than(50.0f))
+							{
+								needs_dodging = true;
+							}
+						}
+
+						WalkerProcessor::set_universal_dodging(needs_dodging);
+					}
 
 
 

@@ -13,6 +13,9 @@ namespace WalkerProcessor {
 		RE::NiPoint3 bounds;
 	};
 
+
+	void set_universal_dodging(bool set);
+
 	void processor(float dtime);
 	void lower_processor(float dtime);
 
