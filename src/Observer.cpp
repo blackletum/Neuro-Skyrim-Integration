@@ -1539,7 +1539,7 @@ namespace Observer {
 
 					auto attackers = MiscThings::get_player_attackers(true, nullptr, false, 5000.0f); //initially trigger with 5k max
 
-					if ((std::size(attackers) > 0 || first_detected_threat_is_valid) && !dont_check_threats)
+					if ((std::size(attackers) > 0 || first_detected_threat_is_valid) && !dont_check_threats && !WalkerProcessor::is_walking_important_path())
 					{
 						no_threats_timer = 0.0f;
 						if (!WalkerProcessor::is_fighting() && !MiscThings::have_force_only_menu_open())
@@ -8208,19 +8208,7 @@ namespace Observer {
 					{
 						//auto effect_list = player->GetActiveEffectList();
 
-						bool water_damage_active = false;
 
-						RE::TESCondition condition{};
-						RE::TESConditionItem condition_item{};
-						condition.head = &condition_item;
-						condition.head->data.functionData.function = RE::FUNCTION_DATA::FunctionID::kIsInDangerousWater;
-						auto handle = player->GetHandle();
-						condition.head->data.runOnRef = handle;
-						condition.head->data.comparisonValue.f = 1.0;
-						condition.head->data.comparisonValue.g = nullptr;
-						condition.head->data.flags.opCode = RE::CONDITION_ITEM_DATA::OpCode::kEqualTo;
-						water_damage_active = !condition.IsTrue(player, player);
-						condition.head = nullptr;
 
 
 						/*
@@ -8238,6 +8226,8 @@ namespace Observer {
 							}
 						}
 						*/
+
+						bool water_damage_active = MiscThings::IsInDangerousWater(player);
 
 						bool needs_dodging = false;
 

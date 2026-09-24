@@ -1009,9 +1009,9 @@ namespace Apocrypha {
 
         RE::TESObjectREFR* bridge2_bottom = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4037c03);
 
-        if (bridge2_bottom && MiscThings::two_state_activator_state(bridge2_bottom) == 0)
-            if (inside_book2_zone3_segment2_bottom(point))
-                return true; //blend these zones together if bridge is down
+        //if (bridge2_bottom && MiscThings::two_state_activator_state(bridge2_bottom) == 0)
+        //    if (inside_book2_zone3_segment2_bottom(point))
+        //        return true; //blend these zones together if bridge is down
 
 
 
@@ -1691,6 +1691,7 @@ namespace Apocrypha {
                         custom_path_end = bus_station1;
                         action_after_custom_path_end = -999;
 
+                        
                         result.custom_path = ApocryphaCustomPaths::template_path;
                         result.target = dummy;
                         result.interaction = 1;
@@ -1768,12 +1769,39 @@ namespace Apocrypha {
 
                     return result;
                 }
+                else
+                {
+                    //that bridge is unpathfindable. custom path
+
+                    result.action = 2; //initiate
+                    result.dont_save_interaction = false;
+                    result.dont_save_target = false;
+
+                    ApocryphaCustomPaths::template_path.clear();
+                    ApocryphaCustomPaths::template_path.push_back({4268.55615, 14553.2910, -683.580505 });
+                    ApocryphaCustomPaths::template_path.push_back({3917.24805, 13157.4756, -405.273163 });
+
+                    dummy->MoveTo(player);
+                    MiscThings::SetPosition_moveto(dummy, { 3917.24805, 13157.4756, -405.273163 });
+
+                    result.custom_path = ApocryphaCustomPaths::template_path;
+                    result.target = dummy;
+
+                    check_custom_path_end = true;
+                    custom_path_end = { 3917.24805, 13157.4756, -405.273163 };
+                    action_after_custom_path_end = -999;
+
+                    result.append_to_normal_path = true;
+
+                    result.interaction = 1;
+                    return result;
+                }
             }
             else
             {
                 if (inside_book2_zone3_segment1(player_pos) && !inside_book2_zone3_segment1(target_pos))
                 {
-                    if (inside_book2_zone3_segment2_top(target_pos) || (inside_book2_zone3_segment2_bottom(target_pos) && MiscThings::two_state_activator_state(bridge2_bottom) != 0))
+                    if (inside_book2_zone3_segment2_top(target_pos) || (inside_book2_zone3_segment2_bottom(target_pos)))// && MiscThings::two_state_activator_state(bridge2_bottom) != 0))
                     {
                         if (player_pos.GetDistance(bus_station1) > 100.0f)
                         {

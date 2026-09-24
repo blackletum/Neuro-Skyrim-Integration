@@ -2,6 +2,28 @@
 /* useful stuff
 
 
+//tescondition manual construction, can be replaced with different variant (see IsInDangerousWater form MiscThings)
+
+                        bool water_damage_active = false;
+
+                        RE::TESCondition condition{};
+                        RE::TESConditionItem condition_item{};
+                        condition.head = &condition_item;
+                        condition.head->data.functionData.function = RE::FUNCTION_DATA::FunctionID::kIsInDangerousWater;
+                        auto handle = player->GetHandle();
+                        condition.head->data.runOnRef = handle;
+                        condition.head->data.comparisonValue.f = 1.0;
+                        condition.head->data.comparisonValue.g = nullptr;
+                        condition.head->data.flags.opCode = RE::CONDITION_ITEM_DATA::OpCode::kEqualTo;
+                        water_damage_active = !condition.IsTrue(player, player);
+                        condition.head = nullptr;
+
+
+
+
+
+
+
 //hand-raycasting before finalize
 
 

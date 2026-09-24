@@ -4132,6 +4132,20 @@ namespace MiscThings {
 
 
 
+    bool IsInDangerousWater(RE::TESObjectREFR* object)
+    {
+        static RE::SCRIPT_FUNCTION* function = RE::SCRIPT_FUNCTION::GetFirstScriptCommand() + std::to_underlying(RE::FUNCTION_DATA::FunctionID::kIsInDangerousWater);
+
+        double out = 0.0;
+
+        if (function)
+        {
+            function->conditionFunction(object, nullptr, nullptr, out);
+        }
+        
+        return out;
+    }
+
 
 
     bool object_is_on_navmesh_in_cell(RE::NiPoint3 object_pos, RE::TESObjectCELL* cell, bool skip_water)

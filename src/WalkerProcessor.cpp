@@ -13,6 +13,7 @@
 
 namespace WalkerProcessor {
 
+    float custom_path_timeout = 0.0f;
 
     bool do_universal_dodging = false;
 
@@ -3021,6 +3022,9 @@ namespace WalkerProcessor {
         if (runaway_mode || fight_versus_dangerous_mage_power_attack_if_possible)
             return true;
 
+        if (MiscThings::is_werewolf() && interaction_after_walk == 3)
+            return true;
+
         if (do_jumps)
             return false;
 
@@ -5714,7 +5718,7 @@ namespace WalkerProcessor {
     float vampirelord_coef_attack = 1.8f;
     float vampirelord_coef_normal = 0.0f;
 
-    float dodge_coef_pathpoint = 3.5f;
+    float dodge_coef_pathpoint = 7.0f;
 
 
 
@@ -6269,6 +6273,8 @@ namespace WalkerProcessor {
 
     void reset_walker()
     {
+        custom_path_timeout = 0.0f;
+
         dragon_lock_timer = 0.0f;
         dragon_attack_timer = 0.0f;
 
@@ -13147,7 +13153,7 @@ namespace WalkerProcessor {
                             }
                             else
                                 if (MiscThings::is_werewolf())
-                                    result = 1.0f;
+                                    result = 0.4f;
                         }
             }
 
@@ -13628,7 +13634,12 @@ namespace WalkerProcessor {
     bool attack_target(float dtime)
     {
         if ((MiscThings::is_werewolf() || MiscThings::is_vampirelord()) && MiscThings::killcam_active())
+        {
+            auto camera = RE::PlayerCamera::GetSingleton();
+
             return false; //wait for it (this doesnt fix anything unfortunately)
+        }
+            
 
         if (MiscThings::is_on_dragon())
         {
@@ -13928,6 +13939,15 @@ namespace WalkerProcessor {
         auto player_ref = player->AsReference();
         auto player_actor = (RE::Actor*)player_ref;
 
+        
+        /*
+        if (MiscThings::is_werewolf())
+        {
+            try_power_attack = false;
+            attack_action = 0;
+            try_dual_attack = false;
+        }
+        */
 
         if (target_ref && target_ref->formID == 0x7121d4f) //landing marker
             return false;
@@ -14819,28 +14839,56 @@ namespace WalkerProcessor {
                                             float powerattack_threshold = 0.2f;
 
                                             if (MiscThings::is_werewolf())
-                                                powerattack_threshold = 0.01f;
-
-
-                                            if ((attack_action_time0 < get_attack_time(true) * powerattack_threshold || attack_action_time0 > get_attack_time(true) * 0.9f))
                                             {
-                                                right_attack();
+                                                //right_attack_bow(); //DID KILLCAM NORMALLY?
+                                                if ((attack_action_time0 <= 0.0f))// || attack_action_time0 > get_attack_time(true) * 0.90f))
+                                                {
+                                                    right_attack();
+                                                    if (try_dual_attack && dualhanding_two_weapons)
+                                                        left_attack();
+                                                }
+                                                else
+                                                {
+                                                    right_power_attack();
+                                                    if (try_dual_attack && dualhanding_two_weapons)
+                                                        left_power_attack();
+                                                }
+                                            }
+                                            else
+                                            {
+                                                if ((attack_action_time0 < get_attack_time(true) * powerattack_threshold || attack_action_time0 > get_attack_time(true) * 0.9f))
+                                                {
+                                                    right_attack();
+                                                    if (try_dual_attack && dualhanding_two_weapons)
+                                                        left_attack();
+                                                }
+                                                else
+                                                {
+                                                    right_power_attack();
+                                                    if (try_dual_attack && dualhanding_two_weapons)
+                                                        left_power_attack();
+                                                }
+                                            }
+
+
+                                        }
+                                        else
+                                        {
+                                            if (MiscThings::is_werewolf())
+                                            {
+                                                right_attack_bow();
                                                 if (try_dual_attack && dualhanding_two_weapons)
-                                                    left_attack();
+                                                    left_attack_bow();
 
                                             }
                                             else
                                             {
-                                                right_power_attack();
+                                                right_attack();
                                                 if (try_dual_attack && dualhanding_two_weapons)
-                                                    left_power_attack();
+                                                    left_attack();
                                             }
-                                        }
-                                        else
-                                        {
-                                            right_attack();
-                                            if (try_dual_attack && dualhanding_two_weapons)
-                                                left_attack();
+
+
                                         }
                                             
                                     }
@@ -15483,26 +15531,52 @@ namespace WalkerProcessor {
                                         float powerattack_threshold = 0.2f;
 
                                         if (MiscThings::is_werewolf())
-                                            powerattack_threshold = 0.01f;
+                                        {
+                                            if ((attack_action_time1 <= 0.0f))
+                                            {
+                                                left_attack();
+                                                if (try_dual_attack && dualhanding_two_weapons)
+                                                    right_attack();
+                                            }
+                                            else
+                                            {
+                                                left_power_attack();
+                                                if (try_dual_attack && dualhanding_two_weapons)
+                                                    right_power_attack();
+                                            }
+                                        }
+                                        else
+                                        {
+                                            if ((attack_action_time1 < get_attack_time(false) * powerattack_threshold || attack_action_time1 > get_attack_time(false) * 0.9f))
+                                            {
+                                                left_attack();
+                                                if (try_dual_attack && dualhanding_two_weapons)
+                                                    right_attack();
+                                            }
+                                            else
+                                            {
+                                                left_power_attack();
+                                                if (try_dual_attack && dualhanding_two_weapons)
+                                                    right_power_attack();
+                                            }
+                                        }
 
-                                        if ((attack_action_time1 < get_attack_time(false) * powerattack_threshold || attack_action_time1 > get_attack_time(false) * 0.9f))
+                                    }
+                                    else
+                                    {
+                                        if (MiscThings::is_werewolf())
+                                        {
+                                            left_attack_bow();
+                                            if (try_dual_attack && dualhanding_two_weapons)
+                                                right_attack_bow();
+                                        }
+                                        else
                                         {
                                             left_attack();
                                             if (try_dual_attack && dualhanding_two_weapons)
                                                 right_attack();
                                         }
-                                        else
-                                        {
-                                            left_power_attack();
-                                            if (try_dual_attack && dualhanding_two_weapons)
-                                                right_power_attack();
-                                        }
-                                    }
-                                    else
-                                    {
-                                        left_attack();
-                                        if (try_dual_attack && dualhanding_two_weapons)
-                                            right_attack();
+
                                     }
 
 
@@ -18980,7 +19054,6 @@ namespace WalkerProcessor {
 
 	void processor(float dtime)
 	{
-
         auto player = RE::PlayerCharacter::GetSingleton();
 
         //MiscThings::friendly_fire_test(true);
@@ -18993,6 +19066,19 @@ namespace WalkerProcessor {
         //if (target_ref)
         //    bool test = MiscThings::actor_has_ward_equipped(target_ref);
 
+
+        if (is_walking_important_path())
+        {
+            if (custom_path_timeout > 100.0f)
+            {
+                reset_walker();
+                return;
+            }
+            else
+                custom_path_timeout += dtime;
+        }
+        else
+            custom_path_timeout = 0.0f;
 
 
         if (emergency_swim_up)
@@ -19085,7 +19171,7 @@ namespace WalkerProcessor {
 
 
 
-        if (Observer::get_keep_distance_mode() && interaction_after_walk == 3 && target_ref && !shout_mode && !spell_mode && !using_custom_path)
+        if (Observer::get_keep_distance_mode() && interaction_after_walk == 3 && target_ref && !shout_mode && !spell_mode && !is_walking_important_path())
         {
             //switch to nearest enemy if we are in keep-distance mode. necessary for better keep distance combat in case initial target hides behind other enemies
 
@@ -19120,7 +19206,7 @@ namespace WalkerProcessor {
 
 
 
-        if (!using_custom_path && !has_ritual_spell_equipped() && !MiscThings::have_force_only_menu_open() && !is_casting_ult() && !RE::UI::GetSingleton()->IsMenuOpen(RE::TweenMenu::MENU_NAME) && !RE::UI::GetSingleton()->IsMenuOpen(RE::LevelUpMenu::MENU_NAME) && !RE::UI::GetSingleton()->IsMenuOpen(RE::StatsMenu::MENU_NAME))
+        if (!is_walking_important_path() && !has_ritual_spell_equipped() && !MiscThings::have_force_only_menu_open() && !is_casting_ult() && !RE::UI::GetSingleton()->IsMenuOpen(RE::TweenMenu::MENU_NAME) && !RE::UI::GetSingleton()->IsMenuOpen(RE::LevelUpMenu::MENU_NAME) && !RE::UI::GetSingleton()->IsMenuOpen(RE::StatsMenu::MENU_NAME))
         {
             //dodging
 
@@ -21096,6 +21182,16 @@ namespace WalkerProcessor {
 
                         if (!apocrypha_redirects.dont_save_id)
                             current_apocrypha_id = apocrypha_redirects.id;
+
+
+
+                        //experimental universal override
+                        if (apocrypha_redirects.append_to_normal_path)
+                        {
+                            ban_custom_path_interrupt_after_append = true; //this means "ONLY" after append
+                        }
+
+
 
                         current_apocrypha_action = apocrypha_redirects.action;
                         return;
