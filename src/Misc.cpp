@@ -3759,6 +3759,11 @@ namespace MiscThings {
             switch (target->formID)
             {
 
+            case (0x40345c7): //dlc2 morag tong fort, chains behind walls. sometimes close_enoughs from other side of wall
+            case (0x40345c9):
+            case (0x4034635):
+                return 70.0f;
+
             case (0x83041): //boethias altar
                 return 200.0f;
 
@@ -5405,9 +5410,10 @@ namespace MiscThings {
             {0x4018291, 2, "Tavern [Provides bed, jobs and food/booze]", 2}, //tavern
             {0x40182a2, 3, "Alchemist [Provides potions and ingredients. Probably has alchemist table]", 3}, //alchemist
             {0x401828f, 4, "Blacksmith [Weapons, armor, materials for crafting. Might have crafting workbenches around]", 4}, //blacksmith
-            {0x4017ef1, 7, "Temple [Has shrines]", 8}, //church
+            {0x4017ef1, 7, "Temple [Has shrines]", 5}, //church
             {0x401827f, 5, "First Councilor (Village boss)", 6}, //
-            {0x4018281, 11, "Second Councilor", 9}  //
+            {0x4018281, 11, "Second Councilor", 7},  //
+            {0x4017ef7, 8, "Severin Manor [Your house]", 8} //
         }
 
     }
@@ -5834,6 +5840,7 @@ namespace MiscThings {
                     case (0x4017ec0): //raven rock tavern
                     case (0x4017ec3): //raven rock temple
                     case (0x4017ec1): //raven rock jarls house
+                    case (0x4017ebe): //raven rock house
                     {
                         auto settlement_worldspace = settlements.find(0x400eeb5);
 
@@ -6017,6 +6024,7 @@ namespace MiscThings {
                     case (0x4017ec0): //raven rock tavern
                     case (0x4017ec3): //raven rock temple
                     case (0x4017ec1): //raven rock jarls house
+                    case (0x4017ebe): //raven rock house
 
                     case (0x165a3): //whiterun palace1
                     case (0x80c6a): //whiterun palace2
@@ -6134,7 +6142,7 @@ namespace MiscThings {
                     case (0x4017ec0): //raven rock tavern
                     case (0x4017ec3): //raven rock temple
                     case (0x4017ec1): //raven rock jarls house
-
+                    case (0x4017ebe): //raven rock house
 
                     case (0x165a3): //whiterun palace1
                     case (0x80c6a): //whiterun palace2
@@ -6325,17 +6333,38 @@ namespace MiscThings {
                 }
                 else
                 {
-                    bool locked = false;
-
                     if (mode == 8)
                     {
-                        if (WalkerProcessor::is_door(object))
-                            if (MiscThings::is_door_locked(object))
-                                locked = true;
+                        if (object && object->formID == 0x4017ef7) //raven rock house. is unlocked before we get it. special check
+                        {
+                            auto parent_cell = RE::PlayerCharacter::GetSingleton();
+                            if (parent_cell && parent_cell->formID != 0x4017ebe) //dont give outside door as interesting place if we are inside
+                            {
+                                auto DLC2RR02_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("DLC2RR02");
+                                if (DLC2RR02_quest && DLC2RR02_quest->currentStage >= 200)
+                                    return true;
+                            }
+                            
+                            return false;
+                        }
+                        else
+                        {
+                            //TODO add actual id check. replace with switch case when more houses are added.
+                            auto parent_cell = RE::PlayerCharacter::GetSingleton();
+                            if (parent_cell && parent_cell->formID != 0x165a8) //dont give outside door as interesting place if we are inside
+                            {
+                                if (WalkerProcessor::is_door(object))
+                                    if (!MiscThings::is_door_locked(object))
+                                        return true;
+                            }
+
+                            return false;
+                        }
+
 
                     }
 
-                    return !locked;
+                    return true;
                 }
                     
             }
@@ -9064,6 +9093,35 @@ namespace MiscThings {
         if (target)
         {
             auto target_pos = target->GetPosition();
+
+
+            if (parent_cell && parent_cell->formID == 0x401be37) //dlc2 morag tong fort served cold quest
+            {
+                if (player_pos.y > -4644.5f && target_pos.y <= -4644.5f)
+                {
+                    auto gate1 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4034643);
+                    auto gate2 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x403463e);
+
+                    if (gate1 && gate2 && (MiscThings::two_state_activator_state(gate1) == 1 || MiscThings::two_state_activator_state(gate2) == 1))
+                    {
+                        auto redirect = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x403696d);
+                        if (redirect)
+                            return redirect;
+                    }
+                }
+
+                if (player_pos.y > -6603.0f && target_pos.y <= -6603.0f)
+                {
+                    auto gate1 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x40345b7);
+
+                    if (gate1 && MiscThings::two_state_activator_state(gate1) == 1)
+                    {
+                        auto redirect = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x40345d1);
+                        if (redirect)
+                            return redirect;
+                    }
+                }
+            }
 
 
             //geirmund hall
@@ -15801,10 +15859,74 @@ namespace MiscThings {
                     break;
                 }
 
+                case (0x40346de): //dlc2 morag tong fort, served cold quest. final gate
+                {
+                    auto handle = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4034635); //bowl
 
+                    if (handle)
+                    {
+                        if (!MiscThings::is_object_in_the_list(handle))
+                        {
+                            auto temp_result = MiscThings::insert_object_into_list_and_get_info(handle);
 
+                            if (temp_result != "")
+                                send_random_context("You see: " + temp_result, false);
+                        }
+                    }
+                    break;
+                }
             }
             
+
+
+            if (object->formID >= 0x403456e && object->formID <= 0x4034581) //dlc2 morag tong fort, served cold quest. blocking bars
+            {
+                auto handle = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x40345c7); //chain
+
+                if (handle)
+                {
+                    if (!MiscThings::is_object_in_the_list(handle))
+                    {
+                        auto temp_result = MiscThings::insert_object_into_list_and_get_info(handle);
+
+                        if (temp_result != "")
+                            send_random_context("You see: " + temp_result, false);
+                    }
+                }
+            }
+
+            if (object->formID >= 0x403463a && object->formID <= 0x403464b) //dlc2 morag tong fort, served cold quest. blocking bars 2
+            {
+                auto handle = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x40345c8); //chain1
+
+                if (handle)
+                {
+                    if (!MiscThings::is_object_in_the_list(handle))
+                    {
+                        auto temp_result = MiscThings::insert_object_into_list_and_get_info(handle);
+
+                        if (temp_result != "")
+                            send_random_context("You see: " + temp_result, false);
+                    }
+                }
+            }
+
+            if (object->formID >= 0x40345b1 && object->formID <= 0x40345c4) //dlc2 morag tong fort, served cold quest. blocking bars 3
+            {
+                auto handle = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x40345c9); //chain1
+
+                if (handle)
+                {
+                    if (!MiscThings::is_object_in_the_list(handle))
+                    {
+                        auto temp_result = MiscThings::insert_object_into_list_and_get_info(handle);
+
+                        if (temp_result != "")
+                            send_random_context("You see: " + temp_result, false);
+                    }
+                }
+            }
+
 
 
         }
@@ -24390,9 +24512,16 @@ namespace MiscThings {
                     name = "Large Treasure Dwemer Chest";
                 }
 
-
-                if (refr->formID == 0xf3922) //whiterun house chest
+                                    //whiterun            
+                if (refr->formID == 0xf3922) //house chests
                     name = "Your storage chest";
+
+                if (refr->formID == 0x4036ef2) //raven rock house chest
+                {
+                    auto DLC2RR02_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("DLC2RR02");
+                    if (DLC2RR02_quest && DLC2RR02_quest->currentStage >= 200)
+                        name = "Your storage chest";
+                }
             }
 
             if (base_type == RE::FormType::Container && name == "Draugr")
@@ -33702,80 +33831,109 @@ namespace MiscThings {
                     }
 
 
-                    if (player_cell && player_cell->formID == 0xa5a71) //geirmund hall
+                    if (player_cell)
                     {
-                        bool player_inside_badroom = is_inside_geirmund_hall_multilevel_room(player);
-                        bool object_inside_badroom = is_inside_geirmund_hall_multilevel_room(a_ref);
-
-                        bool player_low_level = player_pos.z < -800.0f;
-                        bool object_low_level = a_ref->GetPositionZ() < -800.0f;
-
-                        if (player_inside_badroom || object_inside_badroom)
+                        switch (player_cell->formID)
                         {
-                            if (player_low_level)
+                        case (0xa5a71): //geirmund hall
+                        {
+                            bool player_inside_badroom = is_inside_geirmund_hall_multilevel_room(player);
+                            bool object_inside_badroom = is_inside_geirmund_hall_multilevel_room(a_ref);
+
+                            bool player_low_level = player_pos.z < -800.0f;
+                            bool object_low_level = a_ref->GetPositionZ() < -800.0f;
+
+                            if (player_inside_badroom || object_inside_badroom)
                             {
-                                if (object_inside_badroom)
+                                if (player_low_level)
                                 {
-                                    if (!object_low_level)
-                                        return RE::BSContainer::ForEachResult::kContinue; //player inside low level of the room, target is in upper level badroom. skip
+                                    if (object_inside_badroom)
+                                    {
+                                        if (!object_low_level)
+                                            return RE::BSContainer::ForEachResult::kContinue; //player inside low level of the room, target is in upper level badroom. skip
+                                        else
+                                            ;//player inside low level of the room, target is also there. accept
+                                    }
                                     else
-                                        ;//player inside low level of the room, target is also there. accept
+                                    {
+                                        if (player_inside_badroom)
+                                            return RE::BSContainer::ForEachResult::kContinue; //player inside low level of the room, target is not in the room. skip
+                                        else
+                                            ;//player not in the room and object is not in the room. accept
+                                    }
                                 }
                                 else
                                 {
+                                    //player inside high level of room
                                     if (player_inside_badroom)
-                                        return RE::BSContainer::ForEachResult::kContinue; //player inside low level of the room, target is not in the room. skip
-                                    else
-                                        ;//player not in the room and object is not in the room. accept
-                                }
-                            }
-                            else
-                            {
-                                //player inside high level of room
-                                if (player_inside_badroom)
-                                {
-                                    if (!object_low_level)
                                     {
-                                        //target is also in high level. need to check bridges.
-                                        if (a_ref->GetPosition().GetDistance({ -2066.37769, -2157.45752, -643.189331 }) < 400.0f)
+                                        if (!object_low_level)
                                         {
-                                            //object is between bridges. check only first bridge.
-                                            auto bridge1 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xa5dd6);
-                                            if (bridge1 && MiscThings::two_state_activator_state(bridge1) == 0)
-                                                return RE::BSContainer::ForEachResult::kContinue; //bridge is up, cant reach enemy
-                                            else
-                                                ;//bridge is down, accept
-                                        }
-                                        else
-                                        {
-                                            if (a_ref->GetPositionY() > -2157.0f)
+                                            //target is also in high level. need to check bridges.
+                                            if (a_ref->GetPosition().GetDistance({ -2066.37769, -2157.45752, -643.189331 }) < 400.0f)
                                             {
-                                                //target is not between bridges. object is behind bridges. check both bridges
-
+                                                //object is between bridges. check only first bridge.
                                                 auto bridge1 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xa5dd6);
-                                                auto bridge2 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xa5dd3);
-
-                                                if (bridge1 && bridge2 && (MiscThings::two_state_activator_state(bridge1) == 0 || MiscThings::two_state_activator_state(bridge2) == 0))
-                                                    return RE::BSContainer::ForEachResult::kContinue; //both bridges are up. cant reach
+                                                if (bridge1 && MiscThings::two_state_activator_state(bridge1) == 0)
+                                                    return RE::BSContainer::ForEachResult::kContinue; //bridge is up, cant reach enemy
                                                 else
-                                                    ;//both bridges are down. accept
+                                                    ;//bridge is down, accept
                                             }
                                             else
                                             {
-                                                ;//target is before both bridges. accept
+                                                if (a_ref->GetPositionY() > -2157.0f)
+                                                {
+                                                    //target is not between bridges. object is behind bridges. check both bridges
+
+                                                    auto bridge1 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xa5dd6);
+                                                    auto bridge2 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xa5dd3);
+
+                                                    if (bridge1 && bridge2 && (MiscThings::two_state_activator_state(bridge1) == 0 || MiscThings::two_state_activator_state(bridge2) == 0))
+                                                        return RE::BSContainer::ForEachResult::kContinue; //both bridges are up. cant reach
+                                                    else
+                                                        ;//both bridges are down. accept
+                                                }
+                                                else
+                                                {
+                                                    ;//target is before both bridges. accept
+                                                }
                                             }
                                         }
                                     }
                                 }
                             }
-                        }
-                        else
-                        {
-                            //player not in bad room. but target still can be in it. check that too
-                            if (object_inside_badroom)
+                            else
                             {
-
+                                //player not in bad room. but target still can be in it. check that too
+                                if (object_inside_badroom)
+                                {
+                                    ;//this is empty for some reason. double check when possible (probably fine and replaced with object_inside_badroom as OR for player_inside_badroom
+                                }
                             }
+                            break;
+                        }
+
+                        case (0x401be37)://dlc2 morag tong fort, served cold quest. blocking bars (beginning)
+                        {
+                            auto object_pos = a_ref->GetPosition();
+
+                            if (player_pos.y >= -3091.4f && object_pos.y < -3091.4f)
+                            {
+                                auto bar_blocking = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x403456e);
+                                if (bar_blocking && MiscThings::two_state_activator_state(bar_blocking) == 1)
+                                    return RE::BSContainer::ForEachResult::kContinue;
+                            }
+
+                            if (player_pos.y >= -7158.8f && object_pos.y < -7158.8f)
+                            {
+                                auto gate_blocking = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x40346de);
+                                if (gate_blocking && MiscThings::two_state_activator_state(gate_blocking) == 1)
+                                    return RE::BSContainer::ForEachResult::kContinue;
+                            }
+
+                            break;
+                        }
+
                         }
 
                     }
@@ -34555,7 +34713,10 @@ namespace MiscThings {
 
             if (base_type == RE::FormType::Container)
             {
-                return !MiscThings::is_container_empty(a_ref);
+                if (a_ref->formID == 0xf3922 || a_ref->formID == 0x4036ef2)
+                    return true;
+                else
+                    return !MiscThings::is_container_empty(a_ref);
             }
 
         }
@@ -35090,6 +35251,10 @@ namespace MiscThings {
         std::string last_name = "";
         bool has_last = false;
 
+        auto parent_cell = player->GetParentCell();
+
+        bool allow_faraways_interior = parent_cell && parent_cell->formID == 0x4017ebe;
+
         for (auto object : local_copy)
         {
             auto this_object = object.second.object;
@@ -35124,7 +35289,7 @@ namespace MiscThings {
 
 
                     bool no_faraways = false;
-                    if ((is_interior_cell() || MiscThings::in_madman_head()) && !Apocrypha::in_apocrypha()) //sheogorath world, no faraways
+                    if ((is_interior_cell() || MiscThings::in_madman_head()) && !Apocrypha::in_apocrypha() && !allow_faraways_interior) //sheogorath world, no faraways
                     {
                         std::string probe_name = insert_object_into_list_and_get_info(this_object);
 

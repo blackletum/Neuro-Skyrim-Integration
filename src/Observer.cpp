@@ -2456,6 +2456,29 @@ namespace Observer {
 							//	continue;
 							//}
 
+							if (a_ref->formID == 0x4036ef2 || a_ref->formID == 0x403bd9e) //raven rock house chest and bed
+							{
+								if (!MiscThings::is_object_in_the_list(a_ref))
+								{
+									bool locked = true;
+
+									auto DLC2RR02_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("DLC2RR02");
+									if (DLC2RR02_quest && DLC2RR02_quest->currentStage >= 200)
+										locked = false;
+									else
+										locked = true;
+
+									if (!locked)
+									{
+										std::string info = MiscThings::insert_object_into_list_and_get_info(a_ref);
+										if (info != "")
+											interesting_buffer.insert_or_assign(a_ref, info);
+									}
+
+								}
+							}
+
+
 
 							if (a_ref->formID == 0xfe472 || a_ref->formID == 0x4a39d) //ebony blade and book next to it. make it lower range
 							{
@@ -3212,28 +3235,33 @@ namespace Observer {
 													// 
 													//if (actor->IsGhost())
 													{
-														std::string info = MiscThings::insert_object_into_list_custom_name(" Ghost", a_ref);
-														if (info != "")
+
+														if (!(player->parentCell && player->parentCell->formID == 0x4017ebe)) //exclude raven rock house. it has some ghosts (???)
 														{
-															//give it immidiately
-															send_random_context("You see: " + info, false);
-
-
-															auto ghost_shouting_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("MQ105");
-
-															if (ghost_shouting_quest)
+															std::string info = MiscThings::insert_object_into_list_custom_name(" Ghost", a_ref);
+															if (info != "")
 															{
-																int quest_stage = ghost_shouting_quest->GetCurrentStageID();
+																//give it immidiately
+																send_random_context("You see: " + info, false);
 
-																if (quest_stage == 85 || quest_stage == 80)
+
+																auto ghost_shouting_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("MQ105");
+
+																if (ghost_shouting_quest)
 																{
-																	active_puzzle = 1;
-																	puzzle_target = a_ref;
-																}
-															}
+																	int quest_stage = ghost_shouting_quest->GetCurrentStageID();
 
+																	if (quest_stage == 85 || quest_stage == 80)
+																	{
+																		active_puzzle = 1;
+																		puzzle_target = a_ref;
+																	}
+																}
+
+															}
+															//interesting_buffer.insert_or_assign(a_ref, info);
 														}
-														//interesting_buffer.insert_or_assign(a_ref, info);
+														
 													}
 												}
 

@@ -15,6 +15,8 @@ namespace ContainerProcessor {
 
 	void reset_pickpocketing();
 
+	bool is_storage_container();
+
 	void reset_container();
 
 };

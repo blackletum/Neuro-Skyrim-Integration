@@ -10361,6 +10361,8 @@ namespace WalkerProcessor {
         }
 
         auto player = RE::PlayerCharacter::GetSingleton();
+        auto parent_cell = player->GetParentCell();
+
 
         if (Apocrypha::inside_book1_bossfight(player))
         {
@@ -10421,8 +10423,6 @@ namespace WalkerProcessor {
             return result;
         }
 
-
-        auto parent_cell = player->GetParentCell();
 
         RE::TESObjectREFR* book3_final = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x401edf7);
         if (parent_cell && parent_cell->formID == 0x401e9a2 && book3_final && player->GetDistance(book3_final) < 500.0f)
@@ -10494,7 +10494,21 @@ namespace WalkerProcessor {
                         //else - find another quest
                         
                     }
-                        
+                    else
+                    {
+                        ;
+                        /* //replaced with proper condition and advice on arrival to marker
+                        if (parent_cell && parent_cell->formID == 0x401f288)
+                        {
+                            if (last_quest_chosen && last_quest_chosen->formID == 0x4018b14) //find clues for assassination quest. need to wait for npc to arrive (at night). give advice
+                            {
+                                result.first = false;
+                                result.second = "You are in Ulen Ancestral Tomb... but you dont see anyone yet. Perhaps, you need to wait until someone arrives...";
+                                return result;
+                            }
+                        }
+                        */
+                    }
                 }
             }
 
@@ -17037,6 +17051,13 @@ namespace WalkerProcessor {
                 if (quest_mode && (target_name == "")) //not guaranteed that insert_object will give us a name
                     target_name = "quest target point";
 
+                if (target_ref && target_ref->formID == 0x401f313) //ancestors tomb dlc2 wait for clue npc.
+                {
+                    reset_walker();
+                    MiscThings::set_darkfall_bridge_after_reached();
+                    send_random_context("You are in Ulen Ancestral Tomb... but you dont see anyone yet. Perhaps, you need to wait until someone arrives...", false);
+                    return "";
+                }
                 if (target_ref && target_ref->formID == 0x7112a46)
                 {
                     reset_walker();

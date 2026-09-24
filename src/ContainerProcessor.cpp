@@ -417,7 +417,7 @@ std::vector<MenuOption> get_items_options()
 		}
 	}
 
-	if (!is_pickpocketing() && has_take_all_button() && !container_store_items_mode)
+	if (!is_pickpocketing() && has_take_all_button() && !container_store_items_mode && !is_storage_container())
 		result.push_back({ -2, "[TAKE ALL]" });
 
 
@@ -1439,14 +1439,14 @@ void process_next_item()
 
 
 
-		if (item_choice == -2 && (is_pickpocketing() || !has_take_all_button()))
+		if (item_choice == -2 && (is_pickpocketing() || !has_take_all_button() || is_storage_container()))
 		{
 			item_choice_valid = false;
 			process_next_item();
 			return;
 		}
 
-		if (item_choice == -2 && has_take_all_button())
+		if (item_choice == -2 && has_take_all_button() && !is_storage_container())
 		{
 			//take all
 			set_universal_block(1.0f);
@@ -1510,7 +1510,7 @@ std::pair<bool, std::string> set_item_choice_array(std::vector<int> ids)
 	//check take all
 	for (auto id : ids)
 	{
-		if (id == -2 && !is_pickpocketing() && has_take_all_button())
+		if (id == -2 && !is_pickpocketing() && has_take_all_button() && !is_storage_container())
 		{
 			set_universal_block(1.0f);
 			ready_weapon();
@@ -1568,7 +1568,7 @@ std::pair<bool, std::string> set_item_choice(int id)
 		return result;
 	}
 
-	if (id == -2 && (container_store_items_mode || is_pickpocketing() || !has_take_all_button()))
+	if (id == -2 && (container_store_items_mode || is_pickpocketing() || !has_take_all_button() || is_storage_container()))
 	{
 		result.first = false;
 		result.second = "Invalid item ID";
@@ -1576,7 +1576,7 @@ std::pair<bool, std::string> set_item_choice(int id)
 	}
 
 
-	if (id == -2 && has_take_all_button())
+	if (id == -2 && has_take_all_button() && !is_storage_container())
 	{
 		//take all
 		
@@ -1902,7 +1902,8 @@ bool is_storage_container()
 			if (container_ref_ptr && container_ref_ptr.get())
 			{
 				auto container_ref = container_ref_ptr.get();
-				if (container_ref->formID == 0xf3922) //whiterun house chest
+																//whiterun							//raven rock dlc2
+				if (container_ref && (container_ref->formID == 0xf3922 || container_ref->formID == 0x4036ef2)) //house chests
 					return true;
 			}
 		}
