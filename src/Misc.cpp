@@ -3759,6 +3759,9 @@ namespace MiscThings {
             switch (target->formID)
             {
 
+            case (0xecec4): //goldur amulet middle pedestal, a bit far away
+                return 110.0f;
+
             case (0x40345c7): //dlc2 morag tong fort, chains behind walls. sometimes close_enoughs from other side of wall
             case (0x40345c9):
             case (0x4034635):
@@ -9121,6 +9124,59 @@ namespace MiscThings {
                             return redirect;
                     }
                 }
+            }
+
+
+
+            //goldur forge quest
+            if (target->formID == 0xe6d43) //quest marker. need to redirect to pedestals or bosses
+            {
+                //first fill all 3 pedestals
+                auto fragment1 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xecebf);
+                auto fragment2 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xecec0);
+                auto fragment3 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xecec1);
+
+                auto pedestal1 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xecec3);
+                auto pedestal2 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xecec4);
+                auto pedestal3 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xecec5);
+
+                auto boss1 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xececc);
+                auto boss2 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xececd);
+                auto boss3 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xecece);
+
+                int quest_stage = quest->currentStage;
+
+                if (fragment1 && fragment2 && fragment3 && pedestal1 && pedestal2 && pedestal3 && boss1 && boss2 && boss3)
+                {
+
+                    if (quest_stage < 150)
+                    {
+                        if (fragment1->IsDisabled())
+                            return pedestal1;
+
+                        if (fragment2->IsDisabled())
+                            return pedestal2;
+
+                        if (fragment3->IsDisabled())
+                            return pedestal3;
+
+                        if (!boss1->IsDisabled() && !boss1->IsDead() && quest_stage == 111)
+                            return boss1;
+
+                        if (!boss2->IsDisabled() && !boss2->IsDead() && quest_stage == 121)
+                            return boss2;
+
+                        if (!boss3->IsDisabled() && !boss3->IsDead() && quest_stage == 131)
+                            return boss3;
+                    }
+                }
+            }
+
+            if (target->formID == 0xecedf) //final goldur amulet floating, bad pathfinding.
+            {
+                auto pedestal2 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xecec4);
+                if (pedestal2)
+                    return pedestal2;
             }
 
 
@@ -34024,7 +34080,7 @@ namespace MiscThings {
         //auto player_pos = player_ref->GetPosition();
 
 
-            bool low_hp_far_condition = player_cell && player_cell->formID == 0xa5a71; //geirmund hall. boss spawns 2 clones with 1 hp. 
+            bool low_hp_far_condition = player_cell && (player_cell->formID == 0xa5a71 || player_cell->formID == 0x15226); //geirmund hall. boss spawns 2 clones with 1 hp. and goldur final battle, same boss
 
 
         std::sort(result.begin(), result.end(), [&](RE::Actor* left, RE::Actor* right) {

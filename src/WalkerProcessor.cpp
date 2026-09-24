@@ -20577,9 +20577,15 @@ namespace WalkerProcessor {
 
                         if ((player_on_pillar1 && !target_on_pillar1) || (player_on_pillar2 && !target_on_pillar2) || target_ref->IsDisabled() || target_ref->IsDead() || close_enough())
                         {
-                            using_custom_path = false;
-                            walk_again();
-                            return;
+                            bool player_in_starting_zone = player->GetPositionX() > -1338.35f && player->GetPositionZ() > -574.0f;
+
+                            if (!player_in_starting_zone) //exit from this cave is using autoloader door mechanism with custom path. must not trigger when we walk to it
+                            {
+                                using_custom_path = false;
+                                walk_again();
+                                return;
+                            }
+
                         }
                     }
                 }
