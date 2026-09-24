@@ -72,7 +72,7 @@
 //more solstheim quests. pirate quest. check what other quests are there. dwemer bow dungeon quest
 
 
-//fix werewolf combat (killcam shit, power attacks have no effect, not attacking sometimes)
+//fix werewolf combat (killcam)
 
 //do something with dodge mechanism going crazy when surrounded by enemies
 

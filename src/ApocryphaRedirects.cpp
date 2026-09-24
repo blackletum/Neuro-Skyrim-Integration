@@ -1009,9 +1009,9 @@ namespace Apocrypha {
 
         RE::TESObjectREFR* bridge2_bottom = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4037c03);
 
-        //if (bridge2_bottom && MiscThings::two_state_activator_state(bridge2_bottom) == 0)
-        //    if (inside_book2_zone3_segment2_bottom(point))
-        //        return true; //blend these zones together if bridge is down
+        if (bridge2_bottom && MiscThings::two_state_activator_state(bridge2_bottom) == 0)
+            if (inside_book2_zone3_segment2_bottom(point))
+                return true; //blend these zones together if bridge is down
 
 
 
@@ -1753,9 +1753,9 @@ namespace Apocrypha {
         if (current_action == 0)
         {
             //getaway from bottom segment2
-            if (inside_book2_zone3_segment2_bottom(player_pos) && !inside_book2_zone3_segment2_bottom(target_pos))
+            if (inside_book2_zone3_segment2_bottom(player_pos) && !inside_book2_zone3_segment2_bottom(target_pos) && MiscThings::two_state_activator_state(bridge2_bottom) != 0)
             {
-                if (MiscThings::two_state_activator_state(bridge2_bottom) != 0)
+                //if (MiscThings::two_state_activator_state(bridge2_bottom) != 0)
                 {
                     //initiation, must be continued because target will change
                     result.action = 1; //initiate
@@ -1769,10 +1769,10 @@ namespace Apocrypha {
 
                     return result;
                 }
-                else
+               // else
                 {
                     //that bridge is unpathfindable. custom path
-
+                    /*
                     result.action = 2; //initiate
                     result.dont_save_interaction = false;
                     result.dont_save_target = false;
@@ -1795,6 +1795,7 @@ namespace Apocrypha {
 
                     result.interaction = 1;
                     return result;
+                    */
                 }
             }
             else

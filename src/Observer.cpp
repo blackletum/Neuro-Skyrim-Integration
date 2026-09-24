@@ -5243,6 +5243,42 @@ namespace Observer {
 													}
 												}
 											}
+											else
+											{
+												if (a_ref->formID == 0x4037d43) //apocrypha book2 4way crossroad with 2 gates. adjust navcut position
+												{
+
+													auto navcut_book2_crossroad = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x7182060);
+
+													if (navcut_book2_crossroad)
+													{
+														//-329.9239 originalZ
+
+														auto navcut_pos = navcut_book2_crossroad->GetPosition();
+
+														if (MiscThings::two_state_activator_state(a_ref) == 1)
+														{
+															if (navcut_pos.z > -200.0f)
+															{
+																auto new_pos = navcut_pos;
+																new_pos.z = -329.9239f;
+
+																MiscThings::SetPosition_moveto(navcut_book2_crossroad, new_pos);
+															}
+														}
+														else
+														{
+															if (navcut_pos.z < -200.0f)
+															{
+																auto new_pos = navcut_pos;
+																new_pos.z = 1000.0f;
+
+																MiscThings::SetPosition_moveto(navcut_book2_crossroad, new_pos);
+															}
+														}
+													}
+												}
+											}
 										}
 
 										if (old_state.pillar_face_code != new_state.pillar_face_code)
