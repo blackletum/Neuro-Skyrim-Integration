@@ -74,6 +74,7 @@
 
 //fix werewolf combat (killcam shit, power attacks have no effect, not attacking sometimes)
 
+//do something with dodge mechanism going crazy when surrounded by enemies
 
 //raised zombies count as enemies sometimes (silver hands for example)
 //check autosave after wait

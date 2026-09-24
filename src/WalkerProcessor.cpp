@@ -8505,6 +8505,18 @@ namespace WalkerProcessor {
                             dont_use_bounds = true;
 
 
+                        //THIS CHECK MIGHT BE BAD. POTENTIALLY WORTH COPYING IT FROM QUEST_MODE VARIANT ABOVE. hard to test if something is going to break
+                        //dont use bound list
+                        switch (target_ref->formID)
+                        {
+                        case (0xed7e7): //goldur treasure chest
+                        {
+                            dont_use_bounds = true;
+                            break;
+                        }
+                        }
+
+
                         if (!dont_use_bounds && !MiscThings::is_cave_autoloader_door(target_ref) && !MiscThings::is_ore(target_ref) && !MiscThings::is_tree(target_ref) && !MiscThings::is_flora(target_ref) && !MiscThings::is_critter(target_ref) && !is_door(target_ref) && (bound_dif.x > 100.0f || bound_dif.y > 100.0f * (1 + MiscThings::is_on_horse() * 3.0f) * (1 + MiscThings::is_werewolf() * werewolf_coef_normal) * (1 + MiscThings::is_vampirelord() * vampirelord_coef_normal)))
                         {
                             if (distance.Length() < (std::max(bound_dif.x, bound_dif.y) + threshold * (1 + MiscThings::is_on_horse() * 3.0f) * (1 + MiscThings::is_werewolf() * werewolf_coef_normal) * (1 + MiscThings::is_vampirelord() * vampirelord_coef_normal)))
@@ -20249,7 +20261,6 @@ namespace WalkerProcessor {
                         }
                     }
                 }
-
 
 
                 if (wait_a_little_before_walking)

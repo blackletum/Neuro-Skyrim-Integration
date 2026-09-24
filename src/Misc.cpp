@@ -3759,6 +3759,9 @@ namespace MiscThings {
             switch (target->formID)
             {
 
+            case (0xed7e7): //goldur dungeon, reward chest. a bit too far beyond navmesh
+                return 300.0f;
+
             case (0xecec4): //goldur amulet middle pedestal, a bit far away
                 return 110.0f;
 
