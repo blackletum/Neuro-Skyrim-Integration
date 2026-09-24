@@ -4972,8 +4972,13 @@ namespace WalkerProcessor {
 
 
         if (MiscThings::is_werewolf())
-            if (speed_koef < 2.0f)
-                speed_koef = 2.0f;
+        {
+            if (speed_koef < 3.0f)
+                speed_koef = 3.0f;
+
+            force_high_precision = false;
+        }
+
 
         auto player = RE::PlayerCharacter::GetSingleton();
 
@@ -13637,6 +13642,31 @@ namespace WalkerProcessor {
         {
             auto camera = RE::PlayerCamera::GetSingleton();
 
+            if (camera)
+            {
+                auto kill1 = RE::TESForm::LookupByID(0x10d17d);
+                auto kill2 = RE::TESForm::LookupByID(0x10d17e);
+                
+                
+
+                auto vats = RE::VATS::GetSingleton();
+
+                bool stop_here = false;
+
+                //auto the_state = camera->currentState;
+                //auto states = camera->cameraStates;
+
+                //std::vector<RE::TESCameraState*> state_vector{};
+
+                //auto animated_state = states->get()[RE::CameraState::kAnimated];
+
+                //auto animated_state = states[RE::CameraState::kAnimated];
+                //bool stop_here = false;
+
+                //the_state->End();
+            }
+
+
             return false; //wait for it (this doesnt fix anything unfortunately)
         }
             
@@ -13940,14 +13970,14 @@ namespace WalkerProcessor {
         auto player_actor = (RE::Actor*)player_ref;
 
         
-        /*
+        
         if (MiscThings::is_werewolf())
         {
-            try_power_attack = false;
-            attack_action = 0;
-            try_dual_attack = false;
+            //try_power_attack = true;
+            //attack_action = 0;
+            //try_dual_attack = true;
         }
-        */
+        
 
         if (target_ref && target_ref->formID == 0x7121d4f) //landing marker
             return false;
@@ -14841,17 +14871,17 @@ namespace WalkerProcessor {
                                             if (MiscThings::is_werewolf())
                                             {
                                                 //right_attack_bow(); //DID KILLCAM NORMALLY?
-                                                if ((attack_action_time0 <= 0.0f))// || attack_action_time0 > get_attack_time(true) * 0.90f))
+                                                if ((attack_action_time0 <= 0.0f))// || (try_dual_attack && attack_action_time0 > get_attack_time(true) * 0.90f))
                                                 {
                                                     right_attack();
-                                                    if (try_dual_attack && dualhanding_two_weapons)
+                                                    if (try_dual_attack)
                                                         left_attack();
                                                 }
                                                 else
                                                 {
                                                     right_power_attack();
-                                                    if (try_dual_attack && dualhanding_two_weapons)
-                                                        left_power_attack();
+                                                    //if (try_dual_attack)
+                                                    //    left_power_attack();
                                                 }
                                             }
                                             else
@@ -14877,7 +14907,7 @@ namespace WalkerProcessor {
                                             if (MiscThings::is_werewolf())
                                             {
                                                 right_attack_bow();
-                                                if (try_dual_attack && dualhanding_two_weapons)
+                                                if (try_dual_attack)
                                                     left_attack_bow();
 
                                             }
@@ -15094,7 +15124,7 @@ namespace WalkerProcessor {
                                 if (player->GetAttackState() != RE::ATTACK_STATE_ENUM::kNone && pause_post_attack < 0.3f)
                                 {
                                     right_attack_cancel();
-                                    if (dualhanding_two_weapons && try_dual_attack)
+                                    if ((dualhanding_two_weapons || MiscThings::is_werewolf()) && try_dual_attack)
                                         left_attack_cancel();
                                     pause_post_attack += dtime;
                                     goto finalize_attack;
@@ -15112,7 +15142,7 @@ namespace WalkerProcessor {
 
                             dualcasting = false;
 
-                            if (dualhanding_two_weapons && try_dual_attack)
+                            if (try_dual_attack && (dualhanding_two_weapons || MiscThings::is_werewolf))
                                 left_attack_cancel();
 
                             attack_spell_cast_timeout = 0.0f;
@@ -15161,7 +15191,7 @@ namespace WalkerProcessor {
                             if (attack_target_needs_to_come_closer && target_ref->IsActor() && target_ref->IsHumanoid())
                                 dual_attack_chance = 0.0f;
 
-                            if (dualhanding_two_weapons && dual_attack_chance > 0.4 && !(MiscThings::is_werewolf() && try_power_attack))
+                            if ((dualhanding_two_weapons || MiscThings::is_werewolf()) && dual_attack_chance > 0.4)// && !(MiscThings::is_werewolf() && try_power_attack))
                                 try_dual_attack = true;
 
                             attack_target_needs_to_come_closer = false;
@@ -15169,7 +15199,7 @@ namespace WalkerProcessor {
 
                             float chance = 0.2f;
 
-                            if (dualhanding_two_weapons)
+                            if ((dualhanding_two_weapons || MiscThings::is_werewolf()))
                                 chance = 0.49f;
 
                             if (staff_of_magnus_in_left)
@@ -15527,22 +15557,40 @@ namespace WalkerProcessor {
                                         if (must_powerattack_front)
                                             cursor_up();
 
-
+                                        if ((attack_action_time0 <= 0.0f))// || (try_dual_attack && attack_action_time0 > get_attack_time(true) * 0.90f))
+                                        {
+                                            right_attack();
+                                            if (try_dual_attack)
+                                                left_attack();
+                                        }
+                                        else
+                                        {
+                                            right_power_attack();
+                                            //if (try_dual_attack)
+                                            //    left_power_attack();
+                                        }
                                         float powerattack_threshold = 0.2f;
 
                                         if (MiscThings::is_werewolf())
                                         {
-                                            if ((attack_action_time1 <= 0.0f))
+                                            if ((attack_action_time1 <= 0.0f))//f * try_dual_attack))
                                             {
-                                                left_attack();
-                                                if (try_dual_attack && dualhanding_two_weapons)
+                                                if (try_dual_attack)
+                                                {
                                                     right_attack();
+                                                    left_attack();
+                                                }
+                                                else
+                                                    left_attack();
                                             }
                                             else
                                             {
-                                                left_power_attack();
-                                                if (try_dual_attack && dualhanding_two_weapons)
+                                                if (try_dual_attack)
                                                     right_power_attack();
+                                                else
+                                                    left_power_attack();
+                                                //if (try_dual_attack)
+                                                //    right_power_attack();
                                             }
                                         }
                                         else
@@ -15567,7 +15615,7 @@ namespace WalkerProcessor {
                                         if (MiscThings::is_werewolf())
                                         {
                                             left_attack_bow();
-                                            if (try_dual_attack && dualhanding_two_weapons)
+                                            if (try_dual_attack)
                                                 right_attack_bow();
                                         }
                                         else
@@ -15801,7 +15849,7 @@ namespace WalkerProcessor {
                                 if (player->GetAttackState() != RE::ATTACK_STATE_ENUM::kNone && pause_post_attack < 0.3f)
                                 {
                                     left_attack_cancel();
-                                    if (dualhanding_two_weapons && try_dual_attack)
+                                    if ((dualhanding_two_weapons || MiscThings::is_werewolf()) && try_dual_attack)
                                         right_attack_cancel();
                                     pause_post_attack += dtime;
                                     goto finalize_attack;
@@ -15814,7 +15862,7 @@ namespace WalkerProcessor {
                             if (!goto_attack_used && !dualcasting)
                                 attack_action_done = true;
 
-                            if (dualhanding_two_weapons && try_dual_attack)
+                            if (try_dual_attack && (dualhanding_two_weapons || MiscThings::is_werewolf))
                                 right_attack_cancel();
 
 
@@ -15855,14 +15903,14 @@ namespace WalkerProcessor {
                             if (attack_target_needs_to_come_closer && target_ref->IsActor() && target_ref->IsHumanoid())
                                 dual_attack_chance = 0.0f;
 
-                            if (dualhanding_two_weapons && dual_attack_chance > 0.4 && !(MiscThings::is_werewolf() && try_power_attack))
+                            if ((dualhanding_two_weapons || MiscThings::is_werewolf()) && dual_attack_chance > 0.4)// && !(MiscThings::is_werewolf() && try_power_attack))
                                 try_dual_attack = true;
 
                             attack_target_needs_to_come_closer = false;
 
                             float chance = 0.2f;
 
-                            if (dualhanding_two_weapons)
+                            if ((dualhanding_two_weapons || MiscThings::is_werewolf()))
                                 chance = 0.49f;
 
                             if (staff_of_magnus_in_left)
