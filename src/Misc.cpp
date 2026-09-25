@@ -1164,7 +1164,15 @@ namespace MiscThings {
                 }
                 */
 
-                return breath_caster->state.underlying() == 3;
+                auto combat_controller = actor->combatController;
+                if (combat_controller)
+                {
+                    auto target = combat_controller->targetHandle;
+                    if (target && target.get() && target.get().get() && target.get().get()->formID == 0x14)//player
+                        return breath_caster->state.underlying() == 3;
+                }
+
+                
 
                 //Hooks::add_debug_line("DRAGON BREATH STATE: " + std::to_string(state.underlying()), true);
 
@@ -12653,6 +12661,17 @@ namespace MiscThings {
 
         //seducers quest. temporary disable because its high level and needs checking
         if (quest && quest->formID == 0x6000912)
+        {
+            return true;
+        }
+
+
+        if (quest && quest->formID == 0x4019b4a) //lost legacy dlc2 quest (vahlok's tomb) - temporary hidden until its worked through
+        {
+            return true;
+        }
+
+        if (quest && (quest->formID == 0x4027a14 || quest->formID == 0x401b65f)) //find black book quests. new books will not work 99% so just hide it for now
         {
             return true;
         }
@@ -32542,6 +32561,8 @@ namespace MiscThings {
             offensive_shouts.push_back((RE::TESShout*)RE::TESForm::LookupByID(0x70980)); // ice form
             offensive_shouts.push_back((RE::TESShout*)RE::TESForm::LookupByID(0x7097c)); // marked for death
             offensive_shouts.push_back((RE::TESShout*)RE::TESForm::LookupByID(0x48ac9)); // slow time
+            offensive_shouts.push_back((RE::TESShout*)RE::TESForm::LookupByID(0x401df92)); // dragon aspect
+
 
             auto sky = RE::Sky::GetSingleton();
 

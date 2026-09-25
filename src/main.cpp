@@ -72,6 +72,8 @@
 //more solstheim quests. pirate quest. check what other quests are there. dwemer bow dungeon quest
 
 
+//werewolf still freezes sometimes
+
 //fix werewolf combat (killcam)
 
 //do something with dodge mechanism going crazy when surrounded by enemies

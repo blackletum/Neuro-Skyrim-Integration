@@ -13642,14 +13642,37 @@ namespace WalkerProcessor {
         {
             auto camera = RE::PlayerCamera::GetSingleton();
 
-            if (camera)
+            if (false && camera) //this is shit
             {
-                auto kill1 = RE::TESForm::LookupByID(0x10d17d);
-                auto kill2 = RE::TESForm::LookupByID(0x10d17e);
+                auto kill1 = (RE::TESIdleForm*)RE::TESForm::LookupByID(0x10d17d); //mauling.
+                auto kill2 = (RE::TESIdleForm*)RE::TESForm::LookupByID(0x10d17e);
                 
-                
+                auto player = RE::PlayerCharacter::GetSingleton();
 
-                auto vats = RE::VATS::GetSingleton();
+                //player->UpdateAnimation(0.016f); //this speeds up that one animation but doesnt look like it affects others
+
+                player->NotifyAnimationGraph("Start");
+                player->NotifyAnimationGraph("start");
+
+                RE::BSAnimationGraphManagerPtr my_ptr;
+                auto anim_graph_manager = player->GetAnimationGraphManager(my_ptr);
+                if (my_ptr)
+                {
+                    auto test_graph = my_ptr->activeGraph;
+                    //my_ptr->variableCache[10]->
+                    bool stop_here = false;
+
+                    //player->SetGraphVariableBool("bIsSynced", true);
+                    //player->SetGraphVariableBool("bSpeedSynced", true);
+                    //player->SetGraphVariableBool("bInJumpState", false);
+
+                    player->SetGraphVariableBool("bFailMoveStart", true);
+                }
+
+
+                auto state = kill1->data.flags;
+
+                //auto vats = RE::VATS::GetSingleton();
 
                 bool stop_here = false;
 
