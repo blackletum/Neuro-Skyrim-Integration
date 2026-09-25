@@ -2529,7 +2529,7 @@ namespace MiscThings {
 
                 state = object_p->currentState;
 
-                if (state == "Filled")
+                if (state == "Filled" || state == "busy")
                     return true;
             }
         }
@@ -10803,7 +10803,7 @@ namespace MiscThings {
         //dlc2 mq4 nchardak
         if (quest && quest->formID == 0x4016e1f)
         {
-            if (parent_cell && parent_cell->formID == 0x40173b3)
+            if (parent_cell && parent_cell->formID == 0x40173b3) //top left room
             {
                 auto pedestal0 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4017641);
                 auto pedestal1 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x401c7a2);
@@ -10820,7 +10820,26 @@ namespace MiscThings {
                     bool has_cube_3 = pedestal_has_cube(pedestal3);
                     bool has_cube_4 = pedestal_has_cube(pedestal4);
 
+                    auto cube_form = (RE::TESBoundObject*)RE::TESForm::LookupByID(0x40173bb);
+
+                    int player_cubes = 0;
+                    
+                    if (cube_form)
+                        player_cubes = player->GetItemCount(cube_form);
+
+                    int total_cubes = player_cubes + has_cube_0 + has_cube_1 + has_cube_2 + has_cube_3 + has_cube_4;
+
+                    if (total_cubes < 4)
+                    {
+                        //go back. forgot a cube somewhere 
+                        auto door_back = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4017658);
+                        if (door_back)
+                            return door_back;
+                    }
+
                     if (has_cube_0) return pedestal0; //grab cube here no conditions
+
+
 
 
                     if (has_cube_3)

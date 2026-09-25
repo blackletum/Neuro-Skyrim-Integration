@@ -4973,8 +4973,8 @@ namespace WalkerProcessor {
 
         if (MiscThings::is_werewolf())
         {
-            if (speed_koef < 3.0f)
-                speed_koef = 3.0f;
+            if (speed_koef < 2.0f)
+                speed_koef = 2.0f;
 
             force_high_precision = false;
         }
@@ -13651,8 +13651,9 @@ namespace WalkerProcessor {
 
                 //player->UpdateAnimation(0.016f); //this speeds up that one animation but doesnt look like it affects others
 
-                player->NotifyAnimationGraph("Start");
-                player->NotifyAnimationGraph("start");
+                //player->NotifyAnimationGraph("Start");
+                //player->NotifyAnimationGraph("PairedStop"); //makes it glitch
+                //player->NotifyAnimationGraph("Event02"); //does nothing
 
                 RE::BSAnimationGraphManagerPtr my_ptr;
                 auto anim_graph_manager = player->GetAnimationGraphManager(my_ptr);
@@ -13661,12 +13662,13 @@ namespace WalkerProcessor {
                     auto test_graph = my_ptr->activeGraph;
                     //my_ptr->variableCache[10]->
                     bool stop_here = false;
-
+                    //player->SetGraphVariableFloat("Speed", 0.1f);
+                    //player->SetGraphVariableFloat("TurnDelta", 0.1f);
                     //player->SetGraphVariableBool("bIsSynced", true);
                     //player->SetGraphVariableBool("bSpeedSynced", true);
                     //player->SetGraphVariableBool("bInJumpState", false);
-
-                    player->SetGraphVariableBool("bFailMoveStart", true);
+                    //player->SetGraphVariableBool("bAllowRotation", true);
+                    //player->SetGraphVariableBool("bFailMoveStart", true);
                 }
 
 
@@ -13996,9 +13998,9 @@ namespace WalkerProcessor {
         
         if (MiscThings::is_werewolf())
         {
-            //try_power_attack = true;
+            //try_power_attack = false;
             //attack_action = 0;
-            //try_dual_attack = true;
+            //try_dual_attack = false;
         }
         
 
