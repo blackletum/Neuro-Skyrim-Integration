@@ -11147,6 +11147,16 @@ namespace WalkerProcessor {
                                                     return result;
                                                 }
 
+                                                if (!Apocrypha::in_apocrypha() && Apocrypha::in_apocrypha(quests_target_ref))
+                                                {
+                                                    reset_walker();
+                                                    result.first = false;
+                                                    result.second = "[Target of this quest is in Apocrypha. You need to enter it, by reading corresponding Black Book]";
+                                                    do_delayed_poke();
+                                                    return result;
+                                                }
+
+
 
                                                 if (have_target_to_walk)
                                                 {
@@ -12021,6 +12031,13 @@ namespace WalkerProcessor {
                                                     return true;
                                                 }
 
+                                                if (!Apocrypha::in_apocrypha() && Apocrypha::in_apocrypha(quests_target_ref))
+                                                {
+                                                    reset_walker();
+                                                    send_random_context("[Target of this quest is in Apocrypha. You need to enter it, by reading corresponding Black Book]", false);
+                                                    do_delayed_poke();
+                                                    return true;
+                                                }
 
 
                                                 right_attack_cancel();

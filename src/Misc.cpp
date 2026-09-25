@@ -7592,6 +7592,11 @@ namespace MiscThings {
                         return 0.0f;
                     }
 
+                    if (!Apocrypha::in_apocrypha() && Apocrypha::in_apocrypha(quest_target_ref))
+                    {
+                        return 0.0f;
+                    }
+
 
                     bool same_worldspace = player_worldspace == quest_target_ref_worldspace;
 
