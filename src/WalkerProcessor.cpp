@@ -13669,18 +13669,18 @@ namespace WalkerProcessor {
 
         if ((MiscThings::is_werewolf() || MiscThings::is_vampirelord()) && MiscThings::killcam_active())
         {
-            auto camera = RE::PlayerCamera::GetSingleton();
+            //auto camera = RE::PlayerCamera::GetSingleton();
 
             
 
 
 
-            if (false && camera) //this is shit
+            //if (camera) //this is shit
             {
-                auto kill1 = (RE::TESIdleForm*)RE::TESForm::LookupByID(0x10d17d); //mauling.
-                auto kill2 = (RE::TESIdleForm*)RE::TESForm::LookupByID(0x10d17e);
+                //auto kill1 = (RE::TESIdleForm*)RE::TESForm::LookupByID(0x10d17d); //mauling.
+                //auto kill2 = (RE::TESIdleForm*)RE::TESForm::LookupByID(0x10d17e);
                 
-                
+                player->SetCollision(false);
 
                 //player->UpdateAnimation(0.016f); //this speeds up that one animation but doesnt look like it affects others
 
@@ -13689,14 +13689,14 @@ namespace WalkerProcessor {
                 //player->NotifyAnimationGraph("Event02"); //does nothing
 
 
-                if (my_ptr)
+                //if (my_ptr)
                 {
-                    auto test_graph = my_ptr->graphs[my_ptr->activeGraph];
+                 //   auto test_graph = my_ptr->graphs[my_ptr->activeGraph];
 
-                    test_graph->ToggleSyncOnUpdate(true);
+                  //  test_graph->ToggleSyncOnUpdate(true);
 
-                    test_graph->interpolationTimeOffsets[1] = 0.0f;
-                    test_graph->interpolationAmounts[0] = 0.0f;
+                  //  test_graph->interpolationTimeOffsets[1] = 0.0f;
+                  //  test_graph->interpolationAmounts[0] = 0.0f;
                     //my_ptr->variableCache[10]->
                     //player->SetGraphVariableFloat("Speed", 0.1f);
                     //player->SetGraphVariableFloat("TurnDelta", 0.1f);
@@ -13721,18 +13721,18 @@ namespace WalkerProcessor {
 
 
 
-                    bool stop_here = false;
+                  //  bool stop_here = false;
                 }
 
 
 
 
 
-                auto state = kill1->data.flags;
+               // auto state = kill1->data.flags;
 
                 //auto vats = RE::VATS::GetSingleton();
 
-                bool stop_here = false;
+               // bool stop_here = false;
 
                 //auto the_state = camera->currentState;
                 //auto states = camera->cameraStates;
@@ -13748,7 +13748,7 @@ namespace WalkerProcessor {
             }
 
 
-            return false; //wait for it (this doesnt fix anything unfortunately)
+            return false; //wait for it 
         }
         else
         {
