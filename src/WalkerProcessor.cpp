@@ -19813,7 +19813,10 @@ namespace WalkerProcessor {
             bool can_fight = control_map->enabledControls.any(RE::UserEvents::USER_EVENT_FLAG::kFighting);
 
 
-            
+            if (parent_cell && parent_cell->formID == 0x40173b3) //nchardak topleft room
+            {
+                dont_shift = true;
+            }
 
 
             //if (player_actor && !player_actor->movementController->controlsDriven)
