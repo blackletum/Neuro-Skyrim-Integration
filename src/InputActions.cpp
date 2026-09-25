@@ -141,7 +141,7 @@ void right_attack()
     //RE::BSInputEventQueue::GetSingleton()->AddButtonEvent(RE::INPUT_DEVICES::kMouse, my_key, 0.0, 0.0);
     set_allowed_events(2);
 
-    Hooks::add_debug_line("Input: right attack");
+    Hooks::add_debug_line("Input: right attack", true);
 }
 
 void left_attack()
@@ -185,7 +185,7 @@ void right_power_attack()
     //RE::BSInputEventQueue::GetSingleton()->AddButtonEvent(RE::INPUT_DEVICES::kMouse, my_key, 0.0, 1000.0);
     set_allowed_events(2);
 
-    Hooks::add_debug_line("Input: right power attack");
+    Hooks::add_debug_line("Input: right power attack", true);
 }
 
 
@@ -1035,7 +1035,7 @@ void walk_forward()
     RE::BSInputEventQueue::GetSingleton()->AddButtonEvent(RE::INPUT_DEVICES::kKeyboard, my_key, 1.0, 0.0);
 
 
-    Hooks::add_debug_line("Input: walk forward");
+    Hooks::add_debug_line("Input: walk forward", true);
 }
 
 

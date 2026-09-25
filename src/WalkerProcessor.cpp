@@ -5668,7 +5668,7 @@ namespace WalkerProcessor {
             {
                 float threshold = 5.0f;
 
-                threshold = std::max(1.0f, 5.0f * speed_koef);
+                threshold = std::max(1.0f, 5.0f * speed_koef + MiscThings::is_werewolf() * 10.0f);
 
                 if (abs(mouse_x) < threshold && abs(mouse_y) < threshold)
                     return true;
@@ -7967,6 +7967,8 @@ namespace WalkerProcessor {
                         camera_pos_debug.z -= 5.0f;
 
 
+                        
+
                         /* //this is working draw_line 
                         DebugAPI_IMPL::DebugAPI::GetSingleton()->LinesToDraw.clear();
                         DebugAPI_IMPL::DrawDebug::draw_line(camera_pos_debug, aim_pos);
@@ -8286,7 +8288,7 @@ namespace WalkerProcessor {
                             bool stop_here = false; //to detect when raycast caught player
 
                         //auto raycast_test = raycast_ref == target_ref && (start_attacking || attack_paused || raycast_was_on || !raycast_hands_too || (raycast_ref_right == target_ref && raycast_ref_left == target_ref && raycast_ref_top == target_ref && raycast_ref_bottom == target_ref));
-                        auto raycast_test = (raycast_ref == target_ref || (start_attacking && raycast_ref && MiscThings::is_enemy_to_actor(raycast_ref))) && (start_attacking || attack_paused || raycast_was_on || raycast_hands_result);
+                        auto raycast_test = (MiscThings::is_werewolf() || raycast_ref == target_ref || (start_attacking && raycast_ref && MiscThings::is_enemy_to_actor(raycast_ref))) && (start_attacking || attack_paused || raycast_was_on || raycast_hands_result);
                         raycast_test |= start_attacking && WalkerProcessor::is_casting_ritual_spell();
 
                         bool target_visible = false;
@@ -8373,6 +8375,12 @@ namespace WalkerProcessor {
 
                     if (!(has_ranged_weapon_equipped(get_current_active_hand()) || shout_mode) || MiscThings::is_dragon(target_ref)) //melee only
                     {
+
+
+                        if (MiscThings::is_werewolf() && player->IsSprinting())
+                            if (distance.Length() < 450.0f)
+                                return true;
+
 
 
                         auto bound_max = target_ref->GetBoundMax() * target_ref->GetScale();
@@ -13655,16 +13663,24 @@ namespace WalkerProcessor {
 
     bool attack_target(float dtime)
     {
+        auto player = RE::PlayerCharacter::GetSingleton();
+        RE::BSAnimationGraphManagerPtr my_ptr;
+        auto anim_graph_manager = player->GetAnimationGraphManager(my_ptr);
+
         if ((MiscThings::is_werewolf() || MiscThings::is_vampirelord()) && MiscThings::killcam_active())
         {
             auto camera = RE::PlayerCamera::GetSingleton();
+
+            
+
+
 
             if (false && camera) //this is shit
             {
                 auto kill1 = (RE::TESIdleForm*)RE::TESForm::LookupByID(0x10d17d); //mauling.
                 auto kill2 = (RE::TESIdleForm*)RE::TESForm::LookupByID(0x10d17e);
                 
-                auto player = RE::PlayerCharacter::GetSingleton();
+                
 
                 //player->UpdateAnimation(0.016f); //this speeds up that one animation but doesnt look like it affects others
 
@@ -13672,13 +13688,16 @@ namespace WalkerProcessor {
                 //player->NotifyAnimationGraph("PairedStop"); //makes it glitch
                 //player->NotifyAnimationGraph("Event02"); //does nothing
 
-                RE::BSAnimationGraphManagerPtr my_ptr;
-                auto anim_graph_manager = player->GetAnimationGraphManager(my_ptr);
+
                 if (my_ptr)
                 {
-                    auto test_graph = my_ptr->activeGraph;
+                    auto test_graph = my_ptr->graphs[my_ptr->activeGraph];
+
+                    test_graph->ToggleSyncOnUpdate(true);
+
+                    test_graph->interpolationTimeOffsets[1] = 0.0f;
+                    test_graph->interpolationAmounts[0] = 0.0f;
                     //my_ptr->variableCache[10]->
-                    bool stop_here = false;
                     //player->SetGraphVariableFloat("Speed", 0.1f);
                     //player->SetGraphVariableFloat("TurnDelta", 0.1f);
                     //player->SetGraphVariableBool("bIsSynced", true);
@@ -13686,7 +13705,27 @@ namespace WalkerProcessor {
                     //player->SetGraphVariableBool("bInJumpState", false);
                     //player->SetGraphVariableBool("bAllowRotation", true);
                     //player->SetGraphVariableBool("bFailMoveStart", true);
+
+
+                    //test_graph->RemoveEventSink()
+
+
+                    //std::vector<RE::BShkbAnimationGraphPtr> vector123{};
+
+                    //for (auto graph : my_ptr->graphs)
+                    {
+                    //    vector123.push_back(graph);
+
+                        //graph->SendEvent()
+                    }
+
+
+
+                    bool stop_here = false;
                 }
+
+
+
 
 
                 auto state = kill1->data.flags;
@@ -13710,6 +13749,10 @@ namespace WalkerProcessor {
 
 
             return false; //wait for it (this doesnt fix anything unfortunately)
+        }
+        else
+        {
+            bool stop_here = false;
         }
             
 
@@ -14007,7 +14050,7 @@ namespace WalkerProcessor {
 
 
         bool result = false;
-        auto player = RE::PlayerCharacter::GetSingleton();
+        //auto player = RE::PlayerCharacter::GetSingleton();
         auto player_ref = player->AsReference();
         auto player_actor = (RE::Actor*)player_ref;
 
@@ -14015,6 +14058,13 @@ namespace WalkerProcessor {
         
         if (MiscThings::is_werewolf())
         {
+            if (player->IsSprinting())
+            {
+                try_power_attack = false;
+
+            }
+                
+
             //try_power_attack = false;
             //attack_action = 0;
             //try_dual_attack = false;
@@ -14904,7 +14954,7 @@ namespace WalkerProcessor {
 
 
                                             if (must_powerattack_front)
-                                                cursor_up();
+                                                walk_forward();
 
 
 
@@ -14971,6 +15021,34 @@ namespace WalkerProcessor {
                                 if (!MiscThings::has_something_equipped(true) && (MiscThings::is_werewolf() || MiscThings::is_vampirelord()))
                                 {
                                     attacking_weapon = "claws. ";
+
+                                    if (!(dodge_melee_mode && do_dodge_projectile))
+                                    {
+                                        if (player->IsSprinting())
+                                        {
+                                            if (player->GetDistance(target_ref, true) > 50.0f)
+                                            {
+                                                walk_forward();
+                                                attack_target_needs_to_come_closer = true;
+                                            }
+                                            else
+                                                attack_target_needs_to_come_closer = false;
+                                        }
+                                        else
+                                        {
+                                            if (player->GetDistance(target_ref, true) > (100.0f * target_ref->GetScale() + MiscThings::is_werewolf() * 50.0f) && (!is_stealthwalking(sneak_probe_sneak_checked) || sneak_failed))
+                                            {
+                                                walk_forward();
+
+                                                attack_target_needs_to_come_closer = true;
+                                            }
+                                            else
+                                                attack_target_needs_to_come_closer = false;
+                                        }
+
+                                    }
+
+
                                 }
                                 else
                                 {
@@ -14979,10 +15057,10 @@ namespace WalkerProcessor {
                                         no_weapon = true;
                                         attacking_weapon = "bare fist. You might want to equip some weapon or magic (use get_inventory and use_inventory_item to equip gear) or cast some spell. ";
                                         if (!(dodge_melee_mode && do_dodge_projectile))
-                                            if (player->GetDistance(target_ref, true) > 80.0f * target_ref->GetScale())
+                                            if (player->GetDistance(target_ref, true) > (80.0f * target_ref->GetScale() + MiscThings::is_werewolf()*50.0f))
                                             {
                                                 if (!bloodskal_must_powerattack)
-                                                    cursor_up();
+                                                    walk_forward();
                                                 attack_target_needs_to_come_closer = true;
                                             }
                                             else
@@ -15002,10 +15080,10 @@ namespace WalkerProcessor {
 
 
                                         if (!(dodge_melee_mode && do_dodge_projectile))
-                                            if (is_melee_weapon(true) && player->GetDistance(target_ref, true) > 100.0f * target_ref->GetScale() && (!is_stealthwalking(sneak_probe_sneak_checked) || sneak_failed))
+                                            if (is_melee_weapon(true) && player->GetDistance(target_ref, true) > (100.0f * target_ref->GetScale() + MiscThings::is_werewolf() * 50.0f) && (!is_stealthwalking(sneak_probe_sneak_checked) || sneak_failed))
                                             {
                                                 if (!bloodskal_must_powerattack)
-                                                    cursor_up();
+                                                    walk_forward();
                                                 attack_target_needs_to_come_closer = true;
                                             }
                                             else
@@ -15163,7 +15241,7 @@ namespace WalkerProcessor {
                             }
                             else
                             {
-                                if (player->GetAttackState() != RE::ATTACK_STATE_ENUM::kNone && pause_post_attack < 0.3f)
+                                if (player->GetAttackState() != RE::ATTACK_STATE_ENUM::kNone && pause_post_attack < (0.3f - MiscThings::is_werewolf()*0.2f))
                                 {
                                     right_attack_cancel();
                                     if ((dualhanding_two_weapons || MiscThings::is_werewolf()) && try_dual_attack)
@@ -15597,7 +15675,7 @@ namespace WalkerProcessor {
                                         }
 
                                         if (must_powerattack_front)
-                                            cursor_up();
+                                            walk_forward();
 
                                         if ((attack_action_time0 <= 0.0f))// || (try_dual_attack && attack_action_time0 > get_attack_time(true) * 0.90f))
                                         {
@@ -15680,7 +15758,7 @@ namespace WalkerProcessor {
                                             if (player->GetDistance(target_ref, true) > 100.0f)
                                             {
                                                 if (!bloodskal_must_powerattack)
-                                                    cursor_up();
+                                                    walk_forward();
                                                 attack_target_needs_to_come_closer = true;
                                             }
                                             else
@@ -15691,6 +15769,20 @@ namespace WalkerProcessor {
                                         if (!MiscThings::has_something_equipped(false) && (MiscThings::is_werewolf() || MiscThings::is_vampirelord()))
                                         {
                                             attacking_weapon = "claws. ";
+
+                                            if (!(dodge_melee_mode && do_dodge_projectile))
+                                            {
+                                                if (player->GetDistance(target_ref, true) > (100.0f * target_ref->GetScale() + MiscThings::is_werewolf() * 50.0f) && (!is_stealthwalking(sneak_probe_sneak_checked) || sneak_failed))
+                                                {
+                                                    walk_forward();
+
+                                                    attack_target_needs_to_come_closer = true;
+                                                }
+                                                else
+                                                    attack_target_needs_to_come_closer = false;
+                                            }
+
+
                                         }
                                         else
                                         {
@@ -15699,10 +15791,10 @@ namespace WalkerProcessor {
                                                 no_weapon = true;
                                                 attacking_weapon = "bare fist. You might want to equip some weapon or magic (use get_inventory and use_inventory_item to equip gear) or cast some spell. ";
                                                 if (!(dodge_melee_mode && do_dodge_projectile))
-                                                    if (player->GetDistance(target_ref, true) > 80.0f * target_ref->GetScale())
+                                                    if (player->GetDistance(target_ref, true) > (80.0f * target_ref->GetScale() + MiscThings::is_werewolf() * 50.0f))
                                                     {
                                                         if (!bloodskal_must_powerattack)
-                                                            cursor_up();
+                                                            walk_forward();
                                                         attack_target_needs_to_come_closer = true;
                                                     }
                                                     else
@@ -15719,10 +15811,10 @@ namespace WalkerProcessor {
                                                     attacking_weapon = get_equipped_weapon_name(false) + ". ";
 
                                                 if (!(dodge_melee_mode && do_dodge_projectile))
-                                                    if (is_melee_weapon(false) && player->GetDistance(target_ref, true) > 100.0f * target_ref->GetScale() && (!is_stealthwalking(sneak_probe_sneak_checked) || sneak_failed))
+                                                    if (is_melee_weapon(false) && player->GetDistance(target_ref, true) > (100.0f * target_ref->GetScale() + MiscThings::is_werewolf() * 50.0f) && (!is_stealthwalking(sneak_probe_sneak_checked) || sneak_failed))
                                                     {
                                                         if (!bloodskal_must_powerattack)
-                                                            cursor_up();
+                                                            walk_forward();
                                                         attack_target_needs_to_come_closer = true;
                                                     }
                                                     else
@@ -15888,7 +15980,7 @@ namespace WalkerProcessor {
                             }
                             else
                             {
-                                if (player->GetAttackState() != RE::ATTACK_STATE_ENUM::kNone && pause_post_attack < 0.3f)
+                                if (player->GetAttackState() != RE::ATTACK_STATE_ENUM::kNone && pause_post_attack < (0.3f - MiscThings::is_werewolf() * 0.2f))
                                 {
                                     left_attack_cancel();
                                     if ((dualhanding_two_weapons || MiscThings::is_werewolf()) && try_dual_attack)
@@ -17154,8 +17246,22 @@ namespace WalkerProcessor {
             {
                 Observer::set_threat_action_taken();
                 locking_failed = false;
+
+                bool werewolf_sprint_attack_condition = MiscThings::is_werewolf() && player->IsSprinting();
+
+                if (!start_attacking)
+                {
+                    if (werewolf_sprint_attack_condition)
+                    {
+                        start_attacking = true;
+                        attack_target(0.016);
+                    }
+                }
+
                 start_attacking = true;
-                invalidate_path(); //so it doesnt get back to it in case it was not finished and we started fighting by close_enough() checck and it will become not-close-enough again
+                
+                if (!werewolf_sprint_attack_condition)
+                    invalidate_path(); //so it doesnt get back to it in case it was not finished and we started fighting by close_enough() checck and it will become not-close-enough again
             }
             else
             {
@@ -19150,7 +19256,7 @@ namespace WalkerProcessor {
 
         lock_camera_used_this_cycle = false;
 
-        //Hooks::add_debug_line("walker_processor called", true);
+        Hooks::add_debug_line("walker_processor called", true);
 
 
         //if (target_ref)
@@ -23526,8 +23632,12 @@ namespace WalkerProcessor {
                                                     else
                                                         stable_target = 0;
 
+                                                    bool special_pass_for_fast_interact = false;
+
+                                                    if (MiscThings::is_werewolf() && player->IsSprinting() && interaction_after_walk == 3 && close_enough())
+                                                        special_pass_for_fast_interact = true;
                                                                                                                                                                                              //attack_target() will do locking in this case
-                                                    if (looking_mode || MiscThings::is_intro() || locking_failed || ((get_targeted_ref() == target_ref) && stable_target > 2) || ((start_attacking && attack_lock_camera_condition()) || lock_camera_onto_target(target_ref, dtime)) || location_mode)
+                                                    if (looking_mode || MiscThings::is_intro() || locking_failed || ((get_targeted_ref() == target_ref) && stable_target > 2) || ((special_pass_for_fast_interact || (start_attacking && attack_lock_camera_condition())) || lock_camera_onto_target(target_ref, dtime)) || location_mode)
                                                     {
                                                         auto result_target = get_targeted_ref();
 
@@ -23562,7 +23672,10 @@ namespace WalkerProcessor {
                                                                         std::string result_message = get_success_message();
 
                                                                         if (result_message == "")
-                                                                            return;
+                                                                        {
+                                                                            if (!(interaction_after_walk == 3 && MiscThings::is_werewolf() && player->IsSprinting()))
+                                                                                return;
+                                                                        }
                                                                         else
                                                                             send_random_context(get_success_message(), true);
                                                                     }
@@ -23572,7 +23685,7 @@ namespace WalkerProcessor {
                                                             }
                                                             if (interaction_after_walk > 0)
                                                             {
-                                                                if (paused_before_interaction)
+                                                                if (paused_before_interaction || (interaction_after_walk == 3 && MiscThings::is_werewolf()))
                                                                 {
                                                                     if ((quest_mode && backup_interaction_made) || interact_with_target(dtime))
                                                                     {
