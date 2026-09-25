@@ -3349,6 +3349,10 @@ namespace MiscThings {
     {
         auto player = RE::PlayerCharacter::GetSingleton();
 
+        if (Apocrypha::in_apocrypha())
+            return false;
+
+
         if (player)
         {
             bool trespassing = player->IsTrespassing();

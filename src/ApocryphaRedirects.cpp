@@ -6,6 +6,8 @@
 
 namespace Apocrypha {
 
+    bool pass_direction_check = false;
+
 
     bool in_apocrypha(RE::TESObjectREFR* object)
     {
@@ -153,6 +155,8 @@ namespace Apocrypha {
         activator_to_check = nullptr;
         custom_correction_object = nullptr;
         special_threshold = 0.0f;
+
+        pass_direction_check = false;
     }
 
 
@@ -580,7 +584,7 @@ namespace Apocrypha {
                         MiscThings::SetPosition_moveto(dummy, pass1_tip_pos);
 
 
-                        if (pass1_tip_pos.GetDistance(player_pos) < 500.0f)
+                        if (pass1_tip_pos.GetDistance(player_pos) < 500.0f && pass_direction_check)
                         {
                             //go to bridge center
                             result.action = 2; //initiate
@@ -593,11 +597,16 @@ namespace Apocrypha {
                             custom_path_end = pass_center;
                             action_after_custom_path_end = -888;
 
+                            pass_direction_check = false;
+
                             result.interaction = 1;
                             return result;
                         }
                         else
                         {
+                            if (pass1_tip_pos.GetDistance(player_pos) >= 500.0f)
+                                pass_direction_check = true;
+
                             result.action = 3;
                             result.dont_save_interaction = false;
                             result.dont_save_target = false;
@@ -796,7 +805,7 @@ namespace Apocrypha {
                                 {
                                     //we are on the edge of island. wait for pass to swing close to us, then go to pass edge
 
-                                    if (pass2_tip_pos.GetDistance(player_pos) < 320.0f && MiscThings::two_state_activator_state(swinging_pass_part2) == 0)
+                                    if (pass2_tip_pos.GetDistance(player_pos) < 320.0f && MiscThings::two_state_activator_state(swinging_pass_part2) == 0 && pass_direction_check)
                                     {
                                         //go to swinging pass
                                         result.action = 2; //initiate
@@ -825,6 +834,9 @@ namespace Apocrypha {
                                     }
                                     else
                                     {
+                                        if (pass2_tip_pos.GetDistance(player_pos) >= 320.0f)
+                                            pass_direction_check = true;
+
                                         dummy->MoveTo(player);
                                         MiscThings::SetPosition_moveto(dummy, pass2_tip_pos);
                                         result.action = 3;
@@ -890,7 +902,7 @@ namespace Apocrypha {
                                         MiscThings::SetPosition_moveto(dummy, pass2_tip_pos);
 
 
-                                        if (pass2_tip_pos.GetDistance(player_pos) < 500.0f)
+                                        if (pass2_tip_pos.GetDistance(player_pos) < 500.0f && pass2_tip_pos.GetDistance(player_pos) > 400.0f)
                                         {
                                             //go to pass center
                                             result.action = 2; //initiate
@@ -1834,7 +1846,7 @@ namespace Apocrypha {
                         {
                             //we are on the edge of island. wait for pass to swing close to us, then go to pass edge
 
-                            if (passage_tip.GetDistance(player_pos) < 400.0f)
+                            if (passage_tip.GetDistance(player_pos) < 400.0f && pass_direction_check)
                             {
                                 //go to swinging pass
                                 result.action = 2; //initiate
@@ -1866,6 +1878,9 @@ namespace Apocrypha {
                             }
                             else
                             {
+                                if (passage_tip.GetDistance(player_pos) >= 400.0f)
+                                    pass_direction_check = true;
+
                                 dummy->MoveTo(player);
                                 MiscThings::SetPosition_moveto(dummy, passage_tip);
                                 result.action = 3;
@@ -1913,7 +1928,7 @@ namespace Apocrypha {
                             {
                                 //we are on the edge of island. wait for pass to swing close to us, then go to pass edge
 
-                                if (passage_tip.GetDistance(player_pos) < 400.0f)
+                                if (passage_tip.GetDistance(player_pos) < 400.0f && pass_direction_check)
                                 {
                                     //go to swinging pass
                                     result.action = 2; //initiate
@@ -1945,6 +1960,9 @@ namespace Apocrypha {
                                 }
                                 else
                                 {
+                                    if (passage_tip.GetDistance(player_pos) >= 400.0f)
+                                        pass_direction_check = true;
+
                                     dummy->MoveTo(player);
                                     MiscThings::SetPosition_moveto(dummy, passage_tip);
                                     result.action = 3;
@@ -1991,7 +2009,7 @@ namespace Apocrypha {
                             {
                                 //we are on the edge of island. wait for pass to swing close to us, then go to pass edge
 
-                                if (passage_tip.GetDistance(player_pos) < 400.0f)
+                                if (passage_tip.GetDistance(player_pos) < 400.0f && pass_direction_check)
                                 {
                                     //go to swinging pass
                                     result.action = 2; //initiate
@@ -2023,6 +2041,9 @@ namespace Apocrypha {
                                 }
                                 else
                                 {
+                                    if (passage_tip.GetDistance(player_pos) >= 400.0f)
+                                        pass_direction_check = true;
+
                                     dummy->MoveTo(player);
                                     MiscThings::SetPosition_moveto(dummy, passage_tip);
                                     result.action = 3;
@@ -2154,7 +2175,7 @@ namespace Apocrypha {
                                 {
                                     //we are on the edge of island. wait for pass to swing close to us, then go to pass edge
 
-                                    if (passage_tip.GetDistance(player_pos) < 400.0f)
+                                    if (passage_tip.GetDistance(player_pos) < 400.0f && pass_direction_check)
                                     {
                                         //go to swinging pass
                                         result.action = 2; //initiate
@@ -2186,6 +2207,9 @@ namespace Apocrypha {
                                     }
                                     else
                                     {
+                                        if (passage_tip.GetDistance(player_pos) >= 400.0f)
+                                            pass_direction_check = true;
+
                                         dummy->MoveTo(player);
                                         MiscThings::SetPosition_moveto(dummy, passage_tip);
                                         result.action = 3;
@@ -2232,7 +2256,7 @@ namespace Apocrypha {
                                 {
                                     //we are on the edge of island. wait for pass to swing close to us, then go to pass edge
 
-                                    if (passage_tip.GetDistance(player_pos) < 400.0f)
+                                    if (passage_tip.GetDistance(player_pos) < 400.0f && pass_direction_check)
                                     {
                                         //go to swinging pass
                                         result.action = 2; //initiate
@@ -2264,6 +2288,9 @@ namespace Apocrypha {
                                     }
                                     else
                                     {
+                                        if (passage_tip.GetDistance(player_pos) >= 400.0f)
+                                            pass_direction_check = true;
+
                                         dummy->MoveTo(player);
                                         MiscThings::SetPosition_moveto(dummy, passage_tip);
                                         result.action = 3;
@@ -2316,7 +2343,7 @@ namespace Apocrypha {
                                 {
                                     //we are on the edge of island. wait for pass to swing close to us, then go to pass edge
 
-                                    if (passage_tip.GetDistance(player_pos) < 400.0f)
+                                    if (passage_tip.GetDistance(player_pos) < 400.0f && pass_direction_check)
                                     {
                                         //go to swinging pass
                                         result.action = 2; //initiate
@@ -2348,6 +2375,9 @@ namespace Apocrypha {
                                     }
                                     else
                                     {
+                                        if (passage_tip.GetDistance(player_pos) >= 400.0f)
+                                            pass_direction_check = true;
+
                                         dummy->MoveTo(player);
                                         MiscThings::SetPosition_moveto(dummy, passage_tip);
                                         result.action = 3;
@@ -2394,7 +2424,7 @@ namespace Apocrypha {
                                     {
                                         //we are on the edge of island. wait for pass to swing close to us, then go to pass edge
 
-                                        if (passage_tip.GetDistance(player_pos) < 400.0f)
+                                        if (passage_tip.GetDistance(player_pos) < 400.0f && pass_direction_check)
                                         {
                                             //go to swinging pass
                                             result.action = 2; //initiate
@@ -2426,6 +2456,9 @@ namespace Apocrypha {
                                         }
                                         else
                                         {
+                                            if (passage_tip.GetDistance(player_pos) >= 400.0f)
+                                                pass_direction_check = true;
+
                                             MiscThings::SetPosition_moveto(dummy, passage_tip);
                                             result.action = 3;
                                             result.dont_save_interaction = false;
@@ -2470,7 +2503,7 @@ namespace Apocrypha {
                                     {
                                         //we are on the edge of island. wait for pass to swing close to us, then go to pass edge
 
-                                        if (passage_tip.GetDistance(player_pos) < 400.0f)
+                                        if (passage_tip.GetDistance(player_pos) < 400.0f && pass_direction_check)
                                         {
                                             //go to swinging pass
                                             result.action = 2; //initiate
@@ -2502,6 +2535,9 @@ namespace Apocrypha {
                                         }
                                         else
                                         {
+                                            if (passage_tip.GetDistance(player_pos) >= 400.0f)
+                                                pass_direction_check = true;
+
                                             dummy->MoveTo(player);
                                             MiscThings::SetPosition_moveto(dummy, passage_tip);
                                             result.action = 3;
