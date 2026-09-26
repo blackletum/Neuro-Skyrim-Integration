@@ -68,6 +68,12 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////DO ALL THIS
 
+//SKULDAFN CUSTOM PATH TEST WITH NEW NO-THREAT-DETECTION FOR STAIR CLIMB
+//hide lod quest if lod is dead
+//azura star quest
+//current weapon is already poisoned repeating
+
+
 //test solstheim more
 //more solstheim quests. pirate quest. check what other quests are there. dwemer bow dungeon quest
 

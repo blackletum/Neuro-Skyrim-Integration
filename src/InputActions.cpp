@@ -1210,7 +1210,7 @@ bool make_long_cast_spell_hand(bool right, float dtime)
 
     bool low_mana_check = (!dont_check_mana && MiscThings::has_spell_equipped(right) && (low_mana_detected || (MiscThings::get_player_mana() < WalkerProcessor::get_spell_cost(right))));
 
-    bool check_time = !MiscThings::is_self_healing_spell(right);
+    bool check_time = !(MiscThings::is_self_healing_spell(right) && WalkerProcessor::is_concentration_spell(right));
 
 
     //if (input_dualcasting && dualcasting_no_mana)
