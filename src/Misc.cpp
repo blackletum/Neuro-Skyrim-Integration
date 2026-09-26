@@ -13,6 +13,9 @@
 namespace MiscThings {
 
 
+    bool already_poisoned = false;
+
+
     float notifications_timer = -0.175f;
 
 
@@ -69,6 +72,25 @@ namespace MiscThings {
     long long gave_interesting_notification_timestamp = 0;
     long long settlement_advice_timestamp = 0;
     
+
+    /*
+    bool is_weapon_poisoned(bool right)
+    {
+        auto hand = MiscThings::get_hand_contents(right);
+
+        if (hand)
+        {
+            if (hand->IsWeapon())
+            {
+                auto weapon = (RE::TESBoundObject*)hand;
+                //HasExtraDataType<ExtraPoison>();
+                return false;
+            }
+        }
+
+        return false;
+    }
+    */
 
 
 
@@ -27816,7 +27838,7 @@ namespace MiscThings {
         restored_magicka = 0.0f;
         restored_stamina = 0.0f;
 
-
+        already_poisoned = false;
 
         int success = 0;
         int fail = 0;
@@ -27834,7 +27856,8 @@ namespace MiscThings {
             else
                 fail++;
 
-            full_result += temp_result.second + "; ";
+            if (temp_result.second != "")
+                full_result += temp_result.second + "; ";
 
         }
 
@@ -28654,14 +28677,67 @@ namespace MiscThings {
                                 auto actor_equip = RE::ActorEquipManager::GetSingleton();
                                 //result = object->Activate(player_ref, player_ref, 0, nullptr, 1);
 
+                                result.first = true;
+                                if (MiscThings::is_poison(object))
+                                {
+                                    auto right_hand_contents = MiscThings::get_hand_contents(true);
+                                    if (right_hand_contents)
+                                    {
+                                        if (right_hand_contents->IsWeapon())
+                                        {
+                                            auto entry = inventory.find((RE::TESBoundObject*)right_hand_contents);
+
+                                            if (entry != inventory.end() && entry->second.second.get())
+                                            {
+                                                if (!(already_poisoned || entry->second.second->IsPoisoned()))
+                                                {
+                                                    result.second = "[Processing...]";
+                                                    already_poisoned = true;
+                                                }
+                                                else
+                                                {
+                                                    result.first = false;
+                                                    if (already_poisoned)
+                                                        result.second = "";
+                                                    else
+                                                    {
+                                                        already_poisoned = true;
+                                                        result.second = "Your weapon is already poisoned";
+                                                    }
+                                                        
+
+                                                    return result;
+                                                }
+                                            }
+                                            else
+                                            {
+                                                result.first = false;
+                                                result.second = "Cannot access weapon to poison";
+                                                return result;
+                                            }
+
+                                        }
+                                        else
+                                        {
+                                            result.first = false;
+                                            result.second = "You dont have any weapon in right hand that can be poisoned";
+                                            return result;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        result.first = false;
+                                        result.second = "You dont have any weapon in right hand to poison";
+                                        return result;
+                                    }
+                                }
+                                else
+                                    result.second = "[Consuming [id " + std::to_string(item_id) + "] " + object_name + "...]";
+
+
                                 if (!probe_mode)
                                     actor_equip->EquipObject((RE::Actor*)player_ref, object);
 
-                                result.first = true;
-                                if (MiscThings::is_poison(object))
-                                    result.second = "[Processing...]";
-                                else
-                                    result.second = "[Consuming [id " + std::to_string(item_id) + "] " + object_name + "...]";
 
                                 return result;
                             }

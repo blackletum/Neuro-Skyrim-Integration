@@ -71,7 +71,6 @@
 //SKULDAFN CUSTOM PATH TEST WITH NEW NO-THREAT-DETECTION FOR STAIR CLIMB
 //hide lod quest if lod is dead
 //azura star quest
-//current weapon is already poisoned repeating
 
 
 //test solstheim more
