@@ -24839,16 +24839,18 @@ namespace MiscThings {
             if (!no_chains)
                 chain_insert_twin_object(refr);
 
-            if (refr->formID == 0x40275f5 || refr->formID == 0x40275e6) //apocrypha final books duplicates
-                return "";
 
-            if (refr->formID == 0x4350d) //yngols barrow debug lever
-                return "";
-
-
-            if (refr->formID == 0x10f60e || refr->formID == 0xc81e3 || refr->formID == 0xadb74) //forlungur underwater stuff
-                return "";
-
+            switch (refr->formID) //ignore objects
+            {
+                case (0x40275f5)://apocrypha final books duplicates
+                case (0x40275e6)://apocrypha final books duplicates
+                case (0x4350d)://yngols barrow debug lever
+                case (0x10f60e)://forlungur underwater stuff
+                case (0xc81e3)://forlungur underwater stuff
+                case (0xadb74)://forlungur underwater stuff
+                case (0xbc8b8)://saarthal lever behind magic glowing door
+                    return "";
+            }
 
 
             auto base_obj = refr->GetBaseObject();

@@ -17436,13 +17436,54 @@ namespace WalkerProcessor {
                 if (quest_mode && (target_name == "")) //not guaranteed that insert_object will give us a name
                     target_name = "quest target point";
 
+                if (target_ref && target_ref->formID == 0xb7465) //saartal glowing wall with amulet
+                {
+                    reset_walker();
+
+                    bool is_glowing = false;
+
+                    auto saartal_fx = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x106bba);
+
+                    if (saartal_fx)
+                    {
+                        auto saartal_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("MG02");
+
+                        if (saartal_quest)
+                        {
+                            auto stage = saartal_quest->GetCurrentStageID();
+
+                            if (stage == 40)
+                            {
+                                auto amulet = (RE::TESBoundObject*)RE::TESForm::LookupByID(0x233d0);
+
+                                if (amulet)
+                                {
+                                    if (MiscThings::is_equipped(amulet))
+                                    {
+                                        is_glowing = true;
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+
+                    if (is_glowing)
+                        send_random_context("You are in front of some Magical Wall, that is currently glowing... Maybe you need to do something with it to proceed with quest", false);
+                    else
+                        send_random_context("You are in front of some Magical Wall, that had Saartal amulet lying on it... Maybe you need to do something with it to proceed with quest", false);
+
+                    
+                    return "";
+                }
+
                 if (target_ref && target_ref->formID == 0x401f313) //ancestors tomb dlc2 wait for clue npc.
                 {
                     reset_walker();
-                    MiscThings::set_darkfall_bridge_after_reached();
                     send_random_context("You are in Ulen Ancestral Tomb... but you dont see anyone yet. Perhaps, you need to wait until someone arrives...", false);
                     return "";
                 }
+
                 if (target_ref && target_ref->formID == 0x7112a46)
                 {
                     reset_walker();

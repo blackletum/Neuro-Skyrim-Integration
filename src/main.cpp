@@ -135,7 +135,7 @@
 //TODO armor advice based on skills and currently equipped gear (dont advise heavy armor if we are focusing magic)
 //TODO that nonpathfindable castle near riften lake (faldars tooth?)
 //TODO weapon advice enchantment take charge into account
-//TODO saartal hide lever and gate before glowing wall, glowing wall advice when arrived to it and its glowing
+
 
 //for later:
 
