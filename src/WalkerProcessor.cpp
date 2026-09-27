@@ -1301,6 +1301,12 @@ namespace WalkerProcessor {
         return ((interaction_after_walk == 3) && target_ref) || runaway_mode || (MiscThings::is_werewolf() && target_ref && target_ref->IsActor() && target_ref->IsDead() && interaction_after_walk == 1);
     }
 
+    bool is_fighting_attacking()
+    {
+        return is_fighting() && active_attacking_time > 0.0f;
+    }
+
+
 
     bool is_pickpocketing()
     {
@@ -5751,7 +5757,7 @@ namespace WalkerProcessor {
     float vampirelord_coef_attack = 1.8f;
     float vampirelord_coef_normal = 0.0f;
 
-    float dodge_coef_pathpoint = 11.0f;
+    float dodge_coef_pathpoint = 1.0f;
 
 
 
@@ -6999,11 +7005,7 @@ namespace WalkerProcessor {
             lasttime = 0;
             lasttime_close_enough = 0;
 
-            attack_action_time0 = 0.0f;
-            attack_action_time1 = 0.0f;
 
-            attack_action_timeout0 = 0.0f;
-            attack_action_timeout1 = 0.0f;
 
             got_close_for_pickpocket = false;
 
@@ -7017,7 +7019,16 @@ namespace WalkerProcessor {
             }
 
             if ((was_charging_ranged || was_casting_spell_left || was_casting_spell_right) && !close_enough())
+            {
                 cancel_charge_weapon();
+
+                attack_action_time0 = 0.0f;
+                attack_action_time1 = 0.0f;
+
+                attack_action_timeout0 = 0.0f;
+                attack_action_timeout1 = 0.0f;
+            }
+                
 
 
             
@@ -19832,6 +19843,10 @@ namespace WalkerProcessor {
                 {
                     dodge_projectile_time = 0.0f;
                     do_dodge_projectile = false;
+                    if (!is_walking_important_path())
+                        invalidate_path(); //rebuild path
+
+                    return;
                 }
             }
             else

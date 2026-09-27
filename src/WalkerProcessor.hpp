@@ -121,6 +121,7 @@ namespace WalkerProcessor {
 	std::pair<bool, std::string> exit_dungeon();
 
 
+
 	bool lock_camera_onto_target(RE::TESObjectREFR* target, float dtime, float speed_koef = 1.0f, bool force_speed_correction = false, bool force_high_precision = false);
 
 	std::pair<bool, std::string> walk_to_location_by_index(int location);
@@ -132,6 +133,7 @@ namespace WalkerProcessor {
 	bool has_ranged_weapon_equipped(bool right);
 
 	bool is_fighting();
+	bool is_fighting_attacking();
 
 	bool no_ammo();
 

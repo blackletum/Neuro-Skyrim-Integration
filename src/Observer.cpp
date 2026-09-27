@@ -8409,7 +8409,7 @@ namespace Observer {
 						{
 							if (!tried_to_heal)
 							{
-								if (WalkerProcessor::is_fighting())
+								if (WalkerProcessor::is_fighting_attacking())
 									WalkerProcessor::set_preferred_attacking_hand(left_healing);
 								else
 									MiscThings::cast_spell_by_refr((RE::SpellItem*)MiscThings::get_hand_contents(right_healing));
@@ -8439,7 +8439,7 @@ namespace Observer {
 
 					if (tried_to_heal)
 					{
-						if (tried_to_heal_time > 15.0f)
+						if (tried_to_heal_time > 5.0f)
 						{
 							tried_to_heal = false;
 							tried_to_heal_time = 0.0f;
