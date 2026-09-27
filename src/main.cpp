@@ -68,13 +68,12 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////DO ALL THIS
 
-//SKULDAFN CUSTOM PATH TEST WITH NEW NO-THREAT-DETECTION FOR STAIR CLIMB
-//hide lod quest if lod is dead
 //kill giant quest - since they are friendly from far and only become enemies from far, save game when approaching them if last load time is > 20 seconds ago so its less annoying
 
 //test solstheim more
 //more solstheim quests. pirate quest. check what other quests are there. dwemer bow dungeon quest
-
+//make so combat sucks more (random pauses/shooting walls/etc)
+//calibrate water-outofwater walking. causes big problems when there is small staircase out of water
 
 //werewolf still freezes sometimes
 

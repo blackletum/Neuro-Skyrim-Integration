@@ -12772,6 +12772,17 @@ namespace MiscThings {
         }
 
 
+        if (quest && quest->formID == 0xd7939) //speak to lod (DA03Start), daedra dog quest
+        {
+            if (quest->currentStage == 5)
+            {
+                auto lod = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x3a19f);
+                if (lod && lod->IsDead())
+                {
+                    return true;
+                }
+            }
+        }
 
         //seducers quest. temporary disable because its high level and needs checking
         if (quest && quest->formID == 0x6000912)
