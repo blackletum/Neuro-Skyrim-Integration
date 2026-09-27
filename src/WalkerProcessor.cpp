@@ -5751,7 +5751,7 @@ namespace WalkerProcessor {
     float vampirelord_coef_attack = 1.8f;
     float vampirelord_coef_normal = 0.0f;
 
-    float dodge_coef_pathpoint = 7.0f;
+    float dodge_coef_pathpoint = 11.0f;
 
 
 
