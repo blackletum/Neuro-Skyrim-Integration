@@ -20347,7 +20347,7 @@ namespace WalkerProcessor {
                                             if (!MiscThings::is_vampirelord()) //vampire lord has no interaction with corpses (apart from resurrect.. but its tricky)
                                                 advice = "loot dead enemies (they can have useful items)";
 
-                                    Observer::add_quicksave_timer(40.0f);
+                                    Observer::add_quicksave_timer(130.0f);
                                 }
 
 
