@@ -54,7 +54,7 @@ bool force_choice(std::vector<MenuOption> options, std::string message, int forc
 void unregister_all_actions();
 void unregister_all_actions2();
 
-
+bool unregister_tactical_retreat();
 
 bool register_keep_distance_short();
 bool unregister_keep_distance_short();

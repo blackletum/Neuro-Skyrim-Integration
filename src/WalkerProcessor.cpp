@@ -13,6 +13,9 @@
 
 namespace WalkerProcessor {
 
+    bool tactical_retreat_mode_active = false;
+
+
 
     float stealing_wait_before_confirm_time = 10.0f;
 
@@ -3585,7 +3588,12 @@ namespace WalkerProcessor {
 
                 bool brought_no_weapons_to_a_fight = !shout_mode && !spell_mode && MiscThings::has_spell_equipped(true) && MiscThings::has_spell_equipped(false) && !MiscThings::is_offensive_spell(true) && !MiscThings::is_offensive_spell(false);
 
-                if (last_walk_reminded_time > 40.0f || ((explore_mode || (runaway_mode && !MiscThings::parthurnax_friendly_fire_check())) && last_walk_reminded_time > 20.0f) || (interaction_after_walk == 3 && brought_no_weapons_to_a_fight && last_walk_reminded_time > 20.0f))
+                float runaway_threshold = 20.0f;
+
+                if (tactical_retreat_mode_active)
+                    runaway_threshold = 10.0f;
+
+                if (last_walk_reminded_time > 40.0f || ((explore_mode || (runaway_mode && !MiscThings::parthurnax_friendly_fire_check())) && last_walk_reminded_time > runaway_threshold) || (interaction_after_walk == 3 && brought_no_weapons_to_a_fight && last_walk_reminded_time > 20.0f))
                 {
                     last_walk_reminded_time = 0.0f;
 
@@ -3722,11 +3730,21 @@ namespace WalkerProcessor {
 
 
 
-                    bool silent = !runaway_mode;
+                    bool silent = !runaway_mode || tactical_retreat_mode_active;
 
                     silent = false; //experimental
 
-                    send_random_context(reminder_message, silent);
+
+                    if (tactical_retreat_mode_active)
+                    {
+                        reminder_message = "You finish tactical retreat, turning back onto enemies...";
+                        send_random_context(reminder_message, silent);
+
+                        search_next_fight_target = true;
+                        tactical_retreat_mode_active = false;
+                    }
+                    else
+                        send_random_context(reminder_message, silent);
                 }
                 else
                     last_walk_reminded_time += dtime_maybe_bad;
@@ -6288,6 +6306,8 @@ namespace WalkerProcessor {
 
     void reset_walker()
     {
+        tactical_retreat_mode_active = false;
+
         custom_path_timeout = 0.0f;
 
         dragon_lock_timer = 0.0f;
@@ -12573,7 +12593,7 @@ namespace WalkerProcessor {
 
 
 
-    std::pair<bool, std::string> run_away()
+    std::pair<bool, std::string> run_away(bool tactical_retreat_mode)
     {
         std::pair<bool, std::string> result{};
 
@@ -12623,6 +12643,10 @@ namespace WalkerProcessor {
             reminder_target_name = "running away]";
             reminder_start_pos = player->GetPosition();
             result.first = true;
+
+            if (tactical_retreat_mode)
+                tactical_retreat_mode_active = true;
+
             result.second = "[Running away...]";
 
             solitude_post_emperor_check(target_ref);
@@ -20336,7 +20360,7 @@ namespace WalkerProcessor {
                                     useless_fight = true;
                                 }
 
-
+                                unregister_tactical_retreat();
                                 Observer::reset_threats();
 
                                 if (target_ref && target_ref->formID == 0x4e9bd) //alduin. need to change advice if its pre-mist-cleared sovngarde
@@ -23069,7 +23093,7 @@ namespace WalkerProcessor {
                     auto player_actor = (RE::Actor*)player->AsReference();
 
                     //hide weapon
-                    if (!spell_ult_mode && !shout_mode && player_actor && (MiscThings::is_weapon_drawn() || player_actor->actorState2.weaponState == RE::WEAPON_STATE::kDrawing) && interaction_after_walk != 3 && !input_wants_to_cast() && !(MiscThings::has_bound_weapon_equipped(true) || MiscThings::has_bound_weapon_equipped(false)))
+                    if (!tactical_retreat_mode_active && !spell_ult_mode && !shout_mode && player_actor && (MiscThings::is_weapon_drawn() || player_actor->actorState2.weaponState == RE::WEAPON_STATE::kDrawing) && interaction_after_walk != 3 && !input_wants_to_cast() && !(MiscThings::has_bound_weapon_equipped(true) || MiscThings::has_bound_weapon_equipped(false)))
                     {
                         if (!tried_to_draw_weapon1 || draw_weapon_check_time1 > 2.0f)
                         {
@@ -23087,7 +23111,7 @@ namespace WalkerProcessor {
                     }
 
                     //show weapon
-                    if (!spell_ult_mode && !shout_mode && player_actor && !MiscThings::is_weapon_drawn() && !(player_actor->actorState2.weaponState == RE::WEAPON_STATE::kDrawing) && interaction_after_walk == 3)
+                    if (!spell_ult_mode && !shout_mode && player_actor && !MiscThings::is_weapon_drawn() && !(player_actor->actorState2.weaponState == RE::WEAPON_STATE::kDrawing) && (interaction_after_walk == 3 || tactical_retreat_mode_active))
                     {
                         if (!tried_to_draw_weapon2 || draw_weapon_check_time2 > 2.0f)
                         {

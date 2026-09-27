@@ -41,6 +41,14 @@
 
 namespace Capabilities
 {
+    namespace TacticalRetreat
+    {
+        constexpr char Name[] = "tactical_retreat";
+        constexpr char Desc[] =
+            R"(Run away from enemies a little, changing your position)";
+        constexpr neurosdk_action Action = { .name = Name, .description = Desc };//, .json_schema = JsonSchema };
+    }
+
 
     namespace FightKeepDistanceLong
     {

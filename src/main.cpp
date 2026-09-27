@@ -69,7 +69,6 @@
 ///////////DO ALL THIS
 
 //in keep-distance mode dont rush towards enemy right away if we have ranged weapon, wait a little, maybe they will come closer themselves
-//tactical retreat - must have. super useful
 //choice to quit barter for each confirmation force
 //when surrounded by enemies/cornered - switch to attacking nearest. when blocked by enemy - redirect to it
 //autoswitch from ritual level scrolls after use (HOW?)
@@ -318,6 +317,16 @@ bool register_confirm_change_character()
     return false;
 }
 
+
+bool unregister_tactical_retreat()
+{
+    const char* action_names[] = { Capabilities::TacticalRetreat::Name };
+
+    if (m_neuroSocket->unregister_actions(action_names, std::size(action_names)))
+        return true;
+
+    return false;
+}
 
 
 bool unregister_visit_interesting()

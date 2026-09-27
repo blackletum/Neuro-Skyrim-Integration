@@ -165,7 +165,8 @@ void clear_actions_status()
 
 
 neurosdk_action ActionsList[] = {
-                                    
+                                    Capabilities::TacticalRetreat::Action,
+
                                     Capabilities::GetIngameTime::Action,
                                     Capabilities::StartSneak::Action,
                                     Capabilities::StopSneak::Action,
@@ -225,6 +226,8 @@ neurosdk_action ActionsList[] = {
 
 neurosdk_action ActionsListNoForces[] = {
     
+                                    Capabilities::TacticalRetreat::Action,
+
                                     Capabilities::GetIngameTime::Action,
                                     Capabilities::StartSneak::Action,
                                     Capabilities::StopSneak::Action,
@@ -287,6 +290,8 @@ neurosdk_action ActionsListNoForces2[] = { //these are for moments when we cant 
 
 
                                     //Capabilities::GetSpells::Action,
+                                    Capabilities::TacticalRetreat::Action,
+
                                     Capabilities::StartSneak::Action,
                                     Capabilities::StopSneak::Action,
                                     Capabilities::FightKeepDistanceLong::Action,
@@ -779,6 +784,8 @@ bool neuro::NeuroSocket::register_allowed_actions(bool reconnect)
 
                             if (WalkerProcessor::is_fighting())
                             {
+                                actions_to_register[action_pos] = Capabilities::TacticalRetreat::Action; action_pos++;
+
                                 if (Observer::get_keep_distance_mode())
                                 {
                                     actions_to_register[action_pos] = Capabilities::FightKeepDistanceShort::Action; action_pos++;
@@ -1688,6 +1695,12 @@ bool neuro::NeuroSocket::Tick(float dtime) //const neurosdk_message_action_t& aC
                             {
                                 command_result = WalkerProcessor::turn_sneak_off();
                             }
+
+                            if (name == Capabilities::TacticalRetreat::Name)
+                            {
+                                command_result = WalkerProcessor::run_away(true);
+                            }
+
 
 
                             if (name == Capabilities::FightKeepDistanceLong::Name)
