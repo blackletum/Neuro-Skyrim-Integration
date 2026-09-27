@@ -562,7 +562,7 @@ namespace WalkerProcessor {
 
 
     bool custom_path_appended = false;
-    bool custom_path_appended_to_point_index = 0;
+    int custom_path_appended_to_point_index = 0;
 
 
     bool search_next_fight_target = false;
@@ -2607,8 +2607,8 @@ namespace WalkerProcessor {
                                 if (last_point.GetDistance(custom_path.at(0)) < 200.0f)
                                 {
                                     custom_path_appended = true;
-                                    if (ban_custom_path_interrupt_after_append)
-                                        ban_custom_path_interrupt_after_append = false;
+                                    //if (ban_custom_path_interrupt_after_append)
+                                    //    ban_custom_path_interrupt_after_append = false;
 
                                     custom_path_appended_to_point_index = std::size(path) - 1;
 
