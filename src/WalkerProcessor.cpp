@@ -754,7 +754,7 @@ namespace WalkerProcessor {
 
             if ((worldspace && worldspace == last_stuck_worldspace) || (cell && cell == last_stuck_cell))
             {
-                if (pos.GetDistance(player->GetPosition()) < 1000.0f)
+                if (last_stuck_pos.GetDistance(player->GetPosition()) < 1000.0f)
                     return true;
             }
         }
@@ -2341,7 +2341,7 @@ namespace WalkerProcessor {
 
                     if (navmesh_probe_mode)
                     {
-                        remember_stuck_position();
+                        //remember_stuck_position();
                         navmesh_probe_result = std::size(hazards) > 2;
                         navmesh_probe_result_valid = true;
                         navmesh_probe_mode = false;
@@ -19599,7 +19599,7 @@ namespace WalkerProcessor {
                             float test_range = get_weapon_range(get_current_active_hand());
 
                             if (test_range > threshold)
-                                threshold = 550.0f;
+                                threshold = 700.0f;
 
                             if (test_range < 200.0f)
                                 threshold = 200.0f;
@@ -20347,7 +20347,7 @@ namespace WalkerProcessor {
                                             if (!MiscThings::is_vampirelord()) //vampire lord has no interaction with corpses (apart from resurrect.. but its tricky)
                                                 advice = "loot dead enemies (they can have useful items)";
 
-                                    Observer::add_quicksave_timer(130.0f);
+                                    Observer::add_quicksave_timer(140.0f);
                                 }
 
 
@@ -21075,7 +21075,17 @@ namespace WalkerProcessor {
 
                 if (target_ref && !using_custom_path)
                 {
-                    
+                    if (quest_mode && last_quest_chosen && last_quest_chosen->formID == 0xbd78c) //quicksave before killing giants for bounty giant quest
+                    {
+                        if (player->GetDistance(target_ref) > 1500.0f && player->GetDistance(target_ref) < 2000.0f && Observer::get_last_saved_time() > 20.0f)
+                        {
+                            Observer::add_quicksave_timer(200.0f);
+                        }
+                    }
+
+
+
+
                     if (parent_cell && parent_cell->formID == 0x15258 && target_ref->formID == 0x70c1a25) //azura star dungeon
                     {
                         if (player->GetDistance(target_ref) < 150.0f)

@@ -68,8 +68,6 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////DO ALL THIS
 
-//kill giant quest - since they are friendly from far and only become enemies from far, save game when approaching them if last load time is > 20 seconds ago so its less annoying
-
 //test solstheim more
 //more solstheim quests. pirate quest. check what other quests are there. dwemer bow dungeon quest
 //make so combat sucks less (random pauses/shooting walls/etc)
