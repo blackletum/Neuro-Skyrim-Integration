@@ -8439,7 +8439,7 @@ namespace Observer {
 
 					if (tried_to_heal)
 					{
-						if (tried_to_heal_time > 5.0f)
+						if (tried_to_heal_time > 2.5f)
 						{
 							tried_to_heal = false;
 							tried_to_heal_time = 0.0f;

@@ -7018,7 +7018,7 @@ namespace WalkerProcessor {
                 unslow_walk();
             }
 
-            if ((was_charging_ranged || was_casting_spell_left || was_casting_spell_right) && !close_enough())
+            //if ((was_charging_ranged || was_casting_spell_left || was_casting_spell_right) && !close_enough())
             {
                 cancel_charge_weapon();
 
@@ -19572,7 +19572,7 @@ namespace WalkerProcessor {
         {
             //switch to nearest enemy if we are in keep-distance mode. necessary for better keep distance combat in case initial target hides behind other enemies
 
-            if (player->GetDistance(target_ref) > 200.0f)
+            if (player->GetDistance(target_ref) > 222.0f)
             {
                 auto next_targets = MiscThings::get_player_attackers(true, nullptr, true, 4000.0f, true);
 
@@ -19582,16 +19582,22 @@ namespace WalkerProcessor {
                     long long now = std::chrono::steady_clock::now().time_since_epoch().count();
                     float delta_nearest_enemy_switch = (double)(now - last_switch_to_nearest_enemy_timestamp) / 1000000000.0;
 
-                    if (delta_nearest_enemy_switch > 2.5f && (!start_attacking || (attack_action_time0 < 0.2f && attack_action_time1 < 0.2f)))
+                    if (delta_nearest_enemy_switch > 1.0f && (!start_attacking || (attack_action_time0 < 0.2f && attack_action_time1 < 0.2f)))
                     {
                         last_switch_to_nearest_enemy_timestamp = now;
 
                         auto nearest_enemy = next_targets.at(0);
 
-                        if (nearest_enemy != target_ref && !(MiscThings::target_cant_attack(target_ref)))
+                        float distance_new_enemy_player = nearest_enemy->GetDistance(player);
+                        float distance_current_enemy_player = target_ref->GetDistance(player);
+
+                        if (distance_new_enemy_player < 2000.0f && ((distance_current_enemy_player - distance_new_enemy_player) > 300.0f || distance_new_enemy_player < 300.0f))
                         {
-                            walk_to_object_by_refr(nearest_enemy, 3);
-                            return;
+                            if (nearest_enemy != target_ref && !(MiscThings::target_cant_attack(target_ref)))
+                            {
+                                walk_to_object_by_refr(nearest_enemy, 3);
+                                return;
+                            }
                         }
                     }
                 }
