@@ -21176,6 +21176,13 @@ namespace MiscThings {
                                                 this_quest.quest = the_quest;
                                                 this_quest.name = the_quest->GetFullName();
 
+                                                if (the_quest->formID == 0x95125 || the_quest->formID == 0xbd77f || the_quest->formID == 0xbd78c)
+                                                    this_quest.name += " (Reward: 100 gold)";
+
+                                                if (the_quest->formID == 0xcba9a)
+                                                    this_quest.name += " (Reward: 500 gold)";
+
+
                                                 this_quest.target = target;
 
                                                 this_quest.name = MiscThings::replace_aliases(this_quest.quest, this_quest.name);
