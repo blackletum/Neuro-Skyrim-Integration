@@ -11389,20 +11389,51 @@ namespace MiscThings {
 
         auto azure_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("DA01");
 
-        if (quest == azure_quest)
+        if (quest == azure_quest && target && target->formID == 0x3fd14)
         {
-            RE::TESObjectREFR* target_door = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x3fd14);
-            RE::TESObjectREFR* redirect_bar = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x89c14);
+            RE::TESObjectREFR* bridge = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xc6be4);
             
-
-            if (target_door && redirect_bar)
+            if (bridge && MiscThings::two_state_activator_state(bridge) == 0)
             {
-                if (target == target_door || target == redirect_bar)
+                RE::NiPoint2 a = { 3681.27075, 3430.89722 };
+                RE::NiPoint2 b = { 3681.27075, 4282.16309 };
+                RE::NiPoint2 c = { 1699.35303, 4282.16309 };
+                RE::NiPoint2 d = { 1699.35303, 3430.89722 };
+
+                RE::NiPoint2 p = { player_pos.x, player_pos.y };
+                if (MiscThings::is_inside_of_rectangle(p, a, b, c, d))
                 {
-                    if (MiscThings::two_state_activator_state(redirect_bar) != 0)
-                        return redirect_bar;
+                    RE::TESObjectREFR* bridge_chain = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xc6be6);
+                    if (bridge_chain)
+                        return bridge_chain;
+                }
+                else
+                {
+                    auto dummy = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x70c1a25);
+                    if (dummy)
+                    {
+                        dummy->MoveTo(player);
+                        MiscThings::SetPosition_moveto(dummy, { 2808.18164, 3011.20679, -180.687256 });
+                        return dummy;
+                    }
                 }
             }
+            else
+            {
+                RE::TESObjectREFR* target_door = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x3fd14);
+                RE::TESObjectREFR* redirect_bar = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x89c14);
+
+                if (target_door && redirect_bar)
+                {
+                    if (target == target_door || target == redirect_bar)
+                    {
+                        if (MiscThings::two_state_activator_state(redirect_bar) != 0)
+                            return redirect_bar;
+                    }
+                }
+            }
+
+
         }
 
         auto siege_city = (RE::TESQuest*)RE::TESForm::LookupByEditorID("CWSiegeObj");

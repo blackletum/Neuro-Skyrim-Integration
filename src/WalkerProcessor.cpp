@@ -562,7 +562,7 @@ namespace WalkerProcessor {
 
 
     bool custom_path_appended = false;
-
+    bool custom_path_appended_to_point_index = 0;
 
 
     bool search_next_fight_target = false;
@@ -1269,7 +1269,7 @@ namespace WalkerProcessor {
 
     bool is_walking_important_path()
     {
-        return using_custom_path && !allow_interrupt_custom_walk && !(ban_custom_path_interrupt_after_append && !custom_path_appended);
+        return using_custom_path && !allow_interrupt_custom_walk && !(ban_custom_path_interrupt_after_append && !(custom_path_appended && custom_path_appended_to_point_index <= current_path_point));
     }
 
     bool is_surrendering()
@@ -2609,6 +2609,9 @@ namespace WalkerProcessor {
                                     custom_path_appended = true;
                                     if (ban_custom_path_interrupt_after_append)
                                         ban_custom_path_interrupt_after_append = false;
+
+                                    custom_path_appended_to_point_index = std::size(path) - 1;
+
 
                                     path.insert(path.end(), custom_path.cbegin(), custom_path.cend()); //append custom path
                                 }
@@ -6609,6 +6612,7 @@ namespace WalkerProcessor {
         intro_look_timeout = 0.0f;
 
         custom_path_appended = false;
+        custom_path_appended_to_point_index = 0;
 
         custom_path_must_jump_on_last_point = false;
 
@@ -8496,8 +8500,20 @@ namespace WalkerProcessor {
                         }
                             
 
-                        if (target_ref && (target_ref->formID == 0x3fb00 || target_ref->formID == 0xc730a || target_ref->formID == 0x4038533))
-                            dont_use_bounds_for_close_enough = true;
+                        //
+
+                        if (target_ref)
+                        {
+                            switch (target_ref->formID)
+                            {
+                            case (0x3fb00):
+                            case (0xc730a):
+                            case (0x4038533):
+                            case (0xc6bfe): //redirect rock azura star mage dungeon
+                                dont_use_bounds_for_close_enough = true;
+                            }
+                        }
+
 
                         if (!dont_use_bounds_for_close_enough && !MiscThings::is_cave_autoloader_door(target_ref))
                         {
@@ -21040,11 +21056,41 @@ namespace WalkerProcessor {
 
                         }
                     }
+
+                    if (parent_cell && parent_cell->formID == 0x15258) //azura star dungeon
+                    {
+                        RE::NiPoint3 cancel_point = { 3261.65601, 4044.47144, -219.887589 };
+
+                        auto player_pos = player->GetPosition();
+
+                        if (player_pos.GetDistance(cancel_point) < 300.0f)
+                        {
+                            walk_again(); //soft reset
+                            using_custom_path = false;
+                            custom_path.clear();
+                            return;
+                        }
+                    }
                 }
 
                 if (target_ref && !using_custom_path)
                 {
                     
+                    if (parent_cell && parent_cell->formID == 0x15258 && target_ref->formID == 0x70c1a25) //azura star dungeon
+                    {
+                        if (player->GetDistance(target_ref) < 150.0f)
+                        {
+                            walk_again(); //soft reset
+                            using_custom_path = true;
+                            custom_path = CustomWalkerPaths::azura_star_dungeon_water;
+                            dont_quicksave_after_custom_path = true;
+                            allow_interrupt_custom_walk = true;
+                            walk_again_when_finished = true;
+                            return;
+                        }
+                    }
+
+
                     if (parent_cell && parent_cell->formID == 0xa5a71) //geirmund hall. boss fight pillars
                     {
                         auto target_pos = target_ref->GetPosition();

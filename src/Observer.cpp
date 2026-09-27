@@ -4441,14 +4441,33 @@ namespace Observer {
 
 													if (rock && !rock->IsDisabled())
 													{
-														RE::TESObjectREFR* cutter = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x703b322);
+														RE::TESObjectREFR* cutter1 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x703b322);
+														RE::TESObjectREFR* cutter2 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x718c266);
+														RE::TESObjectREFR* cutter3 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x718c263);
+														RE::TESObjectREFR* cutter4 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x718c264);
+														RE::TESObjectREFR* cutter5 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x718c265);
 
-														if (cutter)
+														if (cutter1 && cutter2 && cutter3 && cutter4 && cutter5)
 														{
-															auto cutter_pos = cutter->GetPosition();
+															auto cutter_pos = cutter1->GetPosition();
 															cutter_pos.z += 1000.0f;
+															MiscThings::SetPosition_moveto(cutter1, cutter_pos);
 
-															MiscThings::SetPosition_moveto(cutter, cutter_pos);
+															cutter_pos = cutter2->GetPosition();
+															cutter_pos.z += 1000.0f;
+															MiscThings::SetPosition_moveto(cutter2, cutter_pos);
+
+															cutter_pos = cutter3->GetPosition();
+															cutter_pos.z += 1000.0f;
+															MiscThings::SetPosition_moveto(cutter3, cutter_pos);
+
+															cutter_pos = cutter4->GetPosition();
+															cutter_pos.z += 1000.0f;
+															MiscThings::SetPosition_moveto(cutter4, cutter_pos);
+
+															cutter_pos = cutter5->GetPosition();
+															cutter_pos.z += 1000.0f;
+															MiscThings::SetPosition_moveto(cutter5, cutter_pos);
 														}
 													}
 												}
