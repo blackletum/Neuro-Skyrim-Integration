@@ -12784,6 +12784,13 @@ namespace MiscThings {
             }
         }
 
+
+        if (quest && quest->formID == 0xc9ba0) //crimson root quest. hide until its fully completable
+        {
+            return true;
+        }
+
+
         //seducers quest. temporary disable because its high level and needs checking
         if (quest && quest->formID == 0x6000912)
         {
