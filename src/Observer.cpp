@@ -9,6 +9,8 @@
 
 namespace Observer {
 
+	RE::ObjectRefHandle high_damage_enemy{};
+
 
 	bool was_swimming = false;
 	float swimming_time = 0.0f;
@@ -248,6 +250,14 @@ namespace Observer {
 		check_health_decrease_hit_weapon = weapon;
 	}
 
+
+	RE::TESObjectREFR* get_high_damage_enemy()
+	{
+		if (high_damage_enemy && high_damage_enemy.get() && high_damage_enemy.get().get())
+			return high_damage_enemy.get().get();
+
+		return nullptr;
+	}
 
 
 	int get_same_place_death_count()
@@ -8088,6 +8098,22 @@ namespace Observer {
 
 							}
 						}
+
+
+						auto player_health = MiscThings::get_player_max_health();
+
+						if (actual_health_dif / player_health > 0.7f)
+						{
+							//bullshit damage over 70% hp onehit
+							auto last_attacker_handle = EventSink::GetSingleton()->get_last_damage_source();
+
+							if (last_attacker_handle && last_attacker_handle.get() && last_attacker_handle.get().get())
+							{
+								high_damage_enemy = last_attacker_handle;
+							}
+						}
+
+
 
 						check_health_decrease_after_hit = false;
 						check_health_decrease_hit_weapon = nullptr;

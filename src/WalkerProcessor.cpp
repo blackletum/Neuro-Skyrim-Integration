@@ -7486,7 +7486,7 @@ namespace WalkerProcessor {
                     {
                         auto shout = (RE::TESShout*)RE::TESForm::LookupByID(0x13e07); //fus ro da
 
-                        if (shout && MiscThings::player_has_spell((RE::SpellItem*)shout) && MiscThings::get_shout_cooldown() <= 0.0f && !MiscThings::actor_has_ward_equipped(dodge_projectile_blast_target))
+                        if (!shout_mode && shout && MiscThings::player_has_spell((RE::SpellItem*)shout) && MiscThings::get_shout_cooldown() <= 0.0f && !MiscThings::actor_has_ward_equipped(dodge_projectile_blast_target))
                             if (MiscThings::raycastable(dodge_projectile_blast_target, 3000.0f, false))
                                 shout_at_target(dodge_projectile_blast_target, shout);
 
@@ -19602,9 +19602,6 @@ namespace WalkerProcessor {
                     }
                 }
             }
-               
-
-
         }
 
 
@@ -19619,10 +19616,6 @@ namespace WalkerProcessor {
 
             if (projectile_dir == RE::NiPoint3::Zero())
             {
-
-                
-
-
                 if (!do_dodge_projectile)
                 {
                     //keep distance check
@@ -20634,6 +20627,21 @@ namespace WalkerProcessor {
                 {
                     reset_walker();
                     return;
+                }
+
+
+                if (target_ref && interaction_after_walk == 3 && !(is_running_away() && !tactical_retreat_mode_active))
+                {
+                    if (!shout_mode && target_ref == Observer::get_high_damage_enemy())
+                    {
+                        auto shout = (RE::TESShout*)RE::TESForm::LookupByID(0x13e07); //fus ro da
+
+                        if (shout && MiscThings::player_has_spell((RE::SpellItem*)shout) && MiscThings::get_shout_cooldown() <= 0.0f)
+                            if (MiscThings::raycastable(target_ref, 3000.0f, false))
+                                shout_at_target(target_ref, shout);
+
+                        fight_versus_dangerous_mage_power_attack_if_possible = true;
+                    }
                 }
 
 

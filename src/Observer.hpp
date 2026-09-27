@@ -46,6 +46,8 @@ namespace Observer {
 
 	void cleanup_invalid_objects(float dtime, bool force = false);
 
+	RE::TESObjectREFR* get_high_damage_enemy();
+
 	void attatch_hitmap();
 
 	std::vector<MenuOption> get_threat_options(bool any_attacker_sees_player, RE::TESObjectREFR* attacker = nullptr);
@@ -73,6 +75,10 @@ namespace Observer {
 		public RE::BSTEventSink<RE::TESHitEvent>
 	{
 	private:
+
+		RE::ObjectRefHandle last_attacker{};
+
+
 		bool* hitmap_lock = nullptr;
 		std::map<RE::TESObjectREFR*, long long>* player_hit_info = nullptr;
 		void (*send_random_context)(std::string context, bool silent);
@@ -83,6 +89,11 @@ namespace Observer {
 			hitmap_lock = lock;
 			send_random_context = context_sender;
 
+		}
+
+		RE::ObjectRefHandle get_last_damage_source()
+		{
+			return last_attacker;
 		}
 
 		void Init()
@@ -157,6 +168,8 @@ namespace Observer {
 										player_hit_info->insert({ agressor_ref, now_time });
 										send_random_context(agressor_name + " hits you" + weapon_name + "!", true);
 									}
+
+									last_attacker = agressor_ref->GetHandle();
 								}
 
 								*hitmap_lock = false;
