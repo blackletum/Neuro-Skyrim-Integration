@@ -70,7 +70,6 @@
 
 //in keep-distance mode dont rush towards enemy right away if we have ranged weapon, wait a little, maybe they will come closer themselves
 //tactical retreat - must have. super useful
-//increase wait for being undetected when stealing things (+5sec or so, test it)
 //choice to quit barter for each confirmation force
 //hide crimson nirnroot quest until its completable
 //when surrounded by enemies/cornered - switch to attacking nearest. when blocked by enemy - redirect to it

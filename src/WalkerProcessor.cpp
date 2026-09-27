@@ -13,6 +13,10 @@
 
 namespace WalkerProcessor {
 
+
+    float stealing_wait_before_confirm_time = 10.0f;
+
+
     float custom_path_timeout = 0.0f;
 
     bool do_universal_dodging = false;
@@ -333,7 +337,9 @@ namespace WalkerProcessor {
     bool stealing_choice_valid = false;
     bool stealing_choice = false;
     bool stealing_confirmed = false;
-    
+    bool stealing_informed = false;
+
+
     bool pause_pre_stealing = false;
     float pause_pre_stealing_time = 0.0f;
 
@@ -6536,6 +6542,7 @@ namespace WalkerProcessor {
         stealing_choice_valid = false;
         stealing_choice = false;
         stealing_confirmed = false;
+        stealing_informed = false;
 
         stealing_timer = 0.0f;
 
@@ -16652,7 +16659,7 @@ namespace WalkerProcessor {
 
                                 if (!MiscThings::is_player_hidden())
                                 {
-                                    if (stealing_timer > 4.0f)
+                                    if (stealing_timer > stealing_wait_before_confirm_time)
                                     {
                                         if (!stealing_confirmed)
                                         {
@@ -16662,6 +16669,13 @@ namespace WalkerProcessor {
                                     }
                                     else
                                     {
+                                        if (!stealing_informed)
+                                        {
+                                            send_random_context("You are trying to sneakily steal the item...", true);
+                                            stealing_informed = true;
+                                        }
+                                            
+                                        walker_active_time = 0.0f;
                                         stealing_timer += dtime;
                                         return false;
                                     }
@@ -16821,7 +16835,7 @@ namespace WalkerProcessor {
                             //if (player_actor->WouldBeStealing(target_ref))
                             if (!MiscThings::is_player_hidden())
                             {
-                                if (stealing_timer > 4.0f)
+                                if (stealing_timer > stealing_wait_before_confirm_time)
                                 {
                                     if (!stealing_confirmed)
                                     {
@@ -16831,6 +16845,13 @@ namespace WalkerProcessor {
                                 }
                                 else
                                 {
+                                    if (!stealing_informed)
+                                    {
+                                        send_random_context("You are trying to sneakily steal the item...", true);
+                                        stealing_informed = true;
+                                    }
+
+                                    walker_active_time = 0.0f;
                                     stealing_timer += dtime;
                                     return false;
                                 }
@@ -24128,7 +24149,7 @@ namespace WalkerProcessor {
 
                                                                                 if (!MiscThings::is_player_hidden())
                                                                                 {
-                                                                                    if (stealing_timer > 4.0f)
+                                                                                    if (stealing_timer > stealing_wait_before_confirm_time)
                                                                                     {
                                                                                         if (!stealing_confirmed)
                                                                                         {
@@ -24138,6 +24159,13 @@ namespace WalkerProcessor {
                                                                                     }
                                                                                     else
                                                                                     {
+                                                                                        if (!stealing_informed)
+                                                                                        {
+                                                                                            send_random_context("You are trying to sneakily lockpick it...", true);
+                                                                                            stealing_informed = true;
+                                                                                        }
+
+                                                                                        walker_active_time = 0.0f;
                                                                                         stealing_timer += dtime;
                                                                                         return;
                                                                                     }
@@ -24861,7 +24889,7 @@ namespace WalkerProcessor {
 
                                                                                     if (!MiscThings::is_player_hidden())
                                                                                     {
-                                                                                        if (stealing_timer > 4.0f)
+                                                                                        if (stealing_timer > stealing_wait_before_confirm_time)
                                                                                         {
                                                                                             if (!stealing_confirmed)
                                                                                             {
@@ -24871,6 +24899,13 @@ namespace WalkerProcessor {
                                                                                         }
                                                                                         else
                                                                                         {
+                                                                                            if (!stealing_informed)
+                                                                                            {
+                                                                                                send_random_context("You are trying to sneakily lockpick it...", true);
+                                                                                                stealing_informed = true;
+                                                                                            }
+
+                                                                                            walker_active_time = 0.0f;
                                                                                             stealing_timer += dtime;
                                                                                             return;
                                                                                         }
@@ -25341,7 +25376,7 @@ namespace WalkerProcessor {
 
                                                                     if (!MiscThings::is_player_hidden())
                                                                     {
-                                                                        if (stealing_timer > 4.0f)
+                                                                        if (stealing_timer > stealing_wait_before_confirm_time)
                                                                         {
                                                                             if (!stealing_confirmed)
                                                                             {
@@ -25351,6 +25386,13 @@ namespace WalkerProcessor {
                                                                         }
                                                                         else
                                                                         {
+                                                                            if (!stealing_informed)
+                                                                            {
+                                                                                send_random_context("You are trying to sneakily lockpick it...", true);
+                                                                                stealing_informed = true;
+                                                                            }
+
+                                                                            walker_active_time = 0.0f;
                                                                             stealing_timer += dtime;
                                                                             return;
                                                                         }
