@@ -72,7 +72,7 @@
 
 //test solstheim more
 //more solstheim quests. pirate quest. check what other quests are there. dwemer bow dungeon quest
-//make so combat sucks more (random pauses/shooting walls/etc)
+//make so combat sucks less (random pauses/shooting walls/etc)
 //calibrate water-outofwater walking. causes big problems when there is small staircase out of water
 
 //werewolf still freezes sometimes
