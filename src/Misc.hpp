@@ -434,6 +434,8 @@ namespace MiscThings {
     bool dragon_is_on_the_ground(RE::TESObjectREFR* refr);
 
 
+    bool has_vampire_sun_debuff();
+    bool is_vampire();
 
     void item_dropper(float dtime);
     void reset_dropper();

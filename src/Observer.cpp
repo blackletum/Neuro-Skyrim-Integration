@@ -8235,6 +8235,15 @@ namespace Observer {
 								if (MiscThings::player_has_deseases())
 									advices.push_back("Deseases can significantly affect your combat skills, if you have any, you can cure them by drinking Cure Desease Potion or praying at any Shrine (Shrines can usually be found in big cities, usually in churches)");
 
+								auto shout = (RE::TESShout*)RE::TESForm::LookupByID(0x13e07); //fus ro da
+
+								if (shout && MiscThings::player_has_spell((RE::SpellItem*)shout))
+									advices.push_back("Dont forget to use your shouts. They can be very powerful");
+									
+								if (MiscThings::has_vampire_sun_debuff())
+									advices.push_back("As a vampire, you are weakened under sunlight. Consider trying to fight during nighttime (from 7 PM to 5 AM)");
+
+
 								int pick_advice = (float)std::rand() / RAND_MAX * std::size(advices);
 
 								if (pick_advice < std::size(advices) && pick_advice >= 0)

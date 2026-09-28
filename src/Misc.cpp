@@ -30747,7 +30747,109 @@ namespace MiscThings {
     }
 
 
+    bool is_vampire()
+    {
+        auto vampiric_drain = (RE::SpellItem*)RE::TESForm::LookupByID(0x8D5BF);
+        if (vampiric_drain && MiscThings::player_has_spell(vampiric_drain))
+            return true;
 
+        vampiric_drain = (RE::SpellItem*)RE::TESForm::LookupByID(0x8D5C0);
+        if (vampiric_drain && MiscThings::player_has_spell(vampiric_drain))
+            return true;
+
+        vampiric_drain = (RE::SpellItem*)RE::TESForm::LookupByID(0x8D5C1);
+        if (vampiric_drain && MiscThings::player_has_spell(vampiric_drain))
+            return true;
+
+        vampiric_drain = (RE::SpellItem*)RE::TESForm::LookupByID(0x8D5C2);
+        if (vampiric_drain && MiscThings::player_has_spell(vampiric_drain))
+            return true;
+
+        return false;
+    }
+
+
+    bool has_vampire_sun_debuff()
+    {
+        auto debuff = (RE::SpellItem*)RE::TESForm::LookupByID(0xc1e8b); //1
+        if (debuff && MiscThings::player_has_spell(debuff))
+        {
+            bool any_effect_active = false;
+            for (auto& effect : debuff->effects)
+            {
+                if (effect)
+                {
+                    if (!effect->conditions || MiscThings::recursive_quest_condition_check(effect->conditions.head, nullptr, nullptr))
+                    {
+                        any_effect_active = true;
+                        break;
+                    }
+                }
+            }
+            if (any_effect_active)
+                return true;
+        }
+
+
+        debuff = (RE::SpellItem*)RE::TESForm::LookupByID(0xed09a); //2
+        if (debuff && MiscThings::player_has_spell(debuff))
+        {
+            bool any_effect_active = false;
+            for (auto& effect : debuff->effects)
+            {
+                if (effect)
+                {
+                    if (!effect->conditions || MiscThings::recursive_quest_condition_check(effect->conditions.head, nullptr, nullptr))
+                    {
+                        any_effect_active = true;
+                        break;
+                    }
+                }
+            }
+            if (any_effect_active)
+                return true;
+        }
+
+        debuff = (RE::SpellItem*)RE::TESForm::LookupByID(0xed09b); //3
+        if (debuff && MiscThings::player_has_spell(debuff))
+        {
+            bool any_effect_active = false;
+            for (auto& effect : debuff->effects)
+            {
+                if (effect)
+                {
+                    if (!effect->conditions || MiscThings::recursive_quest_condition_check(effect->conditions.head, nullptr, nullptr))
+                    {
+                        any_effect_active = true;
+                        break;
+                    }
+                }
+            }
+            if (any_effect_active)
+                return true;
+        }
+
+        debuff = (RE::SpellItem*)RE::TESForm::LookupByID(0xed09c); //4
+        if (debuff && MiscThings::player_has_spell(debuff))
+        {
+            bool any_effect_active = false;
+            for (auto& effect : debuff->effects)
+            {
+                if (effect)
+                {
+                    if (!effect->conditions || MiscThings::recursive_quest_condition_check(effect->conditions.head, nullptr, nullptr))
+                    {
+                        any_effect_active = true;
+                        break;
+                    }
+                }
+            }
+            if (any_effect_active)
+                return true;
+        }
+
+        return false;
+    }
 
 
     std::pair<bool, std::string> get_available_spells()
