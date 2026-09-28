@@ -124,7 +124,57 @@ namespace MiscThings {
         return result;
     }
 
+    /* //this doesnt work, data[0] is always devouring. need to somehow get active animation
+    std::string killcam_action_name()
+    {
 
+        auto player = RE::PlayerCharacter::GetSingleton();
+        RE::BSAnimationGraphManagerPtr my_ptr;
+        auto anim_graph_manager = player->GetAnimationGraphManager(my_ptr);
+
+        if (my_ptr)
+        {
+            if (my_ptr->activeGraph < my_ptr->graphs.size())
+            {
+                auto test_graph = my_ptr->graphs[my_ptr->activeGraph];
+
+
+                if (test_graph)
+                {
+                    if (test_graph->characterInstance.setup && test_graph->characterInstance.setup->data && test_graph->characterInstance.setup->data->stringData && test_graph->characterInstance.setup->data->stringData->animationNames._data->size() > 0)
+                    {
+                        std::string anim_name = test_graph->characterInstance.setup->data->stringData->animationNames._data[0].c_str();
+
+                        if (anim_name.find("paired_ww_pairedfeedingwithhuman") != std::string::npos)
+                        {
+                            return "are devouring your enemy";
+                        }
+
+                        if (anim_name.find("paired_ww_pairedmaulingwithhuman") != std::string::npos)
+                        {
+                            return "are mauling your enemy";
+                        }
+
+
+                        if (anim_name.find("paired_ww_pairedheadthrow") != std::string::npos)
+                        {
+                            return "grabbed by the head and tossed your enemy";
+                        }
+                            
+                        if (anim_name.find("paired_ww_pairedheadsmash") != std::string::npos)
+                        {
+                            return "grabbed your enemy by the head and smashed it";
+                        }
+
+
+                    }
+                }
+            }
+        }
+
+        return "";
+    }
+    */
 
     bool killcam_active()
     {

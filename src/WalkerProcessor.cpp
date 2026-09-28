@@ -12,6 +12,11 @@
 #include "ApocryphaRedirects.hpp"
 
 namespace WalkerProcessor {
+    
+    bool notified_cool_killcam = false;
+
+    bool try_to_switch_to_nearest_enemy = false;
+
 
     bool tactical_retreat_mode_active = false;
 
@@ -5757,7 +5762,7 @@ namespace WalkerProcessor {
     float vampirelord_coef_attack = 1.8f;
     float vampirelord_coef_normal = 0.0f;
 
-    float dodge_coef_pathpoint = 1.0f;
+    float dodge_coef_pathpoint = 0.0f;
 
 
 
@@ -5780,10 +5785,10 @@ namespace WalkerProcessor {
         if (player_worldspace == blackreach_worldspace || (parent_cell && parent_cell->formID == 0x4c6dd))
             blackreach_mode = true; //navmesh in blackreach is very bad. clips through the floor. looks like they changed terrain without remaking navmesh
 
-
+        float swimming_bonus = 0.0f;
+        float swimming_ignore_z_bonus = 100.0f;
 
         try {
-
             float base_reach_distance = 60.0f;
 
             //if (std::size(path) < 2)
@@ -5809,9 +5814,9 @@ namespace WalkerProcessor {
                 auto distance = pos_dif.Length();
 
                 if ((int)std::size(path) < 3)
-                    result = distance < (blackreach_mode * 20.0f + base_reach_distance) * (1 + MiscThings::is_on_horse() * 4.0f) * (1 + MiscThings::is_werewolf() * werewolf_coef_pathpoint) * (1 + MiscThings::is_vampirelord() * vampirelord_coef_pathpoint) + 70.0f * MiscThings::is_player_swimming() * (1 + (float)do_dodge_projectile*dodge_coef_pathpoint); //100
+                    result = distance < (blackreach_mode * 20.0f + base_reach_distance) * (1 + MiscThings::is_on_horse() * 4.0f) * (1 + MiscThings::is_werewolf() * werewolf_coef_pathpoint) * (1 + MiscThings::is_vampirelord() * vampirelord_coef_pathpoint) + swimming_bonus * MiscThings::is_player_swimming() * (1 + (float)do_dodge_projectile*dodge_coef_pathpoint); //100
                 else
-                    result = distance < (blackreach_mode * 20.0f + base_reach_distance) * (1 + MiscThings::is_on_horse() * 4.0f) * (1 + MiscThings::is_werewolf() * werewolf_coef_pathpoint) * (1 + MiscThings::is_vampirelord() * vampirelord_coef_pathpoint) + 70.0f * MiscThings::is_player_swimming() * (1 + (float)do_dodge_projectile * dodge_coef_pathpoint); //100
+                    result = distance < (blackreach_mode * 20.0f + base_reach_distance) * (1 + MiscThings::is_on_horse() * 4.0f) * (1 + MiscThings::is_werewolf() * werewolf_coef_pathpoint) * (1 + MiscThings::is_vampirelord() * vampirelord_coef_pathpoint) + swimming_bonus * MiscThings::is_player_swimming() * (1 + (float)do_dodge_projectile * dodge_coef_pathpoint); //100
 
                 if (last_point_of_last_path.z - player_pos.z > 200.0f)
                     result = true; //we either fell or pathfinding glitched
@@ -5880,7 +5885,7 @@ namespace WalkerProcessor {
                         player_pos_noZ.z = 0.0f;
                         path_point_pos_noZ.z = 0.0f;
 
-                        bool actually_ignore_z = player_pos_noZ.GetDistance(path_point_pos_noZ) < 30.0f && abs(player_pos.z - current_path_point_pos.z) < 100.0f;
+                        bool actually_ignore_z = player_pos_noZ.GetDistance(path_point_pos_noZ) < 30.0f && abs(player_pos.z - current_path_point_pos.z) < (100.0f + MiscThings::is_player_swimming()* swimming_ignore_z_bonus);
 
 
                         if (blackreach_mode || (!is_about_to_fall() && actually_ignore_z))
@@ -5893,6 +5898,8 @@ namespace WalkerProcessor {
 
                         auto distance = current_path_point_pos.GetDistance(player_pos);
 
+
+                        
 
                         if (using_custom_path)
                         {
@@ -5919,10 +5926,10 @@ namespace WalkerProcessor {
                                 base_threshold = 60.0f;
 
 
-                            result = distance < base_threshold + 70.0f * MiscThings::is_player_swimming(); //100
+                            result = distance < base_threshold + swimming_bonus * MiscThings::is_player_swimming(); //100
                         }
                         else
-                            result = distance < ((blackreach_mode * 20.0f + base_reach_distance) * (1 + MiscThings::is_on_horse() * 4.0f) * (1 + MiscThings::is_werewolf() * werewolf_coef_pathpoint) * (1 + MiscThings::is_vampirelord() * vampirelord_coef_pathpoint) + 70.0f * MiscThings::is_player_swimming()) * (1 + (float)do_dodge_projectile * dodge_coef_pathpoint); //100
+                            result = distance < ((blackreach_mode * 20.0f + base_reach_distance) * (1 + MiscThings::is_on_horse() * 4.0f) * (1 + MiscThings::is_werewolf() * werewolf_coef_pathpoint) * (1 + MiscThings::is_vampirelord() * vampirelord_coef_pathpoint) + swimming_bonus * MiscThings::is_player_swimming()) * (1 + (float)do_dodge_projectile * dodge_coef_pathpoint); //100
                     }
                     else
                         result = true;
@@ -6312,6 +6319,9 @@ namespace WalkerProcessor {
 
     void reset_walker()
     {
+
+        try_to_switch_to_nearest_enemy = false;
+
         tactical_retreat_mode_active = false;
 
         custom_path_timeout = 0.0f;
@@ -13729,8 +13739,19 @@ namespace WalkerProcessor {
         {
             //auto camera = RE::PlayerCamera::GetSingleton();
 
-            
+            /*
+            if (!notified_cool_killcam)
+            {
+                notified_cool_killcam = true;
 
+                std::string action = MiscThings::killcam_action_name();
+
+                if (action != "")
+                {
+                    send_random_context("You " + action, true);
+                }
+            }
+            */
 
 
             //if (camera) //this is shit
@@ -13839,7 +13860,7 @@ namespace WalkerProcessor {
         }
         else
         {
-            bool stop_here = false;
+            notified_cool_killcam = false;
         }
             
 
@@ -19568,9 +19589,11 @@ namespace WalkerProcessor {
 
 
 
-        if (Observer::get_keep_distance_mode() && interaction_after_walk == 3 && target_ref && !shout_mode && !spell_mode && !is_walking_important_path())
+        if ((Observer::get_keep_distance_mode() || try_to_switch_to_nearest_enemy) && interaction_after_walk == 3 && target_ref && !shout_mode && !spell_mode && !is_walking_important_path())
         {
             //switch to nearest enemy if we are in keep-distance mode. necessary for better keep distance combat in case initial target hides behind other enemies
+
+            try_to_switch_to_nearest_enemy = false;
 
             if (player->GetDistance(target_ref) > 222.0f)
             {
@@ -23549,6 +23572,19 @@ namespace WalkerProcessor {
                                                     time_stuck = 0.0f;
                                                     try_unstuck = true;
                                                     unstuck_attempts++;
+
+                                                    if (unstuck_attempts > 1)
+                                                    {
+                                                        if (interaction_after_walk == 3 && !(is_running_away()) && MiscThings::is_werewolf())
+                                                        {
+                                                            auto temp_attackers = MiscThings::get_player_attackers(false, nullptr, true, 500.0f, true);
+                                                            if (std::size(temp_attackers) > 2)
+                                                            {
+                                                                try_to_switch_to_nearest_enemy = true; //this might not be quite as useful. needs adjustment
+                                                            }
+                                                        }
+                                                    }
+
                                                 }
                                                 else
                                                 {
@@ -25257,6 +25293,19 @@ namespace WalkerProcessor {
                                                     time_stuck = 0.0f;
                                                     try_unstuck = true;
                                                     unstuck_attempts++;
+
+                                                    if (unstuck_attempts > 1)
+                                                    {
+                                                        if (interaction_after_walk == 3 && !(is_running_away()) && MiscThings::is_werewolf())
+                                                        {
+                                                            auto temp_attackers = MiscThings::get_player_attackers(false, nullptr, true, 500.0f, true);
+                                                            if (std::size(temp_attackers) > 2)
+                                                            {
+                                                                try_to_switch_to_nearest_enemy = true;
+                                                            }
+                                                        }
+                                                    }
+
                                                 }
                                                 else
                                                 {

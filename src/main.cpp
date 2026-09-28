@@ -69,10 +69,16 @@
 ///////////DO ALL THIS
 
 //in keep-distance mode dont rush towards enemy right away if we have ranged weapon, wait a little, maybe they will come closer themselves
-//choice to quit barter for each confirmation force
 //when surrounded by enemies/cornered - switch to attacking nearest. when blocked by enemy - redirect to it
 //autoswitch from ritual level scrolls after use (HOW?)
 //test a fight versus dragon in beast form
+//cancel spell charge if enemy became unreachable but we already charged our spell
+//check normal novice heal with new improvements
+//check concentration spells and other too
+//autoequip fishing rod. advice where to get it if its not nearby. if its nearby - point it out
+//put markers for fishing quests. it might be not bad
+//force to fish more after fishing for easier access, maybe make an action about fishing to go straight to it without walk_to_object action
+//wait menu - remind about vampirism. maybe dynamically change action's description according to vampirism. potentially will need to remove this action when its unavailable (maybe pointless)
 
 
 //test solstheim more
@@ -146,6 +152,8 @@
 //TODO QUESTIONABLE unique ID's for everything. after item picked up, try to keep ID the same in the inventory
 //TODO hand equip info (both spells and inventory. spells in the inventory will require insert_spell_into_list_and_get_info function)
 //TODO coop
+
+//BLUNDERBUSS????
 
 
 //#include <string>
