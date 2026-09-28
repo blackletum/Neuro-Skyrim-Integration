@@ -390,6 +390,20 @@ namespace MiscThings {
         return false;
     }
 
+
+    bool is_actor_staggering(RE::TESObjectREFR* object)
+    {
+        if (object && object->IsActor())
+        {
+            auto actor = (RE::Actor*)object;
+
+            return actor->IsStaggered() || actor->IsStaggering();
+        }
+
+        return false;
+    }
+
+
     bool cant_shout_yet()
     {
         auto player = RE::PlayerCharacter::GetSingleton();

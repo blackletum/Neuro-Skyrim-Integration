@@ -68,12 +68,14 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////DO ALL THIS
 
+//COMBAT
 //shooting walls
 //in keep-distance mode dont rush towards enemy right away if we have ranged weapon, wait a little, maybe they will come closer themselves
 //when surrounded by enemies/cornered - switch to attacking nearest. when blocked by enemy - redirect to it
 //autoswitch from ritual level scrolls after use (HOW?)
 //test a fight versus dragon in beast form
-//check concentration spells and other too
+
+//FISHING
 //autoequip fishing rod. advice where to get it if its not nearby. if its nearby - point it out
 //put markers for fishing quests. it might be not bad
 //force with question to fish more after fishing for easier access, maybe make an action about fishing to go straight to it without walk_to_object action

@@ -4849,7 +4849,7 @@ namespace WalkerProcessor {
         bool lookat_used = false;
 
 
-        if ((target->IsHumanoid() || MiscThings::is_seeker(target)) && !MiscThings::dont_use_head_node(target) && !(target->IsActor() && ((RE::Actor*)target)->GetLifeState() == RE::ACTOR_LIFE_STATE::kBleedout))// && !target->IsDead())
+        if ((target->IsHumanoid() || MiscThings::is_seeker(target)) && !MiscThings::dont_use_head_node(target) && !(target->IsActor() && (((RE::Actor*)target)->GetLifeState() == RE::ACTOR_LIFE_STATE::kBleedout) || MiscThings::is_actor_staggering(target)))// && !target->IsDead())
         {
             auto target_actor = (RE::Actor*)target;
 
@@ -5136,7 +5136,7 @@ namespace WalkerProcessor {
             if (target_actor->currentProcess)
                 if (target_actor->currentProcess->middleHigh)
                 {
-                    if (MiscThings::dont_use_head_node(target) || is_pickpocketing() || (player->GetDistance(target) > 400.0f && is_fighting() && has_ranged_weapon_equipped(get_current_active_hand())) || (target_actor->GetLifeState() == RE::ACTOR_LIFE_STATE::kBleedout))
+                    if (MiscThings::dont_use_head_node(target) || is_pickpocketing() || (player->GetDistance(target) > 400.0f && is_fighting() && has_ranged_weapon_equipped(get_current_active_hand())) || (target_actor->GetLifeState() == RE::ACTOR_LIFE_STATE::kBleedout) || MiscThings::is_actor_staggering(target))
                     {
                         if (target_actor->currentProcess->middleHigh->torsoNode)
                         {
@@ -8372,7 +8372,7 @@ namespace WalkerProcessor {
                         if (target_ref && target_ref->formID == 0xdb9d7 && raycast_ref && raycast_ref->formID == 0x80b2c)
                         {
                             raycast_ref = target_ref;
-                            raycast_hands_too = true;
+                            raycast_hands_result = true;
                             //raycast_ref_right = target_ref;
                             //raycast_ref_left = target_ref;
                         }
@@ -8386,7 +8386,7 @@ namespace WalkerProcessor {
                             bool stop_here = false; //to detect when raycast caught player
 
                         //auto raycast_test = raycast_ref == target_ref && (start_attacking || attack_paused || raycast_was_on || !raycast_hands_too || (raycast_ref_right == target_ref && raycast_ref_left == target_ref && raycast_ref_top == target_ref && raycast_ref_bottom == target_ref));
-                        auto raycast_test = (MiscThings::is_werewolf() || raycast_ref == target_ref || (start_attacking && raycast_ref && MiscThings::is_enemy_to_actor(raycast_ref))) && (start_attacking || attack_paused || raycast_was_on || raycast_hands_result);
+                        auto raycast_test = (MiscThings::is_werewolf() || raycast_ref == target_ref || (start_attacking && raycast_ref && MiscThings::is_enemy_to_actor(raycast_ref))) && (start_attacking || attack_paused || raycast_was_on || (!raycast_hands_too || raycast_hands_result));
                         raycast_test |= start_attacking && WalkerProcessor::is_casting_ritual_spell();
 
                         bool target_visible = false;
@@ -15441,10 +15441,16 @@ namespace WalkerProcessor {
 
                             if (has_staff_equipped(true) || is_fire_and_forget_spell(true))
                             {
+                                was_casting_spell_right = false;
+
                                 if (pause_post_attack < 1.0f)
                                 {
                                     if (dualcasting)
+                                    {
+                                        was_casting_spell_left = false;
                                         left_attack_cancel();
+                                    }
+                                        
 
                                     right_attack_cancel();
                                     pause_post_attack += dtime;
@@ -16179,12 +16185,19 @@ namespace WalkerProcessor {
 
                             if (has_staff_equipped(false) || is_fire_and_forget_spell(false))
                             {
+                                
+
                                 if (pause_post_attack < 1.0f)
                                 {
+                                    was_casting_spell_left = false;
                                     left_attack_cancel();
-                                    
+
                                     if (dualcasting)
+                                    {
+                                        was_casting_spell_right = false;
                                         right_attack_cancel();
+                                    }
+                                        
 
                                     pause_post_attack += dtime;
                                     goto finalize_attack;

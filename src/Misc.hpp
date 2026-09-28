@@ -436,6 +436,8 @@ namespace MiscThings {
 
     bool has_dualcast_perk_for_spell(RE::SpellItem* spell);
 
+    bool is_actor_staggering(RE::TESObjectREFR* object);
+
 
     bool has_vampire_sun_debuff();
     bool is_vampire();
