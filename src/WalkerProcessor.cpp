@@ -416,6 +416,9 @@ namespace WalkerProcessor {
     RE::TESObjectREFR* last_blocking_targeted_ref = nullptr;
     float have_blocking_targeted_time = 0.0f;
 
+    RE::TESObjectREFR* last_blocking_targeted_ref_enemy = nullptr;
+    float have_blocking_targeted_time_enemy = 0.0f;
+
 
     bool turning_around = false;
 
@@ -4465,6 +4468,51 @@ namespace WalkerProcessor {
 
 
 
+    RE::TESObjectREFR* test_enemy_blocks_another_enemy(float dtime, RE::TESObjectREFR* ignore_ref = nullptr)
+    {
+        if (interaction_after_walk == 3)
+        {
+            auto camera = RE::PlayerCamera::GetSingleton();
+            auto camera_dir = camera->cameraRoot.get()->world.rotate;
+            auto camera_pos = camera->pos;
+
+
+            auto targeted_ref = get_targeted_ref();
+
+            //auto targeted_ref = MiscThings::GetRaycastRef(camera_pos, camera_dir.GetVectorY(), 300.0f, nullptr);
+
+            if (targeted_ref && targeted_ref != ignore_ref && targeted_ref->IsActor() && MiscThings::is_enemy_to_actor(targeted_ref))
+            {
+                std::string blocking_name = MiscThings::insert_object_into_list_and_get_info(targeted_ref);
+
+                if (blocking_name != "" && !turning_around)
+                {
+                    if (last_blocking_targeted_ref_enemy == targeted_ref)
+                    {
+                        if (have_blocking_targeted_time_enemy > 0.4f && walker_active_time > 2.0f)//0.15f)
+                        {
+                            return targeted_ref;
+                        }
+                        else
+                            have_blocking_targeted_time_enemy += dtime;
+                    }
+                    else
+                    {
+                        last_blocking_targeted_ref_enemy = targeted_ref;
+                        have_blocking_targeted_time_enemy = 0.0f;
+                    }
+                }
+                else
+                {
+                    last_blocking_targeted_ref_enemy = nullptr;
+                    have_blocking_targeted_time_enemy = 0.0f;
+                }
+            }
+        }
+
+        return nullptr;
+    }
+
 
     std::string test_about_to_be_blocked_by_blocking(float dtime, RE::TESObjectREFR* ignore_ref = nullptr)
     {
@@ -6759,6 +6807,9 @@ namespace WalkerProcessor {
 
         last_blocking_targeted_ref = nullptr;
         have_blocking_targeted_time = 0.0f;
+
+        last_blocking_targeted_ref_enemy = nullptr;
+        have_blocking_targeted_time_enemy = 0.0f;
 
 
         if (!MiscThings::is_werewolf() && !MiscThings::is_vampirelord() && !MiscThings::is_on_horse() && was_slowwalking)
@@ -12711,9 +12762,13 @@ namespace WalkerProcessor {
             result.first = true;
 
             if (tactical_retreat_mode)
+            {
                 tactical_retreat_mode_active = true;
-
-            result.second = "[Running away...]";
+                result.second = "[You try to get away from enemies...]";
+            }
+            else
+                result.second = "[Running away...]";
+            
 
             solitude_post_emperor_check(target_ref);
             katariah_post_emperor_check(target_ref);
@@ -25286,6 +25341,13 @@ namespace WalkerProcessor {
                                         {
                                             if (!detect_stuck(dtime))
                                             {
+                                                auto test_enemy = test_enemy_blocks_another_enemy(dtime, target_ref);
+
+                                                if (test_enemy)
+                                                    try_to_switch_to_nearest_enemy = true;
+
+
+
                                                 std::string blocking_name = test_about_to_be_blocked_by_blocking(dtime);
 
                                                 if (blocking_name != "" && almost_stuck())
