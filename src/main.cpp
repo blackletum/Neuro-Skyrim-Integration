@@ -69,7 +69,6 @@
 ///////////DO ALL THIS
 
 //COMBAT
-//shooting walls
 //in keep-distance mode dont rush towards enemy right away if we have ranged weapon, wait a little, maybe they will come closer themselves
 //autoswitch from ritual level scrolls after use (HOW?)
 //test a fight versus dragon in beast form

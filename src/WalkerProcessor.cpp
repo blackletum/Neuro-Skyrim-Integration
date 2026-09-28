@@ -39,11 +39,12 @@ namespace WalkerProcessor {
     float carry_item_was_lost_timer = 0.0f;
     bool carry_item_instead_of_interaction = false;
     bool carry_item_keep_carrying = false;
+    RE::TESObjectREFR* carry_item_item_carried_specific_item = nullptr;
     RE::TESObjectREFR* carry_item_item_carried = nullptr;
     RE::TESObjectREFR* carry_item_item_to_walk_to = nullptr;
     RE::NiPoint3 carry_item_drop_position = RE::NiPoint3::Zero();
-
-
+    bool carry_item_context_given1 = false;
+    bool carry_item_context_given2 = false;
 
     bool point_of_no_return_request_sent = false;
     bool point_of_no_return_choice_valid = false;
@@ -3406,9 +3407,19 @@ namespace WalkerProcessor {
             if (player && player->IsSneaking())
                 sneak_coef = 0.65f;
 
+            float special_coef = 1.0f;
 
-            mouse_x = mulX * 125.0f * sneak_coef;//200 //150
-            mouse_y = mulZ * 60.0f * sneak_coef;//200
+            if (carry_item_keep_carrying)
+            {
+                special_coef = 0.5f;
+
+                if (carry_item_item_carried && carry_item_item_carried->IsActor())
+                    special_coef = 0.2f;
+            }
+                
+
+            mouse_x = mulX * 125.0f * sneak_coef * special_coef;//200 //150
+            mouse_y = mulZ * 60.0f * sneak_coef * special_coef;//200
 
             if (!use_y)
                 mouse_y = 0.0f;
@@ -4524,6 +4535,8 @@ namespace WalkerProcessor {
        //     return result;
        // }
 
+        if (carry_item_keep_carrying)
+            return "";
 
         auto camera = RE::PlayerCamera::GetSingleton();
         auto camera_dir = camera->cameraRoot.get()->world.rotate;
@@ -5109,6 +5122,23 @@ namespace WalkerProcessor {
 
             force_high_precision = false;
         }
+
+
+        if (carry_item_keep_carrying)
+        {
+            if (speed_koef > 0.5f)
+            {
+                speed_koef = 0.5f;
+
+                if (carry_item_item_carried && carry_item_item_carried->IsActor())
+                    speed_koef = 0.2f;
+            }
+
+            force_high_precision = true;
+
+        }
+
+                
 
 
         auto player = RE::PlayerCharacter::GetSingleton();
@@ -6412,6 +6442,7 @@ namespace WalkerProcessor {
 
     void reset_walker()
     {
+        carry_item_item_carried_specific_item = nullptr;
 
         try_to_switch_to_nearest_enemy = false;
 
@@ -8437,7 +8468,7 @@ namespace WalkerProcessor {
                             bool stop_here = false; //to detect when raycast caught player
 
                         //auto raycast_test = raycast_ref == target_ref && (start_attacking || attack_paused || raycast_was_on || !raycast_hands_too || (raycast_ref_right == target_ref && raycast_ref_left == target_ref && raycast_ref_top == target_ref && raycast_ref_bottom == target_ref));
-                        auto raycast_test = (MiscThings::is_werewolf() || raycast_ref == target_ref || (start_attacking && raycast_ref && MiscThings::is_enemy_to_actor(raycast_ref))) && (start_attacking || attack_paused || raycast_was_on || (!raycast_hands_too || raycast_hands_result));
+                        auto raycast_test = (MiscThings::is_werewolf() || raycast_ref == target_ref || (start_attacking && raycast_ref && MiscThings::is_enemy_to_actor(raycast_ref))) && ((start_attacking && (attack_action_time0 > 0.0f || attack_action_time1 > 0.0f)) || attack_paused || raycast_was_on || (!raycast_hands_too || raycast_hands_result));
                         raycast_test |= start_attacking && WalkerProcessor::is_casting_ritual_spell();
 
                         bool target_visible = false;
@@ -16745,23 +16776,37 @@ namespace WalkerProcessor {
                 auto temp_carry_item_item_carried = carry_item_item_carried;
                 auto temp_carry_item_item_to_walk_to = carry_item_item_to_walk_to;
                 auto temp_carry_item_drop_position = carry_item_drop_position;
+                auto temp_carry_item_item_carried_specific_item = carry_item_item_carried_specific_item;
+                auto temp_carry_item_context_given1 = carry_item_context_given1;
+                auto temp_carry_item_context_given2 = carry_item_context_given2;
 
                 auto temp = walk_to_object_by_refr(carry_item_item_to_walk_to, 1);
 
+                carry_item_item_carried_specific_item = temp_carry_item_item_carried_specific_item;
                 carry_item_instead_of_interaction = temp_carry_item_instead_of_interaction;
                 carry_item_keep_carrying = temp_carry_item_keep_carrying;
                 carry_item_item_carried = temp_carry_item_item_carried;
                 carry_item_item_to_walk_to = temp_carry_item_item_to_walk_to;
                 carry_item_drop_position = temp_carry_item_drop_position;
+                carry_item_context_given1 = temp_carry_item_context_given1;
+                carry_item_context_given2 = temp_carry_item_context_given2;
 
                 carry_item_keep_carrying = true;
 
-                auto carry_item_name = MiscThings::insert_object_into_list_and_get_info(carry_item_item_carried);
 
-                if (temp.first)
-                    send_random_context("You grab " + carry_item_name + "...", true);
-                else
-                    send_random_context("Cannot grab this item for some reason", false);
+
+                if (!carry_item_context_given2)
+                {
+                    auto carry_item_name = MiscThings::insert_object_into_list_and_get_info(carry_item_item_carried);
+
+                    if (temp.first)
+                        send_random_context("You grab " + carry_item_name + "...", true);
+                    else
+                        send_random_context("Cannot grab this item for some reason", false);
+
+                    carry_item_context_given2 = true;
+                }
+
                 
                 
 
@@ -17220,6 +17265,43 @@ namespace WalkerProcessor {
                                     }
                                 }
 
+
+                                if (target_ref)
+                                {
+                                    switch (target_ref->formID)
+                                    {
+                                    case (0x401ad31):
+                                    case (0x401ad2f):
+                                    case (0x4025a86):
+                                    case (0x402a567):
+                                    case (0x4025a83):
+                                    case (0x401ad32):
+                                    case (0x402a563):
+                                    {
+                                        if (!Observer::is_puzzle_scanner_paused())
+                                        {
+                                            auto vahlok_quest = (RE::TESQuest*)RE::TESForm::LookupByID(0x4019b4a);
+                                            if (vahlok_quest)
+                                            {
+                                                if (!MiscThings::GetStageDone(vahlok_quest, 305))
+                                                {
+                                                    auto draugr_to_drag = target_ref;
+                                                    reset_walker();
+                                                    reset_backup_pickup();
+                                                    Observer::set_quest_puzzle_type(7); //vahloks tomb draugrill
+                                                    Observer::set_puzzle_target(draugr_to_drag);
+                                                    return true;
+                                                }
+
+
+                                            }
+                                        }
+                                    }
+                                    }
+                                }
+
+
+
                                 auto mzulft_crystal_pickup_fake = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x7029a55);
 
                                 if (target_ref == mzulft_crystal_pickup_fake)
@@ -17641,6 +17723,52 @@ namespace WalkerProcessor {
                 target_name = MiscThings::insert_object_into_list_and_get_info(target_ref);
                 if (quest_mode && (target_name == "")) //not guaranteed that insert_object will give us a name
                     target_name = "quest target point";
+
+
+                if (target_ref && target_ref->formID == 0x4025aa3) //vahloks tomb. draugrill xmarker
+                {
+                    bool has_draugr_on_gate = false;
+
+                    RE::TES::GetSingleton()->ForEachReferenceInRange(target_ref, 100.0f,
+                        [&](RE::TESObjectREFR* a_ref) {
+
+                            if (a_ref && !a_ref->IsDisabled())
+                            {
+                                if (a_ref->IsActor())
+                                {
+                                    if (a_ref->IsDead())
+                                    {
+                                        has_draugr_on_gate = true;
+                                        return RE::BSContainer::ForEachResult::kStop;
+                                    }
+                                }
+                            }
+                            return RE::BSContainer::ForEachResult::kContinue;
+                        });
+
+
+                    if (has_draugr_on_gate)
+                    {
+                        reset_walker();
+
+                        std::string handle_name = "";
+                        auto tablet_handle = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x401ad2a);
+                        if (tablet_handle)
+                            handle_name = MiscThings::insert_object_into_list_and_get_info(tablet_handle);
+
+                        send_random_context("You put a corpse on top of Metal Gate... If gate opens, corpse will fall into the fire. You remember a handle, that you saw earlier under ancient tablet: " + handle_name, false);
+                        return "";
+                    }
+                    else
+                    {
+                        reset_walker();
+                        send_random_context("You walked up to some Metal Floor Gate, covering a pit of fire... Tharstan told you that ancient tablet said: A sacrifice will bring you closer to that which you seek... Looks like a puzzle", false);
+                        return "";
+                    }
+
+
+                }
+
 
                 if (target_ref && target_ref->formID == 0xb7465) //saartal glowing wall with amulet
                 {
@@ -19448,7 +19576,7 @@ namespace WalkerProcessor {
 
 
 
-    void drop_some_item_onto_position(RE::NiPoint3 pos_to_drop, RE::TESObjectREFR* object_to_walk_to)
+    void drop_some_item_onto_position(RE::NiPoint3 pos_to_drop, RE::TESObjectREFR* object_to_walk_to, RE::TESObjectREFR* specific_object)
     {
         if (MiscThings::is_objects_around_valid())
         {
@@ -19461,14 +19589,23 @@ namespace WalkerProcessor {
                 float min_dist = FLT_MAX;
                 RE::TESObjectREFR* nearest_object = nullptr;
 
-                for (auto& object : *object_list)
+
+                if (specific_object)
                 {
-                    if (object.second.object && object.second.object->GetBaseObject() && object.second.object->GetBaseObject()->IsInventoryObject())
+                    carry_item_item_carried_specific_item = specific_object;
+                    nearest_object = specific_object;
+                }
+                else
+                {
+                    for (auto& object : *object_list)
                     {
-                        if (player->GetDistance(object.second.object) < min_dist)
+                        if (object.second.object && object.second.object->GetBaseObject() && object.second.object->GetBaseObject()->IsInventoryObject())
                         {
-                            min_dist = player->GetDistance(object.second.object);
-                            nearest_object = object.second.object;
+                            if (player->GetDistance(object.second.object) < min_dist)
+                            {
+                                min_dist = player->GetDistance(object.second.object);
+                                nearest_object = object.second.object;
+                            }
                         }
                     }
                 }
@@ -19480,11 +19617,27 @@ namespace WalkerProcessor {
                     carry_item_item_carried = nearest_object;
                     carry_item_item_to_walk_to = object_to_walk_to;
                     carry_item_drop_position = pos_to_drop;
+                    auto temp_carry_item_context_given1 = carry_item_context_given1;
+                    auto temp_carry_item_context_given2 = carry_item_context_given2;
                     walk_to_object_by_refr(nearest_object, 1);
 
+                    
                     auto carry_item_name = MiscThings::insert_object_into_list_and_get_info(carry_item_item_carried);
-                    send_random_context("You walk to " + carry_item_name + "...", true);
+                    if (!temp_carry_item_context_given1)
+                    {
+                        send_random_context("You walk to " + carry_item_name + "...", true);
+                        carry_item_context_given1 = true;
+                        carry_item_context_given2 = temp_carry_item_context_given2;
 
+                    }
+                    else
+                    {
+                        carry_item_context_given1 = temp_carry_item_context_given1;
+                        carry_item_context_given2 = temp_carry_item_context_given2;
+                    }
+                    
+
+                    reset_inactive_timer();
                 }
                 else
                 {
@@ -19591,7 +19744,7 @@ namespace WalkerProcessor {
 
         lock_camera_used_this_cycle = false;
 
-        Hooks::add_debug_line("walker_processor called", true);
+        Hooks::add_debug_line("walker_processor called");
 
 
         //if (target_ref)
@@ -19678,9 +19831,10 @@ namespace WalkerProcessor {
 
                         auto target_object_where_to_drop = carry_item_item_to_walk_to;
                         auto target_object_drop_pos = carry_item_drop_position;
+                        auto target_object_to_drop = carry_item_item_carried_specific_item;
                         reset_walker();
 
-                        drop_some_item_onto_position(target_object_drop_pos, target_object_where_to_drop);
+                        drop_some_item_onto_position(target_object_drop_pos, target_object_where_to_drop, target_object_to_drop);
 
                         return;
 
@@ -20824,8 +20978,6 @@ namespace WalkerProcessor {
                     }
                     reset_walker();
                 }
-
-
 
 
                 if (!point_of_no_return_choice_defined && target_ref && target_ref->formID == 0x45921 && interaction_after_walk != 3)
@@ -24126,6 +24278,22 @@ namespace WalkerProcessor {
                                                                                     }
 
                                                                                     lock_camera_onto_target(target_ref, dtime, 0.5f);
+
+
+
+                                                                                    if (target_ref) //vahloks tomb. tablets. resetting after interaction
+                                                                                    {
+                                                                                        switch (target_ref->formID)
+                                                                                        {
+                                                                                        case (0x40347d1):
+                                                                                        {
+                                                                                            reset_walker();
+                                                                                            return;
+                                                                                        }
+
+                                                                                        }
+                                                                                    }
+
 
                                                                                 }
                                                                                     

@@ -637,6 +637,7 @@ namespace MiscThings {
     void delayed_equipper(float dtime);
     void reset_delayed_equipper();
 
+    bool GetStageDone(RE::TESQuest* quest, int stage);
 
     float get_shout_cooldown();
     void shout_cooldown_fix(float dtime);

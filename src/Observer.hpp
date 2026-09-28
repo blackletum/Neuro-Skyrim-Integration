@@ -9,6 +9,8 @@ namespace Observer {
 
 	//void install_observer_hooks();
 
+	bool is_puzzle_scanner_paused();
+	void set_puzzle_target(RE::TESObjectREFR* target);
 
 	void add_quicksave_timer(float time_to_add);
 

@@ -93,6 +93,30 @@ namespace MiscThings {
     */
 
 
+    bool GetStageDone(RE::TESQuest* quest, int stage)
+    {
+        bool result = false;
+
+        if (quest && quest->formType == RE::FormType::Quest)
+        {
+            RE::TESConditionItem condition_item{};
+            auto params = RE::ConditionCheckParams::ConditionCheckParams(nullptr, nullptr);
+            params.quest = quest;
+            condition_item.data.functionData.function = RE::FUNCTION_DATA::FunctionID::kGetStageDone;
+            condition_item.data.functionData.params[0] = quest;
+            condition_item.data.functionData.params[1] = (void*)stage;
+            condition_item.data.comparisonValue.f = 1.0;
+            condition_item.data.comparisonValue.g = nullptr;
+            condition_item.data.flags.opCode = RE::CONDITION_ITEM_DATA::OpCode::kEqualTo;
+            result = !condition_item.IsTrue(params);
+        }
+
+        return result;
+    }
+
+
+
+
 
     RE::TESObjectREFR* get_furniture_occupant(RE::TESObjectREFR* furniture_refr)
     {
@@ -9527,6 +9551,37 @@ namespace MiscThings {
             }
         }
 
+
+        if (quest && quest->formID == 0x4019b4a) //dlc2 lost legacy. vahloks tomb. DLC2SV01
+        {
+            if (parent_cell && parent_cell->formID == 0x40142ef) //the tomb
+            {
+                if (!MiscThings::GetStageDone(quest, 305))
+                {
+                    //1. burn some draugr puzzle.
+                    if (MiscThings::GetStageDone(quest, 701))
+                    {
+                        //we are told what to do. go to floor gate
+                        auto floor_gate_activator = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4025aa3);
+                        if (floor_gate_activator)
+                            return floor_gate_activator; //when arrived - give advice from walker. include draugrs, and handle. must depend on if we already put draugr onto gate
+                    }
+                    else
+                    {
+                        //no info what to do yet. wait for guy to show up, redirect to tablet.
+                        auto tablet_activator_1 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x40347d1);
+                        if (tablet_activator_1)
+                            return tablet_activator_1;
+                    }
+                }
+
+            }
+            
+        }
+
+
+
+
         if (parent_cell && parent_cell->formID == 0x151fa)
         {
             if (MiscThings::inside_serpent_cave_box(target) && !MiscThings::inside_serpent_cave_box(player))
@@ -12864,7 +12919,7 @@ namespace MiscThings {
 
         if (quest && quest->formID == 0x4019b4a) //lost legacy dlc2 quest (vahlok's tomb) - temporary hidden until its worked through
         {
-            return true;
+             return true;
         }
 
         if (quest && (quest->formID == 0x4027a14 || quest->formID == 0x401b65f)) //find black book quests. new books will not work 99% so just hide it for now
@@ -15453,6 +15508,8 @@ namespace MiscThings {
 
         case (0x402a74b): //apocrypha book1 zone 3 gate
         case (0x403363f): //apocrypha book1 zone 3 gate
+
+        case (0x401ad2b): //vahloks tomb, fire gate
             return "";
 
         case (0xf5b03): //hermaeus mora after ogma infinium pickup

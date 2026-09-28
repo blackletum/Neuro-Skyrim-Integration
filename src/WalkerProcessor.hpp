@@ -76,7 +76,7 @@ namespace WalkerProcessor {
 	bool is_door(RE::TESObjectREFR* refr);
 
 
-	void drop_some_item_onto_position(RE::NiPoint3 pos_to_drop, RE::TESObjectREFR* object_to_walk_to);
+	void drop_some_item_onto_position(RE::NiPoint3 pos_to_drop, RE::TESObjectREFR* object_to_walk_to, RE::TESObjectREFR* specific_object = nullptr);
 
 	std::pair<bool, std::string> set_multiple_path_quest_choice(int id);
 
