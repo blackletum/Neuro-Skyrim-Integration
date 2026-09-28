@@ -1502,6 +1502,12 @@ namespace WalkerProcessor {
         if (was_casting_spell_left)
             left_attack_cancel();
 
+        //GetAttackState()
+        if (is_charging_bow() || was_casting_spell_right || was_casting_spell_left)// || //player_actor->GetAttackState() == RE::ATTACK_STATE_ENUM::kBowReleasing || player_actor->GetAttackState() == RE::ATTACK_STATE_ENUM::kBowFollowThrough || player_actor->GetAttackState() == RE::ATTACK_STATE_ENUM::kBowReleased || 
+            //is_casting_walker(true) || is_casting_walker(false))
+            ready_weapon();
+
+
         was_casting_spell_right = false;
         was_casting_spell_left = false;
 
@@ -1511,10 +1517,7 @@ namespace WalkerProcessor {
         auto player = RE::PlayerCharacter::GetSingleton();
         auto player_actor = (RE::Actor*)player->AsReference();
 
-        //GetAttackState()
-        if (is_charging_bow())// || //player_actor->GetAttackState() == RE::ATTACK_STATE_ENUM::kBowReleasing || player_actor->GetAttackState() == RE::ATTACK_STATE_ENUM::kBowFollowThrough || player_actor->GetAttackState() == RE::ATTACK_STATE_ENUM::kBowReleased || 
-            //is_casting_walker(true) || is_casting_walker(false))
-            ready_weapon();
+
     }
 
 

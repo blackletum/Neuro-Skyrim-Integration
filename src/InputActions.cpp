@@ -1212,6 +1212,7 @@ bool make_long_cast_spell_hand(bool right, float dtime)
 
     bool check_time = !(MiscThings::is_self_healing_spell(right) && WalkerProcessor::is_concentration_spell(right));
 
+    check_time |= WalkerProcessor::is_fighting();
 
     //if (input_dualcasting && dualcasting_no_mana)
     //    low_mana_check = true;

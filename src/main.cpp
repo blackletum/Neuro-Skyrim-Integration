@@ -73,12 +73,11 @@
 //when surrounded by enemies/cornered - switch to attacking nearest. when blocked by enemy - redirect to it
 //autoswitch from ritual level scrolls after use (HOW?)
 //test a fight versus dragon in beast form
-//cancel spell charge if enemy became unreachable but we already charged our spell
-//check normal novice heal with new improvements
 //check concentration spells and other too
 //autoequip fishing rod. advice where to get it if its not nearby. if its nearby - point it out
 //put markers for fishing quests. it might be not bad
 //force with question to fish more after fishing for easier access, maybe make an action about fishing to go straight to it without walk_to_object action
+
 
 //test solstheim more
 //more solstheim quests. pirate quest. check what other quests are there. dwemer bow dungeon quest
