@@ -434,6 +434,9 @@ namespace MiscThings {
     bool dragon_is_on_the_ground(RE::TESObjectREFR* refr);
 
 
+    bool has_dualcast_perk_for_spell(RE::SpellItem* spell);
+
+
     bool has_vampire_sun_debuff();
     bool is_vampire();
 

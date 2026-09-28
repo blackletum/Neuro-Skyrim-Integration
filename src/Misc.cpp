@@ -30524,6 +30524,74 @@ namespace MiscThings {
     }
 
 
+    bool has_dualcast_perk_for_spell(RE::SpellItem* spell)
+    {
+        if (spell)
+        {
+            if (spell->formType == RE::FormType::Spell)
+            {
+                auto player = RE::PlayerCharacter::GetSingleton();
+
+                for (auto effect : spell->effects)
+                {
+                    if (effect && effect->baseEffect)
+                    {
+                        switch (effect->baseEffect->data.associatedSkill)
+                        {
+                        case (RE::ActorValue::kDestruction):
+                        {
+                            auto perk = (RE::BGSPerk*)RE::TESForm::LookupByID(0x153cf);
+                            if (perk)
+                                return player->HasPerk(perk);
+                            break;
+                        }
+
+
+                        case (RE::ActorValue::kAlteration):
+                        {
+                            auto perk = (RE::BGSPerk*)RE::TESForm::LookupByID(0x153cd);
+                            if (perk)
+                                return player->HasPerk(perk);
+                            break;
+                        }
+
+
+                        case (RE::ActorValue::kIllusion):
+                        {
+                            auto perk = (RE::BGSPerk*)RE::TESForm::LookupByID(0x153d0);
+                            if (perk)
+                                return player->HasPerk(perk);
+                            break;
+                        }
+
+                        case (RE::ActorValue::kRestoration):
+                        {
+                            auto perk = (RE::BGSPerk*)RE::TESForm::LookupByID(0x153d1);
+                            if (perk)
+                                return player->HasPerk(perk);
+                            break;
+                        }
+
+                        case (RE::ActorValue::kConjuration):
+                        {
+                            auto perk = (RE::BGSPerk*)RE::TESForm::LookupByID(0x153ce);
+                            if (perk)
+                                return player->HasPerk(perk);
+                            break;
+                        }
+                        }
+
+                    }
+                }
+            }
+        }
+
+        return false;
+    }
+
+
+
+
 
     std::string get_casting_perk_info(RE::SpellItem* spell)
     {
@@ -32590,18 +32658,81 @@ namespace MiscThings {
                                 }
 
                                 equip_manager->EquipSpell(player_actor, spell, slot);
+
+
+                                if (MiscThings::has_dualcast_perk_for_spell(spell) && !MiscThings::is_werewolf() && !MiscThings::is_vampirelord())
+                                {
+                                    bool dualcasting_no_mana = MiscThings::get_player_mana() < WalkerProcessor::get_spell_cost(right_hand) * 2.8f;
+
+                                    if (!dualcasting_no_mana && !is_self_healing_spell(!right_hand))
+                                    {
+                                        //have mana for dualcast, not self healing spell in other hand. equip this spell in both hands with some chance
+
+                                        if (MiscThings::coinflip())
+                                        {
+                                            auto other_slot = (RE::BGSEquipSlot*)RE::TESForm::LookupByID(0x00013F42);
+
+                                            if (!right_hand)
+                                            {
+                                                other_slot = (RE::BGSEquipSlot*)RE::TESForm::LookupByID(0x00013F42);
+                                            }
+                                            else
+                                            {
+                                                other_slot = (RE::BGSEquipSlot*)RE::TESForm::LookupByID(0x00013F43);
+                                            }
+
+                                            equip_manager->EquipSpell(player_actor, spell, other_slot);
+                                        }
+                                    }
+                                }
+
+
+
+
+
+
                                 WalkerProcessor::reset_attacking_inanimate_object_time();
                             }
                             else
                             {
                                 //already equipped
-                                ;
+                                
+
                                 if (cast_spell_recently())
                                 {
                                     result.first = false;
                                     result.second = "You are still casting previous spell! Wait a little before casting new spell";
                                     return result;
                                 }
+
+
+
+                                if (MiscThings::has_dualcast_perk_for_spell(spell) && !MiscThings::is_werewolf() && !MiscThings::is_vampirelord())
+                                {
+                                    bool dualcasting_no_mana = MiscThings::get_player_mana() < WalkerProcessor::get_spell_cost(right_hand) * 2.8f;
+
+                                    if (!dualcasting_no_mana && !is_self_healing_spell(!right_hand))
+                                    {
+                                        //have mana for dualcast, not self healing spell in other hand. equip this spell in both hands with some chance
+
+                                        if (MiscThings::coinflip())
+                                        {
+                                            auto other_slot = (RE::BGSEquipSlot*)RE::TESForm::LookupByID(0x00013F42);
+
+                                            if (!right_hand)
+                                            {
+                                                other_slot = (RE::BGSEquipSlot*)RE::TESForm::LookupByID(0x00013F42);
+                                            }
+                                            else
+                                            {
+                                                other_slot = (RE::BGSEquipSlot*)RE::TESForm::LookupByID(0x00013F43);
+                                            }
+
+                                            equip_manager->EquipSpell(player_actor, spell, other_slot);
+                                        }
+                                    }
+                                }
+
                             }
 
 
@@ -33359,34 +33490,34 @@ namespace MiscThings {
                             equip_manager->EquipSpell(player_actor, spell, slot);
 
 
-                            bool dualcasting_no_mana = MiscThings::get_player_mana() < WalkerProcessor::get_spell_cost(right_hand) * 2.8f;
-
-
-                            if (!dualcasting_no_mana && !is_self_healing_spell(!right_hand) && has_spell_equipped(!right_hand))
+                            if (MiscThings::has_dualcast_perk_for_spell(spell) && !MiscThings::is_werewolf() && !MiscThings::is_vampirelord())
                             {
-                                //have mana for dualcast, other hand is also spell and its not self healing spell in other hand. equip this spell in both hands with some chance
-                                
-                                if (MiscThings::coinflip())
+                                bool dualcasting_no_mana = MiscThings::get_player_mana() < WalkerProcessor::get_spell_cost(right_hand) * 2.8f;
+
+                                if (!dualcasting_no_mana && !is_self_healing_spell(!right_hand))
                                 {
-                                    auto other_slot = (RE::BGSEquipSlot*)RE::TESForm::LookupByID(0x00013F42);
+                                    //have mana for dualcast, not self healing spell in other hand. equip this spell in both hands with some chance
 
-                                    if (!right_hand)
+                                    if (MiscThings::coinflip())
                                     {
-                                        other_slot = (RE::BGSEquipSlot*)RE::TESForm::LookupByID(0x00013F42);
+                                        auto other_slot = (RE::BGSEquipSlot*)RE::TESForm::LookupByID(0x00013F42);
+
+                                        if (!right_hand)
+                                        {
+                                            other_slot = (RE::BGSEquipSlot*)RE::TESForm::LookupByID(0x00013F42);
+                                        }
+                                        else
+                                        {
+                                            other_slot = (RE::BGSEquipSlot*)RE::TESForm::LookupByID(0x00013F43);
+                                        }
+
+                                        equip_manager->EquipSpell(player_actor, spell, other_slot);
+
+                                        equip_hand = " in both hands";
                                     }
-                                    else
-                                    {
-                                        other_slot = (RE::BGSEquipSlot*)RE::TESForm::LookupByID(0x00013F43);
-                                    }
-
-
-                                    equip_manager->EquipSpell(player_actor, spell, other_slot);
-
-                                    equip_hand = " in both hands";
                                 }
-
-
                             }
+                            
 
 
                             if (slot_id == 0x00013f45)

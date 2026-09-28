@@ -1495,6 +1495,7 @@ namespace WalkerProcessor {
     {
         was_charging_ranged = false;
 
+        auto player = RE::PlayerCharacter::GetSingleton();
 
         if (was_casting_spell_right)
             right_attack_cancel();
@@ -1503,20 +1504,61 @@ namespace WalkerProcessor {
             left_attack_cancel();
 
         //GetAttackState()
-        if (is_charging_bow() || was_casting_spell_right || was_casting_spell_left)// || //player_actor->GetAttackState() == RE::ATTACK_STATE_ENUM::kBowReleasing || player_actor->GetAttackState() == RE::ATTACK_STATE_ENUM::kBowFollowThrough || player_actor->GetAttackState() == RE::ATTACK_STATE_ENUM::kBowReleased || 
+        if (is_charging_bow())// || //player_actor->GetAttackState() == RE::ATTACK_STATE_ENUM::kBowReleasing || player_actor->GetAttackState() == RE::ATTACK_STATE_ENUM::kBowFollowThrough || player_actor->GetAttackState() == RE::ATTACK_STATE_ENUM::kBowReleased || 
             //is_casting_walker(true) || is_casting_walker(false))
             ready_weapon();
 
+        if (was_casting_spell_right || was_casting_spell_left)
+        {
+            auto spell = (RE::SpellItem*)MiscThings::get_hand_contents(was_casting_spell_right);
+
+            if (spell)
+            {
+                if (spell->formType == RE::FormType::Spell)
+                {
+                    auto equip_manager = RE::ActorEquipManager::GetSingleton();
+
+                    auto other_slot = (RE::BGSEquipSlot*)RE::TESForm::LookupByID(0x00013F42);
+
+                    if (was_casting_spell_right)
+                    {
+                        other_slot = (RE::BGSEquipSlot*)RE::TESForm::LookupByID(0x00013F42);
+                    }
+                    else
+                    {
+                        other_slot = (RE::BGSEquipSlot*)RE::TESForm::LookupByID(0x00013F43);
+                    }
+
+                    equip_manager->EquipSpell(player, spell, other_slot);
+                }
+
+                if (spell->formType == RE::FormType::Scroll)
+                {
+                    auto scroll = (RE::ScrollItem*)spell;
+
+                    auto equip_manager = RE::ActorEquipManager::GetSingleton();
+
+                    auto other_slot = (RE::BGSEquipSlot*)RE::TESForm::LookupByID(0x00013F42);
+
+                    if (was_casting_spell_right)
+                    {
+                        other_slot = (RE::BGSEquipSlot*)RE::TESForm::LookupByID(0x00013F42);
+                    }
+                    else
+                    {
+                        other_slot = (RE::BGSEquipSlot*)RE::TESForm::LookupByID(0x00013F43);
+                    }
+
+                    equip_manager->EquipObject(player, scroll, nullptr, 1, other_slot, true, false, false);
+                }
+
+            }
+
+            //ready_weapon();
+        }
 
         was_casting_spell_right = false;
         was_casting_spell_left = false;
-
-        //right_attack_cancel();
-        //left_attack_cancel();
-
-        auto player = RE::PlayerCharacter::GetSingleton();
-        auto player_actor = (RE::Actor*)player->AsReference();
-
 
     }
 
