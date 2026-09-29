@@ -13,6 +13,11 @@
 
 namespace WalkerProcessor {
     
+    bool walk_with_extra_precision = false;
+
+    bool vahlok_tomb_advice_received = false; //dont reset ever
+
+
     bool notified_cool_killcam = false;
 
     bool try_to_switch_to_nearest_enemy = false;
@@ -3506,7 +3511,12 @@ namespace WalkerProcessor {
 
 
 
-            if (abs(mulX) < 0.4 && mulY >= 0)
+            float turning_around_threshold = 0.4f;
+
+            if (walk_with_extra_precision)
+                turning_around_threshold = 0.2f;
+
+            if (abs(mulX) < turning_around_threshold && mulY >= 0)
             {
                 turning_around = false;
                 //float height_dif = last_point_posZ - path[current_path_point].z;
@@ -5914,6 +5924,9 @@ namespace WalkerProcessor {
         try {
             float base_reach_distance = 60.0f;
 
+            if (walk_with_extra_precision)
+                base_reach_distance = 20.0f;
+
             //if (std::size(path) < 2)
             //    base_reach_distance = 20.0f;
 
@@ -6442,6 +6455,8 @@ namespace WalkerProcessor {
 
     void reset_walker()
     {
+        walk_with_extra_precision = false;
+
         carry_item_item_carried_specific_item = nullptr;
 
         try_to_switch_to_nearest_enemy = false;
@@ -12741,6 +12756,68 @@ namespace WalkerProcessor {
 
 
 
+    bool walk_custom_path(RE::TESObjectREFR* target_object, std::vector<RE::NiPoint3> positions, bool in_append_to_normal_path, bool in_walk_again_when_finished, bool in_dont_quicksave_after_walk, bool in_reset_after_walk, bool extra_precision)
+    {
+        auto cant_walk_reason = get_cant_walk_reason();
+
+        if (cant_walk_reason != "")
+        {
+            return false;
+        }
+
+
+        auto player = RE::PlayerCharacter::GetSingleton();
+        auto player_actor = (RE::Actor*)player->AsReference();
+
+        auto control_map = RE::ControlMap::GetSingleton();
+        bool can_walk = control_map->enabledControls.any(RE::UserEvents::USER_EVENT_FLAG::kMovement);
+        bool can_look = control_map->enabledControls.any(RE::UserEvents::USER_EVENT_FLAG::kLooking) || player->IsInRagdollState();;
+        bool can_interact = control_map->enabledControls.any(RE::UserEvents::USER_EVENT_FLAG::kActivate);
+        bool can_fight = control_map->enabledControls.any(RE::UserEvents::USER_EVENT_FLAG::kFighting);
+
+        //if (player_actor && !player_actor->movementController->controlsDriven)
+        if (!can_walk && !can_look)
+        {
+            return false;
+        }
+
+
+        reset_walker();
+
+        using_custom_path = true;
+        walk_again_when_finished = in_walk_again_when_finished;
+        dont_quicksave_after_custom_path = in_dont_quicksave_after_walk;
+        reset_after_walk = in_reset_after_walk;
+
+        walk_with_extra_precision = extra_precision;
+
+        CustomWalkerPaths::template_path = positions;
+
+        custom_path = CustomWalkerPaths::template_path;
+
+        target_ref = target_object;
+        have_target_to_walk = true;
+        interaction_after_walk = 0;
+
+        if (!in_append_to_normal_path)
+        {
+            path_valid = true;
+            path = custom_path;
+        }
+
+        send_random_context("You walk towards on the plates you chose...", false);
+
+        right_attack_cancel();
+        left_attack_cancel();
+
+        reminder_target_name = "Puzzle Pressure Plates";
+        reminder_start_pos = player->GetPosition();
+
+        return true;
+
+    }
+
+
     std::pair<bool, std::string> run_away(bool tactical_retreat_mode)
     {
         std::pair<bool, std::string> result{};
@@ -17278,7 +17355,7 @@ namespace WalkerProcessor {
                                     case (0x401ad32):
                                     case (0x402a563):
                                     {
-                                        if (!Observer::is_puzzle_scanner_paused())
+                                        if (vahlok_tomb_advice_received && !Observer::is_puzzle_scanner_paused())
                                         {
                                             auto vahlok_quest = (RE::TESQuest*)RE::TESForm::LookupByID(0x4019b4a);
                                             if (vahlok_quest)
@@ -17725,6 +17802,30 @@ namespace WalkerProcessor {
                     target_name = "quest target point";
 
 
+                if (target_ref && target_ref->formID == 0x4032234) //vahloks tomb. big pillar puzzle 3
+                {
+                    auto activator_red = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4017377);
+                    auto activator_green = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4017378);
+                    auto activator_blue = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4017379);
+
+                    if (activator_red && activator_green && activator_blue)
+                    {
+                        auto info_red = MiscThings::insert_object_into_list_custom_name(" Red Glowing Stone", activator_red);
+                        auto info_green = MiscThings::insert_object_into_list_custom_name(" Green Glowing Stone", activator_green);
+                        auto info_blue = MiscThings::insert_object_into_list_custom_name(" Blue Glowing Stone", activator_blue);
+
+
+                        // Tharstan told you, that tablet here says: All men must die, often by their own means...
+
+                        send_random_context("Looks like another puzzle... Tharstan told you, that tablet here says: All men must die, often by their own means... You see Big Central pillar, with 3 stones around it: " + info_red + "; " + info_green + "; " + info_blue +". There are also pedestals with weapons in front of each stone : Red has sword, Green has bow, Blue has staff...", false);
+
+                        reset_walker();
+
+                        return "";
+                    }
+
+                }
+
                 if (target_ref && target_ref->formID == 0x4025aa3) //vahloks tomb. draugrill xmarker
                 {
                     bool has_draugr_on_gate = false;
@@ -17756,11 +17857,15 @@ namespace WalkerProcessor {
                         if (tablet_handle)
                             handle_name = MiscThings::insert_object_into_list_and_get_info(tablet_handle);
 
+                        vahlok_tomb_advice_received = true;
+
                         send_random_context("You put a corpse on top of Metal Gate... If gate opens, corpse will fall into the fire. You remember a handle, that you saw earlier under ancient tablet: " + handle_name, false);
                         return "";
                     }
                     else
                     {
+                        vahlok_tomb_advice_received = true;
+
                         reset_walker();
                         send_random_context("You walked up to some Metal Floor Gate, covering a pit of fire... Tharstan told you that ancient tablet said: A sacrifice will bring you closer to that which you seek... Looks like a puzzle", false);
                         return "";
@@ -24286,6 +24391,8 @@ namespace WalkerProcessor {
                                                                                         switch (target_ref->formID)
                                                                                         {
                                                                                         case (0x40347d1):
+                                                                                        case (0x40347d3):
+                                                                                        case (0x40347d4):
                                                                                         {
                                                                                             reset_walker();
                                                                                             return;

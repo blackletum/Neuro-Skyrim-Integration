@@ -43,8 +43,11 @@ namespace Observer {
 	void timed_quest_puzzles_processor(float dtime);
 	void reset_quest_puzzles();
 	void set_quest_puzzle_type(int type);
+	
 
 	std::pair<bool, std::string> set_quest_puzzle_choice(int id);
+	std::pair<bool, std::string> set_quest_puzzle_choice_array(std::vector<int> choices);
+
 
 	void cleanup_invalid_objects(float dtime, bool force = false);
 

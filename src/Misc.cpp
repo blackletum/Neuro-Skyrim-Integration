@@ -9575,6 +9575,88 @@ namespace MiscThings {
                     }
                 }
 
+
+                if (!MiscThings::GetStageDone(quest, 325))
+                {
+                    //2. pressure plates + draugr miniboss with claw
+                    if (MiscThings::GetStageDone(quest, 703))
+                    {
+                        //we are told what to do. again to to the tablet. tablet reading is caught in randommessagebox processor
+                        auto tablet_activator_2 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x40347d3);
+                        if (tablet_activator_2)
+                            return tablet_activator_2;
+                    }
+                    else
+                    {
+                        //no info what to do yet. wait for guy to show up, redirect to tablet.
+                        auto tablet_activator_2 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x40347d3);
+                        if (tablet_activator_2)
+                            return tablet_activator_2;
+                    }
+                }
+
+
+                //THIS NEEDS TO BE WRAPPED AROUND OTHER STAGE CHECK. CLAW WILL BE TEMPORARY LOST UPON USAGE (or maybe no. check it later)
+                //now kill the boss of this puzzle and loot his claw
+                auto boss1 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x401cac2);
+                if (boss1)
+                {
+                    if (!boss1->IsDead())
+                        return boss1;
+                    else
+                    {
+                        //boss is dead. check if player has the claw
+                        auto claw_right = (RE::TESBoundObject*)RE::TESForm::LookupByID(0x401cac1);
+                        if (claw_right)
+                        {
+                            if (player->GetItemCount(claw_right) < 1)
+                                return boss1;
+                        }
+                    }
+                }
+
+
+                if (!MiscThings::GetStageDone(quest, 315))
+                {
+                    //3. colors (bow/magic/melee)
+                    if (MiscThings::GetStageDone(quest, 702))
+                    {
+                        //we are told what to do. go to central pillar. give some advice upon arrival from walker
+                        auto big_pillar = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4032234);
+                        if (big_pillar)
+                            return big_pillar;
+                    }
+                    else
+                    {
+                        //no info what to do yet. wait for guy to show up, redirect to tablet.
+                        auto tablet_activator_3 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x40347d4);
+                        if (tablet_activator_3)
+                            return tablet_activator_3;
+                    }
+                }
+
+
+
+                //THIS NEEDS TO BE WRAPPED AROUND OTHER STAGE CHECK. CLAW WILL BE TEMPORARY LOST UPON USAGE (or maybe no. check it later)
+                //now kill the boss of this puzzle and loot his claw
+                auto boss2 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x401caba);
+                if (boss2)
+                {
+                    if (!boss2->IsDead())
+                        return boss2;
+                    else
+                    {
+                        //boss is dead. check if player has the claw
+                        auto claw_left = (RE::TESBoundObject*)RE::TESForm::LookupByID(0x401cac0);
+                        if (claw_left)
+                        {
+                            if (player->GetItemCount(claw_left) < 1)
+                                return boss2;
+                        }
+                    }
+                }
+
+
             }
             
         }
@@ -12917,10 +12999,10 @@ namespace MiscThings {
         }
 
 
-        if (quest && quest->formID == 0x4019b4a) //lost legacy dlc2 quest (vahlok's tomb) - temporary hidden until its worked through
-        {
-             return true;
-        }
+        //if (quest && quest->formID == 0x4019b4a) //lost legacy dlc2 quest (vahlok's tomb) - temporary hidden until its worked through
+        //{
+        //     return true;
+        //}
 
         if (quest && (quest->formID == 0x4027a14 || quest->formID == 0x401b65f)) //find black book quests. new books will not work 99% so just hide it for now
         {
@@ -16818,6 +16900,27 @@ namespace MiscThings {
             return -1;
 
 
+        
+
+        if (activator->formID == 0x4017377 || activator->formID == 0x4017378 || activator->formID == 0x4017379)
+        {
+            auto object_p = General::Script::GetObject(activator, "DLC1DunStatueHitSCRIPT");
+            if (object_p)
+            {
+
+                RE::BSFixedString prop_name = "bAlreadyHitCorrectly";
+                if (General::Script::GetProperty<bool>(object_p, prop_name))
+                {
+                    return 0;
+                }
+                else
+                    return 1;
+
+            }
+        }
+
+
+
         if (activator->formID == 0x27acc)//sovngarde portal
         {
             auto object_p = General::Script::GetObject(activator, "FXSkuldafnPortal");
@@ -17816,6 +17919,19 @@ namespace MiscThings {
         }
 
 
+        object_p = General::Script::GetObject(trap, "DLC2ToldarsTombPuzzlePlateSCRIPT"); //dlc1 snow elf waypoints
+
+        if (object_p)
+        {
+            std::string state = "";
+            state = object_p->currentState;
+
+            if (state == "Suspended")
+                result = 23;
+
+        }
+
+
 
 
         return result;
@@ -18089,6 +18205,16 @@ namespace MiscThings {
         case (0x9f854):
         case (0x9f850):
             return "[Big]";
+
+        case (0x4017377):
+        case (0x4017378):
+        case (0x4017379):
+        {
+            if (MiscThings::two_state_activator_state(object) == 0)
+                return " (activated)";
+
+            break;
+        }
 
 
         //dlc1 moondial crest slots
@@ -19677,6 +19803,18 @@ namespace MiscThings {
 
                 switch (object->formID)
                 {
+                case (0x4017377): //vahlok tomb glowing stones (red/blue/green)
+                case (0x4017378):
+                case (0x4017379):
+                {
+                    RE::NiPoint3 object_angles = object->data.angle;
+                    RE::NiPoint3 base_shift_vector = { 0.0f, 0.0f, 90.0f };
+                    //RE::NiPoint3 rotated_shift_vector = rotate_vector_by_angles(base_shift_vector, object_angles);
+                    result = base_shift_vector;
+                    return result;
+                }
+
+
 
                 case (0xf4986): //fire door labyrinthian
                 {

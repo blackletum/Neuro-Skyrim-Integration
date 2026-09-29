@@ -574,7 +574,7 @@ bool force_choice(std::vector<MenuOption> options, std::string message, int forc
         if (force_type == force_type::character_name)
             force_action = Capabilities::SelectForceChoiceString::Action;
 
-        if (force_type == force_type::container_item_array || force_type == force_type::barter_item_array || force_type == force_type::change_character)
+        if (force_type == force_type::container_item_array || force_type == force_type::barter_item_array || force_type == force_type::change_character || force_type == force_type::timed_quest_puzzle_array)
             force_action = Capabilities::SelectForceChoiceArray::Action;
 
 

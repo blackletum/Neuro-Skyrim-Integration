@@ -7,6 +7,7 @@
 #include "main.hpp"
 #include "ApocryphaRedirects.hpp"
 
+
 namespace Observer {
 
 	RE::ObjectRefHandle high_damage_enemy{};
@@ -22,6 +23,12 @@ namespace Observer {
 
 	int old_mq301_scene_phase = 0;
 	int old_mq306_scene_phase = 0;
+
+
+	bool old_dlc2sv01_puzzle1 = false;
+	bool old_dlc2sv01_puzzle2 = false;
+	bool old_dlc2sv01_puzzle3 = false;
+
 
 
 	long long last_use_potion_timestamp = 0;
@@ -193,6 +200,7 @@ namespace Observer {
 	bool puzzle_request_was_sent = false;
 	bool puzzle_choice_valid = false;
 	int puzzle_choice = -1;
+	std::vector<int> puzzle_choice_array{};
 	RE::TESObjectREFR* puzzle_target = nullptr;
 
 
@@ -272,6 +280,7 @@ namespace Observer {
 		puzzle_request_was_sent = false;
 		puzzle_choice_valid = false;
 		puzzle_choice = -1;
+		puzzle_choice_array.clear();
 		puzzle_target = nullptr;
 	}
 
@@ -281,6 +290,85 @@ namespace Observer {
 	{
 		puzzle_target = target;
 	}
+
+
+
+
+	std::pair<bool, std::string> set_quest_puzzle_choice_array(std::vector<int> choices)
+	{
+		std::pair<bool, std::string> result{};
+
+		if (!puzzle_request_was_sent)
+		{
+			reset_quest_puzzles();
+			result.first = true;
+			result.second = "[Error]";
+			return result;
+		}
+		else
+		{
+			switch (active_puzzle)
+			{
+
+			case 8:
+			{
+				int choices_size = std::size(choices);
+
+				if (choices_size < 2)
+				{
+					result.first = false;
+					result.second = "Too few pressure plates selected!";
+					return result;
+				}
+
+				if (choices_size > 20)
+				{
+					result.first = false;
+					result.second = "Too many pressure plates selected!";
+					return result;
+				}
+
+				for (auto choice : choices)
+				{
+					if (choice < 1 || choice > 9)
+					{
+						result.first = false;
+						result.second = "Invalid pressure plate index! Valid range: from 1 to 9";
+						return result;
+					}
+				}
+
+
+				puzzle_choice_array = choices;
+				puzzle_choice_valid = true;
+				result.first = true;
+				result.second = "[Processing...]";
+
+				break;
+			}
+				
+
+			default:
+			{
+				reset_quest_puzzles();
+				result.first = true;
+				result.second = "[Error]";
+				break;
+			}
+			}
+
+
+
+		}
+
+
+		return result;
+	}
+
+
+
+
+
 
 	std::pair<bool, std::string> set_quest_puzzle_choice(int id)
 	{
@@ -1196,7 +1284,96 @@ namespace Observer {
 			}
 
 
+			case 8:
+			{
+				if (!puzzle_request_was_sent)
+				{
+					std::vector<MenuOption> options{};
 
+					auto player = RE::PlayerCharacter::GetSingleton();
+
+					unregister_all_actions(); //no pause - unregister here
+
+					if (force_choice(options, "You see nine pressure plates on the floor, arranged in 3x3 grid... It seems that you can try to walk on them... Tharstan told you, that tablet here says: Continue along the path, don't tread where you've been... Select pressure plates you want to walk on, you will walk on them in order that you chose. (Pressure plates are numbered from 1 to 9, where 1 is top left and 9 is bottom right)", force_type::timed_quest_puzzle_array))
+					{
+						puzzle_request_was_sent = true;
+					}
+				}
+				else
+				{
+					if (puzzle_choice_valid)
+					{
+
+						//register_allowed_actions(); //custom walk required, dont register right away
+
+						pause_puzzle_scan_time = 5.0f;
+
+						std::vector<RE::NiPoint3> pressure_plate_positions{};
+
+
+						//their ids are not in order i chose so do it like this
+						auto pressure_plate = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4027115);
+						if (pressure_plate) pressure_plate_positions.push_back(pressure_plate->GetPosition());
+
+						pressure_plate = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4027116);
+						if (pressure_plate) pressure_plate_positions.push_back(pressure_plate->GetPosition());
+
+						pressure_plate = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4027117);
+						if (pressure_plate) pressure_plate_positions.push_back(pressure_plate->GetPosition());
+
+						pressure_plate = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4027112);
+						if (pressure_plate) pressure_plate_positions.push_back(pressure_plate->GetPosition());
+
+						pressure_plate = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4027113);
+						if (pressure_plate) pressure_plate_positions.push_back(pressure_plate->GetPosition());
+
+						pressure_plate = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4027114);
+						if (pressure_plate) pressure_plate_positions.push_back(pressure_plate->GetPosition());
+
+						pressure_plate = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4027111);
+						if (pressure_plate) pressure_plate_positions.push_back(pressure_plate->GetPosition());
+
+						pressure_plate = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4027110);
+						if (pressure_plate) pressure_plate_positions.push_back(pressure_plate->GetPosition());
+
+						pressure_plate = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x402710f);
+						if (pressure_plate) pressure_plate_positions.push_back(pressure_plate->GetPosition());
+
+
+						if (std::size(pressure_plate_positions) < 9)
+						{
+							send_random_context("Error! Pressure plate positioning error", false);
+							register_allowed_actions();
+							reset_quest_puzzles();
+							return;
+						}
+
+						std::vector<RE::NiPoint3> positions_to_walk_to{};
+
+						for (auto choice : puzzle_choice_array)
+						{
+							if (choice >= 1 && choice <= 9)
+							{
+								positions_to_walk_to.push_back(pressure_plate_positions.at(choice - 1));
+							}
+							else
+							{
+								send_random_context("Error! Invalid pressure plate index found", false);
+								register_allowed_actions();
+							}
+						}
+
+						WalkerProcessor::walk_custom_path((RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x402710f), positions_to_walk_to, true, false, true, true, true);
+
+
+						reset_quest_puzzles();
+						
+					}
+				}
+
+
+				break;
+			}
 
 
 			default:
@@ -2567,6 +2744,9 @@ namespace Observer {
 							//	continue;
 							//}
 
+
+
+
 							if (a_ref->formID == 0x4036ef2 || a_ref->formID == 0x403bd9e) //raven rock house chest and bed
 							{
 								if (!MiscThings::is_object_in_the_list(a_ref))
@@ -2651,6 +2831,34 @@ namespace Observer {
 
 									if (word_of_power && word_of_power != (RE::TESObjectREFR*)(-1) && MiscThings::is_object_valid(a_ref))
 									{
+										if (a_ref->formID == 0x402aa34) //vahlok tomb word of power 1
+										{
+											auto vahlok_quest = (RE::TESQuest*)RE::TESForm::LookupByID(0x4019b4a);
+											if (vahlok_quest)
+											{
+												if (!MiscThings::GetStageDone(vahlok_quest, 325))
+												{
+													raw_object_list.pop_back();
+													continue;
+												}
+													
+											}
+										}
+
+										if (a_ref->formID == 0x402aa28) //vahlok tomb word of power 2
+										{
+											auto vahlok_quest = (RE::TESQuest*)RE::TESForm::LookupByID(0x4019b4a);
+											if (vahlok_quest)
+											{
+												if (!MiscThings::GetStageDone(vahlok_quest, 315))
+												{
+													raw_object_list.pop_back();
+													continue;
+												}
+											}
+										}
+
+
 										std::string info = MiscThings::insert_object_into_list_custom_name("Word of Power, calling for you", a_ref);
 										if (info != "")
 											interesting_buffer.insert_or_assign(a_ref, info);
@@ -2664,6 +2872,35 @@ namespace Observer {
 									{
 										if (!WalkerProcessor::is_fighting() && !WalkerProcessor::is_walking_important_path() && !Observer::threat_response_choice_pending())
 										{
+
+											if (a_ref->formID == 0x402aa34) //vahlok tomb word of power 1
+											{
+												auto vahlok_quest = (RE::TESQuest*)RE::TESForm::LookupByID(0x4019b4a);
+												if (vahlok_quest)
+												{
+													if (!MiscThings::GetStageDone(vahlok_quest, 325))
+													{
+														raw_object_list.pop_back();
+														continue;
+													}
+												}
+											}
+
+											if (a_ref->formID == 0x402aa28) //vahlok tomb word of power 2
+											{
+												auto vahlok_quest = (RE::TESQuest*)RE::TESForm::LookupByID(0x4019b4a);
+												if (vahlok_quest)
+												{
+													if (!MiscThings::GetStageDone(vahlok_quest, 315))
+													{
+														raw_object_list.pop_back();
+														continue;
+													}
+												}
+											}
+
+
+
 											float word_of_power_range = 2000.0f;
 
 											auto extra_primitive = (RE::ExtraPrimitive*)a_ref->extraList.GetByType(RE::ExtraDataType::kPrimitive);
@@ -4543,6 +4780,20 @@ namespace Observer {
 												}
 
 
+												if (a_ref->formID == 0x4017377 || a_ref->formID == 0x4017378 || a_ref->formID == 0x4017379) 
+												{
+													
+
+													if (activation == 0)
+													{
+														std::string info = MiscThings::insert_object_into_list_and_get_info(a_ref);
+														detect_events_result.push_back(info + " activated!");
+													}
+
+												}
+
+
+
 
 												RE::TESObjectREFR* redirect_bar = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x89c14);
 
@@ -5671,6 +5922,15 @@ namespace Observer {
 												detect_events_result.push_back("[ " + name + " emerges from the ground]");
 											}
 
+
+
+											if (new_state.trap_firing == 23)
+											{
+												std::string name = MiscThings::insert_object_into_list_custom_name("Puzzle Pressure Plate", a_ref);
+												detect_events_send_result_silent = false;
+												detect_events_result.push_back("[ " + name + " started spitting fire! Something isnt right...]");
+											}
+
 										}
 
 										if (old_state.destructible_state != new_state.destructible_state)
@@ -6677,6 +6937,8 @@ namespace Observer {
 	std::map<uint32_t, bool> debug_quest_stages{};
 
 
+
+
 	void player_state_monitor(float dtime)
 	{
 		auto player = RE::PlayerCharacter::GetSingleton();
@@ -6718,6 +6980,7 @@ namespace Observer {
 
 		static auto dlc2mq06_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("DLC2MQ06"); //final quest
 
+		static auto vahlok_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("DLC2SV01"); //vahlok tomb, lost legacy dlc2 quest
 
 		if (threshold_quest && !observers_green_light)
 		{
@@ -6786,28 +7049,6 @@ namespace Observer {
 				{
 					first_cycle = false;
 					//auto threshold_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("MQ101");
-
-
-
-					//REMOVE THIS REMOVE THIS REMOVE THIS
-					auto vahlok_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("DLC2SV01");
-					if (vahlok_quest)
-					{
-						for (int stage = 0; stage < 1000; stage++)
-						{
-							if (MiscThings::GetStageDone(vahlok_quest, stage))
-							{
-								debug_quest_stages.insert({ stage, true });
-							}
-						}
-					}
-
-
-
-
-
-
-
 
 
 					was_swimming = player->IsSwimming();
@@ -6967,6 +7208,31 @@ namespace Observer {
 						mg01_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("MG01"); //mage guild demonstate spell entry quest
 
 					
+
+					if (vahlok_quest)
+					{
+
+						//REMOVE THIS REMOVE THIS REMOVE THIS
+						for (int stage = 0; stage < 1000; stage++)
+						{
+							if (MiscThings::GetStageDone(vahlok_quest, stage))
+							{
+								debug_quest_stages.insert({ stage, true });
+							}
+						}
+
+
+						old_dlc2sv01_puzzle1 = MiscThings::GetStageDone(vahlok_quest, 305);
+						old_dlc2sv01_puzzle2 = MiscThings::GetStageDone(vahlok_quest, 325);
+						old_dlc2sv01_puzzle3 = MiscThings::GetStageDone(vahlok_quest, 315);
+
+					}
+					else
+						vahlok_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("DLC2SV01");
+
+
+
+
 					old_vampire_melee = MiscThings::vampirelord_melee_mode();
 
 
@@ -6974,15 +7240,10 @@ namespace Observer {
 				else
 				{
 
-
-					//REMOVE THIS REMOVE THIS REMOVE THIS
-					auto vahlok_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("DLC2SV01");
 					if (vahlok_quest)
 					{
-						//auto executed_stages1 = vahlok_quest->executedStages;
-						//auto executed_stages2 = (RE::BSSimpleList<RE::TESQuestStage>*)(vahlok_quest->executedStages);
-						//auto executed_stages3 = (RE::BSSimpleList<RE::TESQuestStage*>)(vahlok_quest->executedStages);
 
+						//REMOVE THIS REMOVE THIS REMOVE THIS
 						for (int stage = 0; stage < 1000; stage++)
 						{
 							if (MiscThings::GetStageDone(vahlok_quest, stage))
@@ -6993,9 +7254,40 @@ namespace Observer {
 									Hooks::add_debug_line("NEW STAGE COMPLETED: " + std::to_string(stage), true);
 								}
 							}
-
 						}
+
+
+
+						bool puzzle_done_1 = MiscThings::GetStageDone(vahlok_quest, 305);
+						bool puzzle_done_2 = MiscThings::GetStageDone(vahlok_quest, 325);
+						bool puzzle_done_3 = MiscThings::GetStageDone(vahlok_quest, 315);
+
+
+						if (!old_dlc2sv01_puzzle1 && puzzle_done_1)
+						{
+							quicksave(true);
+							send_random_context("Puzzle solved!", false);
+						}
+
+						if (!old_dlc2sv01_puzzle2 && puzzle_done_2)
+						{
+							quicksave(true);
+							send_random_context("Puzzle solved!", false);
+						}
+
+						if (!old_dlc2sv01_puzzle3 && puzzle_done_3)
+						{
+							quicksave(true);
+							send_random_context("Puzzle solved!", false);
+						}
+
+						old_dlc2sv01_puzzle1 = puzzle_done_1;
+						old_dlc2sv01_puzzle2 = puzzle_done_2;
+						old_dlc2sv01_puzzle3 = puzzle_done_3;
+
 					}
+					else
+						vahlok_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("DLC2SV01");
 
 
 
