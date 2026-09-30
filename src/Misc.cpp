@@ -7251,7 +7251,7 @@ namespace MiscThings {
                 {
                     auto base_obj = a_ref->GetBaseObject();
                     RE::FormType base_type{};
-                    if (base_obj && base_obj->formID == 0x50008a6)
+                    if (MiscThings::is_fishing_supplies(base_obj))
                     {
                         result = a_ref;
                         return RE::BSContainer::ForEachResult::kStop;
@@ -25416,7 +25416,7 @@ namespace MiscThings {
             auto base_type = base_obj->GetFormType();
 
 
-            if (base_obj->formID == 0x50008a6) //fishing supplies
+            if (MiscThings::is_fishing_supplies(base_obj)) //fishing supplies
             {
                 name = "Fishing Supplies (interact to try fishing)";
             }
@@ -27297,10 +27297,10 @@ namespace MiscThings {
             auto actor_process = player->currentProcess;
             auto equipped_list = actor_process->equippedObjects;
 
-            if (!equipped_list[1])
+            if (!equipped_list[1] || MiscThings::is_fishing_rod(equipped_list[1]))
                 return right_slot; //right hand
 
-            if (!equipped_list[0])
+            if (!equipped_list[0] || MiscThings::is_fishing_rod(equipped_list[0]))
                 return left_slot; //left hand
 
             //both are busy
