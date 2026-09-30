@@ -8693,6 +8693,10 @@ namespace Observer {
 										bool vahlok_platform_disabled_1 = first_platform->IsDisabled();
 										if (old_vahlok_platform_disabled_1 && !vahlok_platform_disabled_1)
 										{
+											if (!MiscThings::GetStageDone(vahlok_quest, 704))
+												MiscThings::SetStage(vahlok_quest, 704);
+
+
 											if (WalkerProcessor::get_vahlok_saw_platforms(1))
 											{
 												Observer::set_quest_puzzle_type(9);

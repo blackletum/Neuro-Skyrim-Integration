@@ -7937,6 +7937,9 @@ namespace WalkerProcessor {
 
         if (target_ref)
         {
+            if (target_ref->formID == 0x70c1a25)
+                return false;
+
             auto target_pos = target_ref->GetPosition();
 
 
@@ -8461,7 +8464,6 @@ namespace WalkerProcessor {
                                                     longer_range_advices_ignored = 0;
                                                 }
                                                     
-
                                                 send_random_context(MiscThings::insert_object_into_list_and_get_info(target_ref) + " is too high! Looking at it instead. " + ranged_weapon_advice, false);
 
                                             }
