@@ -10,6 +10,13 @@
 
 namespace Observer {
 
+
+	bool old_vahlok_platform_disabled_1 = false;
+	bool old_vahlok_platform_disabled_2 = false;
+	bool old_vahlok_platform_disabled_3 = false;
+	bool old_vahlok_platform_disabled_4 = false;
+
+
 	RE::ObjectRefHandle high_damage_enemy{};
 
 
@@ -29,6 +36,10 @@ namespace Observer {
 	bool old_dlc2sv01_puzzle2 = false;
 	bool old_dlc2sv01_puzzle3 = false;
 
+	bool old_dlc2sv01_puzzle4 = false;
+	bool old_dlc2sv01_puzzle5 = false;
+	bool old_dlc2sv01_puzzle6 = false;
+	bool old_dlc2sv01_puzzle7 = false;
 
 
 	long long last_use_potion_timestamp = 0;
@@ -447,6 +458,19 @@ namespace Observer {
 			{
 				min_range = 1;
 				max_range = 2;
+
+				break;
+			}
+
+			//case 8 is fire platforms vahloks tomb uses array choice
+
+			case 9:
+			case 10:
+			case 11:
+			case 12:
+			{
+				min_range = 1;
+				max_range = 1;
 
 				break;
 			}
@@ -1374,6 +1398,104 @@ namespace Observer {
 
 				break;
 			}
+
+
+
+			case 9:
+			case 10:
+			case 11:
+			case 12:
+			{
+				if (!puzzle_request_was_sent)
+				{
+
+					WalkerProcessor::reset_walker();
+
+					std::vector<MenuOption> options{};
+					options.push_back({ 1, "Walk on platforms, waiting for next platform to appear before stepping forward" });
+					//options.push_back({ 2, "Use Whirlwind Sprint shout to fly through the gate" });
+					//options.push_back({ 3, "Do nothing" });
+					//options.push_back({ 4, "Jump" });
+					//options.push_back({ 5, "Attack the gate" });
+
+					//unregister_all_actions(); //causes pause - no need to unregister here
+
+					if (force_choice(options, "You pulled the handle, and platforms are about to start appearing above the pit... What will you do?", force_type::timed_quest_puzzle))
+					{
+						if (!puzzle_pause_was_made && !MiscThings::is_game_paused())
+						{
+							puzzle_request_was_sent = true;
+							puzzle_pause_was_made = true;
+							MiscThings::pause_game();
+						}
+					}
+
+				}
+				else
+				{
+					if (puzzle_choice_valid)
+					{
+						if (puzzle_pause_was_made)
+						{
+							if (MiscThings::is_game_paused())
+							{
+								MiscThings::unpause_game();
+							}
+							//set_universal_block(0.5f);
+							puzzle_pause_was_made = false;
+							return;
+
+						}
+
+						switch (puzzle_choice)
+						{
+						case 1:
+						{
+
+							auto platform1 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x401add1);
+
+							if (active_puzzle == 9)
+								platform1 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x401add1);
+
+							if (active_puzzle == 10)
+								platform1 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4024be4);
+
+							if (active_puzzle == 11)
+								platform1 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4024bee);
+
+							if (active_puzzle == 12)
+								platform1 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4024bf4);
+
+							if (platform1)
+							{
+								WalkerProcessor::walk_custom_path(platform1, { platform1->GetPosition() }, true, false, true, false, false, true, true);
+							}
+							else
+							{
+								send_random_context("Error, cant find the platform!", false);
+								register_allowed_actions();
+							}
+							
+							reset_quest_puzzles();
+							break;
+						}
+						
+						default:
+						{
+							reset_quest_puzzles();
+							break;
+						}
+
+						}
+					}
+				}
+
+
+				break;
+			}
+
+
+
 
 
 			default:
@@ -4788,6 +4910,21 @@ namespace Observer {
 													{
 														std::string info = MiscThings::insert_object_into_list_and_get_info(a_ref);
 														detect_events_result.push_back(info + " activated!");
+
+
+
+														if (a_ref->formID == 0x4017377)
+															MiscThings::insert_object_into_list_custom_name(" Red Glowing Stone (activated)", a_ref);
+
+														if (a_ref->formID == 0x4017378)
+															MiscThings::insert_object_into_list_custom_name(" Green Glowing Stone (activated)", a_ref);
+
+														if (a_ref->formID == 0x4017379)
+															MiscThings::insert_object_into_list_custom_name(" Blue Glowing Stone (activated)", a_ref);
+
+
+
+
 													}
 
 												}
@@ -7226,6 +7363,12 @@ namespace Observer {
 						old_dlc2sv01_puzzle2 = MiscThings::GetStageDone(vahlok_quest, 325);
 						old_dlc2sv01_puzzle3 = MiscThings::GetStageDone(vahlok_quest, 315);
 
+						old_dlc2sv01_puzzle4 = MiscThings::GetStageDone(vahlok_quest, 335);
+						old_dlc2sv01_puzzle5 = MiscThings::GetStageDone(vahlok_quest, 610);
+						old_dlc2sv01_puzzle6 = MiscThings::GetStageDone(vahlok_quest, 620);
+						old_dlc2sv01_puzzle7 = MiscThings::GetStageDone(vahlok_quest, 630);
+
+
 					}
 					else
 						vahlok_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("DLC2SV01");
@@ -7262,6 +7405,10 @@ namespace Observer {
 						bool puzzle_done_2 = MiscThings::GetStageDone(vahlok_quest, 325);
 						bool puzzle_done_3 = MiscThings::GetStageDone(vahlok_quest, 315);
 
+						bool puzzle_done_4 = MiscThings::GetStageDone(vahlok_quest, 335); //platforms
+						bool puzzle_done_5 = MiscThings::GetStageDone(vahlok_quest, 610); //platforms
+						bool puzzle_done_6 = MiscThings::GetStageDone(vahlok_quest, 620); //platforms
+						bool puzzle_done_7 = MiscThings::GetStageDone(vahlok_quest, 630); //platforms
 
 						if (!old_dlc2sv01_puzzle1 && puzzle_done_1)
 						{
@@ -7281,9 +7428,41 @@ namespace Observer {
 							send_random_context("Puzzle solved!", false);
 						}
 
+						if (!old_dlc2sv01_puzzle4 && puzzle_done_4)
+						{
+							quicksave(true);
+							send_random_context("Puzzle solved! You crossed the pit", false);
+						}
+
+						if (!old_dlc2sv01_puzzle5 && puzzle_done_5)
+						{
+							quicksave(true);
+							send_random_context("Puzzle solved! You crossed the pit", false);
+						}
+
+						if (!old_dlc2sv01_puzzle6 && puzzle_done_6)
+						{
+							quicksave(true);
+							send_random_context("Puzzle solved! You crossed the pit", false);
+						}
+
+						if (!old_dlc2sv01_puzzle7 && puzzle_done_7)
+						{
+							quicksave(true);
+							send_random_context("Puzzle solved! You crossed the pit", false);
+						}
+
+
+
 						old_dlc2sv01_puzzle1 = puzzle_done_1;
 						old_dlc2sv01_puzzle2 = puzzle_done_2;
 						old_dlc2sv01_puzzle3 = puzzle_done_3;
+
+						old_dlc2sv01_puzzle4 = puzzle_done_4;
+						old_dlc2sv01_puzzle5 = puzzle_done_5;
+						old_dlc2sv01_puzzle6 = puzzle_done_6;
+						old_dlc2sv01_puzzle7 = puzzle_done_7;
+
 
 					}
 					else
@@ -8511,6 +8690,182 @@ namespace Observer {
 				}
 				else
 				{
+
+					if (parent_cell && parent_cell->formID == 0x40142ef) //vahlok tomb. monitor for floating platforms
+					{
+						auto platforms_goal_1 = (RE::TESObjectREFR*)RE::TESForm::LookupByID(0x401add2);
+						if (platforms_goal_1)
+						{
+							auto object_p = MiscThings::General::Script::GetObject(platforms_goal_1, "defaultActivateSelf");
+							if (object_p)
+							{
+								std::string state = "";
+								state = object_p->currentState;
+
+								if (state != "alldone")
+								{
+									auto first_platform = (RE::TESObjectREFR*)RE::TESForm::LookupByID(0x401add1);
+									
+									if (first_platform)
+									{
+										bool vahlok_platform_disabled_1 = first_platform->IsDisabled();
+										if (old_vahlok_platform_disabled_1 && !vahlok_platform_disabled_1)
+										{
+											if (WalkerProcessor::get_vahlok_saw_platforms(1))
+											{
+												Observer::set_quest_puzzle_type(9);
+											}
+											else
+											{
+												//need to use quest because proper marker handling works only for quests (probably shit idea)
+												auto vahlok_quest = (RE::TESQuest*)RE::TESForm::LookupByID(0x4019b4a);
+												if (vahlok_quest)
+												{
+													WalkerProcessor::walk_to_quest_by_index(WalkerProcessor::get_quest_id_by_refr(vahlok_quest), false, true, false);
+												}
+
+												//auto dummy = (RE::TESObjectREFR*)RE::TESForm::LookupByID(0x70c1a25);
+												//if (dummy)
+												//	WalkerProcessor::walk_to_object_by_refr(dummy, -1);
+
+											}
+										}
+										old_vahlok_platform_disabled_1 = vahlok_platform_disabled_1;
+									}
+								}
+							}
+						}
+
+						auto platforms_goal_2 = (RE::TESObjectREFR*)RE::TESForm::LookupByID(0x4024be6);
+						if (platforms_goal_2)
+						{
+							auto object_p = MiscThings::General::Script::GetObject(platforms_goal_2, "defaultActivateSelf");
+							if (object_p)
+							{
+								std::string state = "";
+								state = object_p->currentState;
+
+								if (state != "alldone")
+								{
+									auto first_platform = (RE::TESObjectREFR*)RE::TESForm::LookupByID(0x4024be4);
+
+									if (first_platform)
+									{
+										bool vahlok_platform_disabled_2 = first_platform->IsDisabled();
+										if (old_vahlok_platform_disabled_2 && !vahlok_platform_disabled_2)
+										{
+											if (WalkerProcessor::get_vahlok_saw_platforms(2))
+											{
+												Observer::set_quest_puzzle_type(10);
+											}
+											else
+											{
+												//need to use quest because proper marker handling works only for quests (probably shit idea)
+												auto vahlok_quest = (RE::TESQuest*)RE::TESForm::LookupByID(0x4019b4a);
+												if (vahlok_quest)
+												{
+													WalkerProcessor::walk_to_quest_by_index(WalkerProcessor::get_quest_id_by_refr(vahlok_quest), false, true, false);
+												}
+
+												//auto dummy = (RE::TESObjectREFR*)RE::TESForm::LookupByID(0x70c1a25);
+												//if (dummy)
+												//	WalkerProcessor::walk_to_object_by_refr(dummy, -1);
+
+											}
+										}
+										old_vahlok_platform_disabled_2 = vahlok_platform_disabled_2;
+									}
+								}
+							}
+						}
+
+						auto platforms_goal_3 = (RE::TESObjectREFR*)RE::TESForm::LookupByID(0x4024beb);
+						if (platforms_goal_3)
+						{
+							auto object_p = MiscThings::General::Script::GetObject(platforms_goal_3, "defaultActivateSelf");
+							if (object_p)
+							{
+								std::string state = "";
+								state = object_p->currentState;
+
+								if (state != "alldone")
+								{
+									auto first_platform = (RE::TESObjectREFR*)RE::TESForm::LookupByID(0x4024bee);
+
+									if (first_platform)
+									{
+										bool vahlok_platform_disabled_3 = first_platform->IsDisabled();
+										if (old_vahlok_platform_disabled_3 && !vahlok_platform_disabled_3)
+										{
+											if (WalkerProcessor::get_vahlok_saw_platforms(3))
+											{
+												Observer::set_quest_puzzle_type(11);
+											}
+											else
+											{
+												//need to use quest because proper marker handling works only for quests (probably shit idea)
+												auto vahlok_quest = (RE::TESQuest*)RE::TESForm::LookupByID(0x4019b4a);
+												if (vahlok_quest)
+												{
+													WalkerProcessor::walk_to_quest_by_index(WalkerProcessor::get_quest_id_by_refr(vahlok_quest), false, true, false);
+												}
+
+												//auto dummy = (RE::TESObjectREFR*)RE::TESForm::LookupByID(0x70c1a25);
+												//if (dummy)
+												//	WalkerProcessor::walk_to_object_by_refr(dummy, -1);
+
+											}
+										}
+										old_vahlok_platform_disabled_3 = vahlok_platform_disabled_3;
+									}
+								}
+							}
+						}
+
+						auto platforms_goal_4 = (RE::TESObjectREFR*)RE::TESForm::LookupByID(0x4024bf1);
+						if (platforms_goal_4)
+						{
+							auto object_p = MiscThings::General::Script::GetObject(platforms_goal_4, "defaultActivateSelf");
+							if (object_p)
+							{
+								std::string state = "";
+								state = object_p->currentState;
+
+								if (state != "alldone")
+								{
+									auto first_platform = (RE::TESObjectREFR*)RE::TESForm::LookupByID(0x4024bf4);
+
+									if (first_platform)
+									{
+										bool vahlok_platform_disabled_4 = first_platform->IsDisabled();
+										if (old_vahlok_platform_disabled_4 && !vahlok_platform_disabled_4)
+										{
+											if (WalkerProcessor::get_vahlok_saw_platforms(4))
+											{
+												Observer::set_quest_puzzle_type(12);
+											}
+											else
+											{
+												//need to use quest because proper marker handling works only for quests (probably shit idea)
+												auto vahlok_quest = (RE::TESQuest*)RE::TESForm::LookupByID(0x4019b4a);
+												if (vahlok_quest)
+												{
+													WalkerProcessor::walk_to_quest_by_index(WalkerProcessor::get_quest_id_by_refr(vahlok_quest), false, true, false);
+												}
+
+												//auto dummy = (RE::TESObjectREFR*)RE::TESForm::LookupByID(0x70c1a25);
+												//if (dummy)
+												//	WalkerProcessor::walk_to_object_by_refr(dummy, -1);
+
+											}
+										}
+										old_vahlok_platform_disabled_4 = vahlok_platform_disabled_4;
+									}
+								}
+							}
+						}
+					}
+
 
 					auto ranger_perk = (RE::BGSPerk*)RE::TESForm::LookupByID(0x58F63);
 					if (ranger_perk)

@@ -13,6 +13,17 @@
 
 namespace WalkerProcessor {
     
+    bool check_custom_path_for_fall = false;
+
+    bool hold_camera_horizontally_while_walking = false;
+    bool hold_camera_horizontally_a_bit_down_while_walking = false;
+
+    bool vahlok_saw_platforms_1 = false; //dont reset ever
+    bool vahlok_saw_platforms_2 = false; //dont reset ever
+    bool vahlok_saw_platforms_3 = false; //dont reset ever
+    bool vahlok_saw_platforms_4 = false; //dont reset ever
+
+
     bool walk_with_extra_precision = false;
 
     bool vahlok_tomb_advice_received = false; //dont reset ever
@@ -734,6 +745,45 @@ namespace WalkerProcessor {
     */
 
 
+
+    void set_vahlok_saw_platforms(int num)
+    {
+        switch (num)
+        {
+        case (1):
+            vahlok_saw_platforms_1 = true;
+            break;
+
+        case (2):
+            vahlok_saw_platforms_2 = true;
+            break;
+
+        case (3):
+            vahlok_saw_platforms_3 = true;
+            break;
+
+        case (4):
+            vahlok_saw_platforms_4 = true;
+            break;
+        }
+    }
+
+    bool get_vahlok_saw_platforms(int num)
+    {
+        switch (num)
+        {
+        case (1): return vahlok_saw_platforms_1;
+        case (2): return vahlok_saw_platforms_2;
+        case (3): return vahlok_saw_platforms_3;
+        case (4): return vahlok_saw_platforms_4;
+        }
+        return false;
+    }
+
+
+
+
+
     void set_universal_dodging(bool set)
     {
         do_universal_dodging = set;
@@ -844,6 +894,36 @@ namespace WalkerProcessor {
 
         if (!using_custom_path)
         {
+            //same shit but for vahloks tomb from dlc2, water pit.
+
+            if (parent_cell && parent_cell->formID == 0x40142ef)
+            {
+                auto player_pos = player->GetPosition();
+
+                if (player_pos.y > -3805.0f && player_pos.z < -500.0f)
+                {
+                    if (MiscThings::is_player_swimming())
+                    {
+                        wiggle_body_then_walk_again = false;
+                        try_unstuck = false;
+                        invalidate_path();
+                        walk_again(); //soft reset
+                        dont_quicksave_after_custom_path = true;
+                        using_custom_path = true;
+                        walk_again_when_finished = true;
+                        current_path_point = 0;
+                        custom_path = CustomWalkerPaths::vahlok_tomb_out_of_water;
+                        //custom_path_use_z_for_path_point_reached = true;
+                        path = custom_path;
+                        path_valid = true;
+                        dont_shift = true;
+                        return true;
+                    }
+                }
+
+            }
+
+
             if (parent_cell && parent_cell->formID == 0x2001c09) //dlc1 forgotten valley big cave with unpathfindable water. water escapes
             {
                 if (MiscThings::is_player_swimming())
@@ -3351,7 +3431,7 @@ namespace WalkerProcessor {
             //if (target_ref && !use_last_point_of_last_path && (current_path_point < ((int)std::size(path) - 2)))
 
             
-            if (target_ref && !use_last_point_of_last_path && (current_path_point < ((int)std::size(path) - 2)))
+            if (target_ref && (hold_camera_horizontally_while_walking || hold_camera_horizontally_a_bit_down_while_walking || (!use_last_point_of_last_path && (current_path_point < ((int)std::size(path) - 2)))))
             {
                 //auto camera_dirZ_noZ = camera_dirZ;
                 //camera_dirZ_noZ.z = 0.0f;
@@ -3363,11 +3443,35 @@ namespace WalkerProcessor {
 
                 
 
-                if (!input_wants_to_look_down())
-                    desired_direction = along_next_path_points_vector();
-                else
-                    desired_direction = RE::NiPoint3::Zero();
 
+
+
+
+                if (hold_camera_horizontally_while_walking)
+                {
+                    auto camera_y_copy = camera_dirY;
+                    camera_y_copy.z = 0.0f;
+                    camera_y_copy.Unitize();
+                    desired_direction = camera_y_copy;
+                }
+                else
+                {
+                    if (hold_camera_horizontally_a_bit_down_while_walking)
+                    {
+                        auto camera_y_copy = camera_dirY;
+                        camera_y_copy.Unitize();
+                        camera_y_copy.z = -0.3f;
+                        camera_y_copy.Unitize();
+                        desired_direction = camera_y_copy;
+                    }
+                    else
+                    {
+                        if (!input_wants_to_look_down())
+                            desired_direction = along_next_path_points_vector();
+                        else
+                            desired_direction = RE::NiPoint3::Zero();
+                    }
+                }
 
 
                 if (desired_direction != RE::NiPoint3::Zero())
@@ -3395,7 +3499,7 @@ namespace WalkerProcessor {
                 }
 
             }
-            
+
 
             if (mulY < 0)
             {
@@ -6455,6 +6559,9 @@ namespace WalkerProcessor {
 
     void reset_walker()
     {
+        hold_camera_horizontally_while_walking = false;
+        hold_camera_horizontally_a_bit_down_while_walking = false;
+
         walk_with_extra_precision = false;
 
         carry_item_item_carried_specific_item = nullptr;
@@ -12756,7 +12863,7 @@ namespace WalkerProcessor {
 
 
 
-    bool walk_custom_path(RE::TESObjectREFR* target_object, std::vector<RE::NiPoint3> positions, bool in_append_to_normal_path, bool in_walk_again_when_finished, bool in_dont_quicksave_after_walk, bool in_reset_after_walk, bool extra_precision)
+    bool walk_custom_path(RE::TESObjectREFR* target_object, std::vector<RE::NiPoint3> positions, bool in_append_to_normal_path, bool in_walk_again_when_finished, bool in_dont_quicksave_after_walk, bool in_reset_after_walk, bool extra_precision, bool in_hold_camera_horizontally_a_bit_down_while_walking, bool in_check_custom_path_for_fall)
     {
         auto cant_walk_reason = get_cant_walk_reason();
 
@@ -12798,6 +12905,9 @@ namespace WalkerProcessor {
         target_ref = target_object;
         have_target_to_walk = true;
         interaction_after_walk = 0;
+
+        hold_camera_horizontally_a_bit_down_while_walking = in_hold_camera_horizontally_a_bit_down_while_walking;
+        check_custom_path_for_fall = in_check_custom_path_for_fall;
 
         if (!in_append_to_normal_path)
         {
@@ -17373,7 +17483,19 @@ namespace WalkerProcessor {
 
                                             }
                                         }
+
+                                        break;
                                     }
+
+                                    case (0x401adc9): //small keyhole gate in middle room before blue platform puzzzle
+                                    {
+
+
+
+                                        break;
+                                    }
+
+
                                     }
                                 }
 
@@ -17800,6 +17922,27 @@ namespace WalkerProcessor {
                 target_name = MiscThings::insert_object_into_list_and_get_info(target_ref);
                 if (quest_mode && (target_name == "")) //not guaranteed that insert_object will give us a name
                     target_name = "quest target point";
+
+                if (target_ref && target_ref->formID == 0x401adc9) //vahloks tomb. 2 keyholes gate before floating platforms puzzle
+                {
+                    auto vahlok_quest = (RE::TESQuest*)RE::TESForm::LookupByID(0x4019b4a);
+                    if (vahlok_quest && !MiscThings::GetStageDone(vahlok_quest, 330))
+                    {
+                        
+
+                        auto keyhole1 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4025033);
+                        auto keyhole2 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4025037);
+
+                        if (keyhole1 && keyhole2)
+                        {
+                            auto info_keyholes = MiscThings::insert_object_into_list_and_get_info(keyhole1) + "\n" + MiscThings::insert_object_into_list_and_get_info(keyhole2);
+                            send_random_context("A gate is blocking the path. You see 2 keyholes next to it, maybe the Left and Right halves of Claw you just found can fit in them:\n" + info_keyholes, false);
+                        }
+
+                        reset_walker();
+                        return "";
+                    }
+                }
 
 
                 if (target_ref && target_ref->formID == 0x4032234) //vahloks tomb. big pillar puzzle 3
@@ -21327,9 +21470,471 @@ namespace WalkerProcessor {
                 }
 
 
+                if (using_custom_path && parent_cell && parent_cell->formID == 0x40142ef) //vahlok tomb. walking on floating platforms
+                {
+                    if (player->GetPositionZ() < -500.0f && check_custom_path_for_fall)
+                    {
+                        send_random_context("You fall down into pit, landing on water!", false);
+                        register_allowed_actions();
+                        reset_walker();
+                        return;
+                    }
+
+                    if (target_ref)
+                    {
+                        std::vector<uint32_t> platforms1 = {
+                            0x401add1,
+                            0x401add5,
+                            0x401add6,
+                            0x401add7,
+                            0x401add8,
+                            0x401add9,
+                            0x401adda,
+                            0x401addb,
+                            0x401addc,
+                            0x401addd,
+                            0x401adde,
+                            0x401addf
+                        };
+
+                        for (int i = 0; i < std::size(platforms1) - 1; i++)
+                        {
+                            if (target_ref->formID == platforms1.at(i))
+                            {
+                                auto next_platform = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(platforms1.at(i + 1));
+                                if (next_platform && !next_platform->IsDisabled())
+                                {
+                                    auto player_pos = player->GetPosition();
+                                    auto next_platform_pos = next_platform->GetPosition();
+                                    walk_again();
+                                    target_ref = next_platform;
+                                    have_target_to_walk = true;
+                                    using_custom_path = true;
+                                    custom_path = { player_pos, next_platform_pos };
+                                    path = custom_path;
+                                    path_valid = true;
+                                    dont_quicksave_after_custom_path = true;
+                                    hold_camera_horizontally_a_bit_down_while_walking = true;
+                                    check_custom_path_for_fall = true;
+                                    return;
+                                }
+                                else
+                                {
+                                    if (player->GetDistance(target_ref) < 100.0f)
+                                        return; //wait
+                                }
+                            }
+                        }
+
+                        if (target_ref->formID == platforms1.at(std::size(platforms1) - 1))
+                        {
+                            //last platform
+                            if (player->GetDistance(target_ref) < 100.0f)
+                            {
+                                auto player_pos = player->GetPosition();
+                                
+                                walk_again();
+
+                                auto dummy = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x70c1a25);
+                                if (dummy)
+                                {
+                                    dummy->MoveTo(player);
+                                    RE::NiPoint3 finish_point = { 9188.64551, -3394.22388, -141.420807 };
+                                    MiscThings::SetPosition_moveto(dummy, finish_point);
+                                    target_ref = dummy;
+                                    have_target_to_walk = true;
+                                    using_custom_path = true;
+                                    custom_path = { player_pos, finish_point };
+                                    path = custom_path;
+                                    path_valid = true;
+                                    dont_quicksave_after_custom_path = true;
+                                    return;
+                                }
+                            }
+                        }
+
+
+
+                        std::vector<uint32_t> platforms2 = {
+                            0x4024be4,
+                            0x4024bb1,
+                            0x4024bb2,
+                            0x4024bb3,
+                            0x4024bb4,
+                            0x4024bb5,
+                            0x4024bb6,
+                            0x4024bb7,
+                            0x4024bb8,
+                            0x4024bb9,
+                            0x4024bba
+                        };
+
+                        for (int i = 0; i < std::size(platforms2) - 1; i++)
+                        {
+                            if (target_ref->formID == platforms2.at(i))
+                            {
+                                auto next_platform = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(platforms2.at(i + 1));
+                                if (next_platform && !next_platform->IsDisabled())
+                                {
+                                    auto player_pos = player->GetPosition();
+                                    auto next_platform_pos = next_platform->GetPosition();
+                                    walk_again();
+                                    target_ref = next_platform;
+                                    have_target_to_walk = true;
+                                    using_custom_path = true;
+                                    custom_path = { player_pos, next_platform_pos };
+                                    path = custom_path;
+                                    path_valid = true;
+                                    dont_quicksave_after_custom_path = true;
+                                    hold_camera_horizontally_a_bit_down_while_walking = true;
+                                    check_custom_path_for_fall = true;
+                                    return;
+                                }
+                                else
+                                {
+                                    if (player->GetDistance(target_ref) < 100.0f)
+                                        return; //wait
+                                }
+                            }
+                        }
+
+                        if (target_ref->formID == platforms2.at(std::size(platforms2) - 1))
+                        {
+                            //last platform
+                            if (player->GetDistance(target_ref) < 100.0f)
+                            {
+                                auto player_pos = player->GetPosition();
+
+                                walk_again();
+
+                                auto dummy = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x70c1a25);
+                                if (dummy)
+                                {
+                                    dummy->MoveTo(player);
+                                    RE::NiPoint3 finish_point = { 8152.24219, -6572.44629, -238.289505 };
+                                    MiscThings::SetPosition_moveto(dummy, finish_point);
+                                    target_ref = dummy;
+                                    have_target_to_walk = true;
+                                    using_custom_path = true;
+                                    custom_path = { player_pos, finish_point };
+                                    path = custom_path;
+                                    path_valid = true;
+                                    dont_quicksave_after_custom_path = true;
+                                    return;
+                                }
+                            }
+                        }
+
+
+
+
+
+                        std::vector<uint32_t> platforms3 = {
+                            0x4024bee,
+                            0x4024bbb,
+                            0x4024bbc,
+                            0x4024bbd,
+                            0x4024bbe,
+                            0x4024bbf,
+                            0x4024bc0,
+                            0x4024bc1,
+                            0x4024bc2,
+                            0x4024bc3,
+                            0x4024bc4,
+                            0x4024bc5,
+                            0x4024bc6,
+                            0x4024bc7,
+                            0x4024bc8,
+                            0x4024bc9,
+                            0x4024bca,
+                            0x4024bcb,
+                            0x4024bcc
+                        };
+
+                        for (int i = 0; i < std::size(platforms3) - 1; i++)
+                        {
+                            if (target_ref->formID == platforms3.at(i))
+                            {
+                                auto next_platform = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(platforms3.at(i + 1));
+                                if (next_platform && !next_platform->IsDisabled())
+                                {
+                                    auto player_pos = player->GetPosition();
+                                    auto next_platform_pos = next_platform->GetPosition();
+                                    walk_again();
+                                    target_ref = next_platform;
+                                    have_target_to_walk = true;
+                                    using_custom_path = true;
+                                    custom_path = { player_pos, next_platform_pos };
+                                    path = custom_path;
+                                    path_valid = true;
+                                    dont_quicksave_after_custom_path = true;
+                                    hold_camera_horizontally_a_bit_down_while_walking = true;
+                                    check_custom_path_for_fall = true;
+                                    return;
+                                }
+                                else
+                                {
+                                    if (player->GetDistance(target_ref) < 100.0f)
+                                        return; //wait
+                                }
+                            }
+                        }
+
+                        if (target_ref->formID == platforms3.at(std::size(platforms3) - 1))
+                        {
+                            //last platform
+                            if (player->GetDistance(target_ref) < 100.0f)
+                            {
+                                auto player_pos = player->GetPosition();
+
+                                walk_again();
+
+                                auto dummy = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x70c1a25);
+                                if (dummy)
+                                {
+                                    dummy->MoveTo(player);
+                                    RE::NiPoint3 finish_point = { 5862.13623, -7802.29980, -274.239746 };
+                                    MiscThings::SetPosition_moveto(dummy, finish_point);
+                                    target_ref = dummy;
+                                    have_target_to_walk = true;
+                                    using_custom_path = true;
+                                    custom_path = { player_pos, finish_point };
+                                    path = custom_path;
+                                    path_valid = true;
+                                    dont_quicksave_after_custom_path = true;
+                                    return;
+                                }
+                            }
+                        }
+
+
+
+                        std::vector<uint32_t> platforms4 = {
+                            0x4024bf4,
+                            0x4024bd3,
+                            0x4024bd4,
+                            0x4024bd5,
+                            0x4024bd6,
+                            0x4024bd7,
+                            0x4024bd8,
+                            0x4024bd9,
+                            0x4024bda,
+                            0x4024bdb,
+                            0x4024bdc,
+                            0x4024bdd,
+                            0x4024bde,
+                            0x4024bdf,
+                            0x4024be0,
+                            0x4024be1,
+                            0x4024be2
+                        };
+
+                        for (int i = 0; i < std::size(platforms4) - 1; i++)
+                        {
+                            if (target_ref->formID == platforms4.at(i))
+                            {
+                                auto next_platform = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(platforms4.at(i + 1));
+                                if (next_platform && !next_platform->IsDisabled())
+                                {
+                                    auto player_pos = player->GetPosition();
+                                    auto next_platform_pos = next_platform->GetPosition();
+                                    walk_again();
+                                    target_ref = next_platform;
+                                    have_target_to_walk = true;
+                                    using_custom_path = true;
+                                    custom_path = { player_pos, next_platform_pos };
+                                    path = custom_path;
+                                    path_valid = true;
+                                    dont_quicksave_after_custom_path = true;
+                                    hold_camera_horizontally_a_bit_down_while_walking = true;
+                                    check_custom_path_for_fall = true;
+                                    return;
+                                }
+                                else
+                                {
+                                    if (player->GetDistance(target_ref) < 100.0f)
+                                        return; //wait
+                                }
+                            }
+                        }
+
+                        if (target_ref->formID == platforms4.at(std::size(platforms4) - 1))
+                        {
+                            //last platform
+                            if (player->GetDistance(target_ref) < 100.0f)
+                            {
+                                auto player_pos = player->GetPosition();
+
+                                walk_again();
+
+                                auto dummy = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x70c1a25);
+                                if (dummy)
+                                {
+                                    dummy->MoveTo(player);
+                                    RE::NiPoint3 finish_point = { 3187.33838, -8967.62500, -278.478088 };
+                                    MiscThings::SetPosition_moveto(dummy, finish_point);
+                                    target_ref = dummy;
+                                    have_target_to_walk = true;
+                                    using_custom_path = true;
+                                    custom_path = { player_pos, finish_point };
+                                    path = custom_path;
+                                    path_valid = true;
+                                    dont_quicksave_after_custom_path = true;
+                                    return;
+                                }
+                            }
+                        }
+                    }
+                }
+
                 
                 if (target_ref && target_ref->formID == 0x70c1a25) //dummy from apocrypha. reused in other dungeons
                 {
+
+                    if (parent_cell && parent_cell->formID == 0x40142ef) //vahlok tomb dlc2 lost legacy quest floating platforms
+                    {
+                        auto target_ref_pos = target_ref->GetPosition();
+
+                        RE::NiPoint3 dummy_pos_start_part_1 = { 9173.54004, -1701.36243, 3.80842280 };
+
+                        if (target_ref_pos.GetDistance(dummy_pos_start_part_1) < 100.0f) //first platform section
+                        {
+                            if (player->GetDistance(target_ref) < 150.0f)
+                            {
+                                auto lookat_gate = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x401acf5);
+                                auto launch_handle = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x401add0);
+
+                                if (lookat_gate && launch_handle)
+                                {
+                                    auto handle_info = MiscThings::insert_object_into_list_and_get_info(launch_handle);
+
+                                    if (!get_vahlok_saw_platforms(1))
+                                    {
+                                        auto first_platform = (RE::TESObjectREFR*)RE::TESForm::LookupByID(0x401add1);
+                                        if (first_platform && first_platform->IsDisabled())
+                                            send_random_context("You stand in front of large pit, with water at the bottom... It is so large, you cant jump over it or fly across using your shouts... Tharstan said, the tablet here said: Stay your course. To idle is to die... There was some handle under the tablet, maybe it is somehow connected to the puzzle: " + handle_info, false);
+                                        else
+                                        {
+                                            set_vahlok_saw_platforms(1);
+                                            send_random_context("After you pulled the " + handle_info + ", some platforms started appearing above the pit, making something that looks like path. But they quickly disappear, which means you cant stop when you walk on them... When you are ready, pull the handle again to try get over the pit using these platforms", false);
+                                        }    
+                                    }
+                                    else
+                                        send_random_context("You stand in front of pit. When you pulled the handle last time, some platforms appeared out of thin air, it looks like you can walk across the pit using these platforms... But they are gone now. Maybe, pull the handle again? " + handle_info, false);
+
+                                    look_at_object_by_refr(lookat_gate);
+                                    return;
+                                }
+
+                            }
+                        }
+
+                        RE::NiPoint3 dummy_pos_start_part_2 = { 9182.87402, -5049.63037, -164.473969 };
+                        if (target_ref_pos.GetDistance(dummy_pos_start_part_2) < 100.0f) //second platform section
+                        {
+                            if (player->GetDistance(target_ref) < 150.0f)
+                            {
+                                auto lookat_gate = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4024bf0);
+                                auto launch_handle = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4024be3);
+
+                                if (lookat_gate && launch_handle)
+                                {
+                                    auto handle_info = MiscThings::insert_object_into_list_and_get_info(launch_handle);
+
+                                    if (!get_vahlok_saw_platforms(2))
+                                    {
+                                        set_vahlok_saw_platforms(2);
+                                        send_random_context("You stand in front of another pit, and see a passage on the other side... It is probably similar to previous puzzle, here is new handle: " + handle_info, false);
+                                    }
+                                    else
+                                        send_random_context("You stand in front of pit. When you pulled the handle last time, some platforms appeared out of thin air, it looks like you can walk across the pit using these platforms... But they are gone now. Maybe, pull the handle again? " + handle_info, false);
+
+                                    look_at_object_by_refr(lookat_gate);
+                                    return;
+                                }
+
+                            }
+                        }
+
+
+                        RE::NiPoint3 dummy_pos_start_part_3 = { 7568.76074, -6767.94141, -118.531471 };
+                        if (target_ref_pos.GetDistance(dummy_pos_start_part_3) < 100.0f) //second platform section
+                        {
+                            if (player->GetDistance(target_ref) < 300.0f)
+                            {
+                                auto lookat_gate = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4024bf6);
+                                auto launch_handle = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4024bf0);
+
+                                if (lookat_gate && launch_handle)
+                                {
+                                    auto handle_info = MiscThings::insert_object_into_list_and_get_info(launch_handle);
+
+                                    if (!get_vahlok_saw_platforms(3))
+                                    {
+                                        set_vahlok_saw_platforms(3);
+                                        send_random_context("You stand in front of another pit, and see a passage on the other side... It is probably similar to previous puzzle, here is new handle: " + handle_info, false);
+                                    }
+                                    else
+                                        send_random_context("You stand in front of pit. When you pulled the handle last time, some platforms appeared out of thin air, it looks like you can walk across the pit using these platforms... But they are gone now. Maybe, pull the handle again? " + handle_info, false);
+
+                                    look_at_object_by_refr(lookat_gate);
+                                    return;
+                                }
+
+                            }
+                        }
+
+
+                        RE::NiPoint3 dummy_pos_start_part_4 = { 5852.50488, -8376.47656, -185.283752 };
+                        if (target_ref_pos.GetDistance(dummy_pos_start_part_4) < 100.0f) //second platform section
+                        {
+                            if (player->GetDistance(target_ref) < 150.0f)
+                            {
+                                auto lookat_gate = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4024b83);
+                                auto launch_handle = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4024bf6);
+
+                                if (lookat_gate && launch_handle)
+                                {
+                                    auto handle_info = MiscThings::insert_object_into_list_and_get_info(launch_handle);
+
+                                    if (!get_vahlok_saw_platforms(4))
+                                    {
+                                        set_vahlok_saw_platforms(4);
+                                        send_random_context("You stand in front of another pit, and see a passage on the other side... It is probably similar to previous puzzle, here is new handle: " + handle_info, false);
+                                    }
+                                    else
+                                        send_random_context("You stand in front of pit. When you pulled the handle last time, some platforms appeared out of thin air, it looks like you can walk across the pit using these platforms... But they are gone now. Maybe, pull the handle again? " + handle_info, false);
+
+                                    look_at_object_by_refr(lookat_gate);
+                                    return;
+                                }
+
+                            }
+                        }
+
+
+
+                        RE::NiPoint3 dummy_pos_finish_part_1 = { 9188.64551, -3394.22388, -141.420807 };
+                        RE::NiPoint3 dummy_pos_finish_part_2 = { 8152.24219, -6572.44629, -238.289505 };
+                        RE::NiPoint3 dummy_pos_finish_part_3 = { 5862.13623, -7802.29980, -274.239746 };
+                        RE::NiPoint3 dummy_pos_finish_part_4 = { 3187.33838, -8967.62500, -278.478088 };
+
+                        if (target_ref_pos.GetDistance(dummy_pos_finish_part_1) < 100.0f || //first platform section finish
+                            target_ref_pos.GetDistance(dummy_pos_finish_part_2) < 100.0f ||
+                            target_ref_pos.GetDistance(dummy_pos_finish_part_3) < 100.0f ||
+                            target_ref_pos.GetDistance(dummy_pos_finish_part_4) < 100.0f
+                            ) 
+                        {
+                            if (player->GetDistance(target_ref) < 150.0f)
+                            {
+                                register_allowed_actions();
+                                reset_walker();
+                                return;
+                            }
+                        }
+                    }
+
+
                     if (parent_cell && parent_cell->formID == 0x15280) //forlungur
                     {
                         if (player->GetPositionX() >= 5710.0f) //its the bridge
@@ -24393,6 +24998,7 @@ namespace WalkerProcessor {
                                                                                         case (0x40347d1):
                                                                                         case (0x40347d3):
                                                                                         case (0x40347d4):
+                                                                                        case (0x40347d6):
                                                                                         {
                                                                                             reset_walker();
                                                                                             return;

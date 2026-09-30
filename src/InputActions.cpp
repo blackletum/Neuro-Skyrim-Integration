@@ -1104,6 +1104,38 @@ bool input_wants_to_look_down()
     return need_look_down;
 }
 
+
+float get_mouse_y_move_to_make_camera_horizotal()
+{
+    auto camera = RE::PlayerCamera::GetSingleton();
+
+    if (camera)
+    {
+        auto camera_dir = camera->cameraRoot.get()->world.rotate;
+
+        auto camera_x = camera_dir.GetVectorX();
+        auto camera_y = camera_dir.GetVectorY();
+        auto camera_z = camera_dir.GetVectorZ();
+
+        RE::NiPoint3 down = { 1.0f, 0.0f, 0.0f };
+
+        auto mulX = camera_x * down;
+        auto mulY = camera_y * down;
+        auto mulZ = camera_z * down;
+
+
+        if (mulY > 0.9)
+            return 0.0f;
+        else
+            return 10.0f * (-mulY);
+
+    }
+
+    return 0.0f;
+}
+
+
+
 void look_down_for_summon(bool internal)
 {
     if (!WalkerProcessor::is_walking_important_path() && !MiscThings::have_force_only_menu_open())

@@ -3913,6 +3913,24 @@ namespace MiscThings {
         {
             switch (target->formID)
             {
+            case (0x401add1):
+            case (0x401add5):
+            case (0x401add6):
+            case (0x401add7):
+            case (0x401add8):
+            case (0x401add9):
+            case (0x401adda):
+            case (0x401addb):
+            case (0x401addc):
+            case (0x401addd):
+            case (0x401adde):
+            case (0x401addf):
+                return 10.0f; //vahlok tomb platforms. ideally want 0 but dont know what will happen. pause before continuing walk is controlled in walker
+
+
+            case (0x401add0): //vahlok tomb, floating platforms handle under tablet, need to go back to it from other side, tried to interact through tablet stand
+                return 50.0f;
+
 
             case (0xed7e7): //goldur dungeon, reward chest. a bit too far beyond navmesh
                 return 300.0f;
@@ -9657,8 +9675,132 @@ namespace MiscThings {
                 }
 
 
+                //now we have 2 parts of claw. go center to platform puzzle
+                if (!MiscThings::GetStageDone(quest, 330))
+                {
+                    //keyholes not done. redirect to gate, give advice upon arrival (advice must check stage)
+                    auto gate = (RE::TESObjectREFR*)RE::TESForm::LookupByID(0x401adc9);
+                    if (gate)
+                        return gate;
+                }
+
+
+                if (!MiscThings::GetStageDone(quest, 335))
+                {
+                    auto platforms_goal_1 = (RE::TESObjectREFR*)RE::TESForm::LookupByID(0x401add2);
+                    if (platforms_goal_1)
+                    {
+                        auto object_p = MiscThings::General::Script::GetObject(platforms_goal_1, "defaultActivateSelf");
+                        if (object_p)
+                        {
+                            std::string state = "";
+                            state = object_p->currentState;
+
+                            if (state != "alldone")
+                            {
+                                if (!MiscThings::GetStageDone(quest, 704))
+                                {
+                                    auto tablet = (RE::TESObjectREFR*)RE::TESForm::LookupByID(0x40347d6);
+                                    if (tablet)
+                                        return tablet;
+                                }
+
+
+                                auto dummy = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x70c1a25);
+                                if (dummy)
+                                {
+                                    dummy->MoveTo(player);
+                                    MiscThings::SetPosition_moveto(dummy, { 9173.54004, -1701.36243, 3.80842280 });
+
+                                    return dummy;
+                                }
+                            }
+                        }
+                    }
+                }
+
+
+                if (!MiscThings::GetStageDone(quest, 610))
+                {
+                    auto platforms_goal_2 = (RE::TESObjectREFR*)RE::TESForm::LookupByID(0x4024be6);
+                    if (platforms_goal_2)
+                    {
+                        auto object_p = MiscThings::General::Script::GetObject(platforms_goal_2, "defaultActivateSelf");
+                        if (object_p)
+                        {
+                            std::string state = "";
+                            state = object_p->currentState;
+
+                            if (state != "alldone")
+                            {
+                                auto dummy = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x70c1a25);
+                                if (dummy)
+                                {
+                                    dummy->MoveTo(player);
+                                    MiscThings::SetPosition_moveto(dummy, { 9182.87402, -5049.63037, -164.473969 });
+
+                                    return dummy;
+                                }
+                            }
+                        }
+                    }
+                }
+
+
+
+                if (!MiscThings::GetStageDone(quest, 620))
+                {
+                    auto platforms_goal_3 = (RE::TESObjectREFR*)RE::TESForm::LookupByID(0x4024beb);
+                    if (platforms_goal_3)
+                    {
+                        auto object_p = MiscThings::General::Script::GetObject(platforms_goal_3, "defaultActivateSelf");
+                        if (object_p)
+                        {
+                            std::string state = "";
+                            state = object_p->currentState;
+
+                            if (state != "alldone")
+                            {
+                                auto dummy = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x70c1a25);
+                                if (dummy)
+                                {
+                                    dummy->MoveTo(player);
+                                    MiscThings::SetPosition_moveto(dummy, { 7568.76074, -6767.94141, -118.531471 });
+
+                                    return dummy;
+                                }
+                            }
+                        }
+                    }
+                }
+
+
+                if (!MiscThings::GetStageDone(quest, 630))
+                {
+                    auto platforms_goal_4 = (RE::TESObjectREFR*)RE::TESForm::LookupByID(0x4024bf1);
+                    if (platforms_goal_4)
+                    {
+                        auto object_p = MiscThings::General::Script::GetObject(platforms_goal_4, "defaultActivateSelf");
+                        if (object_p)
+                        {
+                            std::string state = "";
+                            state = object_p->currentState;
+
+                            if (state != "alldone")
+                            {
+                                auto dummy = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x70c1a25);
+                                if (dummy)
+                                {
+                                    dummy->MoveTo(player);
+                                    MiscThings::SetPosition_moveto(dummy, { 5852.50488, -8376.47656, -185.283752 });
+
+                                    return dummy;
+                                }
+                            }
+                        }
+                    }
+                }
             }
-            
         }
 
 
@@ -16907,14 +17049,14 @@ namespace MiscThings {
             auto object_p = General::Script::GetObject(activator, "DLC1DunStatueHitSCRIPT");
             if (object_p)
             {
+                std::string state = "";
+                state = object_p->currentState;
 
-                RE::BSFixedString prop_name = "bAlreadyHitCorrectly";
-                if (General::Script::GetProperty<bool>(object_p, prop_name))
-                {
+                if (state == "BeenCorrectlyHit")
                     return 0;
-                }
                 else
                     return 1;
+
 
             }
         }
@@ -20289,7 +20431,7 @@ namespace MiscThings {
                             return  rotated_shift_vector;
                         }
 
-                        if (model.find("PuzzleDoorKeyHole") != std::string::npos) //exclude markers. for some reason their model state is not 0 even though the model doesnt exist
+                        if (model.find("PuzzleDoorKeyHole") != std::string::npos || model.find("PuzzleDoorDLC2Amethyst") != std::string::npos) //exclude markers. for some reason their model state is not 0 even though the model doesnt exist
                         {
                             RE::NiPoint3 base_shift_vector = { -10.0f, 0.0f, 80.0f };
                             RE::NiPoint3 rotated_shift_vector = rotate_vector_by_angles(base_shift_vector, object_angles);
@@ -34616,6 +34758,18 @@ namespace MiscThings {
                     {
                         switch (player_cell->formID)
                         {
+
+                        case (0x40142ef): //vahloks tomb
+                        {
+                            bool player_above = player_pos.y < -3805.0f && player_pos.z > -500.0f;
+                            bool object_down = a_ref->GetPositionY() < -3805.0f && a_ref->GetPositionZ() < -500.0f;
+
+                            if (player_above && object_down)
+                                return RE::BSContainer::ForEachResult::kContinue;
+                        }
+
+
+
                         case (0xa5a71): //geirmund hall
                         {
                             bool player_inside_badroom = is_inside_geirmund_hall_multilevel_room(player);
