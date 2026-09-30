@@ -45,6 +45,9 @@ float spell_cast_not_spell_timeout = 0.0f;
 float pause_pre_cast = 0.0f;
 
 float fishing_timer = 0.0f;
+bool fishing_gave_info_cast = false;
+bool fishing_gave_info_hooked = false;
+bool was_fishing = false;
 
 
 long long draw_weapon_start_timestamp = 0;
@@ -97,7 +100,6 @@ void reset_input_processor()
     need_look_down = false;
 
     fishing_timer = 0.0f;
-
 
     launch_sprint = false;
     launch_sprint_time = 0.0f;
@@ -1543,7 +1545,6 @@ void input_processor(float dtime)
     //ccBGSSSE001_FishingSystemQuest
     //ccBGSSSE001_FishingSystemScript
 
-
     auto fishing_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("ccBGSSSE001_FishingSystemQuest");
 
     if (fishing_quest)
@@ -1553,12 +1554,46 @@ void input_processor(float dtime)
         RE::BSFixedString prop_name = "currentSystemState";
         int fishing_state = MiscThings::General::Script::GetVariable<int>(object_p, prop_name);
 
+
+        if (is_fishing())
+        {
+            was_fishing = true;
+            if (!fishing_gave_info_cast)
+            {
+                send_random_context("You cast your line into water and start fishing...", false);
+                fishing_gave_info_cast = true;
+            }
+
+        }
+        else
+        {
+            if (was_fishing)
+                MiscThings::set_fishing_ask_for_more();
+
+
+            was_fishing = false;
+            fishing_gave_info_cast = false;
+        }
+            
+
+
         if (fishing_state == 4)
         {
-            if (fishing_timer > 2.0f)
+            if (fishing_timer > fishing_reaction_time)
+            {
+                if (!fishing_gave_info_hooked)
+                {
+                    fishing_gave_info_hooked = true;
+                    send_random_context("Something is hooked! You reel in your line...", false);
+                }
                 confirm();
+            }
             else
+            {
                 fishing_timer += dtime;
+                fishing_gave_info_hooked = false;
+            }
+                
         }
         else
         {

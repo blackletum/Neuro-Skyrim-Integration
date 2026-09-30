@@ -2811,6 +2811,7 @@ namespace Observer {
 				detect_interesting_time += dtime;
 
 
+			bool player_has_fishing_rod = MiscThings::player_has_fishing_rod();
 
 			//processing, in small batches
 
@@ -3375,7 +3376,7 @@ namespace Observer {
 													auto riverwood_fishing = RE::TESObjectREFR::LookupByID(0x0500081e);
 
 													//if (fiftyfifty && MiscThings::raycastable(a_ref, 1000.0f, true) && name.find("Fishing Supplies") != std::string::npos && !WalkerProcessor::is_fighting() && !WalkerProcessor::is_walking_important_path() && (MiscThings::player_has_fishing_rod() || a_ref == riverwood_fishing))
-													if (fiftyfifty && name.find("Fishing Supplies") != std::string::npos && !WalkerProcessor::is_fighting() && !WalkerProcessor::is_walking_important_path() && (MiscThings::player_has_fishing_rod() || a_ref == riverwood_fishing))
+													if (fiftyfifty && name.find("Fishing Supplies") != std::string::npos && !WalkerProcessor::is_fighting() && !WalkerProcessor::is_walking_important_path() && (player_has_fishing_rod || a_ref == riverwood_fishing))
 													{
 														WalkerProcessor::look_at_object_by_refr(a_ref, true, 1.0f);
 														send_random_context("You see: " + info, false);
@@ -4202,10 +4203,12 @@ namespace Observer {
 				scan_distance = 2000.0f;
 
 
+			
 
 
 			if (detect_events_time > 0.1f && std::size(raw_event_object_list) <= 0)
 			{
+
 				//Hooks::add_debug_line("DETECT EVENTS TRIGGERED, DTIME: " + std::to_string(detect_events_time), true);
 
 				detect_events_time = 0.0f;
@@ -4309,6 +4312,7 @@ namespace Observer {
 			//now process in small batches
 
 
+			bool player_has_fishing_rod = MiscThings::player_has_fishing_rod();
 
 			for (int i = 0; i < 100; i++)
 			{
@@ -6143,6 +6147,20 @@ namespace Observer {
 
 								}
 							}
+
+
+							if (player_has_fishing_rod && MiscThings::is_fishing_supplies(a_ref->GetBaseObject()))
+							{
+								if (!MiscThings::is_object_in_the_list(a_ref) && player->GetDistance(a_ref) < 15000.0f)
+								{
+									auto info = MiscThings::insert_object_into_list_and_get_info(a_ref);
+
+									if (info != "")
+										send_random_context("You see: " + info);
+
+								}
+							}
+
 
 
 

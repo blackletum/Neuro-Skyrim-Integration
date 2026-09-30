@@ -1516,6 +1516,10 @@ bool neuro::NeuroSocket::Tick(float dtime) //const neurosdk_message_action_t& aC
                         case force_type::point_of_no_return_confirm:
                             command_result = WalkerProcessor::set_point_of_no_return_choice(json.id); break;
 
+                        case force_type::fish_more:
+                            command_result = MiscThings::set_fishing_choice(json.id); break;
+
+
                         default:
                         {
                             command_result = { true, "You dont have any choices to make" };

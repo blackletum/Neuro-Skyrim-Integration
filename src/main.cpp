@@ -74,11 +74,6 @@
 //test a fight versus dragon in beast form
 //run away/tactical retreat - check possibility of replacing "runaway target" with some distant point on loaded navmesh, depending on direction of enemy
 
-//FISHING
-//autoequip fishing rod. advice where to get it if its not nearby. if its nearby - point it out
-//put markers for fishing quests. it might be not bad
-//force with question to fish more after fishing for easier access, maybe make an action about fishing to go straight to it without walk_to_object action
-
 
 //test solstheim more
 //more solstheim quests. pirate quest. check what other quests are there. dwemer bow dungeon quest
@@ -2811,6 +2806,7 @@ private:
 
                 MiscThings::notifications(dtime);
                 MiscThings::settlement_places_processor(dtime);
+                MiscThings::fishing_processor(dtime);
 
                 SleepWaitProcessor::processor(dtime);
                 BookProcessor::processor(dtime);

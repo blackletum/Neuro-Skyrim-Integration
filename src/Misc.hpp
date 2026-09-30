@@ -643,6 +643,17 @@ namespace MiscThings {
     //void SetStage(std::string quest_name, int stage);
     bool SetStage(RE::TESQuest* quest, uint16_t stage);
 
+
+    void set_fishing_ask_for_more();
+    void fishing_processor(float dtime);
+    std::pair<bool, std::string> set_fishing_choice(int id);
+
+
+    bool is_fishing_supplies(RE::TESForm* form);
+
+    RE::TESBoundObject* get_random_fishing_rod_from_inventory();
+    bool has_fishing_rod_equipped();
+
     float get_shout_cooldown();
     void shout_cooldown_fix(float dtime);
 

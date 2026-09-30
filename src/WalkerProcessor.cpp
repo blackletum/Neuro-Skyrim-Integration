@@ -13,6 +13,9 @@
 
 namespace WalkerProcessor {
     
+    long long last_time_equipped_rod = 0;
+
+
     bool check_custom_path_for_fall = false;
 
     bool hold_camera_horizontally_while_walking = false;
@@ -12047,6 +12050,13 @@ namespace WalkerProcessor {
                             //no objective
                             result.first = false;
                             result.second = "This quest has no target to walk to. Perhaps you need to do something else to complete it...";
+
+                            if (quest_entry.quest && ((quest_entry.quest->formID & 0xFF000000) == 0x5000000))
+                            {
+                                //fishing quest. add advice
+                                result.second += " (If its a quest to catch fish - you need to have a fishing rod, and then find fishing supplies near water. Usually, fishing supplies can be found near settlements. If its a quest to [read something], you need to read it from your inventory)";
+                            }
+
                             return result;
                         }
                     }
@@ -12056,6 +12066,13 @@ namespace WalkerProcessor {
                     //no objective
                     result.first = false;
                     result.second = "This quest has no target to walk to. Perhaps you need to do something else to complete it...";
+
+                    if (quest_entry.quest && ((quest_entry.quest->formID & 0xFF000000) == 0x5000000))
+                    {
+                        //fishing quest. add advice
+                        result.second += " (If its a quest to catch fish - you need to have a fishing rod, and then find fishing supplies near water. Usually, fishing supplies can be found near settlements. If its a quest to [read something], you need to read it from your inventory)";
+                    }
+
                     return result;
                 }
             }
@@ -21188,6 +21205,40 @@ namespace WalkerProcessor {
                     reset_walker();
                     return;
                 }
+
+
+                if (target_ref && MiscThings::is_fishing_supplies(target_ref->GetBaseObject())) //fishing supplies
+                {
+                    auto now = std::chrono::steady_clock::now().time_since_epoch().count();
+                    float delta_equip = (double)(now - last_time_equipped_rod) / 1000000000.0;
+                    if (delta_equip > 5.0f)
+                    {
+                        if (player->GetDistance(target_ref) < 500.0f)
+                        {
+                            if (!MiscThings::has_fishing_rod_equipped())
+                            {
+                                auto fishing_rod_to_equip = MiscThings::get_random_fishing_rod_from_inventory();
+
+                                if (fishing_rod_to_equip)
+                                {
+                                    auto actor_equip = RE::ActorEquipManager::GetSingleton();
+                                    if (actor_equip)
+                                    {
+                                        actor_equip->EquipObject(player, fishing_rod_to_equip);
+
+                                        send_random_context("You equip your fishing rod...", true);
+
+                                        last_time_equipped_rod = now;
+                                    }
+
+                                }
+                            }
+                        }
+                    }
+
+                }
+
+
 
 
                 if (target_ref && interaction_after_walk == 3 && !(is_running_away() && !tactical_retreat_mode_active))

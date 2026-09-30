@@ -5608,18 +5608,42 @@ namespace MiscThings {
     }
 
 
+    bool is_fishing_rod(RE::TESForm* form)
+    {
+        if (form)
+        {
+            return form->formID == 0x05000850 || form->formID == 0x0500084d || form->formID == 0x0500084e || form->formID == 0x0500084f;
+        }
 
-    bool player_has_fishing_rod()
+        return false;
+    }
+
+
+    bool is_fishing_supplies(RE::TESForm* form)
+    {
+        if (form)
+        {
+            return form->formID == 0x5000806 || form->formID == 0x50008d0 || form->formID == 0x50008d1 || form->formID == 0x50008a6 || form->formID == 0x500089f;
+        }
+
+        return false;
+    }
+
+
+
+    RE::TESBoundObject* get_random_fishing_rod_from_inventory()
     {
         auto inventory = get_filtered_inventory();
 
         std::vector<RE::TESForm*> fishing_poles{};
 
-        fishing_poles.push_back(RE::TESObjectWEAP::LookupByID(0x05000850));
-        fishing_poles.push_back(RE::TESObjectWEAP::LookupByID(0x0500084d));
-        fishing_poles.push_back(RE::TESObjectWEAP::LookupByID(0x0500084e));
-        fishing_poles.push_back(RE::TESObjectWEAP::LookupByID(0x0500084f));
+        fishing_poles.push_back(RE::TESBoundObject::LookupByID(0x05000850));
+        fishing_poles.push_back(RE::TESBoundObject::LookupByID(0x0500084d));
+        fishing_poles.push_back(RE::TESBoundObject::LookupByID(0x0500084e));
+        fishing_poles.push_back(RE::TESBoundObject::LookupByID(0x0500084f)); //normal
 
+        
+        std::map<uint32_t, bool> rods{};
 
         for (auto& [item, data] : inventory)
         {
@@ -5628,10 +5652,86 @@ namespace MiscThings {
                 auto form = item->GetFormID();
                 for (auto pole : fishing_poles)
                     if (pole && form == pole->GetFormID())
-                        return true;
-
+                    {
+                        if (rods.find(form) == rods.end())
+                        {
+                            rods.insert({ form, true });
+                        }
+                    }
             }
 
+        }
+
+        
+
+        std::vector<uint32_t> rods_vector{};
+
+        for (auto rod : rods)
+        {
+            rods_vector.push_back(rod.first);
+        }
+
+        int rod_amount = std::size(rods_vector);
+
+        if (rod_amount > 0)
+        {
+            auto choice = MiscThings::random_int_from_range(0, rod_amount - 1);
+
+            if (choice >= 0 && choice < rod_amount)
+                return (RE::TESBoundObject*)RE::TESForm::LookupByID(rods_vector.at(choice));
+        }
+        
+        return nullptr;
+    }
+
+
+    bool has_fishing_rod_equipped()
+    {
+        auto hand = MiscThings::get_hand_contents(true);
+
+        if (hand)
+        {
+            if (hand->formID == 0x05000850 ||
+                hand->formID == 0x0500084d ||
+                hand->formID == 0x0500084e ||
+                hand->formID == 0x0500084f
+                )
+                return true;
+        }
+
+        hand = MiscThings::get_hand_contents(false);
+
+        if (hand)
+        {
+            if (hand->formID == 0x05000850 ||
+                hand->formID == 0x0500084d ||
+                hand->formID == 0x0500084e ||
+                hand->formID == 0x0500084f
+                )
+                return true;
+        }
+
+        return false;
+    }
+
+
+
+    bool player_has_fishing_rod()
+    {
+        auto inventory = get_filtered_inventory();
+
+        std::vector<RE::TESBoundObject*> fishing_poles{};
+
+        fishing_poles.push_back((RE::TESBoundObject*)RE::TESObjectWEAP::LookupByID(0x05000850));
+        fishing_poles.push_back((RE::TESBoundObject*)RE::TESObjectWEAP::LookupByID(0x0500084d));
+        fishing_poles.push_back((RE::TESBoundObject*)RE::TESObjectWEAP::LookupByID(0x0500084e));
+        fishing_poles.push_back((RE::TESBoundObject*)RE::TESObjectWEAP::LookupByID(0x0500084f)); //normal
+
+
+        for (auto pole : fishing_poles)
+        {
+            if (inventory.find(pole) != inventory.end())
+                return true;
         }
 
         return false;
@@ -7084,6 +7184,130 @@ namespace MiscThings {
         auto now = std::chrono::steady_clock::now().time_since_epoch().count();
         settlement_advice_timestamp = now;
     }
+
+
+    bool fishing_ask_for_more = false;
+    bool fishing_request_sent = false;
+    bool fishing_choice_valid = false;
+    int fishing_choice = -1;
+
+    void set_fishing_ask_for_more()
+    {
+        fishing_ask_for_more = true;
+    }
+
+
+
+    std::pair<bool, std::string> set_fishing_choice(int id)
+    {
+        std::pair<bool, std::string> result{};
+
+        if (!fishing_request_sent)
+        {
+            result.first = true;
+            result.second = "[Error]";
+        }
+        else
+        {
+            if (id == 0 || id == 1)
+            {
+                fishing_choice_valid = true;
+                fishing_choice = id;
+                result.first = true;
+                result.second = "[Processing...]";
+            }
+            else
+            {
+                result.first = false;
+                result.second = "[Invalid choice ID]";
+            }
+        }
+        return result;
+    }
+
+
+    void reset_fishing()
+    {
+        fishing_ask_for_more = false;
+        fishing_request_sent = false;
+        fishing_choice_valid = false;
+        fishing_choice = -1;
+    }
+
+
+
+
+
+    RE::TESObjectREFR* find_fishing_supplies_nearby()
+    {
+        auto player = RE::PlayerCharacter::GetSingleton();
+
+        RE::TESObjectREFR* result = nullptr;
+
+        RE::TES::GetSingleton()->ForEachReferenceInRange(player, 1000.0f,
+            [&](RE::TESObjectREFR* a_ref) {
+
+                if (a_ref)
+                {
+                    auto base_obj = a_ref->GetBaseObject();
+                    RE::FormType base_type{};
+                    if (base_obj && base_obj->formID == 0x50008a6)
+                    {
+                        result = a_ref;
+                        return RE::BSContainer::ForEachResult::kStop;
+                    }
+                }
+                return RE::BSContainer::ForEachResult::kContinue;
+            });
+
+        return result;
+    }
+
+
+
+    void fishing_processor(float dtime)
+    {
+        if (fishing_ask_for_more)
+        {
+            if (!fishing_request_sent)
+            {
+                unregister_all_actions();
+
+                if (force_choice({ {0, "No"},{1, "Yes"} }, "Would you like to fish more?", force_type::fish_more))
+                {
+                    fishing_request_sent = true;
+
+                }
+            }
+            else
+            {
+                if (fishing_choice_valid)
+                {
+                    if (fishing_choice)
+                    {
+                        auto fishing_supplies = find_fishing_supplies_nearby();
+
+                        if (fishing_supplies)
+                        {
+                            send_random_context(WalkerProcessor::walk_to_object_by_refr(fishing_supplies, 1).second, true);
+                        }
+                        else
+                            send_random_context("Cant find fishing supplies nearby!", false);
+
+                        reset_fishing();
+                    }
+                    else
+                    {
+                        reset_fishing();
+                    }
+
+                }
+            }
+        }
+        else
+            reset_fishing();
+    }
+
 
 
     void settlement_places_processor(float dtime)
@@ -19389,6 +19613,11 @@ namespace MiscThings {
                                                             {
                                                                 bool silent = false;
 
+                                                                if (result_string == "You must have a fishing rod equipped to use this.")
+                                                                {
+                                                                    result_string += " (try looking around, maybe there is a fishing rod nearby. If there isnt, you can try to buy one from traders in towns)";
+                                                                }
+
                                                                 if (result_string.find(" too powerful ") != std::string::npos || result_string.find(" poisoned.") != std::string::npos)
                                                                     if (MiscThings::coinflip())
                                                                         silent = true;
@@ -25186,6 +25415,13 @@ namespace MiscThings {
             auto base_obj = refr->GetBaseObject();
             auto base_type = base_obj->GetFormType();
 
+
+            if (base_obj->formID == 0x50008a6) //fishing supplies
+            {
+                name = "Fishing Supplies (interact to try fishing)";
+            }
+
+
             if (base_type == RE::FormType::Container)
             {
                 auto door_obj = (RE::TESObjectCONT*)base_obj;
@@ -25369,6 +25605,8 @@ namespace MiscThings {
 
             auto base_obj = refr->GetBaseObject();
             auto base_type = base_obj->GetFormType();
+
+            
 
             if (base_type == RE::FormType::MovableStatic)
             {
@@ -26036,7 +26274,7 @@ namespace MiscThings {
 
         float chance_onehanded = player_onehanded_skill / sum;
         float chance_twohanded = player_twohanded_skill / sum + chance_onehanded;
-        //float chance_bow = player_bow_skill / sum + ;
+        //float chance_bow = player_bow_skill / sum + chance_twohanded;
 
         float chance = (float)std::rand() / RAND_MAX;
 
@@ -26047,7 +26285,7 @@ namespace MiscThings {
                 return best_twohanded;
             else
                 if (best_bow > -1)
-                    return -1;
+                    return best_bow;
 
         return -1;
     }
