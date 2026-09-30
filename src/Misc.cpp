@@ -92,6 +92,52 @@ namespace MiscThings {
     }
     */
 
+    /* //doesnt work?
+    bool SetStage(RE::TESQuest* quest, uint16_t stage)
+    {
+        if (!quest) return 0;                               //24482 //22151
+        REL::Relocation<decltype(SetStage)> func(REL::ID(24482));
+        return func(quest, stage);
+        //return originalSetStage(quest, stage);
+
+    }
+    */
+
+
+
+    bool SetStage(RE::TESQuest* quest, uint16_t stage)
+    {
+        if (!quest) return 0;                               //24482 //22151
+        REL::Relocation<decltype(SetStage)> func(REL::ID(25004));
+        return func(quest, stage);
+        //return originalSetStage(quest, stage);
+
+    }
+
+
+
+    /*
+    void SetStage(std::string quest_name, int stage)
+    {
+
+        static RE::SCRIPT_FUNCTION* function = RE::SCRIPT_FUNCTION::GetFirstScriptCommand() + std::to_underlying(RE::FUNCTION_DATA::FunctionID::kSetStage);
+
+        if (function)
+        {
+            RE::SCRIPT_PARAMETER params{};
+            params.paramName = quest_name.c_str();
+            params.paramType = RE::SCRIPT_PARAM_TYPE::kQuest;
+
+            double out = 0.0f;
+            double result = 0.0f;
+            uint32_t opcode_offset = 0;
+
+            function->executeFunction(&params, nullptr, nullptr, nullptr, nullptr, nullptr, result, opcode_offset);
+
+            //function->conditionFunction(nullptr, quest, (void*)stage, out);
+        }
+    }
+    */
 
     bool GetStageDone(RE::TESQuest* quest, int stage)
     {
@@ -99,6 +145,21 @@ namespace MiscThings {
 
         if (quest && quest->formType == RE::FormType::Quest)
         {
+
+            static RE::SCRIPT_FUNCTION* function = RE::SCRIPT_FUNCTION::GetFirstScriptCommand() + std::to_underlying(RE::FUNCTION_DATA::FunctionID::kGetStageDone);
+
+            double out = 0.0;
+
+            if (function)
+            {
+                function->conditionFunction(nullptr, quest, (void*)stage, out);
+            }
+
+            return out;
+
+
+
+            /*
             RE::TESConditionItem condition_item{};
             auto params = RE::ConditionCheckParams::ConditionCheckParams(nullptr, nullptr);
             params.quest = quest;
@@ -109,6 +170,7 @@ namespace MiscThings {
             condition_item.data.comparisonValue.g = nullptr;
             condition_item.data.flags.opCode = RE::CONDITION_ITEM_DATA::OpCode::kEqualTo;
             result = !condition_item.IsTrue(params);
+            */
         }
 
         return result;
@@ -13140,11 +13202,6 @@ namespace MiscThings {
             return true;
         }
 
-
-        //if (quest && quest->formID == 0x4019b4a) //lost legacy dlc2 quest (vahlok's tomb) - temporary hidden until its worked through
-        //{
-        //     return true;
-        //}
 
         if (quest && (quest->formID == 0x4027a14 || quest->formID == 0x401b65f)) //find black book quests. new books will not work 99% so just hide it for now
         {

@@ -639,6 +639,10 @@ namespace MiscThings {
 
     bool GetStageDone(RE::TESQuest* quest, int stage);
 
+    //bool SetStage(RE::TESQuest* quest, int stage);
+    //void SetStage(std::string quest_name, int stage);
+    bool SetStage(RE::TESQuest* quest, uint16_t stage);
+
     float get_shout_cooldown();
     void shout_cooldown_fix(float dtime);
 

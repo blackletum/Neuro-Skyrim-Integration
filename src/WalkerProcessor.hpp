@@ -75,7 +75,7 @@ namespace WalkerProcessor {
 
 	bool is_door(RE::TESObjectREFR* refr);
 
-	bool walk_custom_path(RE::TESObjectREFR* target_object, std::vector<RE::NiPoint3> positions, bool in_append_to_normal_path, bool in_walk_again_when_finished, bool in_dont_quicksave_after_walk, bool in_reset_after_walk, bool extra_precision, bool in_hold_camera_horizontally_a_bit_down_while_walking = false, bool in_check_custom_path_for_fall = false);
+	bool walk_custom_path(RE::TESObjectREFR* target_object, std::vector<RE::NiPoint3> positions, bool in_append_to_normal_path, bool in_walk_again_when_finished, bool in_dont_quicksave_after_walk, bool in_reset_after_walk, bool extra_precision, bool in_hold_camera_horizontally_a_bit_down_while_walking = false, bool in_check_custom_path_for_fall = false, bool must_shift = false, bool must_sprint = false, bool in_dont_wait_platform_special_vahlok = false);
 	void drop_some_item_onto_position(RE::NiPoint3 pos_to_drop, RE::TESObjectREFR* object_to_walk_to, RE::TESObjectREFR* specific_object = nullptr);
 
 	float get_mouse_y_move_to_make_camera_horizotal();

@@ -470,7 +470,7 @@ namespace Observer {
 			case 12:
 			{
 				min_range = 1;
-				max_range = 1;
+				max_range = 4;
 
 				break;
 			}
@@ -1412,7 +1412,11 @@ namespace Observer {
 					WalkerProcessor::reset_walker();
 
 					std::vector<MenuOption> options{};
-					options.push_back({ 1, "Walk on platforms, waiting for next platform to appear before stepping forward" });
+					options.push_back({ 1, "Normally walk on platforms, waiting for next platform to appear before stepping forward" });
+					options.push_back({ 2, "Slowly walk on platforms, waiting for next platform to appear before stepping forward" });
+					options.push_back({ 3, "Fast-walk on platforms, waiting for next platform to appear before stepping forward" });
+					options.push_back({ 4, "Fast-walk walk on platforms, without waiting for next platform to appear" });
+
 					//options.push_back({ 2, "Use Whirlwind Sprint shout to fly through the gate" });
 					//options.push_back({ 3, "Do nothing" });
 					//options.push_back({ 4, "Jump" });
@@ -1450,8 +1454,11 @@ namespace Observer {
 						switch (puzzle_choice)
 						{
 						case 1:
+						case 2:
+						case 3:
+						case 4:
 						{
-
+							
 							auto platform1 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x401add1);
 
 							if (active_puzzle == 9)
@@ -1468,7 +1475,7 @@ namespace Observer {
 
 							if (platform1)
 							{
-								WalkerProcessor::walk_custom_path(platform1, { platform1->GetPosition() }, true, false, true, false, false, true, true);
+								WalkerProcessor::walk_custom_path(platform1, { platform1->GetPosition() }, true, false, true, false, false, true, true, puzzle_choice == 2, puzzle_choice == 3 || puzzle_choice == 4, puzzle_choice == 4);
 							}
 							else
 							{
@@ -7348,17 +7355,6 @@ namespace Observer {
 
 					if (vahlok_quest)
 					{
-
-						//REMOVE THIS REMOVE THIS REMOVE THIS
-						for (int stage = 0; stage < 1000; stage++)
-						{
-							if (MiscThings::GetStageDone(vahlok_quest, stage))
-							{
-								debug_quest_stages.insert({ stage, true });
-							}
-						}
-
-
 						old_dlc2sv01_puzzle1 = MiscThings::GetStageDone(vahlok_quest, 305);
 						old_dlc2sv01_puzzle2 = MiscThings::GetStageDone(vahlok_quest, 325);
 						old_dlc2sv01_puzzle3 = MiscThings::GetStageDone(vahlok_quest, 315);
@@ -7386,21 +7382,6 @@ namespace Observer {
 					if (vahlok_quest)
 					{
 
-						//REMOVE THIS REMOVE THIS REMOVE THIS
-						for (int stage = 0; stage < 1000; stage++)
-						{
-							if (MiscThings::GetStageDone(vahlok_quest, stage))
-							{
-								if (debug_quest_stages.find(stage) == debug_quest_stages.end())
-								{
-									debug_quest_stages.insert({ stage, true });
-									Hooks::add_debug_line("NEW STAGE COMPLETED: " + std::to_string(stage), true);
-								}
-							}
-						}
-
-
-
 						bool puzzle_done_1 = MiscThings::GetStageDone(vahlok_quest, 305);
 						bool puzzle_done_2 = MiscThings::GetStageDone(vahlok_quest, 325);
 						bool puzzle_done_3 = MiscThings::GetStageDone(vahlok_quest, 315);
@@ -7409,6 +7390,7 @@ namespace Observer {
 						bool puzzle_done_5 = MiscThings::GetStageDone(vahlok_quest, 610); //platforms
 						bool puzzle_done_6 = MiscThings::GetStageDone(vahlok_quest, 620); //platforms
 						bool puzzle_done_7 = MiscThings::GetStageDone(vahlok_quest, 630); //platforms
+
 
 						if (!old_dlc2sv01_puzzle1 && puzzle_done_1)
 						{

@@ -310,6 +310,11 @@ namespace WalkerProcessor {
     bool always_shift = false;
     bool karthspire_plates = false;
 
+    bool always_sprint = false;
+
+    bool dont_wait_platform_special_vahlok = false;
+
+
     float crouch_timeout = 0.0f;
 
     int stable_target = 0;
@@ -3185,6 +3190,10 @@ namespace WalkerProcessor {
         if (do_jumps)
             return false;
 
+        if (always_sprint)
+            return true;
+
+
         //return true;
         bool result = false;
         try {
@@ -3707,10 +3716,10 @@ namespace WalkerProcessor {
                 float stamina_state = MiscThings::get_player_stamina() / MiscThings::get_player_max_stamina();
 
 
-                if (!silly_walk_mode && (!MiscThings::is_interior_cell() || MiscThings::is_running_allowed_in_current_cell()) && may_sprint())
+                if (always_sprint || (!silly_walk_mode && (!MiscThings::is_interior_cell() || MiscThings::is_running_allowed_in_current_cell()) && may_sprint()))
                 {
                     //sprint();
-                    if (stamina_state > 0.6f)
+                    if (stamina_state > 0.6f || (always_sprint && stamina_state > 0.1f))
                     if (!player_is_sprinting())// && !was_sprinting)
                     {
                         if (!launching_sprint())
@@ -6559,6 +6568,8 @@ namespace WalkerProcessor {
 
     void reset_walker()
     {
+        dont_wait_platform_special_vahlok = false;
+
         hold_camera_horizontally_while_walking = false;
         hold_camera_horizontally_a_bit_down_while_walking = false;
 
@@ -6786,6 +6797,10 @@ namespace WalkerProcessor {
         karthspire_plates = false;
 
         always_shift = false;
+        always_sprint = false;
+
+        dont_wait_platform_special_vahlok = false;
+
 
         crouch_timeout = 0.0f;
 
@@ -12863,7 +12878,7 @@ namespace WalkerProcessor {
 
 
 
-    bool walk_custom_path(RE::TESObjectREFR* target_object, std::vector<RE::NiPoint3> positions, bool in_append_to_normal_path, bool in_walk_again_when_finished, bool in_dont_quicksave_after_walk, bool in_reset_after_walk, bool extra_precision, bool in_hold_camera_horizontally_a_bit_down_while_walking, bool in_check_custom_path_for_fall)
+    bool walk_custom_path(RE::TESObjectREFR* target_object, std::vector<RE::NiPoint3> positions, bool in_append_to_normal_path, bool in_walk_again_when_finished, bool in_dont_quicksave_after_walk, bool in_reset_after_walk, bool extra_precision, bool in_hold_camera_horizontally_a_bit_down_while_walking, bool in_check_custom_path_for_fall, bool must_shift, bool must_sprint, bool in_dont_wait_platform_special_vahlok)
     {
         auto cant_walk_reason = get_cant_walk_reason();
 
@@ -12908,6 +12923,11 @@ namespace WalkerProcessor {
 
         hold_camera_horizontally_a_bit_down_while_walking = in_hold_camera_horizontally_a_bit_down_while_walking;
         check_custom_path_for_fall = in_check_custom_path_for_fall;
+
+        always_shift = must_shift;
+        always_sprint = must_sprint;
+
+        dont_wait_platform_special_vahlok = in_dont_wait_platform_special_vahlok;
 
         if (!in_append_to_normal_path)
         {
@@ -21502,7 +21522,7 @@ namespace WalkerProcessor {
                             if (target_ref->formID == platforms1.at(i))
                             {
                                 auto next_platform = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(platforms1.at(i + 1));
-                                if (next_platform && !next_platform->IsDisabled())
+                                if (next_platform && (!next_platform->IsDisabled() || (dont_wait_platform_special_vahlok && player->GetDistance(target_ref) < 120.0f)))
                                 {
                                     auto player_pos = player->GetPosition();
                                     auto next_platform_pos = next_platform->GetPosition();
@@ -21520,8 +21540,9 @@ namespace WalkerProcessor {
                                 }
                                 else
                                 {
-                                    if (player->GetDistance(target_ref) < 100.0f)
-                                        return; //wait
+                                    if (!dont_wait_platform_special_vahlok)
+                                        if (player->GetDistance(target_ref) < 100.0f)
+                                            return; //wait
                                 }
                             }
                         }
@@ -21574,7 +21595,7 @@ namespace WalkerProcessor {
                             if (target_ref->formID == platforms2.at(i))
                             {
                                 auto next_platform = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(platforms2.at(i + 1));
-                                if (next_platform && !next_platform->IsDisabled())
+                                if (next_platform && (!next_platform->IsDisabled() || (dont_wait_platform_special_vahlok && player->GetDistance(target_ref) < 120.0f)))
                                 {
                                     auto player_pos = player->GetPosition();
                                     auto next_platform_pos = next_platform->GetPosition();
@@ -21592,8 +21613,9 @@ namespace WalkerProcessor {
                                 }
                                 else
                                 {
-                                    if (player->GetDistance(target_ref) < 100.0f)
-                                        return; //wait
+                                    if (!dont_wait_platform_special_vahlok)
+                                        if (player->GetDistance(target_ref) < 100.0f)
+                                            return; //wait
                                 }
                             }
                         }
@@ -21656,7 +21678,7 @@ namespace WalkerProcessor {
                             if (target_ref->formID == platforms3.at(i))
                             {
                                 auto next_platform = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(platforms3.at(i + 1));
-                                if (next_platform && !next_platform->IsDisabled())
+                                if (next_platform && (!next_platform->IsDisabled() || (dont_wait_platform_special_vahlok && player->GetDistance(target_ref) < 120.0f)))
                                 {
                                     auto player_pos = player->GetPosition();
                                     auto next_platform_pos = next_platform->GetPosition();
@@ -21674,8 +21696,9 @@ namespace WalkerProcessor {
                                 }
                                 else
                                 {
-                                    if (player->GetDistance(target_ref) < 100.0f)
-                                        return; //wait
+                                    if (!dont_wait_platform_special_vahlok)
+                                        if (player->GetDistance(target_ref) < 100.0f)
+                                            return; //wait
                                 }
                             }
                         }
@@ -21734,7 +21757,7 @@ namespace WalkerProcessor {
                             if (target_ref->formID == platforms4.at(i))
                             {
                                 auto next_platform = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(platforms4.at(i + 1));
-                                if (next_platform && !next_platform->IsDisabled())
+                                if (next_platform && (!next_platform->IsDisabled() || (dont_wait_platform_special_vahlok && player->GetDistance(target_ref) < 120.0f)))
                                 {
                                     auto player_pos = player->GetPosition();
                                     auto next_platform_pos = next_platform->GetPosition();
@@ -21752,8 +21775,9 @@ namespace WalkerProcessor {
                                 }
                                 else
                                 {
-                                    if (player->GetDistance(target_ref) < 100.0f)
-                                        return; //wait
+                                    if (!dont_wait_platform_special_vahlok)
+                                        if (player->GetDistance(target_ref) < 100.0f)
+                                            return; //wait
                                 }
                             }
                         }

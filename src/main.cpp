@@ -3856,6 +3856,46 @@ class MyHook {
                     //RE::ConsoleLog::GetSingleton()->Print(subtitle_msg.c_str());
                     if (sub_manager->currentSpeaker.get())
                     {
+
+
+                        auto parent_cell = player->GetParentCell();
+
+                        if (parent_cell && parent_cell->formID == 0x40142ef) //vahloks tomb, force quest stages
+                        {
+                            auto vahlok_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("DLC2SV01");
+
+                            if (vahlok_quest)
+                            {
+                                if (subtitle_msg.find("A sacrifice will bring you closer to that which you seek") != std::string::npos)
+                                {
+                                    if (!MiscThings::GetStageDone(vahlok_quest, 701))
+                                        MiscThings::SetStage(vahlok_quest, 701);
+                                }
+                                
+                                if (subtitle_msg.find("All men must die, often by their own means") != std::string::npos)
+                                {
+                                    if (!MiscThings::GetStageDone(vahlok_quest, 702))
+                                        MiscThings::SetStage(vahlok_quest, 702);
+                                }
+
+                                if (subtitle_msg.find("Continue along the path, don't tread where you've been") != std::string::npos)
+                                {
+                                    if (!MiscThings::GetStageDone(vahlok_quest, 703))
+                                        MiscThings::SetStage(vahlok_quest, 703);
+                                }
+
+                                if (subtitle_msg.find("Stay your course. To idle is to die") != std::string::npos)
+                                {
+                                    if (!MiscThings::GetStageDone(vahlok_quest, 704))
+                                        MiscThings::SetStage(vahlok_quest, 704);
+                                }
+
+
+                            }
+
+                        }
+
+
                         auto speaker = sub_manager->currentSpeaker.get().get();
 
                         auto delphine = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x13485);
