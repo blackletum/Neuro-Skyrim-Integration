@@ -55,7 +55,7 @@ bool is_action_on_cooldown(std::string action_name)
     {
         if (action_name == Capabilities::ExploreWorld::Name)
         {
-            return action_status->second.cooldown_charges_used >= 3;
+            return action_status->second.cooldown_charges_used >= 5;
         }
         else
             return action_status->second.dont_autoregister;
@@ -73,7 +73,7 @@ void neuro::set_action_cooldown(std::string action_name, float cooldown)
     {
         if (action_name == Capabilities::ExploreWorld::Name)
         {
-            if (action_status->second.cooldown_charges_used < 3)
+            if (action_status->second.cooldown_charges_used < 5)
             {
                 action_status->second.cooldown_charges_used++;
                 action_status->second.autoregister_cooldown = cooldown;
@@ -81,7 +81,7 @@ void neuro::set_action_cooldown(std::string action_name, float cooldown)
             }
             else
             {
-                action_status->second.cooldown_charges_used = 3;
+                action_status->second.cooldown_charges_used = 5;
                 action_status->second.autoregister_cooldown = cooldown;
                 action_status->second.dont_autoregister = true;
             }

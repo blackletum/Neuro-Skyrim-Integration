@@ -9148,7 +9148,7 @@ namespace WalkerProcessor {
 
         put_explore_on_cooldown(60.0f);
 
-        if (get_explore_cooldown_charges() >= 3)
+        if (get_explore_cooldown_charges() >= 5)
             unregister_explore_action();
 
         right_attack_cancel();

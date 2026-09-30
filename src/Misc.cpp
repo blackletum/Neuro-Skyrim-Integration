@@ -14457,7 +14457,7 @@ namespace MiscThings {
 
         if (delta_interesting > 120.0f)
         {
-            
+
             auto objects_around = GetObjectsAround(1);
 
             std::vector<std::string> very_interesting_objects{};
@@ -14474,14 +14474,80 @@ namespace MiscThings {
             if (objects_around.second.find("Ancient Nordic Door") != std::string::npos)
                 very_interesting_objects.push_back("Ancient Nordic Door");
 
-            if (objects_around.second.find("Fishing Supplies") != std::string::npos)
-                very_interesting_objects.push_back("Fishing Supplies");
+            auto fishing_supplies_pos = objects_around.second.find("[Interactive] Fishing Supplies");
+            if (fishing_supplies_pos != std::string::npos)
+            {
+                std::string advice = "But you dont have fishing rod to fish!";
 
-            if (objects_around.second.find("Butterfly") != std::string::npos)
-                very_interesting_objects.push_back("Butterfly");
+                if (MiscThings::player_has_fishing_rod())
+                    advice = "You have a fishing rod, maybe you could catch some fish (use walk_and_interact action to try fishing)";
 
-            if (objects_around.second.find("Torchbug") != std::string::npos)
-                very_interesting_objects.push_back("Torchbug");
+
+                std::string name = "Fishing Supplies..." + advice;
+
+                auto pos_bracket_first = objects_around.second.rfind('[', fishing_supplies_pos);
+
+                if (pos_bracket_first > 0 && pos_bracket_first < objects_around.second.length())
+                {
+                    auto pos_bracket = objects_around.second.rfind('[', pos_bracket_first - 1);
+
+                    if (pos_bracket > 0 && pos_bracket < objects_around.second.length() && ((fishing_supplies_pos - pos_bracket) <= 50))
+                    {
+                        name = objects_around.second.substr(pos_bracket, fishing_supplies_pos - pos_bracket) + " " + name;
+                    }
+                }
+
+
+                
+
+                very_interesting_objects.push_back(name);
+            }
+
+
+            fishing_supplies_pos = objects_around.second.find("Butterfly");
+
+            if (fishing_supplies_pos != std::string::npos)
+            {
+                std::string name = "Butterfly... you can try to catch it (using walk_and_interact action)";
+
+                auto pos_bracket_first = objects_around.second.rfind('[', fishing_supplies_pos);
+
+                if (pos_bracket_first > 0 && pos_bracket_first < objects_around.second.length())
+                {
+                    auto pos_bracket = objects_around.second.rfind('[', pos_bracket_first - 1);
+
+                    if (pos_bracket > 0 && pos_bracket < objects_around.second.length() && ((fishing_supplies_pos - pos_bracket) <= 50))
+                    {
+                        name = objects_around.second.substr(pos_bracket, fishing_supplies_pos - pos_bracket) + " " + name;
+                    }
+                }
+
+
+                very_interesting_objects.push_back(name);
+            }
+
+            fishing_supplies_pos = objects_around.second.find("Torchbug");
+
+            if (fishing_supplies_pos != std::string::npos)
+            {
+                std::string name = "Torchbug... you can try to catch it (using walk_and_interact action)";
+
+                auto pos_bracket_first = objects_around.second.rfind('[', fishing_supplies_pos);
+
+                if (pos_bracket_first > 0 && pos_bracket_first < objects_around.second.length())
+                {
+                    auto pos_bracket = objects_around.second.rfind('[', pos_bracket_first - 1);
+
+                    if (pos_bracket > 0 && pos_bracket < objects_around.second.length() && ((fishing_supplies_pos - pos_bracket) <= 50))
+                    {
+                        name = objects_around.second.substr(pos_bracket, fishing_supplies_pos - pos_bracket) + " " + name;
+                    }
+                }
+
+
+                very_interesting_objects.push_back(name);
+            }
+                
 
 
             if (std::size(very_interesting_objects) > 0)
@@ -36107,315 +36173,7 @@ namespace MiscThings {
 
         std::vector<RE::TESObjectREFR*> objects{};
 
-        //objects_around.clear();
-
-
         int i = 0;
-
-
-        /*
-        RE::TES::GetSingleton()->ForEachReferenceInRange(player_ref, 4000.0,
-            //player->GetParentCell()->ForEachReferenceInRange(player->GetPosition(), 3000.0,
-            [&](RE::TESObjectREFR* a_ref) {
-                std::string name = a_ref->GetName();
-                std::string player_name = RE::PlayerCharacter::GetSingleton()->GetName();
-
-                //objects.push_back(a_ref); //UNLIMITED
-                //return RE::BSContainer::ForEachResult::kContinue;
-
-                if (!a_ref)
-                    return RE::BSContainer::ForEachResult::kContinue;
-
-                if (name[0] != '\0' && std::size(name) > 1 && name != player_name)
-                {
-
-                    auto base_obj = a_ref->GetBaseObject();
-                    RE::FormType base_type{};
-
-                    if (base_obj)
-                    {
-                        base_type = base_obj->GetFormType();
-                        bool debug_type = true;
-
-
-                    }
-                    else
-                    {
-                        bool no_base_object = true;
-                    }
-
-                    std::string form_editor_name = a_ref->GetFormEditorID();
-
-                    if (form_editor_name.find("Merchant") != std::string::npos && form_editor_name.find("Chest") != std::string::npos)
-                        return RE::BSContainer::ForEachResult::kContinue; //attempt to skip merchant secret chests
-
-
-                    if (a_ref->AsReference()->modelState == 0)
-                        return RE::BSContainer::ForEachResult::kContinue; //skip objects without world model
-
-
-                    if (has_digits(name))
-                        return RE::BSContainer::ForEachResult::kContinue;
-
-
-
-                    if (base_type == RE::FormType::Activator)
-                    {
-                        auto test = (RE::TESObjectACTI*)base_obj;
-                        std::string model = test->GetModel();
-                        if (model.find("Marker_LinkMarker") != std::string::npos) //exclude markers. for some reason their model state is not 0 even though the model doesnt exist
-                            return RE::BSContainer::ForEachResult::kContinue;
-                    }
-
-
-                    if (base_type == RE::FormType::Furniture)
-                    {
-                        //-		benchType	kAlchemy	REX::EnumSet<enum RE::TESFurniture::WorkBenchData::BenchType,unsigned char>
-
-                        auto furniture = (RE::TESFurniture*)base_obj;
-
-                        if (furniture->workBenchData.benchType != RE::TESFurniture::WorkBenchData::BenchType::kNone)
-                        {
-                            //this is a functional workbench.
-                            ;
-                        }
-                        else
-                        {
-                            auto test = (RE::TESFurniture*)base_obj;
-                            std::string model = test->GetModel();
-                            if (model.find("Markers//") != std::string::npos) //exclude markers. for some reason their model state is not 0 even though the model doesnt exist
-                                return RE::BSContainer::ForEachResult::kContinue;
-                        }
-                    }
-
-                    if (name.find("not be visible") != std::string::npos) //"This should not be visible [Furniture]"
-                        return RE::BSContainer::ForEachResult::kContinue;
-
-                    if (name.find("Do Not Delete") != std::string::npos)
-                        return RE::BSContainer::ForEachResult::kContinue;
-
-                    if (name.find("Invisible") != std::string::npos && name.find("Marker") != std::string::npos)
-                        return RE::BSContainer::ForEachResult::kContinue;
-
-
-
-
-                    switch (type)
-                    {
-                    case (1):
-                    {
-                        if (a_ref->AsReference()->IsActor())
-                        {
-                            objects.push_back(a_ref);
-                            //objects_around.insert({ i, a_ref });
-                            i++;
-                        }
-                        break;
-                    }
-
-                    case (2):
-                    {
-                        if (a_ref->AsReference()->IsInventoryObject())
-                        {
-                            objects.push_back(a_ref);
-                            //objects_around.insert({ i, a_ref });
-                            i++;
-                        }
-                        break;
-                    }
-
-                    case (3):
-                    {
-                        //if (a_ref->AsReference()->HasContainer() && !a_ref->AsReference()->IsActor() && a_ref->AsReference()->modelState != 0)
-                        if (base_type == RE::FormType::Container)
-                        {
-                            //TODO: filter merchant chests
-                            
-                            //const std::string_view a_editorID = "MerchantSolitudeBlacksmith";
-                            //std::string form_editor_name = a_ref->GetFormEditorID();
-                            //std::string form_editor_name2 = base_obj->GetFormEditorID();
-                            //auto test_form = RE::TESObjectREFR::LookupByID(0xa6c07);
-                            //auto test_form2 = RE::TESObjectREFR::LookupByID(0xa6c0b);
-                            //std::string form_editor_name3 = test_form->GetFormEditorID();
-                            //std::string form_editor_name4 = test_form2->GetFormEditorID();
-                            //auto test123 = base_obj->GetFormID();
-                            //auto test = RE::TESForm::LookupByEditorID(a_editorID);
-                            
-
-                            objects.push_back(a_ref);
-                            //objects_around.insert({ i, a_ref });
-                            i++;
-                        }
-                        break;
-                    }
-
-                    case (4):
-                    {
-                        //fill with somethins useful
-                        break;
-                    }
-
-                    case (5):
-                    {
-
-                        if (base_type == RE::FormType::Door)
-                        {
-                            objects.push_back(a_ref);
-                            //objects_around.insert({ i, a_ref });
-                            i++;
-                        }
-
-                        break;
-                    }
-
-                    case (6):
-                    {
-                        if (base_type == RE::FormType::Activator)
-                        {
-                            objects.push_back(a_ref);
-                            i++;
-                        }
-
-                        if (base_type == RE::FormType::Furniture)
-                        {
-                            auto furniture = (RE::TESFurniture*)base_obj;
-                            auto workbenchtype = furniture->workBenchData.benchType;
-                            if (workbenchtype == RE::TESFurniture::WorkBenchData::BenchType::kNone)
-                            {
-                                if (furniture->HasKeywordString("ActivatorLever") || furniture->HasKeywordString("isPullChain"))
-                                {
-                                    objects.push_back(a_ref);
-                                    i++;
-                                }
-                            }
-                        }
-
-
-
-                        break;
-                    }
-
-
-                    case (7):
-                    {
-                        if (base_obj)
-                        {
-                            bool is_harvestable = false;
-
-                            if (base_type == RE::FormType::Tree)
-                            {
-                                auto tree_form = (RE::TESObjectTREE*)base_obj;
-
-                                auto test_flags = a_ref->AsReference()->GetFormFlags();
-
-                                bool already_harvested = false;
-
-                                if (test_flags & RE::TESObjectREFR::RecordFlags::kHarvested) //THIS FLAG IS POTENTIALLY INCORRECT.
-                                    already_harvested = true;
-
-                                if (test_flags & 2048) //this is potentially only one we need here
-                                    already_harvested = true;
-
-
-
-
-                                if (tree_form->produceItem && !already_harvested)
-                                    is_harvestable = true;
-                            }
-
-                            if (base_type == RE::FormType::Flora)
-                            {
-                                auto tree_form = (RE::TESFlora*)base_obj;
-
-                                if (tree_form->produceItem)
-                                    is_harvestable = true;
-                            }
-
-
-                            if (is_harvestable)
-                            {
-                                objects.push_back(a_ref);
-                                //objects_around.insert({ i, a_ref });
-                                i++;
-                            }
-                        }
-
-                        break;
-                    }
-
-
-                    case (8):
-                    {
-                        if (base_type == RE::FormType::Furniture)
-                        {
-                            bool this_isnt_a_furniture = false;
-                            auto furniture = (RE::TESFurniture*)base_obj;
-                            auto workbenchtype = furniture->workBenchData.benchType;
-                            if (workbenchtype == RE::TESFurniture::WorkBenchData::BenchType::kNone)
-                            {
-                                if (furniture->HasKeywordString("ActivatorLever") || furniture->HasKeywordString("isPullChain"))
-                                    this_isnt_a_furniture = true;
-                            }
-
-                            if (!this_isnt_a_furniture)
-                            {
-                                objects.push_back(a_ref);
-                                i++;
-                            }
-
-                        }
-
-                        break;
-                    }
-
-
-
-
-                    default:
-                    {
-                        objects.push_back(a_ref);
-                        //objects_around.insert({ i, a_ref });
-                        i++;
-
-                        break;
-                    }
-                    }
-
-                    //FormType::Door
-                    //a_ref->extraList.
-
-                    
-                    //if (a_ref->AsReference()->IsInventoryObject() || a_ref->AsReference()->IsActor() || a_ref->AsReference()->HasContainer() || a_ref->AsReference()) //TODO: this probably doesnt include levers and other stuff like that. need to deal with this
-                    //{
-                    //    objects.push_back(a_ref);
-                    //    objects_around.insert({ i, a_ref });
-                    //    i++;
-                    //}
-                    
-                }
-                return RE::BSContainer::ForEachResult::kContinue;
-            });
-
-        std::sort(objects.begin(), objects.end(), [&](RE::TESObjectREFR* left, RE::TESObjectREFR* right) {
-            //return left->GetDistance(player) > right->GetDistance(player); //switch > to < for inversed order. this is last->closest
-            std::string name_left = left->GetDisplayFullName();
-            std::string name_right = right->GetDisplayFullName();
-            return name_left < name_right; //alphabetical order. top = A
-
-            });
-
-        
-
-
-        //i = 0;
-        for (auto object : objects)
-        {
-            if (!is_object_in_the_list(object))
-                objects_around.insert({ std::size(objects_around), object });
-            //i++;
-        }
-
-        */
 
         objects_around_valid = true;
         
@@ -36432,44 +36190,13 @@ namespace MiscThings {
                 local_copy.push_back(object);
         }
 
-        /*
-        RE::TES::GetSingleton()->ForEachReferenceInRange(player_ref, 50000.0,
-            [&](RE::TESObjectREFR* a_ref) {
-
-                if (a_ref)
-                {
-                    for (std::pair<int, object_data> object : objects_around)
-                    {
-                        if (object.second.object == a_ref)
-                        {
-                            if (is_object_valid(a_ref))
-                                local_copy.push_back(object);
-
-                            return RE::BSContainer::ForEachResult::kContinue;
-                        }
-                    }
-                }
-                
-                return RE::BSContainer::ForEachResult::kContinue;
-            });
-        */
-
-
-
 
         std::sort(local_copy.begin(), local_copy.end(), [&](std::pair<int, object_data> left, std::pair<int, object_data> right) {
-            //if (decltype(left.second) != RE::TESObjectREFR*)
 
             if (left.second.object && right.second.object && left.second.object->data.objectReference && right.second.object->data.objectReference && left.second.object->formID && right.second.object->formID)
                 return left.second.object->GetDistance(player) < right.second.object->GetDistance(player); //switch > to < for inversed order. this is last->closest
             else
                 return false;
-
-            //left.second->data.objectReference->IsDestroyed();
-
-            //std::string name_left = left.second->GetDisplayFullName();
-            //std::string name_right = right.second->GetDisplayFullName();
-            //return name_left < name_right; //alphabetical order. top = A
 
             });
 
