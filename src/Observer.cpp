@@ -8666,21 +8666,6 @@ namespace Observer {
 								deaths_after_load = 0;
 							}
 
-
-							if (load_delta < 300.0f)
-								deaths_after_load_big_threshold++;
-							else
-								deaths_after_load_big_threshold = 0;
-
-							if (deaths_after_load_big_threshold >= 5)
-							{
-								if (WalkerProcessor::is_fighting())
-								{
-									auto test = RE::TESForm::LookupByID(0x80665ed);
-									if (test)
-										detect_threats_special = true;
-								}			
-							}
 						}
 
 						deployed_special_weapon_timestamp = 0;
@@ -8729,6 +8714,17 @@ namespace Observer {
 								if (pick_advice < std::size(advices) && pick_advice >= 0)
 								{
 									send_random_context(advices.at(pick_advice), false); //non silent advice
+								}
+
+
+								if (same_place_death_count > 5)
+								{
+									if (WalkerProcessor::is_fighting())
+									{
+										auto test = RE::TESForm::LookupByID(0x80665ed);
+										if (test)
+											detect_threats_special = true;
+									}
 								}
 							}
 						}
