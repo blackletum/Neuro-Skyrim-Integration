@@ -29291,6 +29291,14 @@ namespace MiscThings {
                             }
 
 
+                            if (deployed_special_weapon_recently() && object->IsWeapon())
+                            {
+                                result.first = false;
+                                result.second = "You are currently using " + get_special_weapon_name() + " and its stuck in your hands for a while... try again later";
+                                return result;
+                            }
+
+
 
 
                             if (!probe_mode && object->IsWeapon() && is_casting_ult())
@@ -29471,6 +29479,18 @@ namespace MiscThings {
                                     result.second = "You are concentrated on casting Master-level spell... Wait a little before equipping items";
                                     return result;
                                 }
+
+
+                                if (object->IsAmmo())
+                                {
+                                    if (deployed_special_weapon_recently())
+                                    {
+                                        result.first = false;
+                                        result.second = "You are currently using " + get_special_weapon_name() + " and its stuck in your hands for a while... try again later";
+                                        return result;
+                                    }
+                                }
+
 
 
                                 auto entry = inventory.find(object);
