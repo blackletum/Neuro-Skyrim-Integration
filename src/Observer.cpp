@@ -8750,7 +8750,7 @@ namespace Observer {
 					{
 						auto now = std::chrono::steady_clock::now().time_since_epoch().count();
 						float delta_cast = (double)(now - deployed_special_weapon_timestamp) / 1000000000.0;
-						if (deployed_special_weapon_timestamp && delta_cast > 300.0f && !WalkerProcessor::is_fighting())
+						if (deployed_special_weapon_timestamp && delta_cast > 180.0f && !WalkerProcessor::is_fighting())
 						{
 							detect_threats_special = false;
 							deployed_special_weapon_timestamp = 0;
