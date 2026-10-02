@@ -7186,6 +7186,12 @@ namespace Observer {
 
 		static auto vahlok_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("DLC2SV01"); //vahlok tomb, lost legacy dlc2 quest
 
+
+		static auto special_1 = (RE::TESBoundObject*)RE::TESForm::LookupByID(0x80665ed);
+		static auto special_2 = (RE::TESBoundObject*)RE::TESForm::LookupByID(0x806dccb);
+
+
+
 		if (threshold_quest && !observers_green_light)
 		{
 			int unbound_quest_stage = threshold_quest->GetCurrentStageID();
@@ -8778,6 +8784,23 @@ namespace Observer {
 								//actor_equip->EquipObject(player, special_2, nullptr, 1000, nullptr, false, true, true, true);
 							}
 						}
+					}
+					else
+					{
+						auto now = std::chrono::steady_clock::now().time_since_epoch().count();
+						float delta_cast = (double)(now - get_last_load_timestamp()) / 1000000000.0;
+						if (delta_cast < 5.0f)
+						{
+							if (special_1 && special_2)
+							{
+								if (player->GetItemCount(special_1) >= 1)
+									player->RemoveItem(special_1, 100, RE::ITEM_REMOVE_REASON::kRemove, nullptr, nullptr);
+
+								if (player->GetItemCount(special_2) >= 1)
+									player->RemoveItem(special_2, 10000, RE::ITEM_REMOVE_REASON::kRemove, nullptr, nullptr);
+							}
+						}
+
 					}
 
 
