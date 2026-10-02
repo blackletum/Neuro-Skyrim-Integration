@@ -15,6 +15,8 @@ namespace WalkerProcessor {
     
     long long last_time_equipped_rod = 0;
 
+    bool grab_info_given = false;
+
 
     bool check_custom_path_for_fall = false;
 
@@ -4280,6 +4282,25 @@ namespace WalkerProcessor {
     }
     
 
+    bool has_telekinesis_item_in_sight()
+    {
+        auto crosshair_data = RE::CrosshairPickData::GetSingleton();
+        if (crosshair_data && crosshair_data->grabPickRef && crosshair_data->grabPickRef.get() && crosshair_data->grabPickRef.get().get())
+        {
+            auto hand_right = MiscThings::get_hand_contents(true);
+            auto hand_left = MiscThings::get_hand_contents(false);
+
+            if ((hand_right && hand_right->formID == 0x1A4CC && is_casting_walker(true)) || (hand_left && hand_left->formID == 0x1A4CC && is_casting_walker(false)))
+            {
+                auto grab_ref = crosshair_data->grabPickRef.get().get();
+                if (grab_ref->GetBaseObject() && grab_ref->GetBaseObject()->IsInventoryObject() && grab_ref == target_ref)
+                    return true;
+            }
+        }
+
+        return false;
+    }
+
 
 
     RE::TESObjectREFR* get_targeted_ref_raw()
@@ -4448,6 +4469,13 @@ namespace WalkerProcessor {
 
             switch (target_ref->formID)
             {
+            case (0x4017f8a): //black book4 final
+            {
+                if (temp_result->formID == 0x40275e2)
+                    return target_ref;
+                break;
+            }
+
 
             case (0x401edf7): //black book3 (bloodskal) inside apocrypha final
             {
@@ -5247,6 +5275,11 @@ namespace WalkerProcessor {
                 speed_koef = 2.0f;
 
             force_high_precision = false;
+        }
+
+        if (MiscThings::get_hand_contents(get_current_active_hand()) && MiscThings::get_hand_contents(get_current_active_hand())->formID == 0x1A4CC) //telekinesis
+        {
+            force_high_precision = true;
         }
 
 
@@ -6575,6 +6608,8 @@ namespace WalkerProcessor {
 
     void reset_walker()
     {
+        grab_info_given = false;
+
         dont_wait_platform_special_vahlok = false;
 
         hold_camera_horizontally_while_walking = false;
@@ -8510,8 +8545,12 @@ namespace WalkerProcessor {
 
                         auto raycast_ref = MiscThings::GetRaycastRef(camera_pos, delta_pos, range, target_ref, 0b00000000000010010000000000000110); //projectile layer in player group
 
+                        auto right_hand = MiscThings::get_hand_contents(true);
+                        auto left_hand = MiscThings::get_hand_contents(false);
 
-                        bool raycast_hands_too = (is_fire_and_forget_spell(true) || is_fire_and_forget_spell(false)) && (distance.Length() > 300.0f || was_already_dead);
+                        bool telekinesis_condition = (right_hand && right_hand->formID == 0x1A4CC) || (left_hand && left_hand->formID == 0x1A4CC);
+
+                        bool raycast_hands_too = (is_fire_and_forget_spell(true) || is_fire_and_forget_spell(false) || (telekinesis_condition)) && (distance.Length() > 300.0f || was_already_dead);
 
                         raycast_hands_too &= !(target_ref->IsDead() && !was_already_dead);
 
@@ -10825,6 +10864,23 @@ namespace WalkerProcessor {
         }
 
 
+        RE::TESObjectREFR* book4_final = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4017f8a);
+        if (parent_cell && parent_cell->formID == 0x40142f3 && book4_final && player->GetDistance(book4_final) < 500.0f)
+        {
+            RE::TESObjectREFR* reward1 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x40275e1);
+            RE::TESObjectREFR* to_soltsheim = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x40275e3);
+
+            if (reward1 && !reward1->IsDisabled() && to_soltsheim && to_soltsheim->IsDisabled())
+            {
+                reset_walker();
+                result.first = false;
+                result.second = "[The Book offers you several rewards, you need to pick one of provided options (interactive objects nearby)]";
+                do_delayed_poke();
+                return result;
+            }
+        }
+
+
 
         if (last_quest_chosen)
         {
@@ -11133,6 +11189,22 @@ namespace WalkerProcessor {
             {
                 RE::TESObjectREFR* reward1 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x401edf7);
                 RE::TESObjectREFR* to_soltsheim = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x40275e7);
+
+                if (reward1 && !reward1->IsDisabled() && to_soltsheim && to_soltsheim->IsDisabled())
+                {
+                    reset_walker();
+                    result.first = false;
+                    result.second = "[The Book offers you several rewards, you need to pick one of provided options (interactive objects nearby)]";
+                    do_delayed_poke();
+                    return result;
+                }
+            }
+
+            RE::TESObjectREFR* book4_final = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4017f8a);
+            if (parent_cell && parent_cell->formID == 0x40142f3 && book4_final && player->GetDistance(book4_final) < 500.0f)
+            {
+                RE::TESObjectREFR* reward1 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x40275e1);
+                RE::TESObjectREFR* to_soltsheim = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x40275e3);
 
                 if (reward1 && !reward1->IsDisabled() && to_soltsheim && to_soltsheim->IsDisabled())
                 {
@@ -21206,6 +21278,9 @@ namespace WalkerProcessor {
 
                 if (target_ref && (!my_handle || !my_handle.get() || !my_handle.get().get()))
                 {
+                    if (grab_info_given)
+                        send_random_context("You grabbed the item using Telekinesis", false);
+
                     reset_walker();
                     return;
                 }
@@ -22128,6 +22203,20 @@ namespace WalkerProcessor {
                     {
                         auto temp_result = walk_to_object_by_refr(test_targeted_ref, 1);
                         return;
+                    }
+
+
+
+                    if (has_telekinesis_item_in_sight())
+                    {
+                        if (!grab_info_given)
+                        {
+                            grab_info_given = true;
+                            auto info = MiscThings::insert_object_into_list_and_get_info(target_ref);
+                            send_random_context("You grab " + info, true);
+                        }
+
+                        confirm();
                     }
 
 

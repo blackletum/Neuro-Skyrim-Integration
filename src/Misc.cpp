@@ -4001,6 +4001,10 @@ namespace MiscThings {
         {
             switch (target->formID)
             {
+            case (0x4017f8a): //book4 apocrypha end
+                return 300.0f;
+
+
             case (0x401add1):
             case (0x401add5):
             case (0x401add6):
@@ -9605,6 +9609,41 @@ namespace MiscThings {
             auto target_pos = target->GetPosition();
 
 
+            if (parent_cell && parent_cell->formID == 0x401a7a8) //dlc2 black book riekling cave
+            {
+                if (target_pos.x > 1485.0f && target_pos.y < -330.0f && !(player_pos.x > 1485.0f && player_pos.y < -330.0f))
+                {
+                    auto gate = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4024e9b);
+                    if (gate && MiscThings::two_state_activator_state(gate) == 1)
+                    {
+                        auto redirect_chest = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4024ee9);
+                        if (redirect_chest) return redirect_chest;
+                    }
+                }
+            }
+
+
+            if (target->formID == 0x401aa10) //dlc2 cave with blackbook, redirect to another door
+            {
+                auto secret_door = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x401aa11);
+                if (secret_door && MiscThings::two_state_activator_state(secret_door) == 1)
+                {
+                    RE::NiPoint2 a = { -1174.26794, 2551.71362 }; //-5733.7241
+                    RE::NiPoint2 b = { -447.895569, 1823.758170 }; //-5633.2554
+                    RE::NiPoint2 c = { 903.323853, 3171.84814 }; //-5640.6494
+                    RE::NiPoint2 d = { 176.951482, 3899.803590 }; //-5724.9077
+
+                    RE::NiPoint2 p = { player_pos.x, player_pos.y };
+                    if (!MiscThings::is_inside_of_rectangle(p, a, b, c, d))
+                    {
+                        auto good_door = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x401a929);
+                        if (good_door) return good_door;
+                    }
+                }
+            }
+
+
+
             if (parent_cell && parent_cell->formID == 0x401be37) //dlc2 morag tong fort served cold quest
             {
                 if (player_pos.y > -4644.5f && target_pos.y <= -4644.5f)
@@ -13453,9 +13492,9 @@ namespace MiscThings {
         }
 
 
-        if (quest && (quest->formID == 0x4027a14 || quest->formID == 0x401b65f)) //find black book quests. new books will not work 99% so just hide it for now
+        //if (quest && (quest->formID == 0x4027a14 || quest->formID == 0x401b65f)) //find black book quests. new books will not work 99% so just hide it for now
         {
-            return true;
+        //    return true;
         }
 
 
@@ -16427,6 +16466,39 @@ namespace MiscThings {
             switch (object->formID)
             {
 
+            case (0x4037253):
+            {
+                auto handle = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x403cf40); //scrye
+
+                if (handle)
+                {
+                    if (!MiscThings::is_object_in_the_list(handle))
+                    {
+                        auto temp_result = MiscThings::insert_object_into_list_and_get_info(handle);
+                        if (temp_result != "")
+                            send_random_context("You see: " + temp_result, false);
+                    }
+                }
+                break;
+            }
+
+            case (0x4024e9b):
+            {
+                auto handle = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4024e9d); //handle
+
+                if (handle)
+                {
+                    if (!MiscThings::is_object_in_the_list(handle))
+                    {
+                        auto temp_result = MiscThings::insert_object_into_list_and_get_info(handle);
+                        if (temp_result != "")
+                            send_random_context("You see: " + temp_result, false);
+                    }
+                }
+                break;
+            }
+
+
             case (0xa5bfb): //geirmund hall gate with pillars
             {
                 auto pillar1 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xa5ce5);
@@ -17572,7 +17644,7 @@ namespace MiscThings {
         //
         object_p = General::Script::GetObject(activator, "DLC2dunBookLevel4BendControl");
 
-        if (object_p)
+        if (object_p || activator->formID == 0x4030e6d) //book4 end pass, has no script, controlled by some bullshit small zones
         {
 
             auto activator_3d = activator->Get3D();
@@ -18564,7 +18636,22 @@ namespace MiscThings {
             return "";
 
 
-        if (object->GetBaseObject()->formID == 0x1ba5a)
+
+        auto base_obj = object->GetBaseObject();
+
+        if (base_obj->formID == 0x4029ee8) //apocrypha scrye
+        {
+            auto activation = MiscThings::two_state_activator_state(object);
+
+            if (activation == 0)
+                return "[Closed]";
+
+            //if (activation == 1)
+            //    return "[Open]";
+        }
+
+
+        if (base_obj->formID == 0x1ba5a)
         {
             //dwebutton
             if (MiscThings::two_state_activator_state(object) == 1)

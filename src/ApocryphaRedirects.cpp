@@ -1077,6 +1077,24 @@ namespace Apocrypha {
 
 
 
+    bool inside_book4_zone_last(RE::TESObjectREFR* object)
+    {
+        if (object)
+        {
+            auto parent_cell = object->GetParentCell();
+            auto object_pos = object->GetPosition();
+
+            if (parent_cell && parent_cell->formID == 0x40142f3)
+            {
+                if (object_pos.y < -6601.0f)
+                    return true;
+            }
+        }
+
+        return false;
+    }
+
+
 
     bool inside_book1_zone1(RE::TESObjectREFR* object)
     {
@@ -3393,6 +3411,302 @@ namespace Apocrypha {
 
 
 
+    apocrypha_result book4(RE::TESObjectREFR* target, int current_action, int current_apocrypha_id)
+    {
+        apocrypha_result result{};
+
+        auto player = RE::PlayerCharacter::GetSingleton();
+        auto player_pos = player->GetPosition();
+
+        auto dummy = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x70c1a25);
+
+        if (!target || !dummy)
+            return result;
+
+        auto target_pos = target->GetPosition();
+
+
+        auto exit_book = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4017f8a);
+        auto turning_pass = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4030e6d);
+
+        RE::NiPoint3 turning_pass_launch_pos = { -7092.15088, -12065.7969, 1464.34985 };
+
+        auto gate1 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4034aee);
+        auto gate11 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4034aff);
+        auto scrye1 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4034b00);
+
+        auto gate2 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4034ba1);
+        auto gate22 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4034aef);
+        auto scrye2 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4037256);
+
+        if (exit_book && turning_pass && gate1 && gate2 && gate11 && gate22 && scrye1 && scrye2)
+        {
+
+            int pass_state = MiscThings::two_state_activator_state(turning_pass);
+
+
+            if (target == exit_book)
+            {
+                if (pass_state == 2)
+                {
+                    result.action = 3;
+                    dummy->MoveTo(player);
+                    MiscThings::SetPosition_moveto(dummy, get_swinging_pass_tip_pos(turning_pass));
+                    result.target = dummy;
+                    return result;
+                }
+                else
+                {
+                    if (current_action == 3)
+                    {
+                        result.action = -888;
+                        return result;
+                    }
+
+                }
+
+                if (current_action == 2 && player->GetDistance(dummy) < 150.0f)
+                {
+                    result.action = -888;
+                    return result;
+                }
+
+                if (current_action == 2 && player->GetDistance(exit_book) <= 250.0f)
+                {
+                    result.action = -888;
+                    return result;
+                }
+
+            }
+
+            if (target == dummy)
+            {
+                //cancel walk and lock onto it
+                if (pass_state == 2)
+                {
+                    result.action = 3;
+                    dummy->MoveTo(player);
+                    MiscThings::SetPosition_moveto(dummy, get_swinging_pass_tip_pos(turning_pass));
+                    result.target = dummy;
+                    return result;
+                }
+                else
+                {
+                    if (pass_state == 0 && current_action != 2)
+                    {
+                        result.action = -888;
+                        return result;
+                    }
+
+                    if (current_action == 2 && player->GetDistance(dummy) < 150.0f)
+                    {
+                        result.action = -888;
+                        return result;
+                    }
+                }
+
+            }
+
+
+            //initiate redirect. only if target is exit book
+            if (target == exit_book)
+            {
+                if (current_action == 0)
+                {
+                    if (MiscThings::two_state_activator_state(gate1) == 1 && MiscThings::two_state_activator_state(gate11) == 1)
+                    {
+                        if (pass_state != 0) //original pos or turning
+                        {
+                            //go to beginning of pass to make it turn. look at end if its turning
+                            if (pass_state == 2)
+                            {
+                                result.action = 3;
+                                dummy->MoveTo(player);
+                                MiscThings::SetPosition_moveto(dummy, get_swinging_pass_tip_pos(turning_pass));
+                                result.target = dummy;
+                                return result;
+                            }
+                            else
+                            {
+                                result.action = 1;
+                                result.dont_save_interaction = false;
+                                result.dont_save_target = false;
+                                auto dummy_target_pos = turning_pass_launch_pos;
+                                dummy->MoveTo(player);
+                                MiscThings::SetPosition_moveto(dummy, dummy_target_pos);
+                                result.target = dummy;
+                                result.interaction = -1;
+                                return result;
+                            }
+                        }
+                        else
+                        {
+                            //pass is turned. go to gate. lurker is supposed to spawn and after his death gate opens
+                            if (player_pos.x < -6200.0f)
+                            {
+                                result.action = 2; //initiate
+                                result.dont_save_interaction = false;
+                                result.dont_save_target = false;
+                                result.dont_save_after_custom_walk = false;
+                                result.allow_interrupt_custom_path = false;
+                                result.append_to_normal_path = true;
+                                result.custom_path = ApocryphaCustomPaths::book4_pass1;
+
+                                dummy->MoveTo(player);
+                                MiscThings::SetPosition_moveto(dummy, { -5758.22559, -13153.3643, 1344.34595 });
+
+                                result.target = dummy;
+                                result.append_to_normal_path = true;
+                                result.interaction = 1;
+                                return result;
+                            }
+                            else
+                            {
+                                result.action = 1;
+                                result.dont_save_interaction = false;
+                                result.dont_save_target = false;
+                                result.target = gate1;
+                                result.interaction = -1;
+                                return result;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        if (MiscThings::two_state_activator_state(gate11) == 1)
+                        {
+                            result.action = 1;
+                            result.dont_save_interaction = false;
+                            result.dont_save_target = false;
+                            result.target = scrye1;
+                            result.interaction = -1;
+                            return result;
+                        }
+                        else
+                        {
+                            if (MiscThings::two_state_activator_state(gate2) == 1 && MiscThings::two_state_activator_state(gate22) == 1)
+                            {
+                                if (pass_state != 0) //original pos or turning
+                                {
+                                    //go to beginning of pass to make it turn
+                                    result.action = 1;
+                                    result.dont_save_interaction = false;
+                                    result.dont_save_target = false;
+                                    auto dummy_target_pos = turning_pass_launch_pos;
+                                    dummy->MoveTo(player);
+                                    MiscThings::SetPosition_moveto(dummy, dummy_target_pos);
+                                    result.target = dummy;
+
+                                    result.interaction = -1;
+                                    return result;
+                                }
+                                else
+                                {
+                                    //pass is turned. go to gate. lurker is supposed to spawn and after his death gate opens
+                                    if (player_pos.x > -8000.0f)
+                                    {
+                                        result.action = 2; //initiate
+                                        result.dont_save_interaction = false;
+                                        result.dont_save_target = false;
+                                        result.dont_save_after_custom_walk = false;
+                                        result.allow_interrupt_custom_path = false;
+                                        result.append_to_normal_path = true;
+                                        result.custom_path = ApocryphaCustomPaths::book4_pass2;
+
+                                        dummy->MoveTo(player);
+                                        MiscThings::SetPosition_moveto(dummy, { -8546.74414, -13129.2930, 1344.34985 });
+
+                                        result.target = dummy;
+                                        result.append_to_normal_path = true;
+                                        result.interaction = 1;
+                                        return result;
+                                    }
+                                    else
+                                    {
+                                        result.action = 1;
+                                        result.dont_save_interaction = false;
+                                        result.dont_save_target = false;
+                                        result.target = gate2;
+                                        result.interaction = -1;
+                                        return result;
+                                    }
+
+                                }
+                            }
+                            else
+                            {
+                                if (MiscThings::two_state_activator_state(gate22) == 1)
+                                {
+                                    result.action = 1;
+                                    result.dont_save_interaction = false;
+                                    result.dont_save_target = false;
+                                    result.target = scrye2;
+                                    result.interaction = -1;
+                                    return result;
+                                }
+                                else
+                                {
+                                    if (player->GetDistance(exit_book) >= 1000.0f)
+                                    {
+                                        result.action = 2; //initiate
+                                        result.dont_save_interaction = false;
+                                        result.dont_save_target = false;
+
+                                        ApocryphaCustomPaths::template_path.clear();
+                                        ApocryphaCustomPaths::template_path.push_back({ -7092.15088, -12065.7969, 1344.34985 });
+                                        ApocryphaCustomPaths::template_path.push_back(exit_book->GetPosition());
+
+                                        result.dont_save_after_custom_walk = false;
+                                        result.allow_interrupt_custom_path = false;
+                                        result.append_to_normal_path = true;
+                                        result.custom_path = ApocryphaCustomPaths::template_path;
+                                        result.target = exit_book;
+                                        result.append_to_normal_path = true;
+                                        result.interaction = 1;
+                                        return result;
+                                    }
+                                    else
+                                    {
+                                        if (player->GetDistance(exit_book) < 1000.0f && player->GetDistance(exit_book) > 300.0f)
+                                        {
+                                            result.action = 2; //initiate
+                                            result.dont_save_interaction = false;
+                                            result.dont_save_target = false;
+
+                                            ApocryphaCustomPaths::template_path.clear();
+                                            ApocryphaCustomPaths::template_path.push_back(player->GetPosition());
+                                            ApocryphaCustomPaths::template_path.push_back(exit_book->GetPosition());
+
+                                            result.dont_save_after_custom_walk = false;
+                                            result.allow_interrupt_custom_path = false;
+                                            result.append_to_normal_path = true;
+                                            result.custom_path = ApocryphaCustomPaths::template_path;
+                                            result.target = exit_book;
+                                            result.append_to_normal_path = true;
+                                            result.interaction = 1;
+                                            return result;
+                                        }
+
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+
+
+                }
+            }
+        }
+
+
+        return result;
+
+    }
+
+
+
+
     apocrypha_result book3(RE::TESObjectREFR* target, int current_action, int current_apocrypha_id)
     {
         apocrypha_result result{};
@@ -3581,6 +3895,13 @@ namespace Apocrypha {
 
         //detect where we are and give redirections accordingly
         auto player_pos = player->GetPosition();
+
+
+        //book4
+        if (inside_book4_zone_last(player))
+        {
+            return book4(target, current_action, current_apocrypha_id);
+        }
 
 
         //book3

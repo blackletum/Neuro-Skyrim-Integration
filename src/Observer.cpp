@@ -5274,10 +5274,99 @@ namespace Observer {
 																std::string name = MiscThings::insert_object_into_list_custom_name("Apocrypha Gate", a_ref);
 
 																if (activation == 0)
+																{
 																	detect_events_result.push_back("[ " + name + " opened]");
+
+
+																	switch (a_ref->formID) 
+																	{
+
+																	case (0x4034aff)://apocrypha book4 gates in the end. navcuts
+																	{
+																		auto navcut = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x719b56a);
+																		if (navcut)
+																		{
+																			auto current_pos = navcut->GetPosition();
+																			current_pos.z += 1000.0f;
+																			MiscThings::SetPosition_moveto(navcut, current_pos);
+																		}
+
+																		break;
+																	}
+
+																	case (0x4034aef)://apocrypha book4 gates in the end. navcuts
+																	{
+																		auto navcut = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x719b569);
+																		if (navcut)
+																		{
+																			auto current_pos = navcut->GetPosition();
+																			current_pos.z += 1000.0f;
+																			MiscThings::SetPosition_moveto(navcut, current_pos);
+																		}
+
+																		break;
+																	}
+
+
+																	case (0x403cf3e)://gates in apocrypha book4, reveal scrye so its not missed
+																	{
+																		auto scrye = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x403cf41); //scrye
+
+																		if (scrye)
+																		{
+																			if (!MiscThings::is_object_in_the_list(scrye))
+																			{
+																				auto temp_result = MiscThings::insert_object_into_list_and_get_info(scrye);
+																				if (temp_result != "")
+																					send_random_context("You see: " + temp_result, false);
+																			}
+																		}
+																		break;
+																	}
+
+																	case (0x403cf3f)://gates in apocrypha book4, reveal scrye so its not missed
+																	{
+																		auto scrye = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x403cf42); //scrye
+
+																		if (scrye)
+																		{
+																			if (!MiscThings::is_object_in_the_list(scrye))
+																			{
+																				auto temp_result = MiscThings::insert_object_into_list_and_get_info(scrye);
+																				if (temp_result != "")
+																					send_random_context("You see: " + temp_result, false);
+																			}
+																		}
+																		break;
+																	}
+
+																	case (0x403c34a)://gates in apocrypha book4, reveal scrye so its not missed
+																	{
+																		auto scrye = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x403cf43); //scrye
+
+																		if (scrye)
+																		{
+																			if (!MiscThings::is_object_in_the_list(scrye))
+																			{
+																				auto temp_result = MiscThings::insert_object_into_list_and_get_info(scrye);
+																				if (temp_result != "")
+																					send_random_context("You see: " + temp_result, false);
+																			}
+																		}
+																		break;
+																	}
+
+
+																	}
+
+																}
+																	
 
 																if (activation == 1)
 																	detect_events_result.push_back("[ " + name + " closed]");
+
+
+																
 
 															}
 
