@@ -289,11 +289,6 @@ task("deploy")
         cprint("Deploying compiled scripts to: %s", scripts_dir)
         os.cp(path.join(compiled_scripts, "*"), scripts_dir)
 
-		local bonus_dir = path.join(os.projectdir(), "bonus")
-		
-		cprint("Deploying bonus: %s", data_dir)
-		os.cp(path.join(bonus_dir, "*"), data_dir)
-		
         local esp = path.join(os.projectdir(), "mysc.esp")
         if not os.isfile(esp) then
             raise("esp file not found! Checked: %s", esp)
@@ -304,7 +299,6 @@ task("deploy")
         local plugins_dir = path.join(path.translate(os.getenv("localappdata")), "Skyrim Special Edition")
         local plugins_txt = path.join(plugins_dir, "Plugins.txt")
         local plugin_line = "*mysc.esp"
-		local bonus_line = "*Ghosu - Project Flintlock.esp"
         cprint("Updating Plugins at: %s", plugins_txt)
         if not os.isfile(plugins_txt) then
             if not os.isdir(plugins_dir) then
@@ -313,7 +307,6 @@ task("deploy")
             local contents = "# This file is used by Skyrim to keep track of your downloaded content."
             contents = contents .. "\n" .. "# Please do not modify this file."
             contents = contents .. "\n" .. plugin_line
-			contents = contents .. "\n" .. bonus_line
             io.writefile(plugins_txt, contents)
         else
             local content = io.readfile(plugins_txt)
@@ -324,15 +317,6 @@ task("deploy")
             else
                 cprint("Plugins.txt already up-to-date.")
             end
-			
-	        content = io.readfile(plugins_txt)
-            if not content:find(bonus_line, 1, true) then
-                local file = io.open(plugins_txt, "a")
-                file:write("\n" .. bonus_line)
-                file:close()
-            else
-                cprint("Plugins.txt already up-to-date.")
-            end		
         end
 
         cprint("Success!")

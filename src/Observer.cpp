@@ -111,6 +111,10 @@ namespace Observer {
 
 	float no_threats_timer = 0.0f;
 
+	bool detect_threats_special = false;
+	long long deployed_special_weapon_timestamp = 0;
+
+
 	float detect_threats_time = -0.125f;
 	bool threats_response_request_sent = false;
 	int threats_response_choice_valid = false;
@@ -276,6 +280,12 @@ namespace Observer {
 			return high_damage_enemy.get().get();
 
 		return nullptr;
+	}
+
+
+	long long get_deployed_special_weapon_timestamp()
+	{
+		return deployed_special_weapon_timestamp;
 	}
 
 
@@ -1756,6 +1766,9 @@ namespace Observer {
 		if (lesser_ward && MiscThings::player_has_spell(lesser_ward))
 			has_ward = true;
 
+		if (detect_threats_special)
+			threat_options.push_back({ 10, "Fight back. Deploy LEGENDARY WEAPON" });
+
 		if (any_attacker_sees_player)
 		{
 			threat_options.push_back({ 1, "Fight back" });
@@ -1832,7 +1845,7 @@ namespace Observer {
 
 
 
-			if (id == 1 || id == 4 || id == 5 || (id == 2 && !dragonbreath_mode) || (id == 3 && dragonbreath_mode) || (id == 6 && player_can_be_arrested))
+			if (id == 1 || id == 4 || id == 5 || (id == 2 && !dragonbreath_mode) || (id == 3 && dragonbreath_mode) || (id == 6 && player_can_be_arrested) || (id == 10 && detect_threats_special))
 			{
 				threats_response_choice = id;
 				threats_response_choice_valid = true;
@@ -2047,8 +2060,37 @@ namespace Observer {
 									{
 										register_allowed_actions();
 
-										if (threats_response_choice == 1 || threats_response_choice == 2 || threats_response_choice == 3)
+										if (threats_response_choice == 1 || threats_response_choice == 2 || threats_response_choice == 3 || threats_response_choice == 10)
 										{
+
+											if (threats_response_choice == 10)
+											{
+												auto special_1 = (RE::TESBoundObject*)RE::TESForm::LookupByID(0x80665ed);
+												auto special_2 = (RE::TESBoundObject*)RE::TESForm::LookupByID(0x806dccb);
+
+												auto actor_equip = RE::ActorEquipManager::GetSingleton();
+												if (special_1 && special_2 && actor_equip)
+												{
+													std::string message = "DEPLOYING ";
+													message += special_1->GetName();
+
+													send_random_context(message, false);
+
+													if (player->GetItemCount(special_1) < 1)
+														player->AddObjectToContainer(special_1, nullptr, 1, nullptr);
+
+													if (player->GetItemCount(special_2) < 100)
+														player->AddObjectToContainer(special_2, nullptr, 1000, nullptr);
+
+													actor_equip->EquipObject(player, special_1, nullptr, 1, nullptr, false, true, true, true);
+													actor_equip->EquipObject(player, special_2, nullptr, 1000, nullptr, false, true, true, true);
+
+
+													deployed_special_weapon_timestamp = std::chrono::steady_clock::now().time_since_epoch().count();
+												}
+											}
+
+
 											runaway_in_a_row = 0;
 											if (DialogueProcessor::is_in_dialogue(nullptr))
 												DialogueProcessor::quit_menu();
@@ -2063,7 +2105,7 @@ namespace Observer {
 													attack_target = first_detected_threat;
 
 
-											keep_distance_mode = threats_response_choice == 2;
+											keep_distance_mode = threats_response_choice == 2 || threats_response_choice == 10;
 											dragonbreath_block_mode = threats_response_choice == 3;
 
 
@@ -7089,7 +7131,7 @@ namespace Observer {
 
 
 	int deaths_after_load = 0;
-
+	int deaths_after_load_big_threshold = 0;
 
 
 
@@ -8624,8 +8666,24 @@ namespace Observer {
 								deaths_after_load = 0;
 							}
 
+
+							if (load_delta < 300.0f)
+								deaths_after_load_big_threshold++;
+							else
+								deaths_after_load_big_threshold = 0;
+
+							if (deaths_after_load_big_threshold >= 5)
+							{
+								if (WalkerProcessor::is_fighting())
+								{
+									auto test = RE::TESForm::LookupByID(0x80665ed);
+									if (test)
+										detect_threats_special = true;
+								}			
+							}
 						}
 
+						deployed_special_weapon_timestamp = 0;
 
 						//post-death advice
 						RE::NiPoint3 death_pos = player->GetPosition();
@@ -8690,6 +8748,45 @@ namespace Observer {
 				}
 				else
 				{
+
+
+					if (detect_threats_special)
+					{
+						auto now = std::chrono::steady_clock::now().time_since_epoch().count();
+						float delta_cast = (double)(now - deployed_special_weapon_timestamp) / 1000000000.0;
+						if (deployed_special_weapon_timestamp && delta_cast > 300.0f && !WalkerProcessor::is_fighting())
+						{
+							detect_threats_special = false;
+							deployed_special_weapon_timestamp = 0;
+
+
+							auto special_1 = (RE::TESBoundObject*)RE::TESForm::LookupByID(0x80665ed);
+							auto special_2 = (RE::TESBoundObject*)RE::TESForm::LookupByID(0x806dccb);
+
+							auto actor_equip = RE::ActorEquipManager::GetSingleton();
+							if (special_1 && special_2 && actor_equip)
+							{
+								 std::string message = special_1->GetName();
+
+								 message += " IS LOST";
+
+								send_random_context(message, false);
+
+								if (player->GetItemCount(special_1) >= 1)
+									player->RemoveItem(special_1, 100, RE::ITEM_REMOVE_REASON::kRemove, nullptr, nullptr);
+
+								if (player->GetItemCount(special_2) >= 1)
+									player->RemoveItem(special_2, 10000, RE::ITEM_REMOVE_REASON::kRemove, nullptr, nullptr);
+
+								//actor_equip->EquipObject(player, special_1, nullptr, 1, nullptr, false, true, true, true);
+								//actor_equip->EquipObject(player, special_2, nullptr, 1000, nullptr, false, true, true, true);
+							}
+						}
+					}
+
+
+
+
 
 					if (parent_cell && parent_cell->formID == 0x40142ef) //vahlok tomb. monitor for floating platforms
 					{
@@ -8869,7 +8966,6 @@ namespace Observer {
 							}
 						}
 					}
-
 
 					auto ranger_perk = (RE::BGSPerk*)RE::TESForm::LookupByID(0x58F63);
 					if (ranger_perk)

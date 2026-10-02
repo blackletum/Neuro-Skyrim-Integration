@@ -116,6 +116,16 @@ namespace MiscThings {
 
 
 
+
+    std::string get_special_weapon_name()
+    {
+        auto special_1 = (RE::TESBoundObject*)RE::TESForm::LookupByID(0x80665ed);
+        if (special_1)
+            return special_1->GetName();
+
+        return "";
+    }
+
     /*
     void SetStage(std::string quest_name, int stage)
     {
@@ -678,6 +688,22 @@ namespace MiscThings {
     }
 
 
+
+
+    bool deployed_special_weapon_recently()
+    {
+        auto hand_contents = MiscThings::get_hand_contents(true);
+
+        if (!(hand_contents && hand_contents->formID == 0x80665ed))
+            return false;
+
+        auto now = std::chrono::steady_clock::now().time_since_epoch().count();
+        float delta_cast = (double)(now - Observer::get_deployed_special_weapon_timestamp()) / 1000000000.0;
+        if (delta_cast < 60.0f)
+            return true;
+
+        return false;
+    }
 
 
     bool cast_spell_recently()
@@ -29294,6 +29320,16 @@ namespace MiscThings {
 
                             if (object->IsWeapon())
                             {
+
+                                if (deployed_special_weapon_recently())
+                                {
+                                    result.first = false;
+                                    result.second = "You are currently using " + get_special_weapon_name() + " and its stuck in your hands for a while... try again later";
+                                    return result;
+                                }
+
+
+
                                 auto slot = get_free_slot(true, false);
 
                                 bool making_dualwield = false;
@@ -33362,6 +33398,13 @@ namespace MiscThings {
                                 }
 
 
+                                if (deployed_special_weapon_recently())
+                                {
+                                    result.first = false;
+                                    result.second = "You are currently using " + get_special_weapon_name() + " and its stuck in your hands for a while... try again later";
+                                    return result;
+                                }
+
                                 if (cast_spell_recently())
                                 {
                                     result.first = false;
@@ -33409,6 +33452,13 @@ namespace MiscThings {
                             {
                                 //already equipped
                                 
+                                if (deployed_special_weapon_recently())
+                                {
+                                    result.first = false;
+                                    result.second = "You are currently using " + get_special_weapon_name() + " and its stuck in your hands for a while... try again later";
+                                    return result;
+                                }
+
 
                                 if (cast_spell_recently())
                                 {
@@ -34013,6 +34063,13 @@ namespace MiscThings {
             return result;
         }
 
+
+        if (deployed_special_weapon_recently())
+        {
+            result.first = false;
+            result.second = "You are currently using " + get_special_weapon_name() + " and its stuck in your hands for a while... try again later";
+            return result;
+        }
 
 
         if (std::size(spells) <= 0)

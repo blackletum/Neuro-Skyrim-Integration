@@ -5603,7 +5603,11 @@ namespace WalkerProcessor {
                     speed_koef = 2.0f;
 
                 if ((MiscThings::get_hand_contents(true) && MiscThings::get_hand_contents(true)->formID == 0x80665ed))
+                {
                     speed_shift = RE::NiPoint3::Zero();
+                    speed_koef = 2.0f;
+                }
+                    
 
 
                 target_center += speed_shift;

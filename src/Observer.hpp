@@ -44,6 +44,7 @@ namespace Observer {
 	void reset_quest_puzzles();
 	void set_quest_puzzle_type(int type);
 	
+	long long get_deployed_special_weapon_timestamp();
 
 	std::pair<bool, std::string> set_quest_puzzle_choice(int id);
 	std::pair<bool, std::string> set_quest_puzzle_choice_array(std::vector<int> choices);
