@@ -5257,7 +5257,7 @@ namespace WalkerProcessor {
 
         //Hooks::add_debug_line("LOCK_CAMERA_CALLED", true);
 
-        if (input_wants_to_look_down() || (start_attacking && (MiscThings::is_summon_spell(get_current_active_hand()) || MiscThings::is_cast_on_ground_spell(get_current_active_hand()))))
+        if (!shout_mode && (input_wants_to_look_down() || (start_attacking && (MiscThings::is_summon_spell(get_current_active_hand()) || MiscThings::is_cast_on_ground_spell(get_current_active_hand())))))
             return false;
 
 
