@@ -68,9 +68,7 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////DO ALL THIS
 
-
-//runecasting bugs out sometimes for some reason
-//all spells bugged out for some reason
+//switch from cast-on-ground spells after end of cast in walker's attacker (so it doesnt spam runes)
 //sell garbage command
 
 //COMBAT
@@ -1736,6 +1734,8 @@ namespace Hooks {
 
                 if (player)
                 {
+                    MiscThings::update_player_collision_groups();
+
                     auto cell = player->GetParentCell();
 
 

@@ -117,6 +117,9 @@ namespace WalkerProcessor {
     int pickup_wiggle_dir = 0;
     float pickup_wiggle_time = 0.0f;
     bool try_pickup_wiggle_body = false;
+    bool walked_again_before_second_pickup_wiggle = false;
+
+
 
     long long last_dodge_projectile_extra_dangerous_timestamp = 0;
     long long last_attack_target_shout_info = 0;
@@ -6683,6 +6686,7 @@ namespace WalkerProcessor {
         try_pickup_wiggle_body = false;
         pickup_wiggle_dir = 0;
         pickup_wiggle_time = 0.0f;
+        walked_again_before_second_pickup_wiggle = false;
 
         //had_whirlwind_sprint_effect = false;
         repath_if_walking = false;
@@ -7512,6 +7516,7 @@ namespace WalkerProcessor {
         bool result = false;
         auto player = RE::PlayerCharacter::GetSingleton();
 
+
         if (pickup_wiggle_time < 0.3f && player)
         {
             pickup_wiggle_time += dtime;
@@ -8021,7 +8026,7 @@ namespace WalkerProcessor {
                 auto dragonrend = (RE::TESShout*)RE::TESForm::LookupByID(0x44250);
                 bool player_knows_dragonrend = MiscThings::player_has_spell((RE::SpellItem*)dragonrend);
                 bool can_shout = MiscThings::get_shout_cooldown() <= 0.0f;
-                auto raycast_ref = MiscThings::GetRaycastRef(camera_pos, delta_pos, 20000.0f, target_ref, 0b00000000000010010000000000000110); //projectile layer in player group
+                auto raycast_ref = MiscThings::GetRaycastRef(camera_pos, delta_pos, 20000.0f, target_ref, MiscThings::get_player_projectile_filter()); //projectile layer in player group
 
                 dragonrendable_condition = raycast_ref == target_ref && can_shout && player_knows_dragonrend;
             }
@@ -8543,7 +8548,7 @@ namespace WalkerProcessor {
 
 
 
-                        auto raycast_ref = MiscThings::GetRaycastRef(camera_pos, delta_pos, range, target_ref, 0b00000000000010010000000000000110); //projectile layer in player group
+                        auto raycast_ref = MiscThings::GetRaycastRef(camera_pos, delta_pos, range, target_ref, MiscThings::get_player_projectile_filter()); //projectile layer in player group
 
                         auto right_hand = MiscThings::get_hand_contents(true);
                         auto left_hand = MiscThings::get_hand_contents(false);
@@ -25767,9 +25772,21 @@ namespace WalkerProcessor {
                                                                                         {
                                                                                             if (pickup_wiggle_dir < 2)
                                                                                             {
-                                                                                                locking_failed = false;
-                                                                                                try_pickup_wiggle_body = true;
-                                                                                                return;
+                                                                                                if (pickup_wiggle_dir == 1 && !walked_again_before_second_pickup_wiggle)
+                                                                                                {
+                                                                                                    tried_to_come_closer = false;
+                                                                                                    locking_failed = false;
+                                                                                                    walked_again_before_second_pickup_wiggle = true;
+                                                                                                    walk_again();
+                                                                                                    return;
+                                                                                                }
+                                                                                                else
+                                                                                                {
+                                                                                                    locking_failed = false;
+                                                                                                    try_pickup_wiggle_body = true;
+                                                                                                    return;
+                                                                                                }
+
                                                                                             }
                                                                                         }
 

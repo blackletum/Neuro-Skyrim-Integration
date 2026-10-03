@@ -4450,6 +4450,8 @@ namespace Observer {
 
 											if (a_ref == player_actor)
 											{
+												MiscThings::update_player_collision_groups();
+
 												actor_name = "You";
 
 												if (is_something_registered() && get_active_force() == -1 && !MiscThings::have_force_only_menu_open() && !WalkerProcessor::is_walking_important_path() && !MiscThings::is_intro() && !MiscThings::is_intro2())

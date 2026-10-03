@@ -189,6 +189,7 @@ namespace MiscThings {
 
     RE::TESObjectREFR* GetRaycastRef(RE::NiPoint3 from, RE::NiPoint3 aimVector, float distance, RE::TESObjectREFR* target = nullptr, uint32_t filter = 0);
     float GetRaycastDistance(RE::NiPoint3 from, RE::NiPoint3 aimVector, float distance, RE::TESObjectREFR* target, uint32_t filter);
+    uint32_t get_player_projectile_filter();
 
     RE::NiPoint3 rotate_around_axis(RE::NiPoint3 v, RE::NiPoint3 axis, float radians);
 
@@ -643,6 +644,7 @@ namespace MiscThings {
     //void SetStage(std::string quest_name, int stage);
     bool SetStage(RE::TESQuest* quest, uint16_t stage);
 
+    void update_player_collision_groups();
 
     void set_fishing_ask_for_more();
     void fishing_processor(float dtime);

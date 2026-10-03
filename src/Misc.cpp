@@ -1139,7 +1139,7 @@ namespace MiscThings {
                                         hand_pos -= camera_orth_dir1 * 5.0f;
 
 
-                                    auto raycast_ref = MiscThings::GetRaycastRef(camera_pos, camera_dir, range2, nullptr, 0b00000000000010010000000000000110);
+                                    auto raycast_ref = MiscThings::GetRaycastRef(camera_pos, camera_dir, range2, nullptr, MiscThings::get_player_projectile_filter());
 
 
                                     float pi = RE::NI_PI;
@@ -1230,25 +1230,26 @@ namespace MiscThings {
                                         if (player_target_distance < range2)
                                             range2 = player_target_distance;
 
+                                        auto filter = MiscThings::get_player_projectile_filter();
 
-                                        auto raycast_ref2 = MiscThings::GetRaycastRef(pos1, camera_dir_tilted1, range2, nullptr, 0b00000000000010010000000000000110);
-                                        auto raycast_ref3 = MiscThings::GetRaycastRef(pos2, camera_dir_tilted2, range2, nullptr, 0b00000000000010010000000000000110);
-                                        auto raycast_ref4 = MiscThings::GetRaycastRef(pos3, camera_dir_tilted3, range2, nullptr, 0b00000000000010010000000000000110);
-                                        auto raycast_ref5 = MiscThings::GetRaycastRef(pos4, camera_dir_tilted4, range2, nullptr, 0b00000000000010010000000000000110);
-                                        auto raycast_ref6 = MiscThings::GetRaycastRef(pos5, camera_dir_tilted5, range2, nullptr, 0b00000000000010010000000000000110);
-                                        auto raycast_ref7 = MiscThings::GetRaycastRef(pos6, camera_dir_tilted6, range2, nullptr, 0b00000000000010010000000000000110);
-                                        auto raycast_ref8 = MiscThings::GetRaycastRef(pos7, camera_dir_tilted7, range2, nullptr, 0b00000000000010010000000000000110);
-                                        auto raycast_ref9 = MiscThings::GetRaycastRef(pos8, camera_dir_tilted8, range2, nullptr, 0b00000000000010010000000000000110);
+                                        auto raycast_ref2 = MiscThings::GetRaycastRef(pos1, camera_dir_tilted1, range2, nullptr, filter);
+                                        auto raycast_ref3 = MiscThings::GetRaycastRef(pos2, camera_dir_tilted2, range2, nullptr, filter);
+                                        auto raycast_ref4 = MiscThings::GetRaycastRef(pos3, camera_dir_tilted3, range2, nullptr, filter);
+                                        auto raycast_ref5 = MiscThings::GetRaycastRef(pos4, camera_dir_tilted4, range2, nullptr, filter);
+                                        auto raycast_ref6 = MiscThings::GetRaycastRef(pos5, camera_dir_tilted5, range2, nullptr, filter);
+                                        auto raycast_ref7 = MiscThings::GetRaycastRef(pos6, camera_dir_tilted6, range2, nullptr, filter);
+                                        auto raycast_ref8 = MiscThings::GetRaycastRef(pos7, camera_dir_tilted7, range2, nullptr, filter);
+                                        auto raycast_ref9 = MiscThings::GetRaycastRef(pos8, camera_dir_tilted8, range2, nullptr, filter);
 
 
-                                        auto raycast_ref21 = MiscThings::GetRaycastRef(hand_pos, camera_dir_tilted1, range2, nullptr, 0b00000000000010010000000000000110);
-                                        auto raycast_ref31 = MiscThings::GetRaycastRef(hand_pos, camera_dir_tilted2, range2, nullptr, 0b00000000000010010000000000000110);
-                                        auto raycast_ref41 = MiscThings::GetRaycastRef(hand_pos, camera_dir_tilted3, range2, nullptr, 0b00000000000010010000000000000110);
-                                        auto raycast_ref51 = MiscThings::GetRaycastRef(hand_pos, camera_dir_tilted4, range2, nullptr, 0b00000000000010010000000000000110);
-                                        auto raycast_ref61 = MiscThings::GetRaycastRef(hand_pos, camera_dir_tilted5, range2, nullptr, 0b00000000000010010000000000000110);
-                                        auto raycast_ref71 = MiscThings::GetRaycastRef(hand_pos, camera_dir_tilted6, range2, nullptr, 0b00000000000010010000000000000110);
-                                        auto raycast_ref81 = MiscThings::GetRaycastRef(hand_pos, camera_dir_tilted7, range2, nullptr, 0b00000000000010010000000000000110);
-                                        auto raycast_ref91 = MiscThings::GetRaycastRef(hand_pos, camera_dir_tilted8, range2, nullptr, 0b00000000000010010000000000000110);
+                                        auto raycast_ref21 = MiscThings::GetRaycastRef(hand_pos, camera_dir_tilted1, range2, nullptr, filter);
+                                        auto raycast_ref31 = MiscThings::GetRaycastRef(hand_pos, camera_dir_tilted2, range2, nullptr, filter);
+                                        auto raycast_ref41 = MiscThings::GetRaycastRef(hand_pos, camera_dir_tilted3, range2, nullptr, filter);
+                                        auto raycast_ref51 = MiscThings::GetRaycastRef(hand_pos, camera_dir_tilted4, range2, nullptr, filter);
+                                        auto raycast_ref61 = MiscThings::GetRaycastRef(hand_pos, camera_dir_tilted5, range2, nullptr, filter);
+                                        auto raycast_ref71 = MiscThings::GetRaycastRef(hand_pos, camera_dir_tilted6, range2, nullptr, filter);
+                                        auto raycast_ref81 = MiscThings::GetRaycastRef(hand_pos, camera_dir_tilted7, range2, nullptr, filter);
+                                        auto raycast_ref91 = MiscThings::GetRaycastRef(hand_pos, camera_dir_tilted8, range2, nullptr, filter);
 
 
 
@@ -1533,7 +1534,7 @@ namespace MiscThings {
                                     
 
 
-                                    auto raycast_ref = MiscThings::GetRaycastRef(projectile_pos, projectile_fly_vector, 3000.0f, nullptr, 0b00001000000000000000000000000110);
+                                    auto raycast_ref = MiscThings::GetRaycastRef(projectile_pos, projectile_fly_vector, 3000.0f, nullptr, MiscThings::get_player_projectile_filter());
 
                                     //DebugAPI_IMPL::DebugAPI::GetSingleton()->LinesToDraw.clear();
                                     //DebugAPI_IMPL::DrawDebug::draw_line(projectile_pos, projectile_pos + projectile_fly_vector * 500.0f);
@@ -1631,7 +1632,7 @@ namespace MiscThings {
 
                                         for (auto subpos : subpos_vectors)
                                         {
-                                            if (MiscThings::GetRaycastRef(subpos, projectile_fly_vector, 3000.0f, nullptr, 0b00001000000000000000000000000110) == player)
+                                            if (MiscThings::GetRaycastRef(subpos, projectile_fly_vector, 3000.0f, nullptr, MiscThings::get_player_projectile_filter()) == player)
                                             {
                                                 result.direction = projectile_fly_vector;
                                                 if (extra_dangerous)
@@ -4990,6 +4991,25 @@ namespace MiscThings {
         camera_dirX.z = 0.0f;
         camera_dirX.Unitize();
 
+        /*
+        if (camera->IsInThirdPerson())
+        {
+            //need to use player model vector
+            auto player_3d = player->GetCurrent3D();
+            if (player_3d)
+            {
+                camera_dirX = player_3d->world.rotate.GetVectorX();
+                camera_dirY = player_3d->world.rotate.GetVectorY();
+
+                camera_dirY.z = 0.0f;
+                camera_dirY.Unitize();
+
+                camera_dirX.z = 0.0f;
+                camera_dirX.Unitize();
+            }
+        }
+        */
+
         float score = 0.0f;
 
         DebugAPI_IMPL::DebugAPI::GetSingleton()->LinesToDraw.clear();
@@ -5000,7 +5020,7 @@ namespace MiscThings {
                 RE::NiPoint3 up = { 0.0f, 0.0f, 1.0f };
                 //auto raycast_start = player_pos + camera_dirX * (5.0f - (float)i) * 20.0f + up*j*10.0f;
                 auto raycast_start = player_pos + camera_dirX * (15.0f - (float)i) * 2.0f + up * (j + 1) * 4.0f;
-                bool hit = MiscThings::GetRaycastRef(raycast_start, camera_dirY, 50.0f, nullptr, 0b00000000000010010000000000000010); //this mask works on fences
+                bool hit = MiscThings::GetRaycastRef(raycast_start, camera_dirY, 50.0f, nullptr, MiscThings::get_player_projectile_filter()); //this mask works on fences
 
                 /*
                 auto color = DebugAPI_IMPL::DrawDebug::Colors::GRN;
@@ -14791,14 +14811,16 @@ namespace MiscThings {
             }
 
             //center, right, left
-            float raycast_distance = MiscThings::GetRaycastDistance(camera_pos, delta_pos, 5000.0f, target, 0b00000000000010010000000000000110);
-            float raycast_distance_right = MiscThings::GetRaycastDistance(camera_pos_right, delta_pos_right, 5000.0f, target, 0b00000000000010010000000000000110);
-            float raycast_distance_left = MiscThings::GetRaycastDistance(camera_pos_left, delta_pos_left, 5000.0f, target, 0b00000000000010010000000000000110);
+            auto filter = get_player_projectile_filter();
+
+            float raycast_distance = MiscThings::GetRaycastDistance(camera_pos, delta_pos, 5000.0f, target, filter);
+            float raycast_distance_right = MiscThings::GetRaycastDistance(camera_pos_right, delta_pos_right, 5000.0f, target, filter);
+            float raycast_distance_left = MiscThings::GetRaycastDistance(camera_pos_left, delta_pos_left, 5000.0f, target, filter);
 
 
-            auto raycast_ref = MiscThings::GetRaycastRef(camera_pos, delta_pos, 5000.0f, target, 0b00000000000010010000000000000110);
-            auto raycast_ref_right = MiscThings::GetRaycastRef(camera_pos_right, delta_pos_right, 5000.0f, target, 0b00000000000010010000000000000110);
-            auto raycast_ref_left = MiscThings::GetRaycastRef(camera_pos_left, delta_pos_left, 5000.0f, target, 0b00000000000010010000000000000110);
+            auto raycast_ref = MiscThings::GetRaycastRef(camera_pos, delta_pos, 5000.0f, target, filter);
+            auto raycast_ref_right = MiscThings::GetRaycastRef(camera_pos_right, delta_pos_right, 5000.0f, target, filter);
+            auto raycast_ref_left = MiscThings::GetRaycastRef(camera_pos_left, delta_pos_left, 5000.0f, target, filter);
 
 
             
@@ -14836,8 +14858,8 @@ namespace MiscThings {
             {
                 for (auto& subpos : camera_subpos_right)
                 {
-                    float subraycast_distance = MiscThings::GetRaycastDistance(subpos, delta_pos_right, 5000.0f, target, 0b00000000000010010000000000000110);
-                    auto subraycast_ref = MiscThings::GetRaycastRef(subpos, delta_pos_right, 5000.0f, target, 0b00000000000010010000000000000110);
+                    float subraycast_distance = MiscThings::GetRaycastDistance(subpos, delta_pos_right, 5000.0f, target, filter);
+                    auto subraycast_ref = MiscThings::GetRaycastRef(subpos, delta_pos_right, 5000.0f, target, filter);
 
                     if (subraycast_distance < (raycast_distance_right - 100.0f) && (!any_enemy || !MiscThings::is_enemy_to_actor(raycast_ref_right, false, true, true)))
                         return false; //subraycast failed
@@ -14851,8 +14873,8 @@ namespace MiscThings {
             {
                 for (auto& subpos : camera_subpos_left)
                 {
-                    float subraycast_distance = MiscThings::GetRaycastDistance(subpos, delta_pos_left, 5000.0f, target, 0b00000000000010010000000000000110);
-                    auto subraycast_ref = MiscThings::GetRaycastRef(subpos, delta_pos_left, 5000.0f, target, 0b00000000000010010000000000000110);
+                    float subraycast_distance = MiscThings::GetRaycastDistance(subpos, delta_pos_left, 5000.0f, target, filter);
+                    auto subraycast_ref = MiscThings::GetRaycastRef(subpos, delta_pos_left, 5000.0f, target, filter);
 
                     if (subraycast_distance < (raycast_distance_left - 100.0f) && (!any_enemy || !MiscThings::is_enemy_to_actor(raycast_ref_left, false, true, true)))
                         return false; //subraycast failed
@@ -15664,23 +15686,52 @@ namespace MiscThings {
 
 
 
-    //                                      |15     |7     |0
-    uint32_t my_filter4 = 0b00000101011001110000000000011110; //whiterun guard
-    uint32_t my_filter0 = 0b00000101011010101000000000011110; //bjorlams filter (has bit 15 set)
+    //                                        |15     |7     |0
+    //uint32_t my_filter4 = 0b00000101011001110000000000011110; //whiterun guard
+    //uint32_t my_filter0 = 0b00000101011010101000000000011110; //bjorlams filter (has bit 15 set)
+
+
+
+    //uint32_t my_filter3 = 0b00011000101111000000000000011110; //alduin filter (maybe all dragons)
+
+  //uint32_t my_filter5 = 0b00011000101111000000000000101001;//kLineOfSight = 41,
+    
+  //uint32_t my_filter5 = 0b00011000101111000000000000100111;//39 - camerapick //collides with player
+
+    //                    0b00000110010010100000000000011110 -- player's collision after vampirism is cured
+
+    //uint32_t my_filter9 = 0b00000000000010010000000000000110; //projectile filter, used for combat-like raycasting, filters player
+
 
     uint32_t my_filter1 = 0b00000000000010010000000000011110; //player filter //kCharController = 30,
     uint32_t my_filter2 = 0b00000000000010010000000000001110; //filter without invisible zones, that doesnt work on bjorlam //kTrap = 14,
-
-    uint32_t my_filter3 = 0b00011000101111000000000000011110; //alduin filter (maybe all dragons)
-
-  //uint32_t my_filter5 = 0b00011000101111000000000000101001;//kLineOfSight = 41,
     uint32_t my_filter5 = 0b00000000000010010000000000000110;//kProjectile = 6, (may be the best?)
-  //uint32_t my_filter5 = 0b00011000101111000000000000100111;//39 - camerapick //collides with player
 
+
+    uint32_t get_player_projectile_filter()
+    {
+        return my_filter5;
+    }
     
+    void update_player_collision_groups()
+    {
+        auto player = RE::PlayerCharacter::GetSingleton();
+        RE::CFilter cFilter_info{};
+        player->GetCollisionFilterInfo(cFilter_info);
 
+        auto new_group = cFilter_info.filter & 0xFFFF0000;
 
-    RE::COL_LAYER test_layer1234567890; //shortcut
+        //remove old group
+        my_filter1 = my_filter1 & 0x0000FFFF;
+        my_filter2 = my_filter2 & 0x0000FFFF;
+        my_filter5 = my_filter5 & 0x0000FFFF;
+
+        //add new group
+        my_filter1 += new_group;
+        my_filter2 += new_group;
+        my_filter5 += new_group;
+    }
+
 
 
     RayCastResult RayCast(RE::NiPoint3 rayStart, RE::NiPoint3 rayDir, float maxDist,
@@ -26459,7 +26510,7 @@ namespace MiscThings {
 
         float player_onehanded_skill = player->GetBaseActorValue(RE::ActorValue::kOneHanded);
         float player_twohanded_skill = player->GetBaseActorValue(RE::ActorValue::kTwoHanded);
-        float player_bow_skill = player->GetBaseActorValue(RE::ActorValue::kArchery);
+        float player_bow_skill = player->GetBaseActorValue(RE::ActorValue::kArchery) / 3.0f;
 
         float sum = player_onehanded_skill + player_twohanded_skill + player_bow_skill;
 
