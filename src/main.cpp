@@ -68,6 +68,11 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////DO ALL THIS
 
+
+//runecasting bugs out sometimes for some reason
+//all spells bugged out for some reason
+//sell garbage command
+
 //COMBAT
 //in keep-distance mode dont rush towards enemy right away if we have ranged weapon, wait a little, maybe they will come closer themselves
 //autoswitch from ritual level scrolls after use (HOW?)

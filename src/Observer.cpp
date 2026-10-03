@@ -5238,6 +5238,14 @@ namespace Observer {
 															{
 																std::string name = MiscThings::insert_object_into_list_custom_name("Apocrypha Bridge", a_ref);
 
+																switch (a_ref->formID)
+																{
+																case (0x403250d): //book5 cyclic bridges
+																case (0x403250e):
+																	detect_events_send_result_silent = true;
+																	break;
+																}
+
 																if (activation == 0)
 																	detect_events_result.push_back("[ " + name + " unrolled]");
 

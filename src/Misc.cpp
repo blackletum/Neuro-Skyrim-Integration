@@ -14882,6 +14882,12 @@ namespace MiscThings {
         if (object->formID == 0xf5b04)
             return true; //hermaeus mora after ogma infinium pickup
 
+        if (object->formID == 0x40177d9 || object->formID == 0x401ee1e) //tel mytrin book and enchanter, count as raycastable if door to them is unlocked
+        {
+            auto door = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x403ca71);
+            if (door && !MiscThings::is_door_locked(door))
+                return true;
+        }
 
         auto player = RE::PlayerCharacter::GetSingleton();
 
@@ -20205,6 +20211,12 @@ namespace MiscThings {
                     std::string model = furniture->GetModel();
                     if (model.find("DweFacadeLiftLeverLoad") != std::string::npos)
                     {
+                        switch (object->formID)
+                        {
+                        case (0x2c79a):
+                            return result; //xrib cave. lever oriented wrong way
+                        }
+
                         RE::NiPoint3 base_shift_vector = { 0.0f, -600.0f, 60.0f };
                         RE::NiPoint3 rotated_shift_vector = rotate_vector_by_angles(base_shift_vector, object_angles);
                         result = rotated_shift_vector;
