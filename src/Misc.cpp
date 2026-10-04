@@ -678,6 +678,8 @@ namespace MiscThings {
             case (0x956B5):
             case (0x400cfb6):
             case (0x401aea4):
+            case (0x35369):
+            case (0x401a578):
                     return true;
             }
 
@@ -7442,6 +7444,12 @@ namespace MiscThings {
 
 
                         std::string force_text = "You are in " + get_settlement_name() + ". Choose a place to visit" + nighttime_text + ". You have " + std::to_string(player_gold) + " gold" + gold_amount_bonus;
+
+                        std::string junk_list = MiscThings::get_junk_list();
+
+                        if (junk_list != "")
+                            force_text += "; " + junk_list;
+
 
                         unregister_all_actions();
 
@@ -26430,9 +26438,214 @@ namespace MiscThings {
 
 
 
+    std::string get_junk_list()
+    {
+        std::string result = "";
+
+        auto player = RE::PlayerCharacter::GetSingleton();
+
+        if (!player)
+            return "";
+
+        if (MiscThings::is_werewolf() || MiscThings::is_vampirelord())
+            return "";
 
 
-    int find_good_weapon_in_inventory()
+        if (!inventory_valid)
+            auto temp = GetInventory();
+
+        if (!inventory_valid)
+            return "";
+
+        auto p_inventory = get_p_inventory_items_list();
+
+        auto inventory = MiscThings::get_filtered_inventory();
+
+        float total_junk_weight = 0.0f;
+        float total_book_weight = 0.0f;
+
+        bool has_dragon_parts = false;
+
+        float total_ingredient_weight = 0.0f;
+
+        std::string result_junk = "";
+
+
+        for (auto inventory_entry : *p_inventory)
+        {
+            auto object = inventory_entry.second.object;
+            if (object)
+            {
+                int item_id = inventory_entry.first;
+
+                bool cant_drop = false;
+
+                if (object->IsWeapon())
+                {
+                    auto weapon = (RE::TESObjectWEAP*)object;
+
+                    cant_drop = weapon->weaponData.flags.all(RE::TESObjectWEAP::Data::Flag::kCantDrop);
+
+                }
+
+                if (object->IsKey())
+                    cant_drop = true;
+
+                auto entry = inventory.find(object);
+
+                if (entry != inventory.end() && entry->second.second.get())
+                {
+                    RE::InventoryEntryData* entry_entry = entry->second.second.get();
+
+                    if (entry_entry)
+                    {
+                        if (entry_entry->IsQuestObject())
+                        {
+                            continue;
+                        }
+                    }
+                    else
+                        cant_drop = true;
+                }
+                else
+                    cant_drop = true;
+
+
+                if (cant_drop)
+                {
+                    continue;
+                }
+                else
+                {
+                    if (object->IsWeapon())
+                    {
+                        auto weapon = (RE::TESObjectWEAP*)object;
+                        
+                        if (weapon->IsTwoHandedAxe() || weapon->IsTwoHandedSword())
+                        {
+                            if (find_best_melee_weapon() == item_id)
+                            {
+                                if (entry->second.first <= 1)
+                                {
+                                    continue;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            if (weapon->IsBow() || weapon->IsCrossbow())
+                            {
+                                if (find_best_bow() == item_id)
+                                {
+                                    if (entry->second.first <= 1)
+                                    {
+                                        continue;
+                                    }
+                                }
+
+                            }
+                            else
+                            {
+                                //onehanded
+                                if (find_best_melee_weapon() == item_id)
+                                {
+                                    if (entry->second.first <= 1)
+                                    {
+                                        continue;
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    if (MiscThings::is_unique_item(object))
+                        continue;
+
+
+
+
+                    //all good. droppable, therefore sellable
+                    int count = entry->second.first;
+                    float weight = object->GetWeight() * count;
+
+
+                    if (MiscThings::is_equipped(object) && entry->second.first < 2)
+                        continue;
+
+                    if (object->formType == RE::FormType::Ingredient)
+                    {
+                        total_ingredient_weight += object->GetWeight() * entry->second.first;
+                        continue;
+                    }
+
+                    if (object->formType == RE::FormType::AlchemyItem)
+                    {
+                        continue;
+                    }
+
+
+
+
+                    if (weight >= 2.0f && !object->IsBook())
+                    {
+                        std::string amount_text = "";
+                        if (inventory_entry.second.amount > 1)
+                            amount_text = " x" + std::to_string(inventory_entry.second.amount);
+
+                        result_junk += inventory_entry.second.name + amount_text + "; ";
+                        total_junk_weight += weight;
+                    }
+
+
+
+                    if (object->IsBook())
+                    {
+                        total_book_weight += object->GetWeight();
+                    }
+
+                    if (object->formID == 0x3ada4 || object->formID == 0x3ada3)
+                        has_dragon_parts = true; //dragon bones and scales. need this to advice about alchemist
+
+                }
+            }
+        }
+
+        if (total_junk_weight > 50.0f && result_junk != "")
+        {
+            std::string start_text = "Items that might be good to sell/drop (this recommendation may be incorrect. use at your own risk)";
+            if (has_dragon_parts)
+                start_text += "(Only alchemists and general traders buy dragon scales and bones)";
+            result = start_text + ": " + result_junk;
+        }
+
+        if (total_book_weight > 20.0f)
+        {
+            std::string also = "";
+
+            if (result != "")
+                also = "also ";
+            result += "You " + also + "have a lot of books that weight total of " + std::to_string((int)total_book_weight) + ". Might be wise to get rid of them/sell them/store them (if you have a place where to store them)";
+        }
+
+        if (total_ingredient_weight > 20.0f)
+        {
+            std::string also = "";
+
+            if (result != "")
+                also = "also ";
+            result += "You " + also + "have a lot of alchemy ingredients that weight total of " + std::to_string((int)total_ingredient_weight) + ". Might be wise to go craft some potions or sell them (if you can find alchemy table)";
+        }
+
+
+
+        return result;
+    }
+
+
+
+
+
+    int find_good_weapon_in_inventory(int type)
     {
         //returns index to equip with use_inventory item
 

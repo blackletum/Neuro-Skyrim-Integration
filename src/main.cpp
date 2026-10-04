@@ -69,7 +69,6 @@
 ///////////DO ALL THIS
 
 //sell garbage command
-//traders who are getting replaced should be handled properly (belethor)
 //try to improve fast travel advice (should trigger from bigger distance)
 //fishing rod and pickaxe, advice to keep it
 

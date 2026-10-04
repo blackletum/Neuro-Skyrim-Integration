@@ -3056,7 +3056,13 @@ namespace BarterProcessor {
 
                                                 auto temp = MiscThings::GetInventory(); //update it so we can scan by names
 
-                                                if (force_choice(options, "You are bartering in Skyrim. " + get_gold_text() + history_message + ". Choose item to " + get_barter_type_text() + ". " + get_items_we_cant_buy_text(), force_type::barter_item_array))
+                                                std::string junk_list = "";
+
+                                                if (type == BarterProcessor::barter_type::sell)
+                                                    junk_list = MiscThings::get_junk_list();
+
+
+                                                if (force_choice(options, "You are bartering in Skyrim. " + get_gold_text() + history_message + ". Choose item to " + get_barter_type_text() + ". " + get_items_we_cant_buy_text() + ". " + junk_list, force_type::barter_item_array))
                                                 {
                                                     missing_item_detected = false;
                                                     last_cursor_move = 0;
@@ -3680,7 +3686,13 @@ namespace BarterProcessor {
                         }
                         else
                         {
-                            if (force_choice({ {0, "Sell"},{1, "Buy"}, {-1, "[QUIT BARTER]"} }, "You are bartering in Skyrim. " + get_gold_text() + ". Choose barter type", force_type::barter_type_force))
+                            std::string junk_test = MiscThings::get_junk_list();
+                            std::string sell_advice = "";
+                            if (junk_test != "")
+                                sell_advice = " (You might have a lot to sell)";
+
+
+                            if (force_choice({ {0, "Sell" + sell_advice},{1, "Buy"}, {-1, "[QUIT BARTER]"} }, "You are bartering in Skyrim. " + get_gold_text() + ". Choose barter type", force_type::barter_type_force))
                                 barter_type_request_sent = true;
                         }
 

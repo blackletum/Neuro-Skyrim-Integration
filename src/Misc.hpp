@@ -614,10 +614,11 @@ namespace MiscThings {
     std::pair<bool, std::string> equip_spell_by_refr(RE::SpellItem* spell, bool force_left = false);
     int random_int_from_range(int min, int max);
 
+    std::string get_junk_list();
 
     int find_best_melee_weapon();
     int find_best_bow();
-    int find_good_weapon_in_inventory();
+    int find_good_weapon_in_inventory(int type = 0);
 
     RE::NiPoint3 find_dragon_landing_spot(std::vector<RE::NiPoint3> banned_spots);
     RE::TESObjectREFR* get_mysc_quest_teleport_ref();
