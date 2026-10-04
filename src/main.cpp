@@ -69,6 +69,12 @@
 ///////////DO ALL THIS
 
 //sell garbage command
+//traders who are getting replaced should be handled properly (belethor)
+//try to improve fast travel advice (should trigger from bigger distance)
+//fishing rod and pickaxe, advice to keep it
+//check whats wrong with puzzle doors not being detected as blocking object for too long
+//
+
 
 //COMBAT
 //in keep-distance mode dont rush towards enemy right away if we have ranged weapon, wait a little, maybe they will come closer themselves

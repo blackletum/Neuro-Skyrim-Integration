@@ -63,6 +63,7 @@ namespace Observer {
 
 	int old_dlc2mq06_stage = 0;
 
+	int old_mq101dragonattack_stage = 0;
 
 	RE::BGSLocation* old_player_loc = nullptr;
 
@@ -7285,6 +7286,7 @@ namespace Observer {
 
 		static auto vahlok_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("DLC2SV01"); //vahlok tomb, lost legacy dlc2 quest
 
+		static auto mq101dragonattack_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("MQ101DragonAttack");
 
 		static auto special_1 = (RE::TESBoundObject*)RE::TESForm::LookupByID(0x80665ed);
 		static auto special_2 = (RE::TESBoundObject*)RE::TESForm::LookupByID(0x806dccb);
@@ -7495,6 +7497,11 @@ namespace Observer {
 					else
 						dlc2mq06_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("DLC2MQ06");
 
+
+					if (mq101dragonattack_quest)
+						old_mq101dragonattack_stage = mq101dragonattack_quest->currentStage;
+					else
+						mq101dragonattack_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("MQ101DragonAttack");
 
 
 					if (da10_quest)
@@ -7752,6 +7759,24 @@ namespace Observer {
 				}
 				else
 					dlc_redwater_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("DLC1dunRedwaterDenQST");
+
+
+				if (mq101dragonattack_quest)
+				{
+					int current_stage = mq101dragonattack_quest->currentStage;
+
+					if (old_mq101dragonattack_stage < 103 && current_stage == 103)
+					{
+						send_random_context("Dragon blasts the wall of tower as you were climbing it!", false);
+						WalkerProcessor::reset_walker();
+					}
+
+					old_mq101dragonattack_stage = current_stage;
+
+				}
+				else
+					mq101dragonattack_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("MQ101DragonAttack");
+
 
 
 

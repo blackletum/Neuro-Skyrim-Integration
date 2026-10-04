@@ -9622,6 +9622,23 @@ namespace MiscThings {
         if (!quest)
             return nullptr;
 
+        if (quest->formID == 0x3372b && quest->currentStage == 160)
+        {
+            if (target && target->formID == 0x2bf9e)
+            {
+                auto attack_quest = (RE::TESQuest*)RE::TESForm::LookupByID(0xd0593);
+                if (attack_quest && attack_quest->currentStage >= 50 && attack_quest->currentStage < 103)
+                {
+                    auto scene = (RE::BGSScene*)RE::TESForm::LookupByID(0xd0594);
+
+                    if (scene && scene->unkBC >= 12) //phase
+                    {
+                        auto redirect = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xff8ca);
+                        if (redirect) return redirect;
+                    }
+                }
+            }
+        }
 
         
         if (target)
@@ -21977,7 +21994,7 @@ namespace MiscThings {
         //////////////////////////////////
         // FAKE QUESTS
 
-        if (my_quest)
+        if (my_quest && !MiscThings::is_intro() && !MiscThings::is_intro2())
         {
             if (MiscThings::get_picks_amount_int() <= 0 || MiscThings::get_player_gold() < 200)
             {
@@ -34794,17 +34811,14 @@ namespace MiscThings {
             //   if (actor_refr->actorState2.reanimating)
             //        return false;
 
+            //dragon race
+            if ((actor_refr->race->formID == 0x12e82 || actor_refr->race->formID == 0xe7713) && !is_fighting_dragons_allowed())
+                return false;
 
             if (controller)
             {
                 auto target_handle = controller->targetHandle;
                 auto target_ref = RE::TESObjectREFR::LookupByHandle(target_handle.native_handle());
-
-                //dragon race
-                if (actor_refr->race->formID == 0x12e82 && !is_fighting_dragons_allowed())
-                    return false;
-
-
 
 
                 if (target_ref && target_ref.get() == player)
