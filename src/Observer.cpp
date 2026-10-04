@@ -1767,7 +1767,7 @@ namespace Observer {
 		if (lesser_ward && MiscThings::player_has_spell(lesser_ward))
 			has_ward = true;
 
-		if (detect_threats_special)
+		if (detect_threats_special && !MiscThings::is_werewolf() && !MiscThings::is_vampirelord())
 			threat_options.push_back({ 10, "Fight back. Deploy LEGENDARY WEAPON" });
 
 		if (any_attacker_sees_player)
@@ -2064,7 +2064,7 @@ namespace Observer {
 										if (threats_response_choice == 1 || threats_response_choice == 2 || threats_response_choice == 3 || threats_response_choice == 10)
 										{
 
-											if (threats_response_choice == 10)
+											if (threats_response_choice == 10 && !MiscThings::is_werewolf() && !MiscThings::is_vampirelord())
 											{
 												auto special_1 = (RE::TESBoundObject*)RE::TESForm::LookupByID(0x80665ed);
 												auto special_2 = (RE::TESBoundObject*)RE::TESForm::LookupByID(0x806dccb);
@@ -8823,7 +8823,7 @@ namespace Observer {
 						
 						float death_delta = (double)(actual_death_timestamp - last_actual_death_timestamp) / 1000000000.0;
 
-						if (((death_worldspace && death_worldspace == last_death_worldspace) || (death_cell && death_cell == last_death_cell)) && (last_death_pos.GetDistance(death_pos) < 5000.0f) && death_delta < 600.0f)
+						if (((death_worldspace && death_worldspace == last_death_worldspace) || (death_cell && death_cell == last_death_cell)) && (last_death_pos.GetDistance(death_pos) < 10000.0f) && death_delta < 600.0f)
 						{
 							same_place_death_count++;
 							if (same_place_death_count > 0)

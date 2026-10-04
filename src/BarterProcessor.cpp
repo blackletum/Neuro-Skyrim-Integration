@@ -89,6 +89,7 @@ namespace BarterProcessor {
         std::string name;
         int price;
         std::string weight;
+        int weight_int;
         std::string damage;
         std::string armor;
         bool equipped;
@@ -1165,8 +1166,6 @@ namespace BarterProcessor {
     }
 
 
-
-
     std::pair<bool, std::string> set_item_choice_array(std::vector<int> ids)
     {
         std::pair<bool, std::string> result{};
@@ -1189,6 +1188,40 @@ namespace BarterProcessor {
 
 
         item_choice_array = ids;
+
+
+        //TODO sort by weight in sell mode
+        if (type == BarterProcessor::barter_type::sell)
+        {
+            std::sort(item_choice_array.begin(), item_choice_array.end(), [&](int left, int right) {
+
+                int id_left = pos_to_id(left);
+                int id_right = pos_to_id(right);
+
+                auto item_left = items_list.find(id_left);
+                auto item_right = items_list.find(id_right);
+
+                bool left_missing = item_left == items_list.end();
+                bool right_missing = item_right == items_list.end();
+
+                if (left_missing || right_missing)
+                {
+                    if (left_missing && right_missing)
+                        return false;
+                    else
+                        return right_missing;
+                }
+
+                auto left_weight = item_left->second.weight_int * item_left->second.amount;
+                auto right_weight = item_right->second.weight_int * item_right->second.amount;
+
+                return left_weight > right_weight;
+
+                });
+        }
+
+
+
 
         bool test_result = process_next_item();
 
@@ -1764,12 +1797,14 @@ namespace BarterProcessor {
                                                 std::string armor = "";
                                                 int price = -1;
                                                 int old_amount = -1;
+                                                int weight_int = -1;
 
                                                 if (items_list.find(id) != items_list.end())
                                                 {
                                                     //in case it disappeard due to some slider or other stuff, dont ruin old data
                                                     auto old_item_data = items_list.find(id)->second;
                                                     weight = old_item_data.weight;
+                                                    weight_int = old_item_data.weight_int;
                                                     damage = old_item_data.damage;
                                                     armor = old_item_data.armor;
                                                     price = old_item_data.price;
@@ -1781,7 +1816,12 @@ namespace BarterProcessor {
 
                                                 if (menu->uiMovie->GetVariable(&subvar, "_root.Menu_mc.ItemCard_mc.ItemWeightText.text"))
                                                     if (!subvar.IsNull() && subvar.IsString())
+                                                    {
                                                         weight = subvar.GetString();
+                                                        if (MiscThings::is_digits(weight))
+                                                            weight_int = std::stoi(weight);
+                                                    }
+                                                        
                                                 if (menu->uiMovie->GetVariable(&subvar, "_root.Menu_mc.ItemCard_mc.WeaponDamageValue.text"))
                                                     if (!subvar.IsNull() && subvar.IsString())
                                                         damage = subvar.GetString();
@@ -1802,6 +1842,7 @@ namespace BarterProcessor {
                                                 data.name = name;
                                                 data.price = price;
                                                 data.weight = weight;
+                                                data.weight_int = weight_int;
                                                 data.damage = damage;
                                                 data.armor = armor;
 
@@ -1999,12 +2040,18 @@ namespace BarterProcessor {
                                                 std::string weight = "";
                                                 std::string damage = "";
                                                 std::string armor = "";
+                                                int weight_int = -1;
 
                                                 RE::GFxValue subvar;
 
                                                 if (menu->uiMovie->GetVariable(&subvar, "_root.Menu_mc.ItemCard_mc.ItemWeightText.text"))
                                                     if (!subvar.IsNull() && subvar.IsString())
+                                                    {
                                                         weight = subvar.GetString();
+                                                        if (MiscThings::is_digits(weight))
+                                                            weight_int = std::stoi(weight);
+                                                    }
+
                                                 if (menu->uiMovie->GetVariable(&subvar, "_root.Menu_mc.ItemCard_mc.WeaponDamageValue.text"))
                                                     if (!subvar.IsNull() && subvar.IsString())
                                                         damage = subvar.GetString();
@@ -2021,6 +2068,7 @@ namespace BarterProcessor {
                                                 data.name = name;
                                                 data.price = get_price_selected_item();
                                                 data.weight = weight;
+                                                data.weight_int = weight_int;
                                                 data.damage = damage;
                                                 data.armor = armor;
                                                 data.amount = get_item_amount_from_name(name);
@@ -2587,12 +2635,19 @@ namespace BarterProcessor {
                                             std::string weight = "";
                                             std::string damage = "";
                                             std::string armor = "";
+                                            int weight_int = -1;
 
                                             RE::GFxValue subvar;
 
                                             if (menu->uiMovie->GetVariable(&subvar, "_root.Menu_mc.ItemCard_mc.ItemWeightText.text"))
                                                 if (!subvar.IsNull() && subvar.IsString())
-                                                    weight = subvar.GetString();
+                                                    if (!subvar.IsNull() && subvar.IsString())
+                                                    {
+                                                        weight = subvar.GetString();
+                                                        if (MiscThings::is_digits(weight))
+                                                            weight_int = std::stoi(weight);
+                                                    }
+
                                             if (menu->uiMovie->GetVariable(&subvar, "_root.Menu_mc.ItemCard_mc.WeaponDamageValue.text"))
                                                 if (!subvar.IsNull() && subvar.IsString())
                                                     damage = subvar.GetString();
@@ -2607,6 +2662,7 @@ namespace BarterProcessor {
                                             data.name = name;
                                             data.price = get_price_selected_item();
                                             data.weight = weight;
+                                            data.weight_int = weight_int;
                                             data.damage = damage;
                                             data.armor = armor;
                                             items_list.insert({ result.id, data });

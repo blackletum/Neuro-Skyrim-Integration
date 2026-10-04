@@ -14614,6 +14614,30 @@ namespace MiscThings {
             }
 
 
+
+            fishing_supplies_pos = objects_around.second.find("Luna Moth");
+
+            if (fishing_supplies_pos != std::string::npos)
+            {
+                std::string name = "Luna Moth... you can try to catch it (using walk_and_interact action)";
+
+                auto pos_bracket_first = objects_around.second.rfind('[', fishing_supplies_pos);
+
+                if (pos_bracket_first > 0 && pos_bracket_first < objects_around.second.length())
+                {
+                    auto pos_bracket = objects_around.second.rfind('[', pos_bracket_first - 1);
+
+                    if (pos_bracket > 0 && pos_bracket < objects_around.second.length() && ((fishing_supplies_pos - pos_bracket) <= 50))
+                    {
+                        name = objects_around.second.substr(pos_bracket, fishing_supplies_pos - pos_bracket) + " " + name;
+                    }
+                }
+
+
+                very_interesting_objects.push_back(name);
+            }
+
+
             fishing_supplies_pos = objects_around.second.find("Butterfly");
 
             if (fishing_supplies_pos != std::string::npos)
