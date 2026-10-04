@@ -14013,7 +14013,7 @@ namespace WalkerProcessor {
 
                     auto range1 = spell->GetRange();
                     if (range1 > 0)
-                        return range1;
+                        return range1 < 100.0f ? 100.0f : range1;
 
                     if (spell->GetDelivery() != RE::MagicSystem::Delivery::kSelf)
                     {
@@ -15934,7 +15934,7 @@ namespace WalkerProcessor {
                             float chance = 0.2f;
 
 
-                            if (MiscThings::is_cast_on_ground_spell(true) || MiscThings::is_summon_spell(true))
+                            if (MiscThings::is_cast_on_ground_spell(true) || MiscThings::is_summon_spell(true) || MiscThings::is_offensive_spell(true))
                                 chance = 1.0f;
 
 
@@ -16670,7 +16670,7 @@ namespace WalkerProcessor {
 
                             float chance = 0.2f;
 
-                            if (MiscThings::is_cast_on_ground_spell(false) || MiscThings::is_summon_spell(false))
+                            if (MiscThings::is_cast_on_ground_spell(false) || MiscThings::is_summon_spell(false) || MiscThings::is_offensive_spell(false))
                                 chance = 0.0f;
 
 
@@ -20327,7 +20327,11 @@ namespace WalkerProcessor {
                                 threshold = 700.0f;
 
                             if (test_range < 200.0f)
-                                threshold = 200.0f;
+                                if (MiscThings::has_spell_equipped(get_current_active_hand()))
+                                    threshold = test_range;
+                                else
+                                    test_range = 200.0f;
+
 
                             if (distance < threshold && !(MiscThings::target_cant_attack(target_ref)) && close_enough())
                             {
