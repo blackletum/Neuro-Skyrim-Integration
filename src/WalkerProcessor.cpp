@@ -15184,7 +15184,8 @@ namespace WalkerProcessor {
 
 
                 float choose_next_action = (float)std::rand() / RAND_MAX;
-                float chance = 0.2f;
+                float chance = 0.2f; //chance of doing left hand next
+
 
                 if ((dualhanding_two_weapons || MiscThings::is_werewolf()))
                     chance = 0.49f;
@@ -15209,6 +15210,8 @@ namespace WalkerProcessor {
                 int nettlebane_hand = MiscThings::get_nettlebane_hand_for_target(target_ref);
                 if (nettlebane_hand >= 0)
                     attack_action = !(bool)nettlebane_hand; //not bitwise
+
+                
 
             }
 
@@ -15929,6 +15932,11 @@ namespace WalkerProcessor {
 
 
                             float chance = 0.2f;
+
+
+                            if (MiscThings::is_cast_on_ground_spell(true) || MiscThings::is_summon_spell(true))
+                                chance = 1.0f;
+
 
                             if ((dualhanding_two_weapons || MiscThings::is_werewolf()))
                                 chance = 0.49f;
@@ -16661,6 +16669,10 @@ namespace WalkerProcessor {
                             attack_target_needs_to_come_closer = false;
 
                             float chance = 0.2f;
+
+                            if (MiscThings::is_cast_on_ground_spell(false) || MiscThings::is_summon_spell(false))
+                                chance = 0.0f;
+
 
                             if ((dualhanding_two_weapons || MiscThings::is_werewolf()))
                                 chance = 0.49f;
