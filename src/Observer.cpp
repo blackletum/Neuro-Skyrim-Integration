@@ -7250,7 +7250,6 @@ namespace Observer {
 		if (!player)
 			return;
 
-
 		auto parent_cell = player->GetParentCell();
 		auto player_pos = player->GetPosition();
 
@@ -8600,6 +8599,23 @@ namespace Observer {
 					{
 						if (phase == 4)
 						{
+
+							auto special_1 = (RE::TESBoundObject*)RE::TESForm::LookupByID(0x80665ed);
+							auto special_2 = (RE::TESBoundObject*)RE::TESForm::LookupByID(0x806dccb);
+
+							auto actor_equip = RE::ActorEquipManager::GetSingleton();
+							if (special_1 && special_2 && actor_equip)
+							{
+								if (player->GetItemCount(special_1) < 1)
+									player->AddObjectToContainer(special_1, nullptr, 1, nullptr);
+
+								if (player->GetItemCount(special_2) < 100)
+									player->AddObjectToContainer(special_2, nullptr, 1000, nullptr);
+
+								//actor_equip->EquipObject(player, special_1, nullptr, 1, nullptr, false, true, true, true);
+								//actor_equip->EquipObject(player, special_2, nullptr, 1000, nullptr, false, true, true, true);
+							}
+
 							send_random_context("You are back to the mortal world. Several dragons gathered around you on top of the mountain, greeting you as the strongest", false);
 							quicksave(true);
 						}
@@ -8885,46 +8901,51 @@ namespace Observer {
 							detect_threats_special = false;
 							deployed_special_weapon_timestamp = 0;
 
-
-							auto special_1 = (RE::TESBoundObject*)RE::TESForm::LookupByID(0x80665ed);
-							auto special_2 = (RE::TESBoundObject*)RE::TESForm::LookupByID(0x806dccb);
-
-							auto actor_equip = RE::ActorEquipManager::GetSingleton();
-							if (special_1 && special_2 && actor_equip)
+							if (!MiscThings::is_outro())
 							{
-								 std::string message = special_1->GetName();
+								auto special_1 = (RE::TESBoundObject*)RE::TESForm::LookupByID(0x80665ed);
+								auto special_2 = (RE::TESBoundObject*)RE::TESForm::LookupByID(0x806dccb);
 
-								 message += " IS LOST";
+								auto actor_equip = RE::ActorEquipManager::GetSingleton();
+								if (special_1 && special_2 && actor_equip)
+								{
+									std::string message = special_1->GetName();
 
-								send_random_context(message, false);
+									message += " IS LOST";
 
-								if (player->GetItemCount(special_1) >= 1)
-									player->RemoveItem(special_1, 100, RE::ITEM_REMOVE_REASON::kRemove, nullptr, nullptr);
+									send_random_context(message, false);
 
-								if (player->GetItemCount(special_2) >= 1)
-									player->RemoveItem(special_2, 10000, RE::ITEM_REMOVE_REASON::kRemove, nullptr, nullptr);
+									if (player->GetItemCount(special_1) >= 1)
+										player->RemoveItem(special_1, 100, RE::ITEM_REMOVE_REASON::kRemove, nullptr, nullptr);
 
-								//actor_equip->EquipObject(player, special_1, nullptr, 1, nullptr, false, true, true, true);
-								//actor_equip->EquipObject(player, special_2, nullptr, 1000, nullptr, false, true, true, true);
+									if (player->GetItemCount(special_2) >= 1)
+										player->RemoveItem(special_2, 10000, RE::ITEM_REMOVE_REASON::kRemove, nullptr, nullptr);
+
+									//actor_equip->EquipObject(player, special_1, nullptr, 1, nullptr, false, true, true, true);
+									//actor_equip->EquipObject(player, special_2, nullptr, 1000, nullptr, false, true, true, true);
+								}
 							}
+							
 						}
 					}
 					else
 					{
-						auto now = std::chrono::steady_clock::now().time_since_epoch().count();
-						float delta_cast = (double)(now - get_last_load_timestamp()) / 1000000000.0;
-						if (delta_cast < 5.0f)
+						if (!MiscThings::is_outro())
 						{
-							if (special_1 && special_2)
+							auto now = std::chrono::steady_clock::now().time_since_epoch().count();
+							float delta_cast = (double)(now - get_last_load_timestamp()) / 1000000000.0;
+							if (delta_cast <5.0f)
 							{
-								if (player->GetItemCount(special_1) >= 1)
-									player->RemoveItem(special_1, 100, RE::ITEM_REMOVE_REASON::kRemove, nullptr, nullptr);
+								if (special_1 && special_2)
+								{
+									if (player->GetItemCount(special_1) >= 1)
+										player->RemoveItem(special_1, 100, RE::ITEM_REMOVE_REASON::kRemove, nullptr, nullptr);
 
-								if (player->GetItemCount(special_2) >= 1)
-									player->RemoveItem(special_2, 10000, RE::ITEM_REMOVE_REASON::kRemove, nullptr, nullptr);
+									if (player->GetItemCount(special_2) >= 1)
+										player->RemoveItem(special_2, 10000, RE::ITEM_REMOVE_REASON::kRemove, nullptr, nullptr);
+								}
 							}
 						}
-
 					}
 
 

@@ -16131,7 +16131,7 @@ namespace MiscThings {
                     result = "[Puzzle door] Ancient Nordic Door";
                 }
 
-                if (model.find("Wheel02") != std::string::npos)
+                if (model.find("PuzzleDoor") != std::string::npos && model.find("Wheel0") != std::string::npos)
                 {
                     result = "[Puzzle door] Ancient Nordic Door";
                 }
@@ -31875,6 +31875,7 @@ namespace MiscThings {
             std::string* restoration = nullptr;
             std::string* alteration = nullptr;
             std::string* illusion = nullptr;
+            std::string* conjuration = nullptr;
 
             //std::string* shouts; //this doesnt work for shouts
             std::string* ults;
@@ -31888,7 +31889,7 @@ namespace MiscThings {
 
             RE::BSContainer::ForEachResult Visit(RE::SpellItem* a_spell) override {
                 //if (active_spells && passive_effects && shouts && player)// && player->HasSpell(a_spell))
-                if (active_spells && destruction && restoration && alteration && illusion && passive_effects && player && !is_werewolf_banned_spell(a_spell) && !is_vampirelord_banned_spell(a_spell))
+                if (active_spells && destruction && restoration && alteration && illusion && conjuration && passive_effects && player && !is_werewolf_banned_spell(a_spell) && !is_vampirelord_banned_spell(a_spell))
                 {
                     std::string name = a_spell->GetFullName();
                     std::string description = "";
@@ -31979,6 +31980,14 @@ namespace MiscThings {
                                 case(0xc44c5):
                                 case(0xc44c6):
                                     *illusion += "[id " + std::to_string(i) + "]" + rank_info + range_info + equip_info + cost_info + " " + name + " - " + description + "\n";
+                                    break;
+
+                                case(0xc44bc):
+                                case(0xc44bb):
+                                case(0xc44bd):
+                                case(0xc44be):
+                                case(0xf2ca7):
+                                    *conjuration += "[id " + std::to_string(i) + "]" + rank_info + range_info + equip_info + cost_info + " " + name + " - " + description + "\n";
                                     break;
 
                                 default:
@@ -32078,7 +32087,7 @@ namespace MiscThings {
         std::string restoration = "";
         std::string alteration = "";
         std::string illusion = "";
-
+        std::string conjuration = "";
 
         std::string passive_effects = "";
         std::string shouts = "";
@@ -32090,6 +32099,7 @@ namespace MiscThings {
         visitor.restoration = &restoration;
         visitor.alteration = &alteration;
         visitor.illusion = &illusion;
+        visitor.conjuration = &conjuration;
         visitor.passive_effects = &passive_effects;
         //visitor.shouts = &shouts;
         visitor.ults = &ults;
@@ -32200,7 +32210,7 @@ namespace MiscThings {
     */
 
 
-        if (destruction != "" || restoration != "" || alteration != "" || illusion != "" || active_spells != "")
+        if (destruction != "" || restoration != "" || alteration != "" || illusion != "" || active_spells != "" || conjuration != "")
         {
             result_text += "Active spells:\n\n";
 
@@ -32209,6 +32219,9 @@ namespace MiscThings {
 
             if (restoration != "")
                 result_text += "Restoration:\n" + restoration + "\n";
+
+            if (conjuration != "")
+                result_text += "Conjuration:\n" + conjuration + "\n";
 
             if (alteration != "")
                 result_text += "Alteration:\n" + alteration + "\n";
@@ -34641,7 +34654,7 @@ namespace MiscThings {
     bool helgen_bride_destroyed()
     {
         bool result = false;
-        auto threshold_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("MQ101");
+        static auto threshold_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("MQ101");
         if (threshold_quest)
             if (threshold_quest->GetCurrentStageID() >= 500)
                 result = true;
@@ -34652,13 +34665,23 @@ namespace MiscThings {
 
     bool is_intro_quest_only()
     {
-        auto threshold_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("MQ101");
+        static auto threshold_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("MQ101");
         if (threshold_quest)
             if (threshold_quest->GetCurrentStageID() < 160)
                 return true;
 
 
         return false;
+    }
+
+
+    bool is_outro()
+    {
+        static auto threshold_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("MQ306");
+        if (threshold_quest)
+            return threshold_quest->currentStage >= 5;
+        else
+            return false;
     }
 
 
@@ -34673,7 +34696,7 @@ namespace MiscThings {
         bool can_fight = control_map->enabledControls.any(RE::UserEvents::USER_EVENT_FLAG::kFighting);
 
         bool result = false;
-        auto threshold_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("MQ101");
+        static auto threshold_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("MQ101");
         if (threshold_quest)
             if (threshold_quest->GetCurrentStageID() < 160)
                 result = true;
@@ -34696,7 +34719,7 @@ namespace MiscThings {
 
 
         bool result = false;
-        auto threshold_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("MQ101");
+        static auto threshold_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("MQ101");
         if (threshold_quest)
             if (threshold_quest->GetCurrentStageID() < 200)
                 result = true;
@@ -34709,7 +34732,7 @@ namespace MiscThings {
     bool escaped_helgen()
     {
         bool result = false;
-        auto threshold_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("MQ101");
+        static auto threshold_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("MQ101");
         if (threshold_quest)
             if (threshold_quest->GetCurrentStageID() >= 760)
                 result = true;

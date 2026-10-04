@@ -457,6 +457,7 @@ namespace MiscThings {
     std::string get_good_fasttravel_marker_for_quest_target(RE::TESQuestTarget* target, RE::TESQuest* quest, RE::TESObjectREFR* phantom_target = nullptr);
     std::string get_good_carriage_city_marker_for_quest_target(RE::TESQuestTarget* target, RE::TESQuest* quest, RE::TESObjectREFR* phantom_target = nullptr);
 
+    bool is_outro();
 
     bool dont_probe_navmesh();
 

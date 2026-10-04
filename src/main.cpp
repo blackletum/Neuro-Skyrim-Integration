@@ -72,8 +72,6 @@
 //traders who are getting replaced should be handled properly (belethor)
 //try to improve fast travel advice (should trigger from bigger distance)
 //fishing rod and pickaxe, advice to keep it
-//check whats wrong with puzzle doors not being detected as blocking object for too long
-//
 
 
 //COMBAT
@@ -1119,10 +1117,12 @@ void send_random_context(std::string context, bool silent)
 
     if (context.find(" resisted ") != std::string::npos)
     {
-        if ((WalkerProcessor::is_fighting() && MiscThings::is_offensive_spell(WalkerProcessor::get_current_active_hand())) || is_casting_cast())
+        if ((WalkerProcessor::is_fighting()) || is_casting_cast())
         {
             auto now = std::chrono::steady_clock::now().time_since_epoch().count();
             float delta_resist_info = (double)(now - last_time_resist_info) / 1000000000.0;
+            
+            silent = true;
 
             if (delta_resist_info > 10.0f)
                 last_time_resist_info = now; //and fall down sending it
