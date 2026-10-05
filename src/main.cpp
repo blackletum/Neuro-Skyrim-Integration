@@ -8,7 +8,7 @@
 //////////////////////////////////////////////////////
 // QUESTLINES
 
-//TODO polish thief guild (potential softlock due to anti-drown in mercer fight, no info in the well of nocturnal sanctum, maybe fix goldenglow pathfinding)
+//TODO polish thief guild (no info in the well of nocturnal sanctum, maybe fix goldenglow pathfinding)
 //TODO polish dark brotherhood (test alternative paths (kill astrid right away, dont kill captain when caught killing fake emperor, accept emperors offer to kill the client), orc drag mechanic
 //TODO polish civil war (ambush quest sometimes the soldier cannot hit the enemy)
 //TODO polish companions (maybe add jorwaskr as an interesting place to whiterun; test more locations for silverhands)

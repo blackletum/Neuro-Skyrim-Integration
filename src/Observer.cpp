@@ -8087,26 +8087,47 @@ namespace Observer {
 
 				//oxygen
 
-				bool no_oxygen = MiscThings::is_drowning();
+					bool no_oxygen = MiscThings::is_drowning();
 
-				if (no_oxygen)
-					WalkerProcessor::start_emergency_swimup();
-				else
-					WalkerProcessor::clear_emergency_swimup();
+					if (no_oxygen)
+					{
+						if (parent_cell && parent_cell->formID == 0x466cb) //irkntand falmer eyes flood cave
+						{
+							if (WalkerProcessor::get_walker_inactive_time() > 0.0f)
+							{
+								auto tg08b_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("TG08B");
+								if (tg08b_quest)
+								{
+									auto temp = WalkerProcessor::walk_to_quest_by_index(WalkerProcessor::get_quest_id_by_refr(tg08b_quest), false, true);
+									if (!temp.first)
+										WalkerProcessor::exit_dungeon(); //if this fails, gg
+								}
+								else
+									WalkerProcessor::exit_dungeon(); //if this fails, gg
+							}
+							else
+								;//do nothing
+						}
+						else
+							WalkerProcessor::start_emergency_swimup(); //normal swim up
+					}
+					else
+						WalkerProcessor::clear_emergency_swimup();
 
 
 
-				if (no_oxygen && !old_oxygen_status)
-				{
-					send_random_context("You started drowning and try to swim up!", false);
-				}
+					if (no_oxygen && !old_oxygen_status)
+					{
+						send_random_context("You started drowning and try to swim up!", false);
+					}
 
-				if (!no_oxygen && old_oxygen_status)
-				{
-					send_random_context("You successfully got to the surface and took a breath", false);
-				}
+					if (!no_oxygen && old_oxygen_status)
+					{
+						send_random_context("You successfully got to the surface and took a breath", false);
+					}
 
-				old_oxygen_status = no_oxygen;
+					old_oxygen_status = no_oxygen;
+
 
 
 
