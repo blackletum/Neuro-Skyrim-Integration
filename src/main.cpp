@@ -68,8 +68,7 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////DO ALL THIS
 
-//mechanic to drag body for dark brotherhood quest
-//test thieves guild quest
+//mechanic to drag body for dark brotherhood quest + test it entirely just in case
 
 
 //COMBAT
@@ -1844,6 +1843,10 @@ namespace Hooks {
                         if (!MiscThings::is_serving_jail() && !MiscThings::player_escaping_jail())
                             if (better_gear != "" && MiscThings::coinflip() && MiscThings::coinflip())
                                 advice += ". You have good gear that is not equipped, you can do use_inventory_items action to equip them: " + better_gear;
+
+                        
+                        if (player->IsTrespassing())
+                            advice += ". You are trespassing, if someone sees you - they might not like that. ";
 
 
                         if (MiscThings::player_has_shouts_to_unlock())
