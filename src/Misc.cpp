@@ -12783,14 +12783,23 @@ namespace MiscThings {
                 auto vald_side_gate = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x9e57a);
 
                 if (vald && vald->IsActor() && !vald->IsDead() && vald_side_gate && vald_bottom_gate && vald_top_gate && (MiscThings::is_door_locked(vald_bottom_gate) && MiscThings::is_door_locked(vald_top_gate) && MiscThings::is_door_locked(vald_side_gate)))
-                    return vald_bottom_gate; //hope he actually always aggros when we get there and opens that gate
+                {
+                    auto vald_aggroed = ((RE::Actor*)vald)->combatController;
+
+                    //auto now = std::chrono::steady_clock::now().time_since_epoch().count();
+                    //bool rotate_left = ((int)(((double)now / 1000000000.0) / 30.0)) % 2;
+                    if (vald_aggroed)
+                        return vald_top_gate; //this is a bullshit quest 
+                    else
+                        return vald_bottom_gate; //hope he actually always aggros when we get there and opens that gate
+                }
+                    
 
                 if (shoot_point_marker && top_door && ramp_mechanism && shoot_marker && MiscThings::two_state_activator_state(ramp_mechanism) != 0 && (target == top_door || target == shoot_marker || target == shoot_point_marker))
                     return shoot_point_marker;
                 else
-                    if (top_door && target == top_door && MiscThings::is_door_locked(top_door) && MiscThings::get_picks_amount_int() <= 0)
+                    if (top_door && target == top_door && MiscThings::is_door_locked(top_door))
                     {
-                        
                         if (vald)
                             return vald; //grab the key if door is locked and we have no lockpicks
                     }
