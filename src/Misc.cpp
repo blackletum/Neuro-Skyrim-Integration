@@ -26461,6 +26461,30 @@ namespace MiscThings {
     }
 
 
+    bool is_junk(RE::TESBoundObject* object, int count)
+    {
+        //only misc
+
+        if (object && object->IsBoundObject())
+        {
+            if (MiscThings::is_unique_item(object))
+                return false;
+
+            float weight = object->GetWeight() * count;
+
+            if (MiscThings::is_equipped(object) && count < 2)
+                return false;
+
+            if (weight >= 2.0f && object->formType == RE::FormType::Misc)
+            {
+                return true;
+            }
+        }
+        
+        return false;
+    }
+
+
 
     std::string get_junk_list()
     {

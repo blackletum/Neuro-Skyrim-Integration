@@ -13,6 +13,7 @@ namespace BarterProcessor {
             //now uses formid
     std::map<uint32_t, trader_history> barter_history{};
 
+    bool sell_junk_mode = false;
 
     bool spent_a_lot_request_sent = false;
     bool spent_a_lot_choice_valid = false;
@@ -461,12 +462,18 @@ namespace BarterProcessor {
             return result;
         }
 
-        if (in_type == 0 || in_type == 1)
+        if (in_type == 0 || in_type == 1 || (in_type == 2 && has_junk()))
         {
-            if (in_type == 0)
+            if (in_type == 2)
+            {
                 type = barter_type::sell;
+                sell_junk_mode = true;
+            }
             else
-                type = barter_type::buy;
+                if (in_type == 0)
+                    type = barter_type::sell;
+                else
+                    type = barter_type::buy;
 
             barter_type_defined = true;
             result.first = true;
@@ -496,6 +503,8 @@ namespace BarterProcessor {
 
     bool barter_reset_categories_selection()
     {
+        sell_junk_mode = false;
+
         preconfirm_timer = 0.0f;
         preconfirm_timer2 = 0.0f;
 
@@ -529,6 +538,8 @@ namespace BarterProcessor {
 
     bool barter_reset_items_selection()
     {
+        sell_junk_mode = false;
+
         preconfirm_timer = 0.0f;
         preconfirm_timer2 = 0.0f;
 
@@ -1164,6 +1175,109 @@ namespace BarterProcessor {
            // }
         }
     }
+
+    bool has_junk()
+    {
+        const auto menu = RE::UI::GetSingleton()->GetMenu<RE::BarterMenu>();
+
+        std::vector<int> junk_choices{};
+
+        if (menu)
+        {
+            if (menu->itemList && std::size(menu->itemList->items) > 0)
+            {
+                int list_size = std::size(menu->itemList->items);
+
+                for (auto& entry : menu->itemList->items)
+                {
+                    if (entry && entry->data.objDesc && entry->data.objDesc->object && entry->data.owner) //this looks like actual full inventory entry that can be properly evaluated like general get_junk_list. only problem is how to make it so it never sells good stuff by mistake
+                    {
+                        RE::NiPointer<RE::TESObjectREFR> owner_p{};
+
+                        if (RE::LookupReferenceByHandle(entry->data.owner, owner_p))
+                        {
+                            if (owner_p && owner_p->formID == 0x14) //player
+                                if (MiscThings::is_junk(entry->data.objDesc->object, entry->data.objDesc->countDelta))
+                                {
+                                    return true;
+                                }
+                        }
+                    }
+                }
+            }
+        }
+
+        return false;
+    }
+
+
+    std::vector<int> get_junk_choices()
+    {
+        const auto menu = RE::UI::GetSingleton()->GetMenu<RE::BarterMenu>();
+
+        std::vector<int> junk_choices{};
+
+        if (menu)
+        {
+            if (menu->itemList && std::size(menu->itemList->items) > 0)
+            {
+                int list_size = std::size(menu->itemList->items);
+
+                for (auto& item : items_list)
+                {
+                    if (item.first < list_size && item.first > 0)
+                    {
+                        auto entry = menu->itemList->items[item.first];
+
+                        if (entry && entry->data.objDesc && entry->data.objDesc->object) //this looks like actual full inventory entry that can be properly evaluated like general get_junk_list. only problem is how to make it so it never sells good stuff by mistake
+                        {
+                            if (MiscThings::is_junk(entry->data.objDesc->object, item.second.amount))
+                            {
+                                int test_pos = id_to_pos(item.first);
+                                if (test_pos >= 0)
+                                    junk_choices.push_back(test_pos);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return junk_choices;
+    }
+
+
+    std::pair<bool, std::string> sell_junk()
+    {
+        std::pair<bool, std::string> result{};
+
+        const auto menu = RE::UI::GetSingleton()->GetMenu<RE::BarterMenu>();
+
+
+        std::vector<int> junk_choices = get_junk_choices();
+
+        if (menu)
+        {
+            if (std::size(junk_choices) > 0)
+            {
+                return set_item_choice_array(junk_choices);
+            }
+            else
+            {
+                result.first = false;
+                result.second = "Cannot find any junk to sell. Select different option";
+                return result;
+            }
+        }
+        else
+        {
+            result.first = false;
+            result.second = "[Error]";
+            return result;
+        }
+    }
+
+
 
 
     std::pair<bool, std::string> set_item_choice_array(std::vector<int> ids)
@@ -2868,7 +2982,7 @@ namespace BarterProcessor {
             return 5; //item disappeared
         }
         else
-            if (item_choice_text != old_item_choice_text)
+            if (item_choice_text != old_item_choice_text && !(sell_junk_mode && type == BarterProcessor::barter_type::sell))
             {
                 old_item_choice_text = "";
                 return 6; //text changed. probably quantity.
@@ -3117,13 +3231,31 @@ namespace BarterProcessor {
                                                 if (type == BarterProcessor::barter_type::sell)
                                                     junk_list = MiscThings::get_junk_list();
 
-
-                                                if (force_choice(options, "You are bartering in Skyrim. " + get_gold_text() + history_message + ". Choose item to " + get_barter_type_text() + ". " + get_items_we_cant_buy_text() + ". " + junk_list, force_type::barter_item_array))
+                                                if (type == BarterProcessor::barter_type::sell && sell_junk_mode)
                                                 {
                                                     missing_item_detected = false;
                                                     last_cursor_move = 0;
                                                     barter_item_request_sent = true;
+
+                                                    auto temp = sell_junk();
+                                                    if (!temp.first)
+                                                    {
+                                                        send_random_context(temp.second, false);
+                                                        barter_reset();
+                                                        return;
+                                                    }
                                                 }
+                                                else
+                                                {
+                                                    if (force_choice(options, "You are bartering in Skyrim. " + get_gold_text() + history_message + ". Choose item to " + get_barter_type_text() + ". " + get_items_we_cant_buy_text() + ". " + junk_list, force_type::barter_item_array))
+                                                    {
+                                                        missing_item_detected = false;
+                                                        last_cursor_move = 0;
+                                                        barter_item_request_sent = true;
+                                                    }
+                                                }
+
+
                                             }
                                             else
                                             {
@@ -3271,7 +3403,7 @@ namespace BarterProcessor {
                                                                 }
 
 
-                                                                if (type == BarterProcessor::barter_type::sell)
+                                                                if (type == BarterProcessor::barter_type::sell && !sell_junk_mode)
                                                                 {
                                                                     std::string item_name = p_item_info->second.name;
 
@@ -3395,10 +3527,18 @@ namespace BarterProcessor {
                                                             {
                                                                 if (!slider_request_sent)
                                                                 {
-
-                                                                    if (force_choice({}, "You are bartering in Skyrim. " + get_gold_text() + ". Choose amount of " + get_item_text_by_id(pos_to_id(item_choice)) + " to " + get_barter_type_text() +
-                                                                        ". Valid range: from " + std::to_string(0) + " to " + std::to_string(get_slider_max()), force_type::barter_quantity))
+                                                                    if (sell_junk_mode)
+                                                                    {
                                                                         slider_request_sent = true;
+                                                                        set_slider_choice(get_slider_max());
+                                                                        return;
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        if (force_choice({}, "You are bartering in Skyrim. " + get_gold_text() + ". Choose amount of " + get_item_text_by_id(pos_to_id(item_choice)) + " to " + get_barter_type_text() +
+                                                                            ". Valid range: from " + std::to_string(0) + " to " + std::to_string(get_slider_max()), force_type::barter_quantity))
+                                                                            slider_request_sent = true;
+                                                                    }
                                                                 }
                                                                 else
                                                                 {
@@ -3748,7 +3888,14 @@ namespace BarterProcessor {
                                 sell_advice = " (You might have a lot to sell)";
 
 
-                            if (force_choice({ {0, "Sell" + sell_advice},{1, "Buy"}, {-1, "[QUIT BARTER]"} }, "You are bartering in Skyrim. " + get_gold_text() + ". Choose barter type", force_type::barter_type_force))
+                            std::vector<MenuOption> options = { { 0, "Sell" + sell_advice }, { 1, "Buy" } };
+
+                            if (has_junk())
+                                options.push_back({ 2, "Sell junk" });
+
+                            options.push_back({ -1, "[QUIT BARTER]" });
+
+                            if (force_choice(options, "You are bartering in Skyrim. " + get_gold_text() + ". Choose barter type", force_type::barter_type_force))
                                 barter_type_request_sent = true;
                         }
 

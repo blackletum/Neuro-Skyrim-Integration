@@ -614,6 +614,7 @@ namespace MiscThings {
     std::pair<bool, std::string> equip_spell_by_refr(RE::SpellItem* spell, bool force_left = false);
     int random_int_from_range(int min, int max);
 
+    bool is_junk(RE::TESBoundObject* object, int count);
     std::string get_junk_list();
 
     int find_best_melee_weapon();
