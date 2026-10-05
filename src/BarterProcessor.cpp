@@ -9,7 +9,9 @@
 
 namespace BarterProcessor {
 
-  
+    bool not_special = false;
+    std::string special_confirmation_reason = "";
+
             //now uses formid
     std::map<uint32_t, trader_history> barter_history{};
 
@@ -88,6 +90,8 @@ namespace BarterProcessor {
 
     struct item_data {
         std::string name;
+        std::string category;
+        std::string description;
         int price;
         std::string weight;
         int weight_int;
@@ -538,6 +542,10 @@ namespace BarterProcessor {
 
     bool barter_reset_items_selection()
     {
+
+        not_special = false;
+        special_confirmation_reason = "";
+
         sell_junk_mode = false;
 
         preconfirm_timer = 0.0f;
@@ -1211,6 +1219,32 @@ namespace BarterProcessor {
     }
 
 
+
+    RE::TESBoundObject* get_bound_object_from_list_by_id(int id)
+    {
+        const auto menu = RE::UI::GetSingleton()->GetMenu<RE::BarterMenu>();
+
+        std::vector<int> junk_choices{};
+
+        if (menu)
+        {
+            if (menu->itemList && std::size(menu->itemList->items) > 0)
+            {
+                int list_size = std::size(menu->itemList->items);
+
+                if (id >= 0 && id < list_size)
+                {
+                    auto entry = menu->itemList->items[id];
+
+                    if (entry && entry->data.objDesc && entry->data.objDesc->object)
+                        return entry->data.objDesc->object;
+                }
+            }
+        }
+
+        return nullptr;
+    }
+
     std::vector<int> get_junk_choices()
     {
         const auto menu = RE::UI::GetSingleton()->GetMenu<RE::BarterMenu>();
@@ -1476,7 +1510,13 @@ namespace BarterProcessor {
                     else
                         equipped_text = "[Equipped] ";
 
-                MenuOption option = { id_to_pos(item.first), equipped_text + item.second.name + stats + " - " + std::to_string(item.second.price) + " gold" };
+                if (item.second.category != "")
+                    item.second.category += " ";
+
+                if (item.second.description != "")
+                    item.second.description  = " - " + item.second.description;
+
+                MenuOption option = { id_to_pos(item.first), item.second.category + equipped_text + item.second.name + stats + item.second.description + " - " + std::to_string(item.second.price) + " gold" };
                 result.push_back(option);
             }
             else
@@ -1912,6 +1952,8 @@ namespace BarterProcessor {
                                                 int price = -1;
                                                 int old_amount = -1;
                                                 int weight_int = -1;
+                                                std::string category = "";
+                                                std::string description = "";
 
                                                 if (items_list.find(id) != items_list.end())
                                                 {
@@ -1923,6 +1965,8 @@ namespace BarterProcessor {
                                                     armor = old_item_data.armor;
                                                     price = old_item_data.price;
                                                     old_amount = old_item_data.amount;
+                                                    category = old_item_data.category;
+                                                    description = old_item_data.description;
                                                 }
 
 
@@ -1943,11 +1987,31 @@ namespace BarterProcessor {
                                                     if (!subvar.IsNull() && subvar.IsString())
                                                         armor = subvar.GetString();
 
-                                                int new_price = get_price_selected_item();
+                                                if (description == "")
+                                                    if (menu->uiMovie->GetVariable(&subvar, "_root.Menu_mc.ItemCard_mc.ApparelEnchantedLabel.text"))
+                                                        if (!subvar.IsNull() && subvar.IsString())
+                                                            description = subvar.GetString();
 
+                                                if (description == "")
+                                                    if (menu->uiMovie->GetVariable(&subvar, "_root.Menu_mc.ItemCardFadeHolder_mc.ItemCard_mc.WeaponEnchantedLabel.text"))
+                                                        if (!subvar.IsNull() && subvar.IsString())
+                                                            description = subvar.GetString();
+
+                                                if (description == "")
+                                                    if (menu->uiMovie->GetVariable(&subvar, "_root.Menu_mc.ItemCardFadeHolder_mc.ItemCard_mc.PotionsLabel.text"))
+                                                        if (!subvar.IsNull() && subvar.IsString())
+                                                            description = subvar.GetString();
+
+
+
+                                                int new_price = get_price_selected_item();
 
                                                 auto special_tag = get_special_tag(name);
                                                 name += special_tag;
+
+                                                auto bound_object = get_bound_object_from_list_by_id(id);
+                                                if (bound_object)
+                                                    category = MiscThings::get_object_category(bound_object).second;
 
 
                                                 if (new_price != -1)
@@ -1959,6 +2023,8 @@ namespace BarterProcessor {
                                                 data.weight_int = weight_int;
                                                 data.damage = damage;
                                                 data.armor = armor;
+                                                data.category = category;
+                                                data.description = description;
 
                                                 int amount = get_item_amount_from_name(name);
                                                 data.amount = amount;
@@ -2155,6 +2221,8 @@ namespace BarterProcessor {
                                                 std::string damage = "";
                                                 std::string armor = "";
                                                 int weight_int = -1;
+                                                std::string category = "";
+                                                std::string description = "";
 
                                                 RE::GFxValue subvar;
 
@@ -2174,10 +2242,28 @@ namespace BarterProcessor {
                                                         armor = subvar.GetString();
 
 
+                                                if (description == "")
+                                                    if (menu->uiMovie->GetVariable(&subvar, "_root.Menu_mc.ItemCard_mc.ApparelEnchantedLabel.text"))
+                                                        if (!subvar.IsNull() && subvar.IsString())
+                                                            description = subvar.GetString();
+
+                                                if (description == "")
+                                                    if (menu->uiMovie->GetVariable(&subvar, "_root.Menu_mc.ItemCardFadeHolder_mc.ItemCard_mc.WeaponEnchantedLabel.text"))
+                                                        if (!subvar.IsNull() && subvar.IsString())
+                                                            description = subvar.GetString();
+
+                                                if (description == "")
+                                                    if (menu->uiMovie->GetVariable(&subvar, "_root.Menu_mc.ItemCardFadeHolder_mc.ItemCard_mc.PotionsLabel.text"))
+                                                        if (!subvar.IsNull() && subvar.IsString())
+                                                            description = subvar.GetString();
+
+
                                                 auto special_tag = get_special_tag(name);
                                                 name += special_tag;
 
-
+                                                auto bound_object = get_bound_object_from_list_by_id(result.id);
+                                                if (bound_object)
+                                                    category = MiscThings::get_object_category(bound_object).second;
 
                                                 data.name = name;
                                                 data.price = get_price_selected_item();
@@ -2186,6 +2272,8 @@ namespace BarterProcessor {
                                                 data.damage = damage;
                                                 data.armor = armor;
                                                 data.amount = get_item_amount_from_name(name);
+                                                data.category = category;
+                                                data.description = description;
 
                                                 int amount = get_item_amount_from_name(name);
 
@@ -2750,6 +2838,8 @@ namespace BarterProcessor {
                                             std::string damage = "";
                                             std::string armor = "";
                                             int weight_int = -1;
+                                            std::string category = "";
+                                            std::string description = "";
 
                                             RE::GFxValue subvar;
 
@@ -2769,9 +2859,30 @@ namespace BarterProcessor {
                                                 if (!subvar.IsNull() && subvar.IsString())
                                                     armor = subvar.GetString();
 
+
+                                            if (description == "")
+                                                if (menu->uiMovie->GetVariable(&subvar, "_root.Menu_mc.ItemCard_mc.ApparelEnchantedLabel.text"))
+                                                    if (!subvar.IsNull() && subvar.IsString())
+                                                        description = subvar.GetString();
+
+                                            if (description == "")
+                                                if (menu->uiMovie->GetVariable(&subvar, "_root.Menu_mc.ItemCardFadeHolder_mc.ItemCard_mc.WeaponEnchantedLabel.text"))
+                                                    if (!subvar.IsNull() && subvar.IsString())
+                                                        description = subvar.GetString();
+
+                                            if (description == "")
+                                                if (menu->uiMovie->GetVariable(&subvar, "_root.Menu_mc.ItemCardFadeHolder_mc.ItemCard_mc.PotionsLabel.text"))
+                                                    if (!subvar.IsNull() && subvar.IsString())
+                                                        description = subvar.GetString();
+
+
+
                                             auto special_tag = get_special_tag(name);
                                             name += special_tag;
 
+                                            auto bound_object = get_bound_object_from_list_by_id(result.id);
+                                            if (bound_object)
+                                                category = MiscThings::get_object_category(bound_object).second;
 
                                             data.name = name;
                                             data.price = get_price_selected_item();
@@ -2779,6 +2890,10 @@ namespace BarterProcessor {
                                             data.weight_int = weight_int;
                                             data.damage = damage;
                                             data.armor = armor;
+                                            data.category = category;
+                                            data.description = description;
+
+
                                             items_list.insert({ result.id, data });
                                         }
 
@@ -3388,7 +3503,35 @@ namespace BarterProcessor {
                                                                                 std::string player_gold_text = std::to_string(MiscThings::get_player_gold());
                                                                                 std::string price_text = std::to_string(price);
 
-                                                                                std::string item_name = p_item_info->second.name;
+                                                                                std::string weight_text = "";
+                                                                                if (p_item_info->second.weight != "")
+                                                                                    weight_text = "Weight: " + p_item_info->second.weight;
+                                                                                std::string damage_text = "";
+                                                                                if (p_item_info->second.damage != "")
+                                                                                    damage_text = ". Damage: " + p_item_info->second.damage;
+                                                                                std::string armor_text = "";
+                                                                                if (p_item_info->second.armor != "")
+                                                                                    armor_text = ". Armor: " + p_item_info->second.armor;
+
+
+                                                                                std::string stats = "";
+
+                                                                                stats = weight_text + damage_text + armor_text;
+                                                                                if (stats != "")
+                                                                                    stats = " [" + stats + "]";
+
+
+                                                                                if (p_item_info->second.category != "")
+                                                                                    p_item_info->second.category += " ";
+
+                                                                                if (p_item_info->second.description != "")
+                                                                                    p_item_info->second.description = " - " + p_item_info->second.description;
+
+                                                                                std::string item_name = p_item_info->second.category + p_item_info->second.name + stats + p_item_info->second.description;
+
+
+
+
 
                                                                                 if (force_choice({ {0, "No"}, {1, "Yes"}, {-1, "[QUIT BARTER]"} }, "You are about to buy " + item_name + ". Item costs " + price_text + " gold, you have " + player_gold_text + " gold, confirm operation ? ", force_type::barter_vendor_confirm_big_transaction))
                                                                                     big_transaction_request_sent = true;
@@ -3411,7 +3554,32 @@ namespace BarterProcessor {
 
                                                                     if (form)
                                                                     {
-                                                                        if (MiscThings::is_unique_item(form))
+
+
+                                                                        if (sell_legendary_request_sent || (!not_special && special_confirmation_reason == ""))
+                                                                        {
+                                                                            if (MiscThings::is_unique_item(form))
+                                                                            {
+                                                                                special_confirmation_reason += "It is a unique or legendary item. ";
+                                                                            }
+
+                                                                            if (MiscThings::is_fishing_rod(form) && MiscThings::get_fishing_rod_amount() == 1)
+                                                                            {
+                                                                                special_confirmation_reason += "It is your last fishing rod, you cannot catch fish without it. ";
+                                                                            }
+
+                                                                            if (MiscThings::is_pickaxe(form) && MiscThings::get_pickaxe_amount() == 1)
+                                                                            {
+                                                                                special_confirmation_reason += "It is your last pickaxe, you cannot mine ores without it. ";
+                                                                            }
+
+
+                                                                            if (special_confirmation_reason == "")
+                                                                                not_special = true;
+                                                                        }
+
+
+                                                                        if (sell_legendary_request_sent || special_confirmation_reason != "")
                                                                         {
                                                                             if (sell_legendary_choice_valid)
                                                                             {
@@ -3442,7 +3610,36 @@ namespace BarterProcessor {
                                                                                         item_name = item_name.substr(0, amount_bracket_pos - 1);
                                                                                     }
 
-                                                                                    if (force_choice({ {0, "No"}, {1, "Yes"}, {-1, "[QUIT BARTER]"} }, "You are about to sell " + item_name + ". Item costs " + price_text + " gold, you have " + player_gold_text + " gold. It is a unique or legendary item. Confirm operation ? ", force_type::barter_vendor_confirm_sell_legendary))
+
+
+                                                                                    std::string weight_text = "";
+                                                                                    if (p_item_info->second.weight != "")
+                                                                                        weight_text = "Weight: " + p_item_info->second.weight;
+                                                                                    std::string damage_text = "";
+                                                                                    if (p_item_info->second.damage != "")
+                                                                                        damage_text = ". Damage: " + p_item_info->second.damage;
+                                                                                    std::string armor_text = "";
+                                                                                    if (p_item_info->second.armor != "")
+                                                                                        armor_text = ". Armor: " + p_item_info->second.armor;
+
+
+                                                                                    std::string stats = "";
+
+                                                                                    stats = weight_text + damage_text + armor_text;
+                                                                                    if (stats != "")
+                                                                                        stats = " [" + stats + "]";
+
+
+                                                                                    if (p_item_info->second.category != "")
+                                                                                        p_item_info->second.category += " ";
+
+                                                                                    if (p_item_info->second.description != "")
+                                                                                        p_item_info->second.description = " - " + p_item_info->second.description;
+
+                                                                                    item_name = p_item_info->second.category + item_name + stats + p_item_info->second.description;
+
+
+                                                                                    if (force_choice({ {0, "No"}, {1, "Yes"}, {-1, "[QUIT BARTER]"} }, "You are about to sell " + item_name + ". Item costs " + price_text + " gold, you have " + player_gold_text + " gold. " + special_confirmation_reason + "Confirm operation ? ", force_type::barter_vendor_confirm_sell_legendary))
                                                                                         sell_legendary_request_sent = true;
 
                                                                                     return;
@@ -3595,7 +3792,33 @@ namespace BarterProcessor {
                                                                                                 std::string player_gold_text = std::to_string(MiscThings::get_player_gold());
                                                                                                 std::string price_text = std::to_string(price);
 
-                                                                                                std::string item_name = p_item_info->second.name;
+                                                                                                std::string weight_text = "";
+                                                                                                if (p_item_info->second.weight != "")
+                                                                                                    weight_text = "Weight: " + p_item_info->second.weight;
+                                                                                                std::string damage_text = "";
+                                                                                                if (p_item_info->second.damage != "")
+                                                                                                    damage_text = ". Damage: " + p_item_info->second.damage;
+                                                                                                std::string armor_text = "";
+                                                                                                if (p_item_info->second.armor != "")
+                                                                                                    armor_text = ". Armor: " + p_item_info->second.armor;
+
+
+                                                                                                std::string stats = "";
+
+                                                                                                stats = weight_text + damage_text + armor_text;
+                                                                                                if (stats != "")
+                                                                                                    stats = " [" + stats + "]";
+
+
+                                                                                                if (p_item_info->second.category != "")
+                                                                                                    p_item_info->second.category += " ";
+
+                                                                                                if (p_item_info->second.description != "")
+                                                                                                    p_item_info->second.description = " - " + p_item_info->second.description;
+
+                                                                                                std::string item_name = p_item_info->second.category + p_item_info->second.name + stats + p_item_info->second.description;
+
+
 
                                                                                                 if (force_choice({ {0, "No"}, {1, "Yes"}, {-1, "[QUIT BARTER]"} }, "You are about to buy " + item_name + ". Item costs " + price_text + " gold, you have " + player_gold_text + " gold, confirm operation ? ", force_type::barter_vendor_confirm_slider_big_transaction))
                                                                                                     slider_big_transaction_request_sent = true;
@@ -4733,15 +4956,15 @@ if (const auto menu = ui->GetMenu<RE::BarterMenu>(); menu) {
 
                             //104712
 
-                            search_var = "ready to take";
+                            search_var = "Cures all diseases";
                             //search_var = "Skin Tone";
-                            //search_success = visit_all_members3(results, var1, &search_var, 0, "_root", search_var, skip_problematic);
+                            search_success = visit_all_members3(results, var1, &search_var, 0, "_root", search_var, skip_problematic);
                             if (search_success)
                             {
                                 auto test = var1.GetType();
                             }
 
-                            search_var = "Cultist";
+                            search_var = "Cures all diseases";
                             //search_success = visit_all_members3(results, var1, &search_var, 0, "_root", "Gary", skip_problematic);
                             if (search_success)
                             {

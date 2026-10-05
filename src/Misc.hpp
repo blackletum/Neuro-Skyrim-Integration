@@ -655,6 +655,12 @@ namespace MiscThings {
 
 
     bool is_fishing_supplies(RE::TESForm* form);
+    bool is_pickaxe(RE::TESForm* form);
+    bool is_fishing_rod(RE::TESForm* form);
+    int get_fishing_rod_amount();
+    int get_pickaxe_amount();
+
+
 
     RE::TESBoundObject* get_random_fishing_rod_from_inventory();
     bool has_fishing_rod_equipped();

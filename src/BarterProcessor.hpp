@@ -31,6 +31,7 @@ namespace BarterProcessor {
 
     bool has_junk();
 
+    RE::TESBoundObject* get_bound_object_from_list_by_id(int id);
 
     std::pair<bool, std::string> set_barter_type(int in_type);
 

@@ -5664,7 +5664,35 @@ namespace MiscThings {
     {
         if (form)
         {
-            return form->formID == 0x05000850 || form->formID == 0x0500084d || form->formID == 0x0500084e || form->formID == 0x0500084f;
+            switch (form->formID)
+            {
+            case (0x05000850):
+            case (0x0500084d):
+            case (0x0500084e):
+            case (0x0500084f):
+                return true;
+
+            }
+        }
+
+        return false;
+    }
+
+
+    bool is_pickaxe(RE::TESForm* form)
+    {
+        if (form)
+        {
+            switch (form->formID)
+            {
+            case (0x40398e6):
+            case (0x40179c9):
+            case (0x40206f2):
+            case (0x1019d4):
+            case (0x6a707):
+            case (0xe3c16):
+                return true;
+            }
         }
 
         return false;
@@ -5681,6 +5709,34 @@ namespace MiscThings {
         return false;
     }
 
+
+    int get_fishing_rod_amount()
+    {
+        int result = 0;
+        auto inventory = get_filtered_inventory();
+        for (auto& [item, data] : inventory)
+        {
+            if (item && MiscThings::is_fishing_rod(item))
+            {
+                result += data.first;
+            }
+        }
+        return result;
+    }
+
+    int get_pickaxe_amount()
+    {
+        int result = 0;
+        auto inventory = get_filtered_inventory();
+        for (auto& [item, data] : inventory)
+        {
+            if (item && MiscThings::is_pickaxe(item))
+            {
+                result += data.first;
+            }
+        }
+        return result;
+    }
 
 
     RE::TESBoundObject* get_random_fishing_rod_from_inventory()
@@ -26622,8 +26678,11 @@ namespace MiscThings {
                     if (MiscThings::is_unique_item(object))
                         continue;
 
+                    if (MiscThings::is_fishing_rod(object))
+                        continue;
 
-
+                    if (MiscThings::is_pickaxe(object))
+                        continue;
 
                     //all good. droppable, therefore sellable
                     int count = entry->second.first;
@@ -28975,21 +29034,33 @@ namespace MiscThings {
                     if (value > 500.0f)
                     {
                         do_force = true;
-
                         valuable_text = "It is valuable; ";
                     }
 
                     if (MiscThings::is_equipped(item))
                     {
                         do_force = true;
-                        std::string name = item->GetName();
                         equipped_text = "It is currently equipped; ";
                     }
 
                     if (MiscThings::is_unique_item(item))
                     {
+                        do_force = true;
                         unique_text = "It is a unique or legendary item; ";
                     }
+                    
+                    if (MiscThings::is_fishing_rod(item) && MiscThings::get_fishing_rod_amount() == 1)
+                    {
+                        do_force = true;
+                        unique_text = "It is your last fishing rod, you cannot fish without it; ";
+                    }
+
+                    if (MiscThings::is_pickaxe(item) && MiscThings::get_pickaxe_amount() == 1)
+                    {
+                        do_force = true;
+                        unique_text = "It is your last pickaxe, you cannot mine ores without it; ";
+                    }
+
 
                     if (valuable_text != "" || equipped_text != "" || unique_text != "")
                     {
