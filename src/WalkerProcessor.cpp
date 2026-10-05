@@ -11782,7 +11782,7 @@ namespace WalkerProcessor {
                                                                     fasttravel_advice_last_quest_target = last_quest_target;
 
                                                                     //advice
-                                                                    std::string advice = big_distance + " Closest fast-travel location: " + good_fasttravel_location + ". (You can use map to fast travel)";
+                                                                    std::string advice = big_distance + " Closest fast-travel location (may be not the actual location of quest, just nearest where you can fast-travel): " + good_fasttravel_location + ". (You can use map to fast travel)";
                                                                     add_delayed_message(advice);
                                                                 }
 

@@ -8115,15 +8115,20 @@ namespace MiscThings {
 
                                 auto teleport_worldspace = teleport.ref->GetWorldspace();
 
-                                if (teleport_worldspace == player_worldspace && !shortcut_used)
+                                //so for player we never use shortcut. teleport path is 100% valid entirely.
+                                //for markers - we need to start from LAST door that leads away from marker's parent worldspace.
+                                if (teleport_worldspace == player_worldspace && start->formID != 0x14) //this is made only for markers, because calculating distance for them still uses player's teleport path. so map markers should start calculating distance from their own worldspace
                                 {
-                                    shortcut_used = true;
                                     result = 0.0f;
                                     result += player_pos.GetDistance(teleport_pos);
                                     last_teleport_pos_end = teleport.teleportLocation;
                                 }
                                 else
                                 {
+                                    if (player_worldspace && teleport_worldspace && player_worldspace != teleport_worldspace)
+                                        result += 10000.0f; //penalty for worldspace jump
+
+
                                     if (last_teleport_pos_end == RE::NiPoint3::Zero())
                                     {
                                         result += player_pos.GetDistance(teleport_pos);
@@ -8391,9 +8396,6 @@ namespace MiscThings {
                                     quest_target_ref = quest_ref_handle.get().get();
 
 
-                            if (marker_name == "Fort Dawnguard")
-                                bool stop_here = false; //REMOVE THIS
-
                             //distance from quest to location
                             auto distance_quest_location = get_quest_target_distance(target, quest, real_marker, phantom_target);
 
@@ -8429,8 +8431,8 @@ namespace MiscThings {
             }
         }
 
-        //if distance from location to quest is less than 200m
-        if (min_distance <= 25000.0f && sublocation_name != "")
+        //if distance from location to quest is less than 450m
+        if (min_distance <= 45000.0f && sublocation_name != "")
         {
             return sublocation_name;
         }
@@ -13508,6 +13510,17 @@ namespace MiscThings {
             //0x4e4e1 meridia quest
             if (quest && quest->formID != 0x4e4e1)
                 return true;
+        }
+
+
+        if (quest && quest->formID == 0xd661c) //bring axe of ulfric to whiterun jarl CW03
+        {
+            auto peace_quest = (RE::TESQuest*)RE::TESForm::LookupByID(0x45923); //peace council quest, MQ302. whiterun jarl will NOT talk about axe and wont accept it when its active
+            if (peace_quest)
+            {
+                if ((peace_quest->data.flags.all(RE::QuestFlag::kDisplayedInHUD) || peace_quest->data.flags.all(RE::QuestFlag::kEnabled)) && !peace_quest->data.flags.all(RE::QuestFlag::kCompleted))
+                    return true;
+            }
         }
 
 
