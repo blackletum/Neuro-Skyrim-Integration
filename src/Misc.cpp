@@ -19064,6 +19064,10 @@ namespace MiscThings {
             return "[Half-moon]" + filled;
         }
             
+        case (0x1a2d2): //twilight sepulcher ghosts
+        case (0x5ba48):
+        case (0x5ba69):
+        case (0x5bbfd):
 
         //labyrinthian ghosts
         case (0xbbdbf):

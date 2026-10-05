@@ -6070,8 +6070,8 @@ namespace WalkerProcessor {
         auto parent_cell = player->GetParentCell();
 
         bool blackreach_mode = false;
-                                                                                                //avanchenzel with fucked pathfinding
-        if (player_worldspace == blackreach_worldspace || (parent_cell && parent_cell->formID == 0x4c6dd))
+                                                                                                //avanchenzel with fucked pathfinding       //twilight sepulcher garbage navmesh at the start
+        if (player_worldspace == blackreach_worldspace || (parent_cell && parent_cell->formID == 0x4c6dd) || (parent_cell && parent_cell->formID == 0x5b91b && player_pos.y > 3500.0f))
             blackreach_mode = true; //navmesh in blackreach is very bad. clips through the floor. looks like they changed terrain without remaking navmesh
 
         float swimming_bonus = 0.0f;
