@@ -16758,9 +16758,9 @@ namespace WalkerProcessor {
                 }
 
 
-
-
-                bool became_neutral_condition = was_enemy_from_start && !MiscThings::is_enemy_to_actor(target_ref) && !(target_ref->IsActor() && target_ref->IsDead());
+                
+                auto combat_condition = !(target_ref->IsActor() && ((RE::Actor*)target_ref)->combatController && (((RE::Actor*)target_ref)->combatController->startedCombat || ((RE::Actor*)target_ref)->combatController->IsFleeing())); //became neutral and stopped combat
+                bool became_neutral_condition = combat_condition && was_enemy_from_start && !MiscThings::is_enemy_to_actor(target_ref) && !(target_ref->IsActor() && target_ref->IsDead());
 
                 if (became_neutral_condition)
                 {

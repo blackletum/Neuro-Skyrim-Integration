@@ -27,6 +27,7 @@ namespace Observer {
 	int old_da04_septimus_scene_phase = 0;
 	int old_mq206_alduin_scene_phase1 = 0;
 	int old_mq206_alduin_scene_phase2 = 0;
+	int old_tg05sp_scene_phase = 0;
 
 	int old_mq301_scene_phase = 0;
 	int old_mq306_scene_phase = 0;
@@ -3045,7 +3046,17 @@ namespace Observer {
 									{
 										if (!WalkerProcessor::is_fighting() && !WalkerProcessor::is_walking_important_path() && !Observer::threat_response_choice_pending())
 										{
-
+											if (a_ref->formID == 0x70b85) //snow veil wall, can become annoying in cutscene if not taken
+											{
+												auto control_map = RE::ControlMap::GetSingleton();
+												bool can_walk = control_map ? control_map->enabledControls.any(RE::UserEvents::USER_EVENT_FLAG::kMovement) : false;
+												if (!can_walk)
+												{
+													raw_object_list.pop_back();
+													continue;
+												}
+											}
+											
 											if (a_ref->formID == 0x402aa34) //vahlok tomb word of power 1
 											{
 												auto vahlok_quest = (RE::TESQuest*)RE::TESForm::LookupByID(0x4019b4a);
@@ -7436,6 +7447,19 @@ namespace Observer {
 
 					}
 
+					if (parent_cell && parent_cell->formID == 0x25e24) //karliah mercer snow veil scene
+					{
+						auto scene = (RE::BGSScene*)RE::TESForm::LookupByID(0x32e64);
+						if (scene)
+						{
+							auto phase = scene->unkBC;
+							old_tg05sp_scene_phase = phase;
+						}
+
+					}
+
+
+
 					auto mq206_alduin_scene1 = (RE::BGSScene*)RE::TESForm::LookupByID(0x44241);
 					auto mq206_alduin_scene2 = (RE::BGSScene*)RE::TESForm::LookupByID(0x4496d);
 
@@ -7936,7 +7960,7 @@ namespace Observer {
 
 					if (old_tg05_quest_stage < 50 && current_stage == 50)
 					{
-						send_random_context("[You are paralyzed!]", true);
+						send_random_context("[An arrow hits you! You are paralyzed, it was poisoned...]", false);
 						WalkerProcessor::reset_walker();
 					}
 
@@ -8459,6 +8483,27 @@ namespace Observer {
 				}
 
 
+
+				//tg05sp karliah mercer snow veil scene
+				if (parent_cell && parent_cell->formID == 0x25e24)
+				{
+					auto scene = (RE::BGSScene*)RE::TESForm::LookupByID(0x32e64);
+					if (scene)
+					{
+						auto phase = scene->unkBC;
+
+						if (old_tg05sp_scene_phase != phase)
+						{
+							if (phase == 1)
+								send_random_context("[Karliah used invisibility potion and escaped... Mercer approaches you. You are still paralyzed...]", false);
+							if (phase == 3)
+								send_random_context("[Mercer stabbed you with his sword! You lose conciousness...]", false);
+						}
+
+						old_tg05sp_scene_phase = phase;
+					}
+
+				}
 				
 
 				//da04 hermaeus mora book quest, septimus events.

@@ -26859,7 +26859,7 @@ namespace MiscThings {
 
 
         float player_onehanded_skill = player->GetBaseActorValue(RE::ActorValue::kOneHanded);
-        float player_twohanded_skill = player->GetBaseActorValue(RE::ActorValue::kTwoHanded);
+        float player_twohanded_skill = player->GetBaseActorValue(RE::ActorValue::kTwoHanded) / 2.0f;
         float player_bow_skill = player->GetBaseActorValue(RE::ActorValue::kArchery) / 3.0f;
 
         float sum = player_onehanded_skill + player_twohanded_skill + player_bow_skill;
@@ -27284,8 +27284,16 @@ namespace MiscThings {
 
                         float new_weapon_damage = new_weapon->GetAttackDamage();
 
+                        if (MiscThings::is_unique_item(new_weapon))
+                            new_weapon_damage *= 1.1f;
+
+                        auto speed = new_weapon->GetSpeed();
+                        if (speed > 0.0f)
+                            new_weapon_damage *= speed;
+
                         if (new_weapon->IsTwoHandedAxe() || new_weapon->IsTwoHandedSword() || new_weapon->IsBow() || new_weapon->IsCrossbow())
                             new_weapon_damage /= 2.0f;
+
 
 
                         float current_weapon_damage = 0.0f;
@@ -27313,6 +27321,13 @@ namespace MiscThings {
                             if (current_weapon->IsWeapon())
                             {
                                 current_weapon_damage = current_weapon->GetAttackDamage();
+
+                                if (MiscThings::is_unique_item(current_weapon))
+                                    current_weapon_damage *= 1.1f;
+
+                                auto speed = current_weapon->GetSpeed();
+                                if (speed > 0.0f)
+                                    current_weapon_damage *= speed;
 
                                 if (current_weapon->IsTwoHandedAxe() || current_weapon->IsTwoHandedSword() || current_weapon->IsBow() || current_weapon->IsCrossbow())
                                     current_weapon_damage /= 2.0f;

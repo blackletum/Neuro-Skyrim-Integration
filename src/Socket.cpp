@@ -1291,7 +1291,14 @@ bool neuro::NeuroSocket::Tick(float dtime) //const neurosdk_message_action_t& aC
 
         send_random_context(get_random_poke_phrase(), false);// . " + advice + "]", false);
 
-        time_threshold = (float)std::rand() / RAND_MAX * 4 + 6;
+        float bonus_threshold = 0.0f;
+
+        auto control_map = RE::ControlMap::GetSingleton();
+        bool can_walk = control_map ? control_map->enabledControls.any(RE::UserEvents::USER_EVENT_FLAG::kMovement) : false;
+        if (!can_walk)
+            bonus_threshold = 6.0f;
+
+        time_threshold = (float)std::rand() / RAND_MAX * 4 + 6 + bonus_threshold;
     }
 
 
