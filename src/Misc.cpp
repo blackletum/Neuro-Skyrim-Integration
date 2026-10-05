@@ -21714,7 +21714,7 @@ namespace MiscThings {
         {
             //<Alias=RiverwoodFriend>
             
-            auto alias_end = displaytext.find(">");
+            auto alias_end = displaytext.find(">", alias_start);
             if (alias_start < alias_end)
             {
                 std::string alias_name = displaytext.substr(alias_start + shift, alias_end - alias_start - shift);

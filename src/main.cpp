@@ -68,8 +68,12 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////DO ALL THIS
 
+//check again and hide bring-axe-to-whiterun-jarl from ulfric quest if its actually incompletable while peace council quest is active
 //try to improve fast travel advice (should trigger from bigger distance)
 //fishing rod and pickaxe, advice to keep it
+//test shalidor righting quest
+//mechanic to drag body for dark brotherhood quest
+//test thieves guild quest
 
 
 //COMBAT
