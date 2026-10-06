@@ -9,7 +9,7 @@
 // QUESTLINES
 
 //TODO polish thief guild (no info in the well of nocturnal sanctum, maybe fix goldenglow pathfinding)
-//TODO polish dark brotherhood (test alternative paths (kill astrid right away, dont kill captain when caught killing fake emperor, accept emperors offer to kill the client)
+//TODO polish dark brotherhood (test alternative paths (kill astrid right away, dont kill captain when caught killing fake emperor)
 //TODO polish civil war (ambush quest sometimes the soldier cannot hit the enemy)
 //TODO polish companions (maybe add jorwaskr as an interesting place to whiterun; test more locations for silverhands)
 
@@ -1880,6 +1880,24 @@ namespace Hooks {
                             case (0x401c155): //apocrypha book1 zone (7?)
                             {
                                 WalkerProcessor::reset_walker(); //nchardak. redirects break because there are too many of them and they must trigger right away (pedestals give weird info)
+                                break;
+                            }
+
+
+                            case (0x193ee): //dawnstar dark brotherhood base, backup navcut removal if story is ended
+                            {
+                                auto db10_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("DB11");
+                                if (db10_quest && db10_quest->currentStage >= 20)
+                                {
+                                    auto navcut1 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x702f7ec);
+                                    auto navcut2 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x702f7ed);
+
+                                    if (navcut1 && !navcut1->IsDisabled())
+                                        navcut1->Disable();
+
+                                    if (navcut2 && !navcut2->IsDisabled())
+                                        navcut2->Disable();
+                                }
                                 break;
                             }
 
