@@ -1534,9 +1534,9 @@ namespace MiscThings {
 
 
                                     
+                                    
 
-
-                                    auto raycast_ref = MiscThings::GetRaycastRef(projectile_pos, projectile_fly_vector, 3000.0f, nullptr, MiscThings::get_player_projectile_filter());
+                                    auto raycast_ref = MiscThings::GetRaycastRef(projectile_pos, projectile_fly_vector, 3000.0f, nullptr, 0b00001000000000000000000000000110);
 
                                     //DebugAPI_IMPL::DebugAPI::GetSingleton()->LinesToDraw.clear();
                                     //DebugAPI_IMPL::DrawDebug::draw_line(projectile_pos, projectile_pos + projectile_fly_vector * 500.0f);
@@ -1634,7 +1634,7 @@ namespace MiscThings {
 
                                         for (auto subpos : subpos_vectors)
                                         {
-                                            if (MiscThings::GetRaycastRef(subpos, projectile_fly_vector, 3000.0f, nullptr, MiscThings::get_player_projectile_filter()) == player)
+                                            if (MiscThings::GetRaycastRef(subpos, projectile_fly_vector, 3000.0f, nullptr, 0b00001000000000000000000000000110) == player)
                                             {
                                                 result.direction = projectile_fly_vector;
                                                 if (extra_dangerous)

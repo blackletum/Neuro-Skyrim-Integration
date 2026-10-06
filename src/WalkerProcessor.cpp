@@ -15186,9 +15186,11 @@ namespace WalkerProcessor {
                 float choose_next_action = (float)std::rand() / RAND_MAX;
                 float chance = 0.2f; //chance of doing left hand next
 
-
                 if ((dualhanding_two_weapons || MiscThings::is_werewolf()))
                     chance = 0.49f;
+
+                if (left_is_block())
+                    chance = 0.0f;
 
                 if (staff_of_magnus_in_left)
                     chance = 0.03;

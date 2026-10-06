@@ -1773,19 +1773,19 @@ namespace Observer {
 
 		if (any_attacker_sees_player)
 		{
-			threat_options.push_back({ 1, "Fight back" });
+			threat_options.push_back({ 1, "Fight back, getting close (more agressive)" });
 			if (has_ward && MiscThings::is_dragon(attacker))
-				threat_options.push_back({ 3, "Fight back, and try to block dragonbreath using ward spell" });
+				threat_options.push_back({ 3, "Fight back, and try to block dragonbreath using ward spell (more defensive)" });
 			else
-				threat_options.push_back({ 2, "Fight back, and try to keep distance from enemies" });
+				threat_options.push_back({ 2, "Fight back, and try to keep distance from enemies (more defensive)" });
 		}
 		else
 		{
-			threat_options.push_back({ 1, "Attack them" });
+			threat_options.push_back({ 1, "Attack them, getting close (more agressive)" });
 			if (has_ward && MiscThings::is_dragon(attacker))
-				threat_options.push_back({ 3, "Attack them, and try to block dragonbreath using ward spell" });
+				threat_options.push_back({ 3, "Attack them, and try to block dragonbreath using ward spell (more defensive)" });
 			else
-				threat_options.push_back({ 2, "Attack them, and try to keep distance" });
+				threat_options.push_back({ 2, "Attack them, and try to keep distance (more defensive)" });
 		}
 			
 
