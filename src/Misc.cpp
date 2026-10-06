@@ -9706,6 +9706,27 @@ namespace MiscThings {
             }
         }
 
+
+        if (quest && quest->formID == 0x1ea58) //db09
+        {
+            if (quest->currentStage == 40)//potentially bugged stage
+            {
+                if (target && target->formID == 0x4bcc4) //gianna
+                {
+                    auto redirect = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1e4e2); //locked door
+                    if (redirect) return redirect;
+                }
+            }
+
+            if (quest->currentStage == 60) //outside. cant walk properly need to go to marker to trigger scene
+            {
+                if (player_worldspace && player_worldspace->GetFormID() == 0x37edf) //solitude
+                {
+                    auto redirect = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x10fddb); //locked door
+                    if (redirect) return redirect;
+                }
+            }
+        }
         
         if (target)
         {

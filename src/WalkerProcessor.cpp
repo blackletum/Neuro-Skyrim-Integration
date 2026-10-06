@@ -1552,10 +1552,17 @@ namespace WalkerProcessor {
     {
         auto player = RE::PlayerCharacter::GetSingleton();
         auto player_pos = player->GetPosition();
+        auto player_worldspace = player->GetWorldspace();
 
-        RE::NiPoint3 solitude_prison_exit_point = { -64012.2695, 106968.758, -8161.62207 };
+        if (player_worldspace && player_worldspace->GetFormID() == 0x37edf)
+        {
+            RE::NiPoint3 solitude_prison_exit_point = { -64012.2695, 106968.758, -8161.62207 };
 
-        return (player_pos - solitude_prison_exit_point).Length() < 250.0f;
+            return (player_pos - solitude_prison_exit_point).Length() < 250.0f;
+        }
+        else
+            return false;
+
     }
 
 
