@@ -19479,10 +19479,10 @@ namespace WalkerProcessor {
 
             dont_replace_with_shout |= inanimate || target_is_dead;
 
-            //if (!dont_replace_with_shout && MiscThings::is_offensive_spell(spell))
-            return walk_to_object_by_index(MiscThings::get_object_by_refr(target), 3, dont_replace_with_shout);
-            //else
-            //    return walk_to_object_by_refr(target, 3);
+            if (MiscThings::is_offensive_spell(spell))
+                return walk_to_object_by_index(MiscThings::get_object_by_refr(target), 3, dont_replace_with_shout);
+            else
+                return walk_to_object_by_refr(target, 3, false, "", false);
 
                 //walk_to_object_by_refr(target, 3);
         }
