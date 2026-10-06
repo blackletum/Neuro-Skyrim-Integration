@@ -13804,25 +13804,6 @@ namespace MiscThings {
             }
         }
 
-        /*
-        if (sovngarde_quest3)
-        {
-            auto stage = sovngarde_quest3->GetCurrentStageID();
-
-            if (stage > 0 && stage < 60)
-            {
-                if (quest != sovngarde_quest3)
-                    return true;
-            }
-        }
-        */
-
-
-        auto drag_orc_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("DB08");
-
-        if (quest == drag_orc_quest && objective && objective->index == 15)
-            return true; //dragging corpses to hidden places is wip
-
 
         return false;
     }
@@ -19814,7 +19795,7 @@ namespace MiscThings {
                         //OBJECTIVES MIDDLE
 
 
-                        for (int i = 0; i < 20; i++)
+                        for (int i = 0; i < 60; i++)
                         {
                             std::string path = "_root.HUDMovieBaseInstance.QuestUpdateBaseInstance.objective" + std::to_string(i) + ".ObjectiveTextFieldInstance.TextFieldInstance.text";
                             if (menu->uiMovie->GetVariable(&var1, path.c_str()))

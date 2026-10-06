@@ -467,6 +467,7 @@ namespace Observer {
 			}
 
 			case 7:
+			case 13:
 			{
 				min_range = 1;
 				max_range = 2;
@@ -1514,7 +1515,82 @@ namespace Observer {
 			}
 
 
+			case 13:
+			{
+				if (!puzzle_request_was_sent)
+				{
+					std::vector<MenuOption> options{};
+					options.push_back({ 1, "Loot Balagog" });
+					options.push_back({ 2, "Drag Balagog's body to hide it" });
 
+					auto player = RE::PlayerCharacter::GetSingleton();
+
+					unregister_all_actions(); //no pause - unregister here
+
+					if (force_choice(options, "What do you want to do with Balagog's body?", force_type::timed_quest_puzzle))
+					{
+						puzzle_request_was_sent = true;
+					}
+				}
+				else
+				{
+					if (puzzle_choice_valid)
+					{
+
+						register_allowed_actions();
+
+						pause_puzzle_scan_time = 5.0f;
+
+						switch (puzzle_choice)
+						{
+
+						case 1:
+						{
+							register_allowed_actions();
+
+							if (puzzle_target)
+							{
+								WalkerProcessor::walk_to_object_by_refr(puzzle_target, 1);
+							}
+
+							pause_puzzle_scan_time = 10.0f;
+							reset_quest_puzzles();
+							break;
+						}
+						case 2:
+						{
+							register_allowed_actions();
+
+							auto drop_marker = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x5a86a);
+
+							if (puzzle_target && drop_marker)
+							{
+								WalkerProcessor::drop_some_item_onto_position(drop_marker->GetPosition(), drop_marker, puzzle_target);
+							}
+							else
+							{
+								send_random_context("Error! Target lost!");
+							}
+
+							pause_puzzle_scan_time = 10.0f;
+							reset_quest_puzzles();
+							break;
+						}
+
+						default:
+						{
+							register_allowed_actions();
+
+							reset_quest_puzzles();
+							break;
+						}
+						}
+					}
+				}
+
+
+				break;
+			}
 
 
 			default:

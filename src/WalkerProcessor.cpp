@@ -17621,6 +17621,30 @@ namespace WalkerProcessor {
                                         break;
                                     }
 
+                                    case (0x38c6f): //orc for dark brotherhood (balagog), carry body to hiding place. only if dead. only if quest phase allows it
+                                    {
+                                        auto drag_orc_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("DB08");
+
+                                        if (drag_orc_quest && drag_orc_quest->currentStage == 30)
+                                        {
+                                            auto objective = MiscThings::get_quest_objective_by_index(drag_orc_quest, 15);
+                                            if (objective)
+                                                if (objective->state.all(RE::QUEST_OBJECTIVE_STATE::kDisplayed) && !objective->state.all(RE::QUEST_OBJECTIVE_STATE::kCompletedDisplayed) && !objective->state.all(RE::QUEST_OBJECTIVE_STATE::kFailedDisplayed))
+                                                {
+                                                    //objective is up
+                                                    if (!Observer::is_puzzle_scanner_paused())
+                                                    {
+                                                        auto body_to_drag = target_ref;
+                                                        reset_walker();
+                                                        reset_backup_pickup();
+                                                        Observer::set_quest_puzzle_type(13); //hide orc's body for dark brotherhood
+                                                        Observer::set_puzzle_target(body_to_drag);
+                                                        return true;
+                                                    }
+                                                }
+                                        }
+                                    }
+
                                     case (0x401adc9): //small keyhole gate in middle room before blue platform puzzzle
                                     {
 
