@@ -19025,7 +19025,7 @@ namespace MiscThings {
 
             return "[Crescent]" + filled;
         }
-            
+
         case (0x20116c9):
         {
             object_p = General::Script::GetObject(object, "DLC1VCMoondialTileScript");
@@ -19065,13 +19065,28 @@ namespace MiscThings {
 
             return "[Half-moon]" + filled;
         }
-            
+
+            //dawnstar dark brotherhood ghosts
+        case (0xe98a4):
+        case (0xe98a5):
+        case (0xe98a9):
+        case (0xe98aa):
+        case (0xe98ac):
+        case (0xe98ad):
+        case (0xe98b1):
+        case (0xe98b2):
+        case (0xe98b3):
+        case (0xe98b4):
+        case (0xe98b5):
+        case (0xe98b6):
+
+
         case (0x1a2d2): //twilight sepulcher ghosts
         case (0x5ba48):
         case (0x5ba69):
         case (0x5bbfd):
 
-        //labyrinthian ghosts
+            //labyrinthian ghosts
         case (0xbbdbf):
         case (0xbbdc1):
         case (0xbbdc0):
@@ -19079,14 +19094,14 @@ namespace MiscThings {
         case (0xbbdc3):
         case (0xd07dc):
 
-        //dlc1 shrine ghosts
+            //dlc1 shrine ghosts
         case (0x200a8bf):
         case (0x200a8af):
         case (0x200a8bb):
         case (0x2002b48):
         case (0x200a8b8):
 
-        //avanchenzel orange ghosts
+            //avanchenzel orange ghosts
         case (0x2ba33):
         case (0x56555):
         case (0x2ba30):
@@ -19094,7 +19109,7 @@ namespace MiscThings {
             return "[Ghost]";
 
 
-        //saartal puzzle pillar 2 pillars
+            //saartal puzzle pillar 2 pillars
         case (0x725b9):
             return "First";
         case (0x725b8):
