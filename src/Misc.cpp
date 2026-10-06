@@ -35396,6 +35396,10 @@ namespace MiscThings {
 
                 if (spell->GetFormType() == RE::FormType::Spell || spell->GetFormType() == RE::FormType::Scroll)
                 {
+                    if (spell->IsHostile())
+                        return true;
+
+
                     if (spell->GetSpellType() != RE::MagicSystem::SpellType::kEnchantment)
                     {
                         auto slot_both_hands = RE::TESForm::LookupByID(0x00013F45);

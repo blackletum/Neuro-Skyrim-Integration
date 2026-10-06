@@ -9565,7 +9565,7 @@ namespace WalkerProcessor {
 
 
 
-    std::pair<bool, std::string> walk_to_object_by_index(int index, int interaction)
+    std::pair<bool, std::string> walk_to_object_by_index(int index, int interaction, bool dont_replace_with_shout)
     {
 
         std::pair<bool, std::string> result{};
@@ -9818,7 +9818,7 @@ namespace WalkerProcessor {
 
                         if (interaction_after_walk == 3)
                         {
-                            if (!MiscThings::player_brawling() && MiscThings::get_shout_cooldown() <= 0.0f && !MiscThings::in_madman_head() && target_ref->IsActor() && !target_ref->IsDead())
+                            if (!dont_replace_with_shout && !MiscThings::player_brawling() && MiscThings::get_shout_cooldown() <= 0.0f && !MiscThings::in_madman_head() && target_ref->IsActor() && !target_ref->IsDead())
                                 MiscThings::use_random_offensive_shout(target_ref);
 
                             result.first = true;
@@ -19479,10 +19479,10 @@ namespace WalkerProcessor {
 
             dont_replace_with_shout |= inanimate || target_is_dead;
 
-            if (!dont_replace_with_shout && MiscThings::is_offensive_spell(spell))
-                return walk_to_object_by_index(MiscThings::get_object_by_refr(target), 3);
-            else
-                return walk_to_object_by_refr(target, 3);
+            //if (!dont_replace_with_shout && MiscThings::is_offensive_spell(spell))
+            return walk_to_object_by_index(MiscThings::get_object_by_refr(target), 3, dont_replace_with_shout);
+            //else
+            //    return walk_to_object_by_refr(target, 3);
 
                 //walk_to_object_by_refr(target, 3);
         }
@@ -21227,7 +21227,7 @@ namespace WalkerProcessor {
 
                                 attack_friend_confirmed = true;
 
-                                auto for_context = walk_to_object_by_index(attack_friend_id, attack_friend_interaction);
+                                auto for_context = walk_to_object_by_index(attack_friend_id, attack_friend_interaction, true);
 
                                 trying_to_attack_friend = false;
                                 attack_friend_request_sent = false;

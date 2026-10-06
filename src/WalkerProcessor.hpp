@@ -90,7 +90,7 @@ namespace WalkerProcessor {
 
 	std::pair<bool, std::string> walk_to_object_by_refr(RE::TESObjectREFR* target, int action, bool surrender_to_guards_mode = false, std::string custom_name = "", bool inc_barter_history_upon_arrival = false);
 
-	std::pair<bool, std::string> walk_to_object_by_index(int index, int interaction);
+	std::pair<bool, std::string> walk_to_object_by_index(int index, int interaction, bool dont_replace_with_shout = false);
 	std::pair<bool, std::string> walk_to_quest_by_index(int index, bool ignore_specified_target, bool skip_confirm = true, bool from_map = false);
 	std::pair<bool, std::string> look_at_object_by_index(int index);
 
