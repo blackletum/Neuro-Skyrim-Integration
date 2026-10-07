@@ -22022,6 +22022,64 @@ namespace WalkerProcessor {
                 if (target_ref && target_ref->formID == 0x70c1a25) //dummy from apocrypha. reused in other dungeons
                 {
 
+                    if (parent_cell && parent_cell->formID == 0x40142f4) //black book 5 (nelot's house)
+                    {
+                        if (target_ref->GetPosition().GetDistance({ 15650.4766, 1119.19653, 794.739136 }) < 100.0f)
+                        {
+                            //choose book in the end of book5 zone3
+                            if (player->GetDistance(target_ref) < 150.0f)
+                            {
+                                auto book1 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4020413);
+                                auto book2 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x401e6d1);
+
+                                if (book1 && book2)
+                                {
+                                    auto info1 = MiscThings::insert_object_into_list_and_get_info(book1);
+                                    auto info2 = MiscThings::insert_object_into_list_and_get_info(book2);
+
+                                    send_random_context("You see two book-portals in front of you... you have to choose one: " + info1 + "; " + info2, false);
+                                    reset_walker();
+                                    return;
+                                }
+                            }
+                        }
+
+                        if (target_ref->GetPosition().GetDistance({ 10258.9717, -3648.93262, 42.3474922 }) < 100.0f)
+                        {
+                            //choose book in the end of book5 zone5
+                            if (player->GetDistance(target_ref) < 150.0f)
+                            {
+                                auto book1 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4020471);
+                                auto book2 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x402046f);
+
+                                if (book1 && book2)
+                                {
+                                    auto info1 = MiscThings::insert_object_into_list_and_get_info(book1);
+                                    auto info2 = MiscThings::insert_object_into_list_and_get_info(book2);
+
+                                    send_random_context("You see two book-portals in front of you... you have to choose one: " + info1 + "; " + info2, false);
+                                    reset_walker();
+                                    return;
+                                }
+                            }
+                        }
+
+                        if (target_ref->GetPosition().GetDistance({ 10802.1963, -5726.51465, 172.429199 }) < 100.0f)
+                        {
+                            //choose book in the end of book5 zone7
+                            if (player->GetDistance(target_ref) < 150.0f)
+                            {
+                                send_random_context("You stand in front of pit, with an Apocrypha Bridge over it, but the bridge is currently rolled up, and you cannot walk on it... You dont see any activators nearby, probably need to go back", false);
+                                Apocrypha::set_book5_bridge_known();
+                                reset_walker();
+                                return;
+                            }
+                        }
+
+
+                    }
+
+
                     if (parent_cell && parent_cell->formID == 0x40142ef) //vahlok tomb dlc2 lost legacy quest floating platforms
                     {
                         auto target_ref_pos = target_ref->GetPosition();

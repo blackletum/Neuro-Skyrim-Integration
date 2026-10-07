@@ -43,7 +43,7 @@ namespace Apocrypha {
 
 	bool inside_book1_bossfight(RE::TESObjectREFR* object);
 
-
+	void set_book5_bridge_known();
 }
 
 

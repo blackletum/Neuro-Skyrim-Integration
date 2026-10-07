@@ -5348,7 +5348,13 @@ namespace Observer {
 																std::string name = MiscThings::insert_object_into_list_and_get_info(a_ref);
 
 																if (activation == 0)
-																	detect_events_result.push_back("[ " + name + " closed]");
+																{
+																	if (a_ref->formID == 0x4032778)
+																		detect_events_result.push_back("[ " + name + " closed... an Apocrypha Bridge unrolled in the distance]");
+																	else
+																		detect_events_result.push_back("[ " + name + " closed]");
+																}
+																	
 
 																if (activation == 1)
 																	detect_events_result.push_back("[ " + name + " opened]");

@@ -16652,6 +16652,42 @@ namespace MiscThings {
             switch (object->formID)
             {
 
+            case (0x4032731): //book5 zone3 gates2
+            {
+                auto handle = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4032746); //scrye
+
+                if (handle)
+                {
+                    if (!MiscThings::is_object_in_the_list(handle))
+                    {
+                        auto temp_result = MiscThings::insert_object_into_list_and_get_info(handle);
+                        if (temp_result != "")
+                            send_random_context("You see: " + temp_result, false);
+                    }
+                }
+                break;
+            }
+
+
+            case (0x4032730): //book5 zone3 gates1
+            {
+                auto handle = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x403273b); //scrye
+
+                if (handle)
+                {
+                    if (!MiscThings::is_object_in_the_list(handle))
+                    {
+                        auto temp_result = MiscThings::insert_object_into_list_and_get_info(handle);
+                        if (temp_result != "")
+                            send_random_context("You see: " + temp_result, false);
+                    }
+                }
+                break;
+            }
+
+
+
+
             case (0x4037253):
             {
                 auto handle = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x403cf40); //scrye
@@ -25798,6 +25834,23 @@ namespace MiscThings {
             case (0x20116c9):
             case (0x20116ca):
                 name = "Crest slot";
+                break;
+
+            case (0x4020413): //black book5 zone3 end choose 2 books
+                name = "Chapter 5";
+                break;
+
+            case (0x401e6d1): //black book5 zone3 end choose 2 books
+                name = "Chapter 6";
+                break;
+
+            case (0x4020471): //black book5 zone3 end choose 2 books
+                name = "Chapter 8";
+                break;
+
+            case (0x402046f): //black book5 zone3 end choose 2 books
+                name = "Chapter 7";
+                break;
             }
 
 

@@ -11,6 +11,15 @@ namespace Apocrypha {
     bool pass_direction_check = false;
 
 
+    bool book5_knows_about_final_bridge = false;
+
+    void set_book5_bridge_known()
+    {
+        book5_knows_about_final_bridge = true;
+    }
+
+
+
     bool in_apocrypha(RE::TESObjectREFR* object)
     {
 
@@ -1038,6 +1047,91 @@ namespace Apocrypha {
 
         return false;
     }
+
+
+    bool inside_book5_zone3(RE::NiPoint3 point)
+    {
+        RE::NiPoint2 a = { 7514.24316, -1451.09692 };
+        RE::NiPoint2 b = { 7514.24316, 8898.98730 };
+        RE::NiPoint2 c = { 16323.8818, 8898.98730 };
+        RE::NiPoint2 d = { 16323.8818, -1451.09692 };
+
+        RE::NiPoint2 p = { point.x, point.y };
+        if (MiscThings::is_inside_of_rectangle(p, a, b, c, d))
+            return true;
+        return false;
+    }
+
+    bool inside_book5_zone4(RE::NiPoint3 point)
+    {
+        RE::NiPoint2 a = { -10788.0635, -12368.5088 };
+        RE::NiPoint2 b = { -10788.0635, -7942.53418 };
+        RE::NiPoint2 c = { -6293.90674, -7942.53418 };
+        RE::NiPoint2 d = { -6293.90674, -12368.5088 };
+
+        RE::NiPoint2 p = { point.x, point.y };
+        if (MiscThings::is_inside_of_rectangle(p, a, b, c, d))
+            return true;
+        return false;
+    }
+
+    bool inside_book5_zone4b(RE::NiPoint3 point)
+    {
+        RE::NiPoint2 a = { -8439.20020, -10075.1162 };
+        RE::NiPoint2 b = { -7521.79902, -10485.53017 };
+        RE::NiPoint2 c = { -7029.92773, -9386.04688 };
+        RE::NiPoint2 d = { -7947.32891, -8975.63291 };
+
+        RE::NiPoint2 p = { point.x, point.y };
+        if (MiscThings::is_inside_of_rectangle(p, a, b, c, d))
+            return true;
+        return false;
+    }
+
+    bool inside_book5_zone5(RE::NiPoint3 point)
+    {
+        RE::NiPoint2 a = { 9564.45410, -4296.88770 };
+        RE::NiPoint2 b = { 9564.45410, -1396.34570 };
+        RE::NiPoint2 c = { 13509.7510, -1396.34570 };
+        RE::NiPoint2 d = { 13509.7510, -4296.88770 };
+
+        RE::NiPoint2 p = { point.x, point.y };
+        if (MiscThings::is_inside_of_rectangle(p, a, b, c, d))
+            return true;
+        return false;
+    }
+
+
+
+
+
+    bool inside_book5_zone6(RE::NiPoint3 point)
+    {
+        RE::NiPoint2 a = { 6578.16992, -10994.7139 };
+        RE::NiPoint2 b = { 6578.16992, -13596.1025 };
+        RE::NiPoint2 c = { 9258.54688, -13596.1025 };
+        RE::NiPoint2 d = { 9258.54688, -10994.7139 };
+
+        RE::NiPoint2 p = { point.x, point.y };
+        if (MiscThings::is_inside_of_rectangle(p, a, b, c, d))
+            return true;
+        return false;
+    }
+
+    bool inside_book5_zone7(RE::NiPoint3 point)
+    {
+        RE::NiPoint2 a = { 12748.3799, -4188.21094 };
+        RE::NiPoint2 b = { 12748.3799, -8293.18750 };
+        RE::NiPoint2 c = { 3551.59033, -8293.18750 };
+        RE::NiPoint2 d = { 3551.59033, -4188.21094 };
+
+        RE::NiPoint2 p = { point.x, point.y };
+        if (MiscThings::is_inside_of_rectangle(p, a, b, c, d))
+            return true;
+        return false;
+    }
+
+
 
 
 
@@ -3533,6 +3627,358 @@ namespace Apocrypha {
     }
 
 
+
+    apocrypha_result book5_zone7(RE::TESObjectREFR* target, int current_action, int current_apocrypha_id)
+    {
+        apocrypha_result result{};
+
+        auto player = RE::PlayerCharacter::GetSingleton();
+        auto player_pos = player->GetPosition();
+
+        auto dummy = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x70c1a25);
+
+        if (!target || !dummy)
+            return result;
+
+        auto target_pos = target->GetPosition();
+
+        auto book_back = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4020451);
+        auto bridge_zone_7 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x403277c);
+        auto book_final = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4017f7b);
+
+
+        if (!book_back || !bridge_zone_7 || !book_final)
+            return result;
+
+        if (inside_book5_zone7(player_pos) && !inside_book5_zone7(target_pos))
+        {
+            result.action = 1;
+            result.dont_save_interaction = false;
+            result.dont_save_target = false;
+            result.target = book_back;
+            result.interaction = 1;
+            return result;
+        }
+        else
+        {
+            if (target == book_final)
+            {
+                if (MiscThings::two_state_activator_state(bridge_zone_7) == 1)
+                {
+                    if (book5_knows_about_final_bridge)
+                    {
+                        result.action = 1;
+                        result.dont_save_interaction = false;
+                        result.dont_save_target = false;
+                        result.target = book_back;
+                        result.interaction = 1;
+                        return result;
+                    }
+                    else
+                    {
+                        result.action = 1;
+                        result.dont_save_interaction = false;
+                        result.dont_save_target = false;
+                        RE::NiPoint3 dummy_target_pos = { 10802.1963, -5726.51465, 172.429199 };
+                        dummy->MoveTo(player);
+                        MiscThings::SetPosition_moveto(dummy, dummy_target_pos);
+                        result.target = dummy;
+                        result.interaction = -1;
+                        return result;
+                    }
+                }
+            }
+        }
+
+        return result;
+    }
+
+
+
+    apocrypha_result book5_zone6(RE::TESObjectREFR* target, int current_action, int current_apocrypha_id)
+    {
+        apocrypha_result result{};
+
+        auto player = RE::PlayerCharacter::GetSingleton();
+        auto player_pos = player->GetPosition();
+
+        auto dummy = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x70c1a25);
+
+        if (!target || !dummy)
+            return result;
+
+        auto target_pos = target->GetPosition();
+
+        auto book_back = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4020487);
+        auto bridge_zone_7 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x403277c);
+        auto scrye = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4032778);
+
+        if (!book_back || !bridge_zone_7 || !scrye)
+            return result;
+
+        if (inside_book5_zone6(player_pos) && !inside_book5_zone6(target_pos))
+        {
+            if (MiscThings::two_state_activator_state(bridge_zone_7) == 1)
+            {
+                result.action = 1;
+                result.dont_save_interaction = false;
+                result.dont_save_target = false;
+                result.target = scrye;
+                result.interaction = 1;
+                return result;
+            }
+            else
+            {
+                result.action = 1;
+                result.dont_save_interaction = false;
+                result.dont_save_target = false;
+                result.target = book_back;
+                result.interaction = 1;
+                return result;
+            }
+
+        }
+
+        return result;
+    }
+
+
+
+
+
+    apocrypha_result book5_zone5(RE::TESObjectREFR* target, int current_action, int current_apocrypha_id)
+    {
+        apocrypha_result result{};
+
+        auto player = RE::PlayerCharacter::GetSingleton();
+        auto player_pos = player->GetPosition();
+
+        auto dummy = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x70c1a25);
+
+        if (!target || !dummy)
+            return result;
+
+        auto target_pos = target->GetPosition();
+
+        auto book_back = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x401e779);
+        auto bridge_zone_7 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x403277c);
+        auto book_to_6 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x402046f);
+        auto book_to_7 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4020471);
+
+        if (!book_back || !bridge_zone_7 || !book_to_6 || !book_to_7)
+            return result;
+
+        if (inside_book5_zone5(player_pos) && !inside_book5_zone5(target_pos))
+        {
+            if (inside_book5_zone1(target_pos) || inside_book5_zone2(target_pos) || inside_book5_zone3(target_pos) || inside_book5_zone4(target_pos))
+            {
+                result.action = 1;
+                result.dont_save_interaction = false;
+                result.dont_save_target = false;
+                result.target = book_back;
+                result.interaction = 1;
+                return result;
+            }
+
+
+            if (book5_knows_about_final_bridge)
+            {
+                if (MiscThings::two_state_activator_state(bridge_zone_7) == 1)
+                {
+                    result.action = 1;
+                    result.dont_save_interaction = false;
+                    result.dont_save_target = false;
+                    result.target = book_to_6;
+                    result.interaction = 1;
+                    return result;
+                }
+                else
+                {
+                    result.action = 1;
+                    result.dont_save_interaction = false;
+                    result.dont_save_target = false;
+                    result.target = book_to_7;
+                    result.interaction = 1;
+                    return result;
+                }
+
+            }
+            else
+            {
+                //"exit book" - there are 2, need to offer choice when arrived
+                result.action = 1;
+                result.dont_save_interaction = false;
+                result.dont_save_target = false;
+                RE::NiPoint3 dummy_target_pos = { 10258.9717, -3648.93262, 42.3474922 };
+                dummy->MoveTo(player);
+                MiscThings::SetPosition_moveto(dummy, dummy_target_pos);
+                result.target = dummy;
+                result.interaction = -1;
+                return result;
+            }
+
+
+        }
+
+        return result;
+    }
+
+
+
+
+
+
+    apocrypha_result book5_zone4(RE::TESObjectREFR* target, int current_action, int current_apocrypha_id)
+    {
+        apocrypha_result result{};
+
+        auto player = RE::PlayerCharacter::GetSingleton();
+        auto player_pos = player->GetPosition();
+
+        auto dummy = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x70c1a25);
+
+        if (!target || !dummy)
+            return result;
+
+        auto target_pos = target->GetPosition();
+
+        auto exit1 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4020414);
+        auto exit2 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x402043f);
+
+        if (!exit1 || !exit2)
+            return result;
+
+        if (inside_book5_zone4(player_pos) && !inside_book5_zone4(target_pos) || (!inside_book5_zone4b(player_pos) && inside_book5_zone4b(target_pos)))
+        {
+            if (inside_book5_zone4b(player_pos))
+            {
+                result.action = 1;
+                result.dont_save_interaction = false;
+                result.dont_save_target = false;
+                result.target = exit2;
+                result.interaction = 1;
+                return result;
+            }
+            else
+            {
+                result.action = 1;
+                result.dont_save_interaction = false;
+                result.dont_save_target = false;
+                result.target = exit1;
+                result.interaction = 1;
+                return result;
+            }
+        }
+
+
+
+        return result;
+    }
+
+    apocrypha_result book5_zone3(RE::TESObjectREFR* target, int current_action, int current_apocrypha_id)
+    {
+        apocrypha_result result{};
+
+        auto player = RE::PlayerCharacter::GetSingleton();
+        auto player_pos = player->GetPosition();
+
+        auto dummy = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x70c1a25);
+
+        if (!target || !dummy)
+            return result;
+
+        auto target_pos = target->GetPosition();
+
+
+        auto scrye1 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4032533);
+        auto scrye2 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x403273b);
+        auto scrye3 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4032746);
+
+        auto stairs1 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4032557);
+        auto gates2 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4032730);
+        auto gates3 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4032731);
+
+        auto book_back = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x40203d5);
+
+
+        if (!scrye1 || !scrye2 || !scrye3 || !stairs1 || !gates2 || !gates3 || !book_back)
+            return result;
+
+
+
+        if (inside_book5_zone3(player_pos) && !inside_book5_zone3(target_pos))
+        {
+
+            if (inside_book5_zone1(target_pos) || inside_book5_zone2(target_pos))
+            {
+                result.action = 1;
+                result.dont_save_interaction = false;
+                result.dont_save_target = false;
+                result.target = book_back;
+                result.interaction = 1;
+                return result;
+            }
+
+
+            if (MiscThings::two_state_activator_state(stairs1) == 1)
+            {
+                result.action = 1;
+                result.dont_save_interaction = false;
+                result.dont_save_target = false;
+                result.target = scrye1;
+                result.interaction = 1;
+                return result;
+            }
+            else
+            {
+                if (MiscThings::two_state_activator_state(gates2) == 1)
+                {
+                    result.action = 1;
+                    result.dont_save_interaction = false;
+                    result.dont_save_target = false;
+                    RE::NiPoint3 dummy_target_pos = { 8396.85645, 1412.72607, 147.984222 };
+                    dummy->MoveTo(player);
+                    MiscThings::SetPosition_moveto(dummy, dummy_target_pos);
+                    result.target = dummy;
+                    result.interaction = -1;
+                    return result;
+                }
+                else
+                {
+                    if (MiscThings::two_state_activator_state(gates3) == 1)
+                    {
+                        result.action = 1;
+                        result.dont_save_interaction = false;
+                        result.dont_save_target = false;
+                        RE::NiPoint3 dummy_target_pos = { 10101.1279, 606.722473, 625.555603 };
+                        dummy->MoveTo(player);
+                        MiscThings::SetPosition_moveto(dummy, dummy_target_pos);
+                        result.target = dummy;
+                        result.interaction = -1;
+                        return result;
+                    }
+                    else
+                    {
+                        //"exit book" - there are 2, need to offer choice when arrived
+                        result.action = 1;
+                        result.dont_save_interaction = false;
+                        result.dont_save_target = false;
+                        RE::NiPoint3 dummy_target_pos = { 15650.4766, 1119.19653, 794.739136 };
+                        dummy->MoveTo(player);
+                        MiscThings::SetPosition_moveto(dummy, dummy_target_pos);
+                        result.target = dummy;
+                        result.interaction = -1;
+                        return result;
+                    }
+                }
+            }
+        }
+
+
+        return result;
+    }
+
+
     apocrypha_result book5_zone2(RE::TESObjectREFR* target, int current_action, int current_apocrypha_id)
     {
         apocrypha_result result{};
@@ -3564,6 +4010,8 @@ namespace Apocrypha {
         RE::NiPoint3 bridge2_start = { 6820.39307, 175.683105, 573.197266 };//bridge root
         RE::NiPoint3 bridge2_end = { 5444.94678, 318.219238, 667.447021 };//center island
 
+        if (!exit_book || !book_back || !gate_fall || !scrye_fall || !bending_bridge1 || !bending_bridge2 || !scrye_bridges)
+            return result;
 
 
         auto bridge1_state_new = get_swinging_bridge_state(bending_bridge1);
@@ -3634,295 +4082,132 @@ namespace Apocrypha {
             }
 
 
-            if (MiscThings::two_state_activator_state(scrye_bridges) != 0) //scrye was not activated
-            {
-                result.action = 1;
-                result.dont_save_interaction = false;
-                result.dont_save_target = false;
-                result.target = scrye_bridges;
-                result.interaction = -1;
-                return result;
-            }
-            else
-            {
-                //scrye closed. bridges are active. do some parkour
 
-                if ((player_pos.x < 3950.0f || inside_book5_zone2_fall(player_pos)) && (target_pos.x >= 3950.0f && !inside_book5_zone2_fall(target_pos)))
+            //scrye closed. bridges are active. do some parkour
+
+            if ((player_pos.x < 3950.0f || inside_book5_zone2_fall(player_pos)) && (target_pos.x >= 3950.0f && !inside_book5_zone2_fall(target_pos)))
+            {
+
+                if (MiscThings::two_state_activator_state(scrye_bridges) != 0) //scrye was not activated
                 {
-                    //before 1st bridge. target on other side
+                    result.action = 1;
+                    result.dont_save_interaction = false;
+                    result.dont_save_target = false;
+                    result.target = scrye_bridges;
+                    result.interaction = -1;
+                    return result;
+                }
 
-                    if (player_pos.GetDistance(bridge1_start) > 150.0f)
+
+
+                //before 1st bridge. target on other side
+
+                if (player_pos.GetDistance(bridge1_start) > 150.0f)
+                {
+                    if (current_action != 2)
                     {
+                        result.action = 1;
+                        result.dont_save_interaction = false;
+                        result.dont_save_target = false;
+                        auto dummy_target_pos = bridge1_start;
+                        dummy->MoveTo(player);
+                        MiscThings::SetPosition_moveto(dummy, dummy_target_pos);
+                        result.target = dummy;
+                        result.interaction = -1;
+                        return result;
+                    }
+                }
+                else
+                {
+                    if (bridge1_state_new > 0.5f && pass_direction_check)
+                    {
+                        //bridge unrolled - walk to middle island
                         if (current_action != 2)
                         {
-                            result.action = 1;
+                            pass_direction_check = false; //for next bridge
+                            result.action = 2; //initiate
                             result.dont_save_interaction = false;
                             result.dont_save_target = false;
-                            auto dummy_target_pos = bridge1_start;
+
+                            auto dummy_target_pos = bridge1_end;
                             dummy->MoveTo(player);
                             MiscThings::SetPosition_moveto(dummy, dummy_target_pos);
+
+                            ApocryphaCustomPaths::template_path.clear();
+                            ApocryphaCustomPaths::template_path.push_back(player->GetPosition());
+                            ApocryphaCustomPaths::template_path.push_back(dummy->GetPosition());
+
+                            result.dont_save_after_custom_walk = false;
+                            result.allow_interrupt_custom_path = false;
+                            result.append_to_normal_path = true;
+                            result.custom_path = ApocryphaCustomPaths::template_path;
                             result.target = dummy;
-                            result.interaction = -1;
+                            result.append_to_normal_path = true;
+                            result.interaction = 1;
                             return result;
                         }
                     }
                     else
                     {
-                        if (bridge1_state_new > 0.5f && pass_direction_check)
+                        if (bridge1_state_new < 0.05)
+                            pass_direction_check = true;
+
+                        //wait for bridge to unroll
+                        if (current_action != 2)
                         {
-                            //bridge unrolled - walk to middle island
+                            if (player_pos.x < 3950.0f)
+                            {
+                                result.action = 3;
+                                dummy->MoveTo(player);
+                                MiscThings::SetPosition_moveto(dummy, bridge1_end);
+                                result.target = dummy;
+                                return result;
+                            }
+                        }
+                    }
+
+                }
+            }
+            else
+            {
+                if (player_pos.x >= 3950.0f && player_pos.x < 6160.4f && !inside_book5_zone2_fall(player_pos))
+                {
+                    //middle island
+                    if (target_pos.x > 5186.4f)
+                    {
+                        if (player_pos.x < 5186.4f)
+                        {
+                            //bridge1 -> bridge2 walk
                             if (current_action != 2)
                             {
-                                pass_direction_check = false; //for next bridge
                                 result.action = 2; //initiate
                                 result.dont_save_interaction = false;
                                 result.dont_save_target = false;
-
-                                auto dummy_target_pos = bridge1_end;
-                                dummy->MoveTo(player);
-                                MiscThings::SetPosition_moveto(dummy, dummy_target_pos);
-
-                                ApocryphaCustomPaths::template_path.clear();
-                                ApocryphaCustomPaths::template_path.push_back(player->GetPosition());
-                                ApocryphaCustomPaths::template_path.push_back(dummy->GetPosition());
-
                                 result.dont_save_after_custom_walk = false;
                                 result.allow_interrupt_custom_path = false;
                                 result.append_to_normal_path = true;
-                                result.custom_path = ApocryphaCustomPaths::template_path;
+                                result.custom_path = ApocryphaCustomPaths::book5_zone2_middle_island_direct;
+
+                                result.jump_on_custom_path_point = true;
+                                result.custom_path_points_to_jump = { 6, 3 };
+
+                                dummy->MoveTo(player);
+                                MiscThings::SetPosition_moveto(dummy, { 5444.94678, 318.219238, 667.447021 });
+
                                 result.target = dummy;
-                                result.append_to_normal_path = true;
+                                //result.append_to_normal_path = true;
                                 result.interaction = 1;
                                 return result;
                             }
                         }
                         else
                         {
-                            if (bridge1_state_new < 0.05)
-                                pass_direction_check = true;
-
-                            //wait for bridge to unroll
-                            if (current_action != 2)
+                            //after-bridge2->before-bridge2 (climb on bridge2 from middle island)
+                            if (target_pos.x > 6160.4f)
                             {
-                                if (player_pos.x < 3950.0f)
+                                if (bridge2_state_new > 0.4f && pass_direction_check)
                                 {
-                                    result.action = 3;
-                                    dummy->MoveTo(player);
-                                    MiscThings::SetPosition_moveto(dummy, bridge1_end);
-                                    result.target = dummy;
-                                    return result;
-                                }
-                            }
-                        }
-
-                    }
-                }
-                else
-                {
-                    if (player_pos.x >= 3950.0f && player_pos.x < 6160.4f && !inside_book5_zone2_fall(player_pos))
-                    {
-                        //middle island
-                        if (target_pos.x > 5186.4f)
-                        {
-                            if (player_pos.x < 5186.4f)
-                            {
-                                //bridge1 -> bridge2 walk
-                                if (current_action != 2)
-                                {
-                                    result.action = 2; //initiate
-                                    result.dont_save_interaction = false;
-                                    result.dont_save_target = false;
-                                    result.dont_save_after_custom_walk = false;
-                                    result.allow_interrupt_custom_path = false;
-                                    result.append_to_normal_path = true;
-                                    result.custom_path = ApocryphaCustomPaths::book5_zone2_middle_island_direct;
-
-                                    result.jump_on_custom_path_point = true;
-                                    result.custom_path_points_to_jump = { 6, 3 };
-
-                                    dummy->MoveTo(player);
-                                    MiscThings::SetPosition_moveto(dummy, { 5444.94678, 318.219238, 667.447021 });
-
-                                    result.target = dummy;
-                                    //result.append_to_normal_path = true;
-                                    result.interaction = 1;
-                                    return result;
-                                }
-                            }
-                            else
-                            {
-                                //after-bridge2->before-bridge2 (climb on bridge2 from middle island)
-                                if (target_pos.x > 6160.4f)
-                                {
-                                    if (bridge2_state_new > 0.4f && pass_direction_check)
-                                    {
-                                        //bridge unrolled - walk to other side
-                                        if (current_action != 2)
-                                        {
-                                            pass_direction_check = false; //for next bridge
-                                            result.action = 2; //initiate
-                                            result.dont_save_interaction = false;
-                                            result.dont_save_target = false;
-
-                                            auto dummy_target_pos = bridge2_start;
-                                            dummy->MoveTo(player);
-                                            MiscThings::SetPosition_moveto(dummy, dummy_target_pos);
-
-                                            ApocryphaCustomPaths::template_path.clear();
-                                            ApocryphaCustomPaths::template_path.push_back(player->GetPosition());
-                                            ApocryphaCustomPaths::template_path.push_back(dummy->GetPosition());
-
-                                            result.dont_save_after_custom_walk = false;
-                                            result.allow_interrupt_custom_path = false;
-                                            result.append_to_normal_path = true;
-                                            result.custom_path = ApocryphaCustomPaths::template_path;
-                                            result.target = dummy;
-                                            result.append_to_normal_path = true;
-                                            result.interaction = 1;
-                                            return result;
-                                        }
-                                    }
-                                    else
-                                    {
-                                        if (bridge2_state_new < 0.05)
-                                            pass_direction_check = true;
-
-
-                                        //wait for bridge to unroll
-                                        if (current_action != 2)
-                                        {
-                                            if (player_pos.x < 6160.4f)
-                                            {
-                                                result.action = 3;
-                                                dummy->MoveTo(player);
-                                                MiscThings::SetPosition_moveto(dummy, bridge2_start);
-                                                result.target = dummy;
-                                                return result;
-                                            }
-                                        }
-                                    }
-                                }
-                                else
-                                {
-                                    //do nothing
-                                    bool stop_here = false;
-                                }
-                            }
-
-                        }
-                        else
-                        {
-                            if (player_pos.x >= 5186.4f)
-                            {
-                                //bridge2 -> bridge1 walk
-                                if (current_action != 2)
-                                {
-                                    result.action = 2; //initiate
-                                    result.dont_save_interaction = false;
-                                    result.dont_save_target = false;
-                                    result.dont_save_after_custom_walk = false;
-                                    result.allow_interrupt_custom_path = false;
-                                    result.append_to_normal_path = true;
-                                    result.custom_path = ApocryphaCustomPaths::book5_zone2_middle_island_reverse;
-
-                                    result.jump_on_custom_path_point = true;
-                                    result.custom_path_points_to_jump = { 7, 3 };
-
-                                    dummy->MoveTo(player);
-                                    MiscThings::SetPosition_moveto(dummy, { 4574.60938, -184.901749, 649.500427 });
-
-                                    result.target = dummy;
-                                    //result.append_to_normal_path = false;
-                                    result.interaction = 1;
-                                    return result;
-                                }
-                            }
-                            else
-                            {
-                                //after-bridge1->before-bridge1 (climb on bridge1 from middle island)
-                                if (target_pos.x < 3950.0f)
-                                {
-                                    if (bridge1_state_new > 0.4f && pass_direction_check)
-                                    {
-                                        //bridge unrolled - walk to other side
-                                        if (current_action != 2)
-                                        {
-                                            pass_direction_check = false; //for next bridge
-                                            result.action = 2; //initiate
-                                            result.dont_save_interaction = false;
-                                            result.dont_save_target = false;
-
-                                            auto dummy_target_pos = bridge1_start;
-                                            dummy->MoveTo(player);
-                                            MiscThings::SetPosition_moveto(dummy, dummy_target_pos);
-
-                                            ApocryphaCustomPaths::template_path.clear();
-                                            ApocryphaCustomPaths::template_path.push_back(player->GetPosition());
-                                            ApocryphaCustomPaths::template_path.push_back(dummy->GetPosition());
-                                            
-                                            result.dont_save_after_custom_walk = false;
-                                            result.allow_interrupt_custom_path = false;
-                                            result.append_to_normal_path = true;
-                                            result.custom_path = ApocryphaCustomPaths::template_path;
-                                            result.target = dummy;
-                                            result.append_to_normal_path = true;
-                                            result.interaction = 1;
-                                            return result;
-                                        }
-                                    }
-                                    else
-                                    {
-                                        if (bridge1_state_new < 0.05)
-                                            pass_direction_check = true;
-
-                                        //wait for bridge to unroll
-                                        if (current_action != 2)
-                                        {
-                                            if (player_pos.x > 3950.0f)
-                                            {
-                                                result.action = 3;
-                                                dummy->MoveTo(player);
-                                                MiscThings::SetPosition_moveto(dummy, bridge1_start);
-                                                result.target = dummy;
-                                                return result;
-                                            }
-                                        }
-                                    }
-                                }
-                                else
-                                {
-                                    //do nothing
-                                    bool stop_here = false;
-                                }
-                            }
-                        }
-
-                    }
-                    else
-                    {
-                        if (player_pos.x > 6160.4f && target_pos.x <= 6160.4f && !inside_book5_zone2_fall(player_pos))
-                        {
-                            //before 2nd bridge. target on other side. reversed walk
-                            if (player_pos.GetDistance(bridge2_start) > 150.0f)
-                            {
-                                if (current_action != 2)
-                                {
-                                    result.action = 1;
-                                    result.dont_save_interaction = false;
-                                    result.dont_save_target = false;
-                                    auto dummy_target_pos = bridge2_start;
-                                    dummy->MoveTo(player);
-                                    MiscThings::SetPosition_moveto(dummy, dummy_target_pos);
-                                    result.target = dummy;
-                                    result.interaction = -1;
-                                    return result;
-                                }
-                            }
-                            else
-                            {
-                                if (bridge2_state_new > 0.5f && pass_direction_check)
-                                {
-                                    //bridge unrolled - walk to middle island
+                                    //bridge unrolled - walk to other side
                                     if (current_action != 2)
                                     {
                                         pass_direction_check = false; //for next bridge
@@ -3930,7 +4215,7 @@ namespace Apocrypha {
                                         result.dont_save_interaction = false;
                                         result.dont_save_target = false;
 
-                                        auto dummy_target_pos = bridge2_end;
+                                        auto dummy_target_pos = bridge2_start;
                                         dummy->MoveTo(player);
                                         MiscThings::SetPosition_moveto(dummy, dummy_target_pos);
 
@@ -3953,17 +4238,182 @@ namespace Apocrypha {
                                     if (bridge2_state_new < 0.05)
                                         pass_direction_check = true;
 
+
                                     //wait for bridge to unroll
                                     if (current_action != 2)
                                     {
-                                        if (player_pos.x > 6160.4f)
+                                        if (player_pos.x < 6160.4f)
                                         {
                                             result.action = 3;
                                             dummy->MoveTo(player);
-                                            MiscThings::SetPosition_moveto(dummy, bridge2_end);
+                                            MiscThings::SetPosition_moveto(dummy, bridge2_start);
                                             result.target = dummy;
                                             return result;
                                         }
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                //do nothing
+                                bool stop_here = false;
+                            }
+                        }
+
+                    }
+                    else
+                    {
+                        if (player_pos.x >= 5186.4f)
+                        {
+                            //bridge2 -> bridge1 walk
+                            if (current_action != 2)
+                            {
+                                result.action = 2; //initiate
+                                result.dont_save_interaction = false;
+                                result.dont_save_target = false;
+                                result.dont_save_after_custom_walk = false;
+                                result.allow_interrupt_custom_path = false;
+                                result.append_to_normal_path = true;
+                                result.custom_path = ApocryphaCustomPaths::book5_zone2_middle_island_reverse;
+
+                                result.jump_on_custom_path_point = true;
+                                result.custom_path_points_to_jump = { 7, 3 };
+
+                                dummy->MoveTo(player);
+                                MiscThings::SetPosition_moveto(dummy, { 4574.60938, -184.901749, 649.500427 });
+
+                                result.target = dummy;
+                                //result.append_to_normal_path = false;
+                                result.interaction = 1;
+                                return result;
+                            }
+                        }
+                        else
+                        {
+                            //after-bridge1->before-bridge1 (climb on bridge1 from middle island)
+                            if (target_pos.x < 3950.0f)
+                            {
+                                if (bridge1_state_new > 0.4f && pass_direction_check)
+                                {
+                                    //bridge unrolled - walk to other side
+                                    if (current_action != 2)
+                                    {
+                                        pass_direction_check = false; //for next bridge
+                                        result.action = 2; //initiate
+                                        result.dont_save_interaction = false;
+                                        result.dont_save_target = false;
+
+                                        auto dummy_target_pos = bridge1_start;
+                                        dummy->MoveTo(player);
+                                        MiscThings::SetPosition_moveto(dummy, dummy_target_pos);
+
+                                        ApocryphaCustomPaths::template_path.clear();
+                                        ApocryphaCustomPaths::template_path.push_back(player->GetPosition());
+                                        ApocryphaCustomPaths::template_path.push_back(dummy->GetPosition());
+
+                                        result.dont_save_after_custom_walk = false;
+                                        result.allow_interrupt_custom_path = false;
+                                        result.append_to_normal_path = true;
+                                        result.custom_path = ApocryphaCustomPaths::template_path;
+                                        result.target = dummy;
+                                        result.append_to_normal_path = true;
+                                        result.interaction = 1;
+                                        return result;
+                                    }
+                                }
+                                else
+                                {
+                                    if (bridge1_state_new < 0.05)
+                                        pass_direction_check = true;
+
+                                    //wait for bridge to unroll
+                                    if (current_action != 2)
+                                    {
+                                        if (player_pos.x > 3950.0f)
+                                        {
+                                            result.action = 3;
+                                            dummy->MoveTo(player);
+                                            MiscThings::SetPosition_moveto(dummy, bridge1_start);
+                                            result.target = dummy;
+                                            return result;
+                                        }
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                //do nothing
+                                bool stop_here = false;
+                            }
+                        }
+                    }
+
+                }
+                else
+                {
+                    if (player_pos.x > 6160.4f && target_pos.x <= 6160.4f && !inside_book5_zone2_fall(player_pos))
+                    {
+                        //before 2nd bridge. target on other side. reversed walk
+                        if (player_pos.GetDistance(bridge2_start) > 150.0f)
+                        {
+                            if (current_action != 2)
+                            {
+                                result.action = 1;
+                                result.dont_save_interaction = false;
+                                result.dont_save_target = false;
+                                auto dummy_target_pos = bridge2_start;
+                                dummy->MoveTo(player);
+                                MiscThings::SetPosition_moveto(dummy, dummy_target_pos);
+                                result.target = dummy;
+                                result.interaction = -1;
+                                return result;
+                            }
+                        }
+                        else
+                        {
+                            if (bridge2_state_new > 0.5f && pass_direction_check)
+                            {
+                                //bridge unrolled - walk to middle island
+                                if (current_action != 2)
+                                {
+                                    pass_direction_check = false; //for next bridge
+                                    result.action = 2; //initiate
+                                    result.dont_save_interaction = false;
+                                    result.dont_save_target = false;
+
+                                    auto dummy_target_pos = bridge2_end;
+                                    dummy->MoveTo(player);
+                                    MiscThings::SetPosition_moveto(dummy, dummy_target_pos);
+
+                                    ApocryphaCustomPaths::template_path.clear();
+                                    ApocryphaCustomPaths::template_path.push_back(player->GetPosition());
+                                    ApocryphaCustomPaths::template_path.push_back(dummy->GetPosition());
+
+                                    result.dont_save_after_custom_walk = false;
+                                    result.allow_interrupt_custom_path = false;
+                                    result.append_to_normal_path = true;
+                                    result.custom_path = ApocryphaCustomPaths::template_path;
+                                    result.target = dummy;
+                                    result.append_to_normal_path = true;
+                                    result.interaction = 1;
+                                    return result;
+                                }
+                            }
+                            else
+                            {
+                                if (bridge2_state_new < 0.05)
+                                    pass_direction_check = true;
+
+                                //wait for bridge to unroll
+                                if (current_action != 2)
+                                {
+                                    if (player_pos.x > 6160.4f)
+                                    {
+                                        result.action = 3;
+                                        dummy->MoveTo(player);
+                                        MiscThings::SetPosition_moveto(dummy, bridge2_end);
+                                        result.target = dummy;
+                                        return result;
                                     }
                                 }
                             }
@@ -3972,9 +4422,6 @@ namespace Apocrypha {
                 }
             }
         }
-
-
-
 
 
         return result;
@@ -4513,6 +4960,85 @@ namespace Apocrypha {
             }
                 
 
+            if (inside_book5_zone3(player_pos))
+            {
+                zone = 3;
+                if (last_zone != zone && last_zone != 0)
+                {
+                    last_zone = zone;
+                    result.action = -888;
+                    return result;
+                }
+                else
+                    last_zone = zone;
+
+                return book5_zone3(target, current_action, current_apocrypha_id);
+            }
+
+
+            if (inside_book5_zone4(player_pos))
+            {
+                zone = 4;
+                if (last_zone != zone && last_zone != 0)
+                {
+                    //its fully manual, reset will just cancel player's first action
+                    last_zone = zone;
+                    //result.action = -888;
+                    //return result;
+                }
+                else
+                    last_zone = zone;
+
+                return book5_zone4(target, current_action, current_apocrypha_id);
+            }
+
+            if (inside_book5_zone5(player_pos))
+            {
+                zone = 5;
+                if (last_zone != zone && last_zone != 0)
+                {
+                    //its fully manual, reset will just cancel player's first action
+                    last_zone = zone;
+                    //result.action = -888;
+                    //return result;
+                }
+                else
+                    last_zone = zone;
+
+                return book5_zone5(target, current_action, current_apocrypha_id);
+            }
+
+
+            if (inside_book5_zone6(player_pos))
+            {
+                zone = 6;
+                if (last_zone != zone && last_zone != 0)
+                {
+                    last_zone = zone;
+                    result.action = -888;
+                    return result;
+                }
+                else
+                    last_zone = zone;
+
+                return book5_zone6(target, current_action, current_apocrypha_id);
+            }
+
+
+            if (inside_book5_zone7(player_pos))
+            {
+                zone = 7;
+                if (last_zone != zone && last_zone != 0)
+                {
+                    last_zone = zone;
+                    result.action = -888;
+                    return result;
+                }
+                else
+                    last_zone = zone;
+
+                return book5_zone7(target, current_action, current_apocrypha_id);
+            }
 
 
         }
