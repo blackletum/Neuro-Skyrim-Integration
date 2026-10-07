@@ -202,7 +202,8 @@ namespace WalkerProcessor {
 
 
     bool custom_path_must_jump_on_last_point = false;
-    
+    bool custom_path_must_jump_on_specific_point = false;
+    std::vector<int> custom_path_jump_points{};
 
     //do not reset these in reset_walker()
     RE::TESQuest* last_quest_chosen = nullptr;
@@ -1335,6 +1336,13 @@ namespace WalkerProcessor {
         current_path_point = -1;
         path.clear();
         use_last_point_of_last_path = false;
+
+        if (custom_path_must_jump_on_specific_point)
+        {
+            custom_path_must_jump_on_specific_point = false;
+            custom_path_jump_points.clear();
+        }
+
     }
 
     void set_just_teleported() //for map
@@ -3144,6 +3152,17 @@ namespace WalkerProcessor {
 
             if (custom_path_must_jump_on_last_point && custom_path_appended && current_path_point == (int)std::size(path) - 1)
                 return true;
+
+            if (custom_path_must_jump_on_specific_point && custom_path_appended)
+            {
+                for (auto point : custom_path_jump_points)
+                {
+                    int actual_point_pos = (int)std::size(path) - 1 - point;//shift from the end so append doesnt affect it
+                    if (current_path_point == actual_point_pos)
+                        return true;
+                }
+            }
+
 
 
             if (MiscThings::object_inside_katariah_balcony(player))
@@ -6972,6 +6991,8 @@ namespace WalkerProcessor {
         custom_path_appended_to_point_index = 0;
 
         custom_path_must_jump_on_last_point = false;
+        custom_path_must_jump_on_specific_point = false;
+        custom_path_jump_points.clear();
 
         just_teleported_timeout = 0.0f;
 
@@ -22872,6 +22893,17 @@ namespace WalkerProcessor {
                         }
 
 
+
+                        if (apocrypha_redirects.jump_on_custom_path_point)
+                        {
+                            custom_path_must_jump_on_specific_point = true;
+                            custom_path_jump_points = apocrypha_redirects.custom_path_points_to_jump;
+                        }
+                        else
+                        {
+                            custom_path_must_jump_on_specific_point = false;
+                            custom_path_jump_points.clear();
+                        }
 
                         current_apocrypha_action = apocrypha_redirects.action;
                         return;

@@ -29,6 +29,8 @@ namespace Apocrypha {
 		bool dont_save_after_custom_walk;
 		bool dont_shift;
 		bool ban_custom_path_interrupt_after_append;
+		bool jump_on_custom_path_point;
+		std::vector<int> custom_path_points_to_jump;
 	};
 
 
