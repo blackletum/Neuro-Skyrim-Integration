@@ -3661,7 +3661,16 @@ namespace Apocrypha {
         }
         else
         {
-            if (target == book_final)
+            if (current_action == 2 && player->GetDistance(dummy) < 300.0f)
+            {
+                result.action = -999;
+                return result;
+            }
+
+
+
+
+            if ((target_pos.x < 9647.0f && player_pos.x >= 9647.0f) || (target_pos.x >= 9647.0f && player_pos.x < 9647.0f))
             {
                 if (MiscThings::two_state_activator_state(bridge_zone_7) == 1)
                 {
@@ -3685,6 +3694,60 @@ namespace Apocrypha {
                         result.target = dummy;
                         result.interaction = -1;
                         return result;
+                    }
+                }
+                else
+                {
+                    if (current_action == 0)
+                    {
+                        if (target_pos.x < 9647.0f && player_pos.x >= 9647.0f)
+                        {
+                            result.action = 2; //initiate
+                            result.dont_save_interaction = false;
+                            result.dont_save_target = false;
+
+                            RE::NiPoint3 dummy_target_pos = { 8590.20410, -5726.78809, 529.606262 };
+                            dummy->MoveTo(player);
+                            MiscThings::SetPosition_moveto(dummy, dummy_target_pos);
+
+                            ApocryphaCustomPaths::template_path.clear();
+                            ApocryphaCustomPaths::template_path.push_back(player->GetPosition());
+                            ApocryphaCustomPaths::template_path.push_back(dummy->GetPosition());
+
+                            result.dont_save_after_custom_walk = false;
+                            result.allow_interrupt_custom_path = false;
+                            result.append_to_normal_path = true;
+                            result.custom_path = ApocryphaCustomPaths::book5_zone7_bridge_direct;
+                            result.target = dummy;
+                            result.append_to_normal_path = true;
+                            result.interaction = 1;
+                            result.ban_custom_path_interrupt_after_append = true;
+                            return result;
+                        }
+                        else
+                        {
+                            result.action = 2; //initiate
+                            result.dont_save_interaction = false;
+                            result.dont_save_target = false;
+
+                            RE::NiPoint3 dummy_target_pos = { 10910.9424, -5731.27100, 100.747238 };
+                            dummy->MoveTo(player);
+                            MiscThings::SetPosition_moveto(dummy, dummy_target_pos);
+
+                            ApocryphaCustomPaths::template_path.clear();
+                            ApocryphaCustomPaths::template_path.push_back(player->GetPosition());
+                            ApocryphaCustomPaths::template_path.push_back(dummy->GetPosition());
+
+                            result.dont_save_after_custom_walk = false;
+                            result.allow_interrupt_custom_path = false;
+                            result.append_to_normal_path = true;
+                            result.custom_path = ApocryphaCustomPaths::book5_zone7_bridge_reverse;
+                            result.target = dummy;
+                            result.append_to_normal_path = true;
+                            result.interaction = 1;
+                            result.ban_custom_path_interrupt_after_append = true;
+                            return result;
+                        }
                     }
                 }
             }
@@ -4189,7 +4252,7 @@ namespace Apocrypha {
                                 result.custom_path = ApocryphaCustomPaths::book5_zone2_middle_island_direct;
 
                                 result.jump_on_custom_path_point = true;
-                                result.custom_path_points_to_jump = { 6, 3 };
+                                result.custom_path_points_to_jump = { 6, 4,3,2,1 };
 
                                 dummy->MoveTo(player);
                                 MiscThings::SetPosition_moveto(dummy, { 5444.94678, 318.219238, 667.447021 });
@@ -4277,7 +4340,7 @@ namespace Apocrypha {
                                 result.custom_path = ApocryphaCustomPaths::book5_zone2_middle_island_reverse;
 
                                 result.jump_on_custom_path_point = true;
-                                result.custom_path_points_to_jump = { 7, 3 };
+                                result.custom_path_points_to_jump = { 7, 3,2,1 };
 
                                 dummy->MoveTo(player);
                                 MiscThings::SetPosition_moveto(dummy, { 4574.60938, -184.901749, 649.500427 });
@@ -4997,10 +5060,9 @@ namespace Apocrypha {
                 zone = 5;
                 if (last_zone != zone && last_zone != 0)
                 {
-                    //its fully manual, reset will just cancel player's first action
                     last_zone = zone;
-                    //result.action = -888;
-                    //return result;
+                    result.action = -888;
+                    return result;
                 }
                 else
                     last_zone = zone;
