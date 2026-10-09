@@ -44,13 +44,10 @@
 
 
 //TODO other quests
-//TODO mzulft red nirnroot potentially unreachable because cave entrance only works for mainquestline
 
 //TODO hearthfire dlc
 
 //TODO that seducers AE quest
-
-//TODO fishing quests?
 
 //  RANDOM QUESTS TODO
 
@@ -76,9 +73,7 @@
 //run away/tactical retreat - check possibility of replacing "runaway target" with some distant point on loaded navmesh, depending on direction of enemy
 
 
-//test solstheim more
 //more solstheim quests. pirate quest. check what other quests are there. dwemer bow dungeon quest
-//make so combat sucks less (random pauses/shooting walls/etc)
 
 //werewolf still freezes sometimes
 
