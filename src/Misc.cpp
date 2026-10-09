@@ -4399,6 +4399,18 @@ namespace MiscThings {
     }
 
 
+    float GetLightLevel(RE::TESObjectREFR* object)
+    {
+        if (object && object->IsActor())
+        {
+            auto actor = (RE::Actor*)object;
+
+            if (actor->GetHighProcess())
+                return actor->GetHighProcess()->lightLevel;
+        }
+        return 0.0f;
+    }
+
 
     bool IsInDangerousWater(RE::TESObjectREFR* object)
     {
@@ -9745,6 +9757,63 @@ namespace MiscThings {
                     }
                 }
             }
+
+            if (target->formID == 0x4033c26) //dlc2 white ridge barrow for black book 6, exit. need to grab key
+            {
+                if (MiscThings::is_door_locked(target))
+                {
+                    auto key_lady = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x40285c7);
+                    if (key_lady)
+                    {
+                        return key_lady;
+                    }
+                }
+            }
+
+
+            if (target->formID == 0x401ee1c) //dlc2 white ridge barrow for black book 6, spider dungeon part2. the book
+            {
+                auto cobweb = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x401ca53);
+                if (cobweb && MiscThings::get_destructible_state(cobweb) == -1)
+                {
+                    auto dummy = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x70c1a25);
+                    if (dummy)
+                    {
+                        dummy->MoveTo(player);
+                        MiscThings::SetPosition_moveto(dummy, { 10550.2188, -7661.95557, -494.788116 });
+                        return dummy;
+                    }
+                }
+            }
+
+            if (target->formID == 0x403c7fa) //dlc2 white ridge barrow for black book 6, spider dungeon
+            {
+                if (parent_cell && parent_cell->formID == 0x40142ed && player_pos.z > 850.0f)
+                {
+                    auto dummy = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x70c1a25);
+                    if (dummy)
+                    {
+                        dummy->MoveTo(player);
+                        MiscThings::SetPosition_moveto(dummy, { 7308.63525, 1837.52222, 497.965118 });
+                        return dummy;
+                    }
+                }
+
+                /*
+                auto bridge1 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x40193c2);
+                if (bridge1 && MiscThings::two_state_activator_state(bridge1) == 0)
+                {
+                    auto dummy = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x70c1a25);
+                    if (dummy)
+                    {
+                        dummy->MoveTo(player);
+                        MiscThings::SetPosition_moveto(dummy, { 11027.4131, 271.814606, -409.781616 });
+                        return dummy;
+                    }
+                }
+                */
+            }
+
 
 
             if (target->formID == 0x401aa10) //dlc2 cave with blackbook, redirect to another door

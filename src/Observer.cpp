@@ -10,6 +10,7 @@
 
 namespace Observer {
 
+	long long dlc2_book_darkness_damage_advice_timestamp = 0; //dont need to reset
 
 	bool old_vahlok_platform_disabled_1 = false;
 	bool old_vahlok_platform_disabled_2 = false;
@@ -9303,29 +9304,38 @@ namespace Observer {
 					}
 
 
+					auto now = std::chrono::steady_clock::now().time_since_epoch().count();
 
 					if (Apocrypha::in_apocrypha())
 					{
-						//auto effect_list = player->GetActiveEffectList();
-
-
-
-
 						/*
+						auto effect_list = player->GetActiveEffectList();
+
 						if (effect_list)
 						{
 							for (auto effect : *effect_list)
 							{
 								if (effect && effect->spell && effect->spell->formID == 0x402a6cb) //apocrypha water damage
 								{
-									if (effect->conditionStatus && !effect->flags.any(RE::ActiveEffect::Flag::kInactive))
-										water_damage_active = true;
-									
-									break;
+									bool stop_here = false;
 								}
 							}
 						}
 						*/
+						if (parent_cell && parent_cell->formID == 0x40142f5) //there is another one
+						{
+							auto light_level = MiscThings::GetLightLevel(player);
+							if (light_level < 30.0f)
+							{
+								float advice_delta = (double)(now - dlc2_book_darkness_damage_advice_timestamp) / 1000000000.0;
+								if (advice_delta > 20.0f)
+								{
+									send_random_context("The darkness here slowly burns you! Find source of light, get a torch, or cast a spell that generates light (Candlelight spell is the best because it follows you)", false);
+									dlc2_book_darkness_damage_advice_timestamp = now;
+								}
+							}
+						}
+
 
 						bool water_damage_active = MiscThings::IsInDangerousWater(player);
 
@@ -9352,7 +9362,7 @@ namespace Observer {
 					RE::NiPoint3 death_pos = player->GetPosition();
 					RE::TESWorldSpace* death_worldspace = player->GetWorldspace();
 					RE::TESObjectCELL* death_cell = player->GetParentCell();
-					auto now = std::chrono::steady_clock::now().time_since_epoch().count();
+					
 
 					float death_delta = (double)(now - last_actual_death_timestamp) / 1000000000.0;
 

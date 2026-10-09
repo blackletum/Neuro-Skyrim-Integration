@@ -4498,6 +4498,13 @@ namespace WalkerProcessor {
 
             switch (target_ref->formID)
             {
+            case (0x401edf8): //black book6 final
+            {
+                if (temp_result->formID == 0x40275eb)
+                    return target_ref;
+                break;
+            }
+
             case (0x4017f7b): //black book5 final
             {
                 if (temp_result->formID == 0x40275dc)
@@ -10936,7 +10943,21 @@ namespace WalkerProcessor {
             }
         }
 
+        RE::TESObjectREFR* book6_final = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x401edf8);
+        if (parent_cell && parent_cell->formID == 0x40142f5 && book6_final && player->GetDistance(book6_final) < 500.0f)
+        {
+            RE::TESObjectREFR* reward1 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x40275ed);
+            RE::TESObjectREFR* to_soltsheim = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x40275ec);
 
+            if (reward1 && !reward1->IsDisabled() && to_soltsheim && to_soltsheim->IsDisabled())
+            {
+                reset_walker();
+                result.first = false;
+                result.second = "[The Book offers you several rewards, you need to pick one of provided options (interactive objects nearby)]";
+                do_delayed_poke();
+                return result;
+            }
+        }
 
         if (last_quest_chosen)
         {
@@ -11289,7 +11310,21 @@ namespace WalkerProcessor {
                 }
             }
 
+            RE::TESObjectREFR* book6_final = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x401edf8);
+            if (parent_cell && parent_cell->formID == 0x40142f5 && book6_final && player->GetDistance(book6_final) < 500.0f)
+            {
+                RE::TESObjectREFR* reward1 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x40275ed);
+                RE::TESObjectREFR* to_soltsheim = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x40275ec);
 
+                if (reward1 && !reward1->IsDisabled() && to_soltsheim && to_soltsheim->IsDisabled())
+                {
+                    reset_walker();
+                    result.first = false;
+                    result.second = "[The Book offers you several rewards, you need to pick one of provided options (interactive objects nearby)]";
+                    do_delayed_poke();
+                    return result;
+                }
+            }
 
             auto player_ref = player->AsReference();
 

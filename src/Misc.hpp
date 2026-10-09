@@ -594,6 +594,8 @@ namespace MiscThings {
 
     std::pair<int, std::string> get_object_category(RE::TESForm* base_obj, RE::TESBoundObject* object = nullptr, bool without_text_category = false);
 
+    float GetLightLevel(RE::TESObjectREFR* object);
+
     void SetPosition_moveto(RE::TESObjectREFR* a_target, RE::NiPoint3 new_pos);
 
     RE::TESObjectREFR* get_dragon_for_dragonrend();
