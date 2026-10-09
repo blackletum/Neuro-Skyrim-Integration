@@ -1863,6 +1863,9 @@ namespace Hooks {
 
                         if (parent_cell)
                         {
+                            if (parent_cell->formID != 0x40142ee)
+                                Observer::set_dlc2_ahzidal_ring2_disagreed_to_solve_puzzle(false); //reset this so asked again when dungeon is entered once more
+
                             switch (parent_cell->formID)
                             {
                             case (0x40142f1):
@@ -1876,6 +1879,28 @@ namespace Hooks {
                                 break;
                             }
 
+                            case (0x40142ee): //dlc2 kolbjorn unearthed quest. custom navcuts
+                            {
+                                auto unearthed_quest = (RE::TESQuest*)RE::TESQuest::LookupByID(0x401810b);//DLC2dunKolbjornQST
+                                if (unearthed_quest)
+                                {
+                                    auto navcut1 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x71a066b);
+
+                                    if (unearthed_quest->currentStage > 150 && unearthed_quest->currentStage <= 250)
+                                    {
+                                        //must be enabled
+                                        if (navcut1->IsDisabled())
+                                            navcut1->Enable(false);
+                                    }
+                                    else
+                                    {
+                                        //must be disabled
+                                        if (!navcut1->IsDisabled())
+                                            navcut1->Disable();
+                                    }
+                                }
+                                break;
+                            }
 
                             case (0x193ee): //dawnstar dark brotherhood base, backup navcut removal if story is ended
                             {

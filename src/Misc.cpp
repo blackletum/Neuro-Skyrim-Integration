@@ -9745,6 +9745,148 @@ namespace MiscThings {
             auto target_pos = target->GetPosition();
 
 
+            if (parent_cell && parent_cell->formID == 0x40142ee) //dlc2 unearthed ahzidal quest dungeon. redirect to grab the artefact after quest stage done
+            {
+                if (quest && quest->formID == 0x401810b)
+                {
+                    if (target->formID == 0x4018105) //exit door. grab artefact 
+                    {
+                        auto unearthed_quest = (RE::TESQuest*)RE::TESQuest::LookupByID(0x401810b);//DLC2dunKolbjornQST
+                        if (unearthed_quest)
+                        {
+                            if (unearthed_quest->currentStage == 150)
+                            {
+                                auto artefact = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4020d65); //boots
+                                if (artefact && artefact->GetPosition().GetDistance({ -3291.13647, 161.092285, 2018.83508 }) < 30.0f && artefact->modelState != 0) //original position
+                                    return artefact;
+                            }
+
+                            if (unearthed_quest->currentStage == 250)
+                            {
+                                auto artefact = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4020d4e); //ring1
+                                if (artefact && artefact->GetPosition().GetDistance({ -1921.46814, -819.037415, 2011.45959 }) < 30.0f && artefact->modelState != 0) //original position
+                                {
+                                    auto rotating_door = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4020d40);
+                                    auto handle = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4020d4c);
+                                    if (rotating_door && handle && MiscThings::two_state_activator_state(rotating_door) == 0)
+                                        return handle;
+                                    else
+                                        return artefact;
+                                }
+                            }
+
+                            if (unearthed_quest->currentStage == 350)
+                            {
+                                //just open all this so its opened:
+                                auto gate1 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4020cab);
+                                auto gate2 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x401814d);
+                                auto chain1 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4020d2a);
+                                auto chain2 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4018165);
+
+                                if (gate1 && gate2 && chain1 && chain2)
+                                {
+                                    if (MiscThings::two_state_activator_state(gate1) == 1)
+                                        return chain1;
+
+                                    if (MiscThings::two_state_activator_state(gate2) == 1)
+                                        return chain2;
+                                }
+
+
+                                //try to grab ring
+                                auto dummy = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x70c1a25);
+                                auto artefact1 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4027808); //ring2
+                                if (!Observer::get_dlc2_ahzidal_ring2_disagreed_to_solve_puzzle() && dummy && artefact1 && artefact1->GetPosition().GetDistance({ -3456.26, -3689.05, 1085.77 }) < 30.0f && artefact1->modelState != 0) //original position
+                                {
+                                    auto gate_ring = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4020c7d);
+                                    if (gate_ring && MiscThings::two_state_activator_state(gate_ring) == 1)
+                                    {
+                                        dummy->MoveTo(player);
+                                        MiscThings::SetPosition_moveto(dummy, { -3472.58105, -3205.05225, 1118.22668 });
+                                        return dummy;
+                                    }
+                                    else
+                                        return artefact1;
+                                }
+                                
+
+
+                                //grab gauntlets
+                                auto artefact2 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4020d30); //gauntlets
+                                if (artefact2 && artefact2->GetPosition().GetDistance({ -1408.36804, -958.914429, 1617.92407 }) < 30.0f && artefact2->modelState != 0) //original position
+                                {
+                                    auto rotating_door = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4018146);
+                                    auto handle = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x40182b3);
+                                    if (rotating_door && handle && MiscThings::two_state_activator_state(rotating_door) == 0)
+                                        return handle;
+                                    else
+                                        return artefact2;
+                                }
+                            }
+
+
+                        }
+                    }
+
+
+                    if (quest->currentStage >= 210 && quest->currentStage < 250) //phase2 puzzles
+                    {
+                        auto rotating_door1 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4018144);
+                        auto rotating_door2 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4020d39);
+                        auto chain1 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x40182b5);
+                        auto chain2 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x40182b4);
+
+                        auto gate1 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4027a71);
+                        auto gate2 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4027a72);
+                        auto gate3 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4020d4b);
+
+                        auto dummy = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x70c1a25);
+
+                        if (rotating_door1 && rotating_door2 && chain1 && chain2 && gate1 && gate2 && gate3 && dummy)
+                        {
+                            if (MiscThings::two_state_activator_state(rotating_door1) == 0)
+                                return chain1;
+
+                            if (MiscThings::two_state_activator_state(rotating_door2) == 0)
+                                return chain2;
+
+
+                            if (MiscThings::two_state_activator_state(gate1) == 1 ||
+                                MiscThings::two_state_activator_state(gate2) == 1 ||
+                                MiscThings::two_state_activator_state(gate3) == 1
+                                )
+                            {
+                                dummy->MoveTo(player);
+                                MiscThings::SetPosition_moveto(dummy, { -1988.63831, 1250.27991, 1726.88306 });
+                                return dummy;
+                            }
+                        }
+                    }
+
+                    if (quest->currentStage >= 310 && quest->currentStage < 350)
+                    {
+                        auto phase3_track_quest = (RE::TESQuest*)RE::TESQuest::LookupByID(0x40277ea);//DLC2dunKolbjornPhase3TrackingQST
+
+                        if ((target && target->formID == 0x40179b8) || (phase3_track_quest && phase3_track_quest->currentStage == 0))
+                        {
+                            auto redirect_guard = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4027ad8);
+                            if (redirect_guard)
+                                return redirect_guard;
+                        }
+                    }
+
+
+                }
+
+
+
+
+
+
+            }
+
+
+
             if (parent_cell && parent_cell->formID == 0x401a7a8) //dlc2 black book riekling cave
             {
                 if (target_pos.x > 1485.0f && target_pos.y < -330.0f && !(player_pos.x > 1485.0f && player_pos.y < -330.0f))
@@ -22456,6 +22598,12 @@ namespace MiscThings {
                                                 switch (the_quest->formID)
                                                 {
                                                 case (0x401a50b): //retake thirsk, 20 rieklings
+                                                {
+                                                    quests_to_have_only_one_target.insert({ the_quest->formID, true });
+                                                    break;
+                                                }
+
+                                                case (0x401810b): //unearhed, bunch of draugrs
                                                 {
                                                     quests_to_have_only_one_target.insert({ the_quest->formID, true });
                                                     break;
@@ -35907,6 +36055,8 @@ namespace MiscThings {
 
                             if (player_above && object_down)
                                 return RE::BSContainer::ForEachResult::kContinue;
+
+                            break;
                         }
 
 
@@ -36015,10 +36165,14 @@ namespace MiscThings {
                     }
 
 
-                    if (a_ref->formID == 0x6dfa0 || a_ref->formID == 0x401c8f1)
+
+                    switch (a_ref->formID)
+                    {
+                    case (0x6dfa0):
+                    case (0x401c8f1):
                         return RE::BSContainer::ForEachResult::kContinue; //spider in avanchenzel who is under the floor and centurion in nchardak that is under water
 
-                    if (a_ref->formID == 0x45921)
+                    case (0x45921):
                     {
                         //odahviing. it somehow decides that he is enemy right before the trap is activated and he isnt actually an enemy, and if we attack him, he will go mad after trap is released which causes 
                         //quest to be bugged and we need to travel very far away from him so he calms down.
@@ -36031,7 +36185,38 @@ namespace MiscThings {
                             if (phase > 10)
                                 return RE::BSContainer::ForEachResult::kContinue; //he is going to be trapped
                         }
+
+                        break;
                     }
+
+                    case (0x4027ac1): //dlc2 unearthed sniper draugr that will climb down if we ignore him. ignore him until he is down
+                    {
+                        auto pos = a_ref->GetPosition();
+                        if (pos.z > 1842.0f && pos.x < -2432.5f && pos.x > -3500.0f)
+                        {
+                            auto gate = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4018142);
+                            if (gate && MiscThings::two_state_activator_state(gate) == 1)
+                                return RE::BSContainer::ForEachResult::kContinue;
+                        }
+
+
+                        break;
+                    }
+
+                    case (0x4038665): //dlc2 unearthed dumbas spiders behind expert door that are optional but aggro on you from 5000 meters and constantly call walker to attack them after no draugrs left
+                    case (0x4038666):
+                    case (0x403866a):
+                    {
+                        auto door = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4027a77);
+                        if (door && MiscThings::is_door_locked(door))
+                            return RE::BSContainer::ForEachResult::kContinue;
+
+                        break;
+                    }
+                    }
+
+
+
 
                     if (labyrinthian_shit_gate_condition)
                     {

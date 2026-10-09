@@ -10,6 +10,8 @@
 
 namespace Observer {
 
+	bool dlc2_ahzidal_ring2_disagreed_to_solve_puzzle = false;
+
 	long long dlc2_book_darkness_damage_advice_timestamp = 0; //dont need to reset
 
 	bool old_vahlok_platform_disabled_1 = false;
@@ -270,6 +272,17 @@ namespace Observer {
 	std::map<RE::ActorValue, long long> magic_resist_potions_to_use{};
 
 
+	bool get_dlc2_ahzidal_ring2_disagreed_to_solve_puzzle()
+	{
+		return dlc2_ahzidal_ring2_disagreed_to_solve_puzzle;
+	}
+
+	void set_dlc2_ahzidal_ring2_disagreed_to_solve_puzzle(bool set)
+	{
+		dlc2_ahzidal_ring2_disagreed_to_solve_puzzle = set;
+	}
+
+
 	void notify_player_hit_by_weapon(RE::TESForm* weapon)
 	{
 		check_health_decrease_after_hit = true;
@@ -488,6 +501,15 @@ namespace Observer {
 
 				break;
 			}
+
+			case 14:
+			{
+				min_range = 1;
+				max_range = 4;
+
+				break;
+			}
+
 
 			default:
 			{
@@ -1592,6 +1614,140 @@ namespace Observer {
 
 				break;
 			}
+
+
+
+			case 14:
+			{
+				if (!puzzle_request_was_sent)
+				{
+					std::vector<MenuOption> options{};
+					options.push_back({ 1, "Dont do anything, and go do other quests" });
+					options.push_back({ 2, "Try to walk slowly on each pressure plate" });
+					options.push_back({ 3, "Try to walk normally on each pressure plate" });
+					options.push_back({ 4, "Try to walk fast on each pressure plate" });
+
+
+					auto player = RE::PlayerCharacter::GetSingleton();
+
+					unregister_all_actions(); //no pause - unregister here
+
+					if (force_choice(options, "You see a closed gate, with a Magical Ring behind it on some pedestal... there are no chains or handles connected to this gate, but there are 25 pressure plates in the center of the room, laid out in a 5x5 grid... What will you do?", force_type::timed_quest_puzzle))
+					{
+						puzzle_request_was_sent = true;
+					}
+				}
+				else
+				{
+					if (puzzle_choice_valid)
+					{
+
+						//register_allowed_actions(); //custom walk required, dont register right away
+
+						pause_puzzle_scan_time = 5.0f;
+
+						std::vector<RE::NiPoint3> pressure_plate_positions{};
+
+
+						//their ids are not in order i chose so do it like this
+						std::vector<uint32_t> pressure_plate_formids{};
+						pressure_plate_formids.push_back(0x401dc26);
+						pressure_plate_formids.push_back(0x401dc25);
+						pressure_plate_formids.push_back(0x401dc24);
+						pressure_plate_formids.push_back(0x401dc23);
+						pressure_plate_formids.push_back(0x401dc22);
+
+						pressure_plate_formids.push_back(0x401dc21);
+						pressure_plate_formids.push_back(0x401dc1d);
+						pressure_plate_formids.push_back(0x401dc1c);
+						pressure_plate_formids.push_back(0x401dc1b);
+						pressure_plate_formids.push_back(0x401dc1a);
+
+						pressure_plate_formids.push_back(0x401dc14);
+						pressure_plate_formids.push_back(0x401dc11);
+						pressure_plate_formids.push_back(0x4020cb4);
+						pressure_plate_formids.push_back(0x401dc17);
+						pressure_plate_formids.push_back(0x401dc20);
+
+						pressure_plate_formids.push_back(0x401dc1e);
+						pressure_plate_formids.push_back(0x401dc18);
+						pressure_plate_formids.push_back(0x401dc0f);
+						pressure_plate_formids.push_back(0x401dc12);
+						pressure_plate_formids.push_back(0x401dc15);
+
+						pressure_plate_formids.push_back(0x401dc16);
+						pressure_plate_formids.push_back(0x401dc13);
+						pressure_plate_formids.push_back(0x401dc10);
+						pressure_plate_formids.push_back(0x401dc19);
+						pressure_plate_formids.push_back(0x401dc1f);
+
+
+						for (auto pressure_plate_formid : pressure_plate_formids)
+						{
+							auto pressure_plate = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(pressure_plate_formid);
+							if (pressure_plate)
+								pressure_plate_positions.push_back(pressure_plate->GetPosition());
+							else
+								bool stop_here = false;
+						}
+						
+
+						if (std::size(pressure_plate_positions) < 25)
+						{
+							send_random_context("Error! Pressure plate positioning error", false);
+							register_allowed_actions();
+							reset_quest_puzzles();
+							return;
+						}
+
+
+						switch (puzzle_choice)
+						{
+
+						case 1:
+						{
+							register_allowed_actions();
+							set_dlc2_ahzidal_ring2_disagreed_to_solve_puzzle(true);
+							break;
+						}
+						case 2:
+						{
+							WalkerProcessor::walk_custom_path((RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x402710f), pressure_plate_positions, true, false, false, true, true, true, false, true, false);
+							reset_quest_puzzles();
+							break;
+						}
+
+						case 3:
+						{
+							WalkerProcessor::walk_custom_path((RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x402710f), pressure_plate_positions, true, false, false, true, true, true, false, false, false);
+							reset_quest_puzzles();
+							reset_quest_puzzles();
+							break;
+						}
+
+						case 4:
+						{
+							WalkerProcessor::walk_custom_path((RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x402710f), pressure_plate_positions, true, false, false, true, true, true, false, false, true);
+							reset_quest_puzzles();
+							break;
+						}
+
+						default:
+						{
+							register_allowed_actions();
+							reset_quest_puzzles();
+							break;
+						}
+						}
+					}
+				}
+
+
+				break;
+			}
+
+
+
 
 
 			default:

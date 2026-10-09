@@ -49,6 +49,8 @@ namespace Observer {
 	std::pair<bool, std::string> set_quest_puzzle_choice(int id);
 	std::pair<bool, std::string> set_quest_puzzle_choice_array(std::vector<int> choices);
 
+	void set_dlc2_ahzidal_ring2_disagreed_to_solve_puzzle(bool set);
+	bool get_dlc2_ahzidal_ring2_disagreed_to_solve_puzzle();
 
 	void cleanup_invalid_objects(float dtime, bool force = false);
 

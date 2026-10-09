@@ -11527,6 +11527,68 @@ namespace WalkerProcessor {
 
                                         }
 
+
+                                        if (quest_entry.quest && quest_entry.quest->formID == 0x401810b) //dlc2 unearhed quest. notify player if he has no gold to proceed
+                                        {
+                                            switch (objective->index)
+                                            {
+                                            case (40):
+                                            {
+                                                if (MiscThings::get_player_gold() < 1000)
+                                                {
+                                                    reset_walker();
+                                                    result.first = false;
+                                                    result.second = "[You need to have 1000 gold to proceed in this quest. You dont have enough yet]";
+                                                    do_delayed_poke();
+                                                    return result;
+                                                }
+                                                break;
+                                            }
+
+                                            case (160):
+                                            {
+                                                if (MiscThings::get_player_gold() < 2000)
+                                                {
+                                                    reset_walker();
+                                                    result.first = false;
+                                                    result.second = "[You need to have 2000 gold to proceed in this quest. You dont have enough yet]";
+                                                    do_delayed_poke();
+                                                    return result;
+                                                }
+                                                break;
+                                            }
+
+                                            case (260):
+                                            {
+                                                if (MiscThings::get_player_gold() < 3000)
+                                                {
+                                                    reset_walker();
+                                                    result.first = false;
+                                                    result.second = "[You need to have 3000 gold to proceed in this quest. You dont have enough yet]";
+                                                    do_delayed_poke();
+                                                    return result;
+                                                }
+                                                break;
+                                            }
+
+                                            case (360):
+                                            {
+                                                if (MiscThings::get_player_gold() < 5000)
+                                                {
+                                                    reset_walker();
+                                                    result.first = false;
+                                                    result.second = "[You need to have 5000 gold to proceed in this quest. You dont have enough yet]";
+                                                    do_delayed_poke();
+                                                    return result;
+                                                }
+                                                break;
+                                            }
+                                            }
+                                        }
+
+
+
+
                                         if (phantom_objective || quest_ref_handle)
                                         {
                                             if (phantom_objective || quest_ref_handle.get())
@@ -22097,6 +22159,63 @@ namespace WalkerProcessor {
                 
                 if (target_ref && target_ref->formID == 0x70c1a25) //dummy from apocrypha. reused in other dungeons
                 {
+                    if (parent_cell && parent_cell->formID == 0x40142ee) //dlc2 unearthed quest, puzzles
+                    {
+                        if (target_ref->GetPosition().GetDistance({ -1988.63831, 1250.27991, 1726.88306 }) < 100.0f) //phase2
+                        {
+                            if (player->GetDistance(target_ref) < 150.0f)
+                            {
+                                auto gate1 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4027a71);
+                                auto gate2 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4027a72);
+                                auto gate3 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4020d4b);
+
+                                auto handle1 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4027a6e);
+                                auto handle2 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4027a6f);
+                                auto handle3 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4027a70);
+                                auto handle4 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x40289af);
+
+                                if (gate1 && gate2 && gate3 && handle1 && handle2 && handle3 && handle4)
+                                {
+                                    bool gate1_closed = MiscThings::two_state_activator_state(gate1) == 1;
+                                    bool gate2_closed = MiscThings::two_state_activator_state(gate2) == 1;
+                                    bool gate3_closed = MiscThings::two_state_activator_state(gate3) == 1;
+
+
+                                    if (gate1_closed || gate2_closed || gate3_closed)
+                                    {
+                                        std::string info_gate1 = gate1_closed ? MiscThings::insert_object_into_list_and_get_info(gate1) + "; " : "";
+                                        std::string info_gate2 = gate2_closed ? MiscThings::insert_object_into_list_and_get_info(gate2) + "; " : "";
+                                        std::string info_gate3 = gate3_closed ? MiscThings::insert_object_into_list_and_get_info(gate3) + "; " : "";
+
+                                        auto info_handle1 = MiscThings::insert_object_into_list_and_get_info(handle1) + "; ";
+                                        auto info_handle2 = MiscThings::insert_object_into_list_and_get_info(handle2) + "; ";
+                                        auto info_handle3 = MiscThings::insert_object_into_list_and_get_info(handle3) + "; ";
+                                        auto info_handle4 = MiscThings::insert_object_into_list_and_get_info(handle4) + "; ";
+
+                                        send_random_context("There are closed gates, that block the way: " + info_gate1 + info_gate2 + info_gate3 + ". And four handles: " + info_handle1 + info_handle2 + info_handle3 + info_handle4 + "... Looks like a puzzle...", false);
+                                        reset_walker();
+                                        return;
+
+                                    }
+                                }
+                            }
+                        }
+
+
+                        if (target_ref->GetPosition().GetDistance({ -3472.58105, -3205.05225, 1118.22668 }) < 100.0f) //phase3. ask player if he wants to do the puzzle
+                        {
+                            if (player->GetDistance(target_ref) < 150.0f)
+                            {
+                                Observer::set_quest_puzzle_type(14);
+                                reset_walker();
+                                return;
+                            }
+                        }
+
+
+                    }
+
+
 
                     if (parent_cell && parent_cell->formID == 0x40142f4) //black book 5 (nelot's house)
                     {
