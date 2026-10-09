@@ -21392,7 +21392,7 @@ namespace WalkerProcessor {
                 if (target_ref)
                     my_handle = target_ref->GetHandle();
 
-                if (target_ref && (!my_handle || !my_handle.get() || !my_handle.get().get() || !my_handle.get().get()->data.objectReference || !(my_handle.get().get()->formType == RE::FormType::Reference)))
+                if (target_ref && (!my_handle || !my_handle.get() || !my_handle.get().get() || !my_handle.get().get()->data.objectReference))
                 {
                     if (grab_info_given)
                         send_random_context("You grabbed the item using Telekinesis", false);
