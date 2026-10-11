@@ -22177,6 +22177,32 @@ namespace WalkerProcessor {
                 
                 if (target_ref && target_ref->formID == 0x70c1a25) //dummy from apocrypha. reused in other dungeons
                 {
+                    if (parent_cell && parent_cell->formID == 0xa0877) //skuldafn bridge levers pillars
+                    {
+                        if (target_ref->GetPosition().GetDistance({ -414.847260, 11800.7383, 1854.62122 }) < 100.0f)
+                        {
+                            if (player->GetDistance(target_ref) < 200.0f)
+                            {
+                                auto pillar1 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xa7596);
+                                auto pillar2 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xa7593);
+                                auto pillar3 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xa7597);
+                                auto lever = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xf13b2);
+                                auto bridge = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xa751d);
+
+                                auto temp_info = MiscThings::insert_object_into_list_and_get_info(pillar1);
+                                temp_info = MiscThings::insert_object_into_list_and_get_info(pillar2);
+                                temp_info = MiscThings::insert_object_into_list_and_get_info(pillar3);
+                                temp_info = MiscThings::insert_object_into_list_and_get_info(lever);
+                                temp_info = MiscThings::insert_object_into_list_and_get_info(bridge);
+
+
+                                send_random_context(temp_info + " blocks the path... you see a lever and pillars nearby. Looks like a puzzle", false);
+                                reset_walker();
+                                return;
+                            }
+                        }
+                    }
+
                     if (parent_cell && parent_cell->formID == 0x40142ee) //dlc2 unearthed quest, puzzles
                     {
                         if (target_ref->GetPosition().GetDistance({ -1988.63831, 1250.27991, 1726.88306 }) < 100.0f) //phase2

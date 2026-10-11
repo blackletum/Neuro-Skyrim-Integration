@@ -13546,6 +13546,23 @@ namespace MiscThings {
             {
                 return skuldafn_web;
             }
+            else
+            {
+                RE::TESObjectREFR* bridge = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xa751d);
+                if (bridge && MiscThings::two_state_activator_state(bridge) == 0) //bridge is up
+                {
+                    auto dummy = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x70c1a25);
+                    if (dummy)
+                    {
+                        RE::NiPoint3 redirect_pos = { -414.847260, 11800.7383, 1854.62122 };
+                        dummy->MoveTo(player);
+                        MiscThings::SetPosition_moveto(dummy, redirect_pos);
+                        return dummy;
+                    }
+
+                }
+            }
+
         }
 
 
@@ -16948,6 +16965,22 @@ namespace MiscThings {
 
             switch (object->formID)
             {
+            case (0xab335): //skuldafn gate
+            {
+                auto handle = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0xab33c); //lever
+
+                if (handle)
+                {
+                    if (!MiscThings::is_object_in_the_list(handle))
+                    {
+                        auto temp_result = MiscThings::insert_object_into_list_and_get_info(handle);
+                        if (temp_result != "")
+                            send_random_context("You see: " + temp_result, false);
+                    }
+                }
+                break;
+            }
+
 
             case (0x4032731): //book5 zone3 gates2
             {
