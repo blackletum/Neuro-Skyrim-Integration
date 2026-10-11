@@ -1885,19 +1885,40 @@ namespace Hooks {
                                 if (unearthed_quest)
                                 {
                                     auto navcut1 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x71a066b);
+                                    auto navcut2 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x71a576d);
 
-                                    if (unearthed_quest->currentStage > 150 && unearthed_quest->currentStage <= 250)
+                                    if (navcut1)
                                     {
-                                        //must be enabled
-                                        if (navcut1->IsDisabled())
-                                            navcut1->Enable(false);
+                                        if (unearthed_quest->currentStage > 150 && unearthed_quest->currentStage <= 250)
+                                        {
+                                            //must be enabled
+                                            if (navcut1->IsDisabled())
+                                                navcut1->Enable(false);
+                                        }
+                                        else
+                                        {
+                                            //must be disabled
+                                            if (!navcut1->IsDisabled())
+                                                navcut1->Disable();
+                                        }
                                     }
-                                    else
+
+                                    if (navcut2)
                                     {
-                                        //must be disabled
-                                        if (!navcut1->IsDisabled())
-                                            navcut1->Disable();
+                                        if (unearthed_quest->currentStage > 250 && unearthed_quest->currentStage <= 350)
+                                        {
+                                            //must be enabled
+                                            if (navcut2->IsDisabled())
+                                                navcut2->Enable(false);
+                                        }
+                                        else
+                                        {
+                                            //must be disabled
+                                            if (!navcut2->IsDisabled())
+                                                navcut2->Disable();
+                                        }
                                     }
+
                                 }
                                 break;
                             }

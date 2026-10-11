@@ -1706,6 +1706,7 @@ namespace Observer {
 
 						case 1:
 						{
+							reset_quest_puzzles();
 							register_allowed_actions();
 							set_dlc2_ahzidal_ring2_disagreed_to_solve_puzzle(true);
 							break;
@@ -3265,6 +3266,17 @@ namespace Observer {
 											}
 										}
 
+										if (a_ref->formID == 0x402747d) //dlc2 unearthed kolbjorn word of power, hide until stage is on phase4 (last)
+										{
+											auto unearthed_quest = (RE::TESQuest*)RE::TESForm::LookupByID(0x401810b);
+											if (unearthed_quest && unearthed_quest->currentStage < 410)
+											{
+												raw_object_list.pop_back();
+												continue;
+											}
+										}
+
+
 
 										std::string info = MiscThings::insert_object_into_list_custom_name("Word of Power, calling for you", a_ref);
 										if (info != "")
@@ -3316,6 +3328,16 @@ namespace Observer {
 												}
 											}
 
+
+											if (a_ref->formID == 0x402747d) //dlc2 unearthed kolbjorn word of power, hide until stage is on phase4 (last)
+											{
+												auto unearthed_quest = (RE::TESQuest*)RE::TESForm::LookupByID(0x401810b);
+												if (unearthed_quest && unearthed_quest->currentStage < 410)
+												{
+													raw_object_list.pop_back();
+													continue;
+												}
+											}
 
 
 											float word_of_power_range = 2000.0f;
@@ -7500,6 +7522,7 @@ namespace Observer {
 		if (!player)
 			return;
 
+		auto player_worldspace = player->GetWorldspace();
 		auto parent_cell = player->GetParentCell();
 		auto player_pos = player->GetPosition();
 

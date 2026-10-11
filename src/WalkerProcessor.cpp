@@ -3103,7 +3103,10 @@ namespace WalkerProcessor {
         try {
 
             auto player_pos = RE::PlayerCharacter::GetSingleton()->GetPosition();
+            auto parent_cell = RE::PlayerCharacter::GetSingleton()->parentCell;
 
+            if (parent_cell && parent_cell->formID == 0x40142ee) //unearthed dlc2 quest
+                return false;
 
             if (MiscThings::is_on_horse() || MiscThings::is_werewolf() || MiscThings::is_vampirelord() || is_fighting())
                 return false;
@@ -6110,8 +6113,8 @@ namespace WalkerProcessor {
         auto parent_cell = player->GetParentCell();
 
         bool blackreach_mode = false;
-                                                                                                //avanchenzel with fucked pathfinding       //twilight sepulcher garbage navmesh at the start
-        if (player_worldspace == blackreach_worldspace || (parent_cell && parent_cell->formID == 0x4c6dd) || (parent_cell && parent_cell->formID == 0x5b91b && player_pos.y > 3500.0f))
+                                                                                                //avanchenzel with fucked pathfinding       //twilight sepulcher garbage navmesh at the start                                   //dlc2 unearthed dungeon
+        if (player_worldspace == blackreach_worldspace || (parent_cell && parent_cell->formID == 0x4c6dd) || (parent_cell && parent_cell->formID == 0x5b91b && player_pos.y > 3500.0f) || (parent_cell && parent_cell->formID == 0x40142ee))
             blackreach_mode = true; //navmesh in blackreach is very bad. clips through the floor. looks like they changed terrain without remaking navmesh
 
         float swimming_bonus = 0.0f;
@@ -12390,6 +12393,16 @@ namespace WalkerProcessor {
             {
                 if (parent_cell && ((parent_cell->formID == 0x40173b3) || (parent_cell->formID == 0x40142f1) || (parent_cell->formID == 0x40142f1) || (parent_cell->formID == 0x40173b2)))
                     return false;
+            }
+
+            if (target_ref)
+            {
+                switch (target_ref->formID)
+                {
+                case (0x4020d2a): //dlc2 unearthed quest chains
+                case (0x4018165):
+                    return false;
+                }
             }
         }
 
@@ -22655,6 +22668,51 @@ namespace WalkerProcessor {
 
 
 
+                    if (parent_cell->formID == 0x40142ee) //dlc2 unearthed, 
+                    {
+                        auto player_pos = player->GetPosition();
+                        if (target_ref->formID == 0x4027808) //ahzidal ring 2 (in the water well) grab
+                        {
+                            if (player->GetDistance(target_ref) > 150.0f)
+                            {
+                                if (target_ref->GetPosition().GetDistance({ -3456.26, -3689.05, 1085.77 }) < 30.0f && target_ref->modelState != 0 && !MiscThings::is_player_swimming() && player_pos.y > -3500.0f && player_pos.z > 941.0f) //untouched on the pedestal
+                                {
+                                    walk_again(); //soft reset
+                                    using_custom_path = true;
+                                    custom_path = CustomWalkerPaths::ahzidal_ring2_direct;
+                                    dont_quicksave_after_custom_path = true;
+                                    allow_interrupt_custom_walk = false;
+                                    walk_again_when_finished = true;
+                                    custom_path_must_jump_on_specific_point = true;
+                                    custom_path_jump_points = { 0 };
+                                    ban_custom_path_interrupt_after_append = true;
+                                    return;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            //escape
+                            if (!MiscThings::is_player_swimming() && player_pos.y < -3500.0f && player_pos.z > 941.0f)
+                            {
+                                walk_again(); //soft reset
+                                using_custom_path = true;
+                                custom_path = CustomWalkerPaths::ahzidal_ring2_reverse;
+                                dont_quicksave_after_custom_path = true;
+                                allow_interrupt_custom_walk = false;
+                                walk_again_when_finished = true;
+                                custom_path_must_jump_on_specific_point = true;
+                                custom_path_jump_points = { 1 };
+                                path_valid = true;
+                                path = custom_path;
+                                return;
+                            }
+                        }
+
+                    }
+
+
+
 
                     if (parent_cell && parent_cell->formID == 0x15258 && target_ref->formID == 0x70c1a25) //azura star dungeon
                     {
@@ -23380,6 +23438,9 @@ namespace WalkerProcessor {
                                             }
                                         }
 
+                                        bool dragon_low_hp = odahviing_actor->GetActorValue(RE::ActorValue::kHealth) / odahviing_actor->GetActorValueMax(RE::ActorValue::kHealth) < 0.4f;
+                                        dragonrent |= dragon_low_hp;
+
                                         if (!dragonrent && !shout_mode)
                                         {
                                             auto dragonrend = (RE::TESShout*)RE::TESForm::LookupByID(0x44250);
@@ -23420,6 +23481,9 @@ namespace WalkerProcessor {
                                                     break;
                                                 }
                                             }
+
+                                            bool dragon_low_hp = odahviing_actor->GetActorValue(RE::ActorValue::kHealth) / odahviing_actor->GetActorValueMax(RE::ActorValue::kHealth) < 0.4f;
+                                            dragonrent |= dragon_low_hp;
 
                                             if (dragonrent)
                                             {

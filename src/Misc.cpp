@@ -189,7 +189,6 @@ namespace MiscThings {
 
 
 
-
     RE::TESObjectREFR* get_furniture_occupant(RE::TESObjectREFR* furniture_refr)
     {
         RE::TESObjectREFR* result = nullptr;
@@ -4670,7 +4669,11 @@ namespace MiscThings {
         }
 
 
-
+        if (player_worldspace && player_worldspace->formID == 0x46033) //whiterun balcony fight with odahviing
+        {
+            RE::NiPoint3 balcony_pos = {31104.8184, 4647.11865, -205.484146 };
+            return balcony_pos;
+        }
 
 
         player_pos.z += 2000.0f; //pretend player is high so it prefers higher points, like top of mountain
@@ -9719,6 +9722,55 @@ namespace MiscThings {
         }
 
 
+        if (quest && quest->formID == 0x44c56 && quest->currentStage == 150) //call dragon mq301
+        {
+            if (player_worldspace)
+            {
+                if (player_worldspace->formID == 0x3c) //tamriel
+                {
+                    if (target && target->formID != 0x1b1f1) //city gates
+                    {
+                        auto city_gates = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1b1f1);
+                        if (city_gates)
+                            return city_gates;
+                    }
+                }
+
+                if (player_worldspace->formID == 0x1a26f) //whiterun
+                {
+                    if (target && target->formID != 0x1a704) //dragonsreach doors
+                    {
+                        auto dragonsreach_doors = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1a704);
+                        if (dragonsreach_doors)
+                            return dragonsreach_doors;
+                    }
+                }
+
+                if (player_worldspace->formID == 0x46033) //dragonsreach battle balcony
+                {
+                    auto odahviing = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x45921);
+                    if (odahviing && odahviing->IsDisabled())
+                    {
+                        auto old_marker = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x46efb);
+                        if (old_marker)
+                            return old_marker;
+                    }
+                }
+            }
+            else
+            {
+                if (parent_cell && parent_cell->formID == 0x165a3) //dragonsreach
+                {
+                    if (target && target->formID != 0x46b84) //dragonsreach balcony entrance from dragonsreach
+                    {
+                        auto dragonsreach_doors = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x46b84);
+                        if (dragonsreach_doors)
+                            return dragonsreach_doors;
+                    }
+                }
+            }
+        }
+
         if (quest && quest->formID == 0x1ea58) //db09
         {
             if (quest->currentStage == 40)//potentially bugged stage
@@ -9768,7 +9820,7 @@ namespace MiscThings {
                                 {
                                     auto rotating_door = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4020d40);
                                     auto handle = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4020d4c);
-                                    if (rotating_door && handle && MiscThings::two_state_activator_state(rotating_door) == 0)
+                                    if (rotating_door && handle && MiscThings::two_state_activator_state(rotating_door) == 1)
                                         return handle;
                                     else
                                         return artefact;
@@ -9817,12 +9869,32 @@ namespace MiscThings {
                                 {
                                     auto rotating_door = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4018146);
                                     auto handle = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x40182b3);
-                                    if (rotating_door && handle && MiscThings::two_state_activator_state(rotating_door) == 0)
+                                    if (rotating_door && handle && MiscThings::two_state_activator_state(rotating_door) == 1)
                                         return handle;
                                     else
                                         return artefact2;
                                 }
                             }
+
+                            if (unearthed_quest->currentStage > 350)
+                            {
+                                //duplicate grab the ring if we didnt do it last time
+                                auto dummy = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x70c1a25);
+                                auto artefact1 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4027808); //ring2
+                                if (!Observer::get_dlc2_ahzidal_ring2_disagreed_to_solve_puzzle() && dummy && artefact1 && artefact1->GetPosition().GetDistance({ -3456.26, -3689.05, 1085.77 }) < 30.0f && artefact1->modelState != 0) //original position
+                                {
+                                    auto gate_ring = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x4020c7d);
+                                    if (gate_ring && MiscThings::two_state_activator_state(gate_ring) == 1)
+                                    {
+                                        dummy->MoveTo(player);
+                                        MiscThings::SetPosition_moveto(dummy, { -3472.58105, -3205.05225, 1118.22668 });
+                                        return dummy;
+                                    }
+                                    else
+                                        return artefact1;
+                                }
+                            }
+
 
 
                         }
@@ -9844,10 +9916,10 @@ namespace MiscThings {
 
                         if (rotating_door1 && rotating_door2 && chain1 && chain2 && gate1 && gate2 && gate3 && dummy)
                         {
-                            if (MiscThings::two_state_activator_state(rotating_door1) == 0)
+                            if (MiscThings::two_state_activator_state(rotating_door1) == 1)
                                 return chain1;
 
-                            if (MiscThings::two_state_activator_state(rotating_door2) == 0)
+                            if (MiscThings::two_state_activator_state(rotating_door2) == 1)
                                 return chain2;
 
 
@@ -13816,6 +13888,20 @@ namespace MiscThings {
             if (peace_quest)
             {
                 if ((peace_quest->data.flags.all(RE::QuestFlag::kDisplayedInHUD) || peace_quest->data.flags.all(RE::QuestFlag::kEnabled)) && !peace_quest->data.flags.all(RE::QuestFlag::kCompleted))
+                    return true;
+            }
+
+            auto trap_dragon_quest = (RE::TESQuest*)RE::TESForm::LookupByID(0x44c56); //trap dragon quest
+            if (trap_dragon_quest)
+            {
+                if ((trap_dragon_quest->data.flags.all(RE::QuestFlag::kDisplayedInHUD) || trap_dragon_quest->data.flags.all(RE::QuestFlag::kEnabled)) && !trap_dragon_quest->data.flags.all(RE::QuestFlag::kCompleted))
+                    return true;
+            }
+
+            auto fly_skuldafn_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("MQ303"); //fly to skuldafn
+            if (fly_skuldafn_quest)
+            {
+                if ((fly_skuldafn_quest->data.flags.all(RE::QuestFlag::kDisplayedInHUD) || fly_skuldafn_quest->data.flags.all(RE::QuestFlag::kEnabled)) && !fly_skuldafn_quest->data.flags.all(RE::QuestFlag::kCompleted))
                     return true;
             }
         }
@@ -18181,6 +18267,11 @@ namespace MiscThings {
                 result = 0;
             else
                 result = 1;
+
+            if (activator->parentCell && activator->parentCell->formID == 0x40142ee) //dlc2 kolbjorn inverted doors
+                result = !result;
+
+
         }
 
 
@@ -34497,16 +34588,20 @@ namespace MiscThings {
                                 }
                                 if (unlocked_words > 0)
                                 {
-
                                     auto capture_dragon_quest = (RE::TESQuest*)RE::TESForm::LookupByEditorID("MQ301");
                                     if (capture_dragon_quest && capture_dragon_quest->GetCurrentStageID() == 150)
                                     {
-                                        auto call_dragon = (RE::TESShout*)RE::TESForm::LookupByID(0x46B8c);
-                                        if (shout == call_dragon)
+                                        //auto call_dragon = (RE::TESShout*)RE::TESForm::LookupByID(0x46B8c);
+                                        if (shout->formID == 0x46B8c)
                                         {
-                                            result.first = false;
-                                            result.second = "You already called the dragon. No need to do it again yet";
-                                            return result;
+                                            //now test if odahviing is actually enabled
+                                            auto odahviing = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x45921);
+                                            if (odahviing && !odahviing->IsDisabled())
+                                            {
+                                                result.first = false;
+                                                result.second = "You already called the dragon. No need to do it again yet";
+                                                return result;
+                                            }
                                         }
                                     }
 
