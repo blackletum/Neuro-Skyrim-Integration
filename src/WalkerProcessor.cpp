@@ -137,7 +137,7 @@ namespace WalkerProcessor {
     std::map<RE::TESQuest*, std::vector<uint32_t>> followed_quests{};
 
 
-    bool seaching_dragon_land_spot = false;
+    bool searching_dragon_land_spot = false;
 
 
     RE::TESObjectREFR* quest_door_that_needs_a_lockpick = nullptr; //dont reset normally
@@ -2251,11 +2251,11 @@ namespace WalkerProcessor {
                                             if (landing_point == wait_val)
                                             {
                                                 dragon_landing_marker->MoveTo(player); //prepare
-                                                seaching_dragon_land_spot = true;
+                                                searching_dragon_land_spot = true;
                                                 return;
                                             }
                                                 
-                                            seaching_dragon_land_spot = false;
+                                            searching_dragon_land_spot = false;
 
                                             if (landing_point != RE::NiPoint3::Zero())
                                             {
@@ -5315,13 +5315,19 @@ namespace WalkerProcessor {
             speed_koef = 1.0f;
 
 
-        if (MiscThings::is_werewolf())
+        if (MiscThings::is_werewolf() && !searching_dragon_land_spot && !(MiscThings::is_dragon(target) && MiscThings::is_flying(target)))
         {
             if (speed_koef < 2.0f)
                 speed_koef = 2.0f;
 
             force_high_precision = false;
         }
+
+        if (MiscThings::is_werewolf() && MiscThings::is_dragon(target) && MiscThings::is_flying(target))
+        {
+            force_high_precision = true;
+        }
+
 
         if (MiscThings::get_hand_contents(get_current_active_hand()) && MiscThings::get_hand_contents(get_current_active_hand())->formID == 0x1A4CC) //telekinesis
         {
@@ -5546,7 +5552,6 @@ namespace WalkerProcessor {
 
         auto path_point_pos = target_center;
         auto pos_dif = path_point_pos - camera_pos;
-
 
         bool low_range_concentration_spell = is_concentration_spell(get_current_active_hand()) && get_weapon_range(get_current_active_hand()) < 2000.0f;
 
@@ -5918,7 +5923,7 @@ namespace WalkerProcessor {
             if (mulY < 0)
             {
                 if (!looking_mode)
-                    mulZ = 0.0f;// -mulZ;
+                    ;//    mulZ = 0.0f;// -mulZ;
 
                 if (mulX < 0.0f)
                     mulX = -0.3f + mulX;
@@ -6691,7 +6696,7 @@ namespace WalkerProcessor {
         point_of_no_return_request_sent = false;
         point_of_no_return_choice_valid = false;
         point_of_no_return_choice = false;
-        point_of_no_return_choice_defined = false;
+        //point_of_no_return_choice_defined = false;
 
 
         bloodskal_powerattack_choice_defined = false;
@@ -6747,7 +6752,7 @@ namespace WalkerProcessor {
         midcombat_reanimate_cast = false;
         midcombat_reanimate_cast_done = false;
 
-        seaching_dragon_land_spot = false;
+        searching_dragon_land_spot = false;
 
         dodge_projectile_blast_target = nullptr;
         fight_versus_dangerous_mage_power_attack_if_possible = false;
@@ -20329,7 +20334,7 @@ namespace WalkerProcessor {
 
         lock_camera_used_this_cycle = false;
 
-        Hooks::add_debug_line("walker_processor called");
+        //Hooks::add_debug_line("walker_processor called", true);
 
 
         //if (target_ref)
@@ -21731,14 +21736,14 @@ namespace WalkerProcessor {
                 {
                     if (player->GetDistance(target_ref) < 1000.0f && !detect_stuck(dtime))
                     {
-                        lock_camera_onto_target(target_ref, 0.5f);
+                        lock_camera_onto_target(target_ref, dtime, 0.5f);
                         cursor_down(); 
                         //go back and stare at him a little
                         return;
                     }
                     else
                     {
-                        if (lock_camera_onto_target(target_ref, 0.5f))
+                        if (lock_camera_onto_target(target_ref, dtime, 0.5f))
                         {
                             if (!alduin_stare_notified)
                             {
@@ -25002,10 +25007,11 @@ namespace WalkerProcessor {
                         else
                         {
 
+                            //Hooks::add_debug_line("LOCK_CAMERA_ENTERED", true);
 
-                            if (seaching_dragon_land_spot)
+                            if (searching_dragon_land_spot)
                             {
-                                lock_camera_onto_target(target_ref, dtime, 0.5f);
+                                lock_camera_onto_target(target_ref, dtime, 0.5f, false, true);
                             }
 
 

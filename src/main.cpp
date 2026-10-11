@@ -65,11 +65,14 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////DO ALL THIS
 
+//finish unearthed quest
+//add support for all houses + archmage room should have accessible chest and bed
+//maybe test the rest of mainquest just in case
+
 
 //COMBAT
 //in keep-distance mode dont rush towards enemy right away if we have ranged weapon, wait a little, maybe they will come closer themselves
 //autoswitch from ritual level scrolls after use (HOW?)
-//test a fight versus dragon in beast form
 //run away/tactical retreat - check possibility of replacing "runaway target" with some distant point on loaded navmesh, depending on direction of enemy
 
 

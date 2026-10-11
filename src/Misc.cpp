@@ -27250,8 +27250,13 @@ namespace MiscThings {
 
 
         float player_onehanded_skill = player->GetBaseActorValue(RE::ActorValue::kOneHanded);
-        float player_twohanded_skill = player->GetBaseActorValue(RE::ActorValue::kTwoHanded) / 2.0f;
-        float player_bow_skill = player->GetBaseActorValue(RE::ActorValue::kArchery) / 3.0f;
+        float player_twohanded_skill = player->GetBaseActorValue(RE::ActorValue::kTwoHanded);
+        float player_bow_skill = player->GetBaseActorValue(RE::ActorValue::kArchery);
+
+        player_onehanded_skill *= player_onehanded_skill;
+        player_twohanded_skill *= player_twohanded_skill;
+        player_bow_skill *= player_bow_skill;
+
 
         float sum = player_onehanded_skill + player_twohanded_skill + player_bow_skill;
 
