@@ -30394,6 +30394,22 @@ namespace MiscThings {
                                     else
                                         if (!probe_mode)
                                             actor_equip->EquipObject((RE::Actor*)player_ref, object, nullptr, 1, slot); //normal equip
+
+
+                                    if (object->formID == 0x80665ed)
+                                    {
+                                        auto ammo = (RE::TESBoundObject*)RE::TESForm::LookupByID(0x806dccb);
+                                        if (ammo)
+                                        {
+                                            auto p_inventory = get_filtered_inventory();
+                                            if (p_inventory.find(ammo) != p_inventory.end())
+                                            {
+                                                actor_equip->EquipObject((RE::Actor*)player_ref, ammo, nullptr, 1, slot); //normal equip
+                                            }
+                                        }
+
+                                        
+                                    }
                                 }
                                 else
                                 {
@@ -36301,6 +36317,13 @@ namespace MiscThings {
 
                     switch (a_ref->formID)
                     {
+                    case (0x13b66)://nahkriin, sovngarde portal guard priest. dont autodetect after killed normal draugrs 
+                    {
+                        if (player_pos.z < 2445.0f)
+                            return RE::BSContainer::ForEachResult::kContinue;
+
+                        break;
+                    }
                     case (0x6dfa0):
                     case (0x401c8f1):
                         return RE::BSContainer::ForEachResult::kContinue; //spider in avanchenzel who is under the floor and centurion in nchardak that is under water

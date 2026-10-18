@@ -3367,8 +3367,12 @@ namespace Observer {
 
 													std::string info = MiscThings::insert_object_into_list_custom_name("Word of Power, calling for you", a_ref);
 
+													bool word_of_power_silent = true;
+													if (a_ref->formID == 0xa7402) //skuldafn temple word of power, too easy to miss, non-silent notification comes too late. player might leave location before it happens
+														word_of_power_silent = false;
+
 													if (info != "")
-														send_random_context("You hear something... " + info, true);
+														send_random_context("You hear something... " + info, word_of_power_silent);
 												}
 												else
 												{
