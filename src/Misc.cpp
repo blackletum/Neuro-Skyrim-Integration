@@ -188,6 +188,18 @@ namespace MiscThings {
 
 
 
+    bool finished_mageguild()
+    {
+        auto mg08 = (RE::TESQuest*)RE::TESForm::LookupByEditorID("MG08");
+        if (mg08 && mg08->currentStage >= 200) //mage guild is done
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+
 
     RE::TESObjectREFR* get_furniture_occupant(RE::TESObjectREFR* furniture_refr)
     {
@@ -6161,9 +6173,9 @@ namespace MiscThings {
             bool gates_are_locked = false;
             auto gates = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x37a7d);
             if (gates && gates->IsLocked())
-                gates_are_locked = true;
+                ;// gates_are_locked = true;
 
-            if (!gates_are_locked)
+            if (gates && !gates_are_locked) //gates are locked for no reason and autoopen when we come close. just count them as opened
             {
 
                 
@@ -6718,11 +6730,8 @@ namespace MiscThings {
                 {
                     if (object->formID == 0x7768c) //archmage chair
                     {
-                        auto mg08 = (RE::TESQuest*)RE::TESForm::LookupByEditorID("MG08");
-                        if (mg08 && mg08->currentStage >= 200) //mage guild is done
-                        {
+                        if (finished_mageguild())
                             return true;
-                        }
                     }
 
 
@@ -15355,9 +15364,18 @@ namespace MiscThings {
         }
 
         auto player = RE::PlayerCharacter::GetSingleton();
+        auto parent_cell = player->GetParentCell();
 
-        if (player && player->GetParentCell() && player->GetParentCell()->formID == 0x165a8)
-            return true; //everything is raycastable in player's home
+        if (parent_cell)
+        {
+            if (parent_cell->formID == 0x165a8)
+                return true; //everything is raycastable in player's home
+
+            if (parent_cell->formID == 0xcab92) //archmage quarters
+                if (finished_mageguild())
+                    return true;
+        }
+
 
         auto camera = RE::PlayerCamera::GetSingleton();
 
@@ -25221,6 +25239,13 @@ namespace MiscThings {
             if (object->formID == 0xf3922) //whiterun house container
                 return false; //so it detects
 
+            if (object->formID == 0x77d7e) //archmage chest
+            {
+                if (finished_mageguild())
+                    return false;
+            }
+
+
             auto base_obj = object->GetBaseObject();
 
             if (base_obj->GetFormType() == RE::FormType::Container)
@@ -25992,7 +26017,13 @@ namespace MiscThings {
                                 {
                                     if (owner_extra->owner)
                                     {
-                                        if (owner_extra->owner->GetFormID() == 0x7 || owner_extra->owner->GetFormID() == 0xf2073) //player or player faction
+                                        bool faction_test = false;
+
+                                        if (owner_extra->owner->formType == RE::FormType::Faction)
+                                            if (RE::PlayerCharacter::GetSingleton()->IsInFaction((RE::TESFaction*)owner_extra->owner))
+                                                faction_test = true;
+
+                                        if (faction_test || owner_extra->owner->GetFormID() == 0x7 || owner_extra->owner->GetFormID() == 0xf2073) //player or player faction
                                             owner_text = "[Yours]";
                                         else
                                         {
@@ -26224,6 +26255,14 @@ namespace MiscThings {
                                     //whiterun            
                 if (refr->formID == 0xf3922) //house chests
                     name = "Your storage chest";
+
+                if (refr->formID == 0x77d7e) //archmage chest
+                {
+                    if (finished_mageguild())
+                        name = "Your storage chest";
+                }
+
+
 
                 if (refr->formID == 0x4036ef2) //raven rock house chest
                 {

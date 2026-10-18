@@ -67,7 +67,6 @@
 
 //finish unearthed quest
 //add support for all houses + archmage room should have accessible chest and bed
-//maybe test the rest of mainquest just in case
 
 
 //COMBAT

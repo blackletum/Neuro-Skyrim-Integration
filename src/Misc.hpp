@@ -596,6 +596,9 @@ namespace MiscThings {
 
     float GetLightLevel(RE::TESObjectREFR* object);
 
+    bool finished_mageguild();
+
+
     void SetPosition_moveto(RE::TESObjectREFR* a_target, RE::NiPoint3 new_pos);
 
     RE::TESObjectREFR* get_dragon_for_dragonrend();
