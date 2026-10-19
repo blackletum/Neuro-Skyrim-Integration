@@ -1232,7 +1232,8 @@ bool make_long_cast_spell_hand(bool right, float dtime)
     if (!dualcasting_no_mana && MiscThings::get_hand_contents(!right) == MiscThings::get_hand_contents(right) && MiscThings::has_spell_equipped(right))
     {
         //dualcasting 
-        input_dualcasting = true;
+        if (!(MiscThings::get_hand_contents(!right) && MiscThings::get_hand_contents(!right)->formID == 0x71aa86e))
+            input_dualcasting = true;
     }
 
 

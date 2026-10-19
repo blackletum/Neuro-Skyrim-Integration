@@ -3850,7 +3850,7 @@ class MyHook {
 
             MiscThings::item_dropper(dtime);
             MiscThings::delayed_equipper(dtime);
-
+            MiscThings::cookie_controller(dtime);
 
             Hooks::update_debug_text();
         }

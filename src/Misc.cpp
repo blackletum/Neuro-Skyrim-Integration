@@ -188,6 +188,149 @@ namespace MiscThings {
 
 
 
+
+
+
+
+
+    std::vector<std::pair<RE::ObjectRefHandle, float>> cookies_to_control{};
+
+    void add_cookies_to_controll(std::vector<std::pair<RE::ObjectRefHandle, float>> cookies)
+    {
+        cookies_to_control = cookies;
+    }
+
+
+    float cookie_timer = 0.0f;
+
+    float cookie_rotate_timer = 0.0f;
+
+    float rotation_koef = 1.0f;
+    bool rotation_dir = false;
+
+
+    void cookie_controller(float dtime)
+    {
+        auto camera = RE::PlayerCamera::GetSingleton();
+        auto player = RE::PlayerCharacter::GetSingleton();
+        auto player_pos = player->GetPosition();
+
+        if (std::size(cookies_to_control) > 0)
+        {
+            if (cookie_timer >= 0.5f)
+            {
+                if (cookie_timer - 0.5f > 0.2f)
+                {
+                    cookie_timer = 0.5f;
+                    
+                    if (camera->cameraRoot && cookies_to_control.at(std::size(cookies_to_control) - 1).first)
+                    {
+                        auto cookie_ref = cookies_to_control.at(std::size(cookies_to_control) - 1).first.get().get();
+                        if (cookie_ref)
+                        {
+                            auto cookie_3d = cookie_ref->Get3D();
+                            if (cookie_3d && cookie_3d->collisionObject)
+                            {
+                                auto body = cookie_3d->GetCollisionObject()->GetRigidBody();
+
+
+                                auto camera_dir = camera->cameraRoot->world.rotate.GetVectorY();
+
+                                RE::NiPoint3 throw_dir = camera_dir;
+                                auto attack_target = WalkerProcessor::get_attack_target_ref();
+
+                                if (attack_target)
+                                    throw_dir = WalkerProcessor::get_estimate_aim_pos(attack_target) - cookie_ref->GetPosition();
+
+                                throw_dir.Unitize();
+
+                                if (body)
+                                {
+                                    throw_dir *= 1000.0f;
+                                    body->SetLinearImpulse({ throw_dir.x, throw_dir.y, throw_dir.z, 1.0f });
+                                    cookies_to_control.pop_back();
+                                }
+
+                            }
+                        }
+                    }
+                    else
+                    {
+                        cookies_to_control.clear();
+                    }
+                }
+                else
+                    cookie_timer += dtime;
+
+            }
+            else
+                cookie_timer += dtime;
+        }
+        else
+        {
+            cookie_rotate_timer = 0.0f;
+            cookie_timer = 0.0f;
+
+            rotation_koef = (float)std::rand() / RAND_MAX * 0.2f;
+            rotation_dir = MiscThings::random_int_from_range(0, 1);
+
+        }
+            
+
+
+        auto camera_dirY = camera->cameraRoot->world.rotate.GetVectorY(); //lookat
+        auto camera_dirX = camera->cameraRoot->world.rotate.GetVectorX(); //right
+
+        RE::NiPoint3 pos_to_place = player->GetPosition();
+        pos_to_place.z += 120.0f;
+        pos_to_place += camera_dirY * 50.0f;
+
+
+        for (auto& cookie_handle : cookies_to_control)
+        {
+            if (cookie_handle.first)
+            {
+                auto cookie_ref = cookie_handle.first.get().get();
+                if (cookie_ref)
+                {
+                    auto cookie_3d = cookie_ref->Get3D();
+                    if (cookie_3d && cookie_3d->collisionObject)
+                    {
+                        auto body = cookie_3d->GetCollisionObject()->GetRigidBody();
+
+                        if (body)
+                        {
+                            float angle = cookie_handle.second;
+                            float coef = 1.0f;
+
+                            if (rotation_dir)
+                                coef = -1.0f;
+
+                            angle += RE::NI_PI / 2.0f * cookie_rotate_timer * rotation_koef * coef;
+
+
+                            RE::NiPoint3 shift = MiscThings::rotate_around_axis(camera_dirX * 40.0f, camera_dirY, angle);
+
+                            
+
+                            RE::NiPoint3 desired_pos = pos_to_place + shift;
+                            auto current_pos = cookie_ref->GetPosition();
+                            auto delta_pos = desired_pos - current_pos;
+                            //delta_pos *= 10.0f;
+
+                            body->SetLinearVelocity({ delta_pos.x, delta_pos.y, delta_pos.z, 1.0f });
+                        }
+                    }
+                }
+            }
+        }
+
+        cookie_rotate_timer += dtime;
+        
+    }
+
+
+
     bool finished_mageguild()
     {
         auto mg08 = (RE::TESQuest*)RE::TESForm::LookupByEditorID("MG08");
@@ -6992,7 +7135,7 @@ namespace MiscThings {
 
                                 if (house_quest)
                                 {
-                                    //this way does not account for relationship. for whiterun its probably pointless because its unlikely that player will get 5k gold before completing first drago kill quest
+                                    //this way does not account for relationship. for whiterun its probably pointless because its unlikely that player will get 5k gold before completing first dragon kill quest
                                     auto object_p = MiscThings::General::Script::GetObject(house_quest, "HousePurchaseScript");
                                     if (object_p)
                                     {
@@ -20729,7 +20872,6 @@ namespace MiscThings {
 
 
 
-
     RE::NiPoint3 rotate_vector_by_angles(RE::NiPoint3 v, RE::NiPoint3 object_angles)
     {
         RE::NiPoint3 result = v;
@@ -30115,6 +30257,11 @@ namespace MiscThings {
                     return "";
 
 
+                bool is_food = false;
+
+                if (alchemy_item->data.flags.any(RE::AlchemyItem::AlchemyFlag::kFoodItem))
+                    return "";
+
                 for (auto effect : alchemy_item->effects)
                 {
                     if (effect->baseEffect && effect->baseEffect->GetArchetype() == RE::EffectArchetypes::ArchetypeID::kValueModifier)
@@ -33641,6 +33788,7 @@ namespace MiscThings {
                 case (0x211F1): //steadfast ward
                 case (0x211F0): //greater ward
                 case (0x1A4CC): //telekinesis
+                case (0x71aa86e): //cookie1
                     return false;
                 }
 
@@ -33698,6 +33846,9 @@ namespace MiscThings {
                 {
                     if (spell->GetSpellType() != RE::MagicSystem::SpellType::kEnchantment)
                     {
+                        if (spell->formID == 0x71aa86e)
+                            return false;
+
                         if (spell->GetDelivery() == RE::MagicSystem::Delivery::kSelf)
                         {
                             for (auto effect : spell->effects)
@@ -35939,8 +36090,6 @@ namespace MiscThings {
         return false;
     }
     
-    
-
     bool is_offensive_spell(RE::SpellItem* spell)
     {
 
@@ -35955,6 +36104,7 @@ namespace MiscThings {
             case (0x211EC)://bound battleaxe
             case (0x211ED)://bound bow
             case (0x401ce06)://bound dagger
+            case (0x71aa86e): //cookie1
                 return true;
             }
 

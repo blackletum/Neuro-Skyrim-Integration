@@ -7518,6 +7518,9 @@ namespace Observer {
 
 
 
+	bool new_spells_added = false;
+
+
 
 	void player_state_monitor(float dtime)
 	{
@@ -7567,7 +7570,8 @@ namespace Observer {
 		static auto special_1 = (RE::TESBoundObject*)RE::TESForm::LookupByID(0x80665ed);
 		static auto special_2 = (RE::TESBoundObject*)RE::TESForm::LookupByID(0x806dccb);
 
-
+		static auto cookie_spell1 = (RE::SpellItem*)RE::TESForm::LookupByID(0x71aa86e);
+		static auto cookie_spell2 = (RE::SpellItem*)RE::TESForm::LookupByID(0x71af977);
 
 		if (threshold_quest && !observers_green_light)
 		{
@@ -7839,6 +7843,22 @@ namespace Observer {
 				}
 				else
 				{
+
+					if (!new_spells_added)
+					{
+						if (!MiscThings::is_werewolf() && !MiscThings::is_vampirelord())
+						{
+							if (cookie_spell1)
+							{
+								if (!MiscThings::player_has_spell(cookie_spell1) || !MiscThings::player_has_spell(cookie_spell2))
+								{
+									player->AddSpell(cookie_spell1);
+									player->AddSpell(cookie_spell2);
+									new_spells_added = true;
+								}
+							}
+						}
+					}
 
 					if (vahlok_quest)
 					{

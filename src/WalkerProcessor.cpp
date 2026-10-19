@@ -1411,6 +1411,10 @@ namespace WalkerProcessor {
         return runaway_mode;
     }
 
+
+
+
+
     bool is_fighting()
     {
         return ((interaction_after_walk == 3) && target_ref) || runaway_mode || (MiscThings::is_werewolf() && target_ref && target_ref->IsActor() && target_ref->IsDead() && interaction_after_walk == 1);
@@ -1421,7 +1425,13 @@ namespace WalkerProcessor {
         return is_fighting() && active_attacking_time > 0.0f;
     }
 
+    RE::TESObjectREFR* get_attack_target_ref()
+    {
+        if (is_fighting())
+            return target_ref;
 
+        return nullptr;
+    }
 
     bool is_pickpocketing()
     {
@@ -2899,14 +2909,141 @@ namespace WalkerProcessor {
 
             }
 
+
+            //static bool mySpellCast(RE::ActorMagicCaster* this_, RE::MagicItem* spell, bool dualCast, float* alchStrength, RE::MagicSystem::CannotCastReason* reason, bool useBaseValueForCost)
+            static void mySpellCast(RE::ActorMagicCaster* this_)
+            {
+                //if (on_check_cast(this_, spell, dualCast)) // our checks and logic
+                   
+                if (this_->currentSpell)
+                {
+                    if (this_->currentSpell->formID == 0x71aa86e)
+                    {
+                        if (this_->state == RE::MagicCaster::State::kCasting)
+                        {
+                            auto player = RE::PlayerCharacter::GetSingleton();
+
+                            auto item = (RE::TESBoundObject*)RE::TESForm::LookupByID(0x71af975);
+
+                            if (item)
+                            {
+                                // Create a new reference to the sword object at the desired location
+
+                                std::vector<std::pair<RE::ObjectRefHandle, float>> cookies_to_control{};
+
+                                auto camera = RE::PlayerCamera::GetSingleton();
+
+                                if (camera)
+                                {
+                                    auto camera_dirY = camera->cameraRoot->world.rotate.GetVectorY(); //lookat
+                                    auto camera_dirX = camera->cameraRoot->world.rotate.GetVectorX(); //right
+
+                                    RE::NiPoint3 pos_to_place = player->GetPosition();
+
+                                    pos_to_place.z += 120.0f;
+
+                                    pos_to_place += camera_dirY * 50.0f;
+                                    //pos_to_place -= camera_dirX * 30.0f;
+
+                                    for (int i = 0; i < 10; i++)
+                                    {
+                                        //RE::TESObjectREFRPtr new_item = player->PlaceObjectAtMe(item, false);
+
+                                        RE::NiPoint3 shift = MiscThings::rotate_around_axis(camera_dirX * 40.0f, camera_dirY, -RE::NI_PI / 9.0f * i);
+
+                                        auto new_item = RE::TESDataHandler::GetSingleton()->CreateReferenceAtLocation(item, pos_to_place + shift, { (float)std::rand() / RAND_MAX * 10.0f, (float)std::rand() / RAND_MAX * 10.0f, (float)std::rand() / RAND_MAX * 10.0f }, player->GetParentCell(), player->GetWorldspace(), nullptr, nullptr, player->GetHandle(), false, true);
+
+                                        cookies_to_control.push_back({ new_item, -RE::NI_PI / 9.0f * i });
+                                    }
+                                }
+
+
+
+
+
+                                MiscThings::add_cookies_to_controll(cookies_to_control);
+
+                            }
+                            bool stop_here = false;
+                        }
+                    }
+
+
+                    if (this_->currentSpell->formID == 0x71af977) //cookie2
+                    {
+                        if (this_->state == RE::MagicCaster::State::kCasting)
+                        {
+                            auto player = RE::PlayerCharacter::GetSingleton();
+
+                            auto item = (RE::TESBoundObject*)RE::TESForm::LookupByID(0x71af975);
+
+                            if (item)
+                            {
+                                // Create a new reference to the sword object at the desired location
+
+                                //std::vector<std::pair<RE::ObjectRefHandle, float>> cookies_to_control{};
+
+                                auto camera = RE::PlayerCamera::GetSingleton();
+
+                                if (camera)
+                                {
+                                    auto camera_dirY = camera->cameraRoot->world.rotate.GetVectorY(); //lookat
+                                    auto camera_dirX = camera->cameraRoot->world.rotate.GetVectorX(); //right
+
+                                    RE::NiPoint3 pos_to_place = player->GetPosition();
+
+                                    pos_to_place.z += 120.0f;
+
+                                    pos_to_place += camera_dirY * 50.0f;
+                                    //pos_to_place -= camera_dirX * 30.0f;
+
+                                    for (int i = 0; i < 10; i++)
+                                    {
+                                        //RE::TESObjectREFRPtr new_item = player->PlaceObjectAtMe(item, false);
+
+                                        //RE::NiPoint3 shift = MiscThings::rotate_around_axis(camera_dirX * 40.0f, camera_dirY, -RE::NI_PI / 9.0f * i);
+
+                                        auto new_item = RE::TESDataHandler::GetSingleton()->CreateReferenceAtLocation(item, pos_to_place, { (float)std::rand() / RAND_MAX * 10.0f, (float)std::rand() / RAND_MAX * 10.0f, (float)std::rand() / RAND_MAX * 10.0f }, player->GetParentCell(), player->GetWorldspace(), nullptr, nullptr, player->GetHandle(), false, true);
+
+                                        //cookies_to_control.push_back({ new_item, -RE::NI_PI / 9.0f * i });
+                                    }
+                                }
+
+
+
+
+
+                                //MiscThings::add_cookies_to_controll(cookies_to_control);
+
+                            }
+                            bool stop_here = false;
+                        }
+                    }
+                    
+                    
+                }
+                    
+                    
+                //return originalSpellCast(this_, spell, dualCast, alchStrength, reason, useBaseValueForCost); // game checks
+                return originalSpellCast(this_);
+                
+                
+                //else 
+                //    return false;  // now allow cast
+            }
+
+
+
+
             static inline REL::Relocation<decltype(myActivate)> originalActivate;
+
 
 
 
             static inline REL::Relocation<decltype(myStart)> originalStart;
             static inline REL::Relocation<decltype(myFinish)> originalFinish;
 
-
+            static inline REL::Relocation<decltype(mySpellCast)> originalSpellCast;
 
             static inline REL::Relocation<decltype(myScriptEffectFinish)> originalScriptEffectFinish;
 
@@ -2918,6 +3055,8 @@ namespace WalkerProcessor {
                 originalStart = REL::Relocation<std::uintptr_t>(RE::VTABLE_GuideEffect[0]).write_vfunc(0x14, myStart);
 
                 originalScriptEffectFinish = REL::Relocation<std::uintptr_t>(RE::VTABLE_ScriptEffect[0]).write_vfunc(0x15, myScriptEffectFinish);
+
+                originalSpellCast = REL::Relocation<uintptr_t>(RE::VTABLE_ActorMagicCaster[0]).write_vfunc(0x7, mySpellCast);
 
                 //originalFinish = REL::Relocation<std::uintptr_t>(RE::VTABLE_GuideEffect[0]).write_vfunc(0x15, myFinish); 
 
@@ -15410,6 +15549,7 @@ namespace WalkerProcessor {
             bool dualcasting_no_mana = MiscThings::has_spell_equipped(true) && MiscThings::get_player_mana() < get_spell_cost(true) * 2.8f;
             bool dualcast_condition = !dualcasting_no_mana && MiscThings::get_hand_contents(true) == MiscThings::get_hand_contents(false) && MiscThings::has_spell_equipped(true);
 
+            dualcast_condition &= !(MiscThings::get_hand_contents(true) && MiscThings::get_hand_contents(true)->formID == 0x71aa86e);
 
 
             if (dont_use_right)
@@ -16025,7 +16165,11 @@ namespace WalkerProcessor {
                             {
                                 was_casting_spell_right = false;
 
-                                if (pause_post_attack < 1.0f)
+                                float pause_threshold = 1.0f;
+                                if (MiscThings::get_hand_contents(true) && MiscThings::get_hand_contents(true)->formID == 0x71aa86e)
+                                    pause_threshold = 2.0f;
+
+                                if (pause_post_attack < pause_threshold)
                                 {
                                     if (dualcasting)
                                     {
@@ -16774,7 +16918,11 @@ namespace WalkerProcessor {
                             {
                                 
 
-                                if (pause_post_attack < 1.0f)
+                                float pause_threshold = 1.0f;
+                                if (MiscThings::get_hand_contents(false) && MiscThings::get_hand_contents(false)->formID == 0x71aa86e)
+                                    pause_threshold = 2.0f;
+
+                                if (pause_post_attack < pause_threshold)
                                 {
                                     was_casting_spell_left = false;
                                     left_attack_cancel();

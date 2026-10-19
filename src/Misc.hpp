@@ -599,6 +599,10 @@ namespace MiscThings {
     bool finished_mageguild();
 
 
+    void cookie_controller(float dtime);
+
+    void add_cookies_to_controll(std::vector<std::pair<RE::ObjectRefHandle, float>> cookies);
+
     void SetPosition_moveto(RE::TESObjectREFR* a_target, RE::NiPoint3 new_pos);
 
     RE::TESObjectREFR* get_dragon_for_dragonrend();

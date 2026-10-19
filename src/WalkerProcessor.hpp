@@ -14,6 +14,10 @@ namespace WalkerProcessor {
 	};
 
 
+	RE::TESObjectREFR* get_attack_target_ref();
+
+
+
 	void set_universal_dodging(bool set);
 
 	void processor(float dtime);
