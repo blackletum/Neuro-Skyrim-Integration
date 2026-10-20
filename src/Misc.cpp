@@ -195,18 +195,93 @@ namespace MiscThings {
 
     std::vector<std::pair<RE::ObjectRefHandle, float>> cookies_to_control{};
 
-    void add_cookies_to_controll(std::vector<std::pair<RE::ObjectRefHandle, float>> cookies)
+
+    //bool cookie_stick_mode = false;
+
+    void add_cookies_to_controll(std::vector<std::pair<RE::ObjectRefHandle, float>> cookies, bool stick_mode)
     {
+        //if (stick_mode)
+        //    cookies_to_control.insert(cookies_to_control.end(), cookies.begin(), cookies.end()); //append
+        //else
+
         cookies_to_control = cookies;
+
+        //cookie_stick_mode = stick_mode;
     }
 
-
     float cookie_timer = 0.0f;
-
     float cookie_rotate_timer = 0.0f;
 
     float rotation_koef = 1.0f;
     bool rotation_dir = false;
+
+    float cookie_timer2 = 0.0f;
+
+    RE::ObjectRefHandle target_to_throw{};
+
+    //bool cookie_stick_activated = false;
+
+
+    void reset_cookie_control()
+    {
+        cookie_rotate_timer = 0.0f;
+        cookie_timer = 0.0f;
+
+        rotation_koef = (float)std::rand() / RAND_MAX * 5.0f;
+        rotation_dir = MiscThings::random_int_from_range(0, 1);
+
+        target_to_throw.reset();
+        //cookie_stick_activated = false;
+        cookies_to_control.clear();
+
+    }
+
+
+    std::vector<RE::ObjectRefHandle> cookies_to_explode{};
+
+
+    void reset_cookie_control2()
+    {
+        cookies_to_explode.clear();
+        cookie_timer2 = 0.0f;
+    }
+
+
+
+
+
+
+    void explode_cookies_nearby()
+    {
+        auto player = RE::PlayerCharacter::GetSingleton();
+
+        if (player)
+        {
+            RE::TES::GetSingleton()->ForEachReferenceInRange(player, 3000.0f,
+                [&](RE::TESObjectREFR* a_ref) {
+
+                    if (a_ref)
+                    {
+                        auto base_obj = a_ref->GetBaseObject();
+                        if (base_obj && base_obj->formID == 0x71af975)
+                        {
+                            //a_ref->PlaceObjectAtMe(explosion, false);
+                            if (!a_ref->IsDisabled())
+                                cookies_to_explode.push_back(a_ref->GetHandle());
+                        }
+                    }
+                    return RE::BSContainer::ForEachResult::kContinue;
+                });
+        }
+
+
+        int amount_cookies = std::size(cookies_to_explode);
+        if (amount_cookies <= 0)
+            send_random_context("No cookies to explode!", true);
+        else
+            send_random_context("Detonating " + std::to_string(amount_cookies) + " cookies...", true);
+
+    }
 
 
     void cookie_controller(float dtime)
@@ -215,65 +290,131 @@ namespace MiscThings {
         auto player = RE::PlayerCharacter::GetSingleton();
         auto player_pos = player->GetPosition();
 
+        static auto explosion = (RE::BGSExplosion*)RE::TESForm::LookupByID(0x71b4a7c);
+
+        if (explosion)
+        {
+            if (std::size(cookies_to_explode) > 0)
+            {
+                if (cookie_timer2 <= 0.0f)
+                {
+                    cookie_timer2 = (float)std::rand() / RAND_MAX * 0.3f + 0.1f;
+
+                    auto last_cookie = cookies_to_explode.at(std::size(cookies_to_explode) - 1);
+                    if (last_cookie && last_cookie.get() && last_cookie.get().get())
+                    {
+                        last_cookie.get().get()->PlaceObjectAtMe(explosion, false);
+                        cookies_to_explode.pop_back();
+                        last_cookie.get().get()->SetDelete(true);
+                        last_cookie.get().get()->Disable();
+                    }
+                    else
+                    {
+                        cookies_to_explode.pop_back();
+                    }
+                }
+                else
+                    cookie_timer2 -= dtime;
+            }
+            else
+                reset_cookie_control2();
+        }
+
+
+
         if (std::size(cookies_to_control) > 0)
         {
             if (cookie_timer >= 0.5f)
             {
-                if (cookie_timer - 0.5f > 0.2f)
+                /*
+                if (cookie_stick_mode)
                 {
-                    cookie_timer = 0.5f;
-                    
-                    if (camera->cameraRoot && cookies_to_control.at(std::size(cookies_to_control) - 1).first)
+                    if (cookie_timer > 10.0f)
                     {
-                        auto cookie_ref = cookies_to_control.at(std::size(cookies_to_control) - 1).first.get().get();
-                        if (cookie_ref)
-                        {
-                            auto cookie_3d = cookie_ref->Get3D();
-                            if (cookie_3d && cookie_3d->collisionObject)
-                            {
-                                auto body = cookie_3d->GetCollisionObject()->GetRigidBody();
-
-
-                                auto camera_dir = camera->cameraRoot->world.rotate.GetVectorY();
-
-                                RE::NiPoint3 throw_dir = camera_dir;
-                                auto attack_target = WalkerProcessor::get_attack_target_ref();
-
-                                if (attack_target)
-                                    throw_dir = WalkerProcessor::get_estimate_aim_pos(attack_target) - cookie_ref->GetPosition();
-
-                                throw_dir.Unitize();
-
-                                if (body)
-                                {
-                                    throw_dir *= 1000.0f;
-                                    body->SetLinearImpulse({ throw_dir.x, throw_dir.y, throw_dir.z, 1.0f });
-                                    cookies_to_control.pop_back();
-                                }
-
-                            }
-                        }
+                        reset_cookie_control();
+                        return;
                     }
                     else
                     {
-                        cookies_to_control.clear();
+                        cookie_timer += dtime;
+                        cookie_stick_activated = true;
                     }
+                    
+
                 }
                 else
-                    cookie_timer += dtime;
+                */
+                {
+                    if (cookie_timer - 0.5f > 0.2f)
+                    {
+                        cookie_timer = 0.5f;
 
+                        if (camera->cameraRoot && cookies_to_control.at(std::size(cookies_to_control) - 1).first)
+                        {
+                            auto cookie_ref = cookies_to_control.at(std::size(cookies_to_control) - 1).first.get().get();
+                            if (cookie_ref)
+                            {
+                                auto cookie_3d = cookie_ref->Get3D();
+                                if (cookie_3d && cookie_3d->collisionObject)
+                                {
+                                    auto body = cookie_3d->GetCollisionObject()->GetRigidBody();
+
+
+                                    auto camera_dir = camera->cameraRoot->world.rotate.GetVectorY();
+
+                                    if (!target_to_throw || !target_to_throw.get() || !target_to_throw.get().get())
+                                    {
+                                        auto attack_target = WalkerProcessor::get_attack_target_ref();
+                                        if (attack_target)
+                                            target_to_throw = attack_target->GetHandle();
+                                    }
+
+                                    RE::NiPoint3 throw_dir = camera_dir;
+
+                                    if (target_to_throw && target_to_throw.get() && target_to_throw.get().get())
+                                        throw_dir = WalkerProcessor::get_estimate_aim_pos(target_to_throw.get().get()) - cookie_ref->GetPosition();
+
+                                    throw_dir.Unitize();
+
+                                    if (body)
+                                    {
+                                        throw_dir *= 1000.0f;
+                                        body->SetLinearImpulse({ throw_dir.x, throw_dir.y, throw_dir.z, 1.0f });
+                                        cookies_to_control.pop_back();
+                                    }
+                                    else
+                                    {
+                                        cookies_to_control.pop_back();
+                                    }
+
+                                }
+                                else
+                                {
+                                    cookies_to_control.pop_back();
+                                }
+                            }
+                            else
+                            {
+                                cookies_to_control.pop_back();
+                            }
+                        }
+                        else
+                        {
+                            cookies_to_control.clear();
+                            return;
+                        }
+                    }
+                    else
+                        cookie_timer += dtime;
+                }
             }
             else
                 cookie_timer += dtime;
         }
         else
         {
-            cookie_rotate_timer = 0.0f;
-            cookie_timer = 0.0f;
-
-            rotation_koef = (float)std::rand() / RAND_MAX * 0.2f;
-            rotation_dir = MiscThings::random_int_from_range(0, 1);
-
+            reset_cookie_control();
+            return;
         }
             
 
@@ -284,7 +425,6 @@ namespace MiscThings {
         RE::NiPoint3 pos_to_place = player->GetPosition();
         pos_to_place.z += 120.0f;
         pos_to_place += camera_dirY * 50.0f;
-
 
         for (auto& cookie_handle : cookies_to_control)
         {
@@ -300,25 +440,81 @@ namespace MiscThings {
 
                         if (body)
                         {
-                            float angle = cookie_handle.second;
-                            float coef = 1.0f;
+                            /*
+                            if (cookie_stick_activated)
+                            {
+                                //stick to enemy. if no enemy - release
 
-                            if (rotation_dir)
-                                coef = -1.0f;
+                                auto camera_dir = camera->cameraRoot->world.rotate.GetVectorY();
 
-                            angle += RE::NI_PI / 2.0f * cookie_rotate_timer * rotation_koef * coef;
+                                if (!target_to_throw || !target_to_throw.get() || !target_to_throw.get().get())
+                                {
+                                    auto attack_target = WalkerProcessor::get_attack_target_ref();
+                                    if (attack_target)
+                                        target_to_throw = attack_target->GetHandle();
+                                }
+
+                                RE::NiPoint3 throw_dir = camera_dir;
+
+                                if (target_to_throw && target_to_throw.get() && target_to_throw.get().get())
+                                {
+                                    throw_dir = WalkerProcessor::get_estimate_aim_pos(target_to_throw.get().get()) - cookie_ref->GetPosition();
+
+                                    //auto unitized_copy = throw_dir;
+                                    //unitized_copy.Unitize();
+                                    if (throw_dir.Length() <= 1.0f)
+                                        throw_dir = RE::NiPoint3::Zero();
+                                    else
+                                    {
+                                        throw_dir /= std::sqrt(throw_dir.Length());
+                                        auto unitized_copy = throw_dir;
+                                        unitized_copy.Unitize();
+                                        throw_dir -= unitized_copy;
+                                    }
+                                    
+                                    //throw_dir /= 2.0f;
+
+                                    body->SetLinearVelocity({ throw_dir.x, throw_dir.y, throw_dir.z, 1.0f });
+
+                                    //body->SetLinearImpulse({ throw_dir.x, throw_dir.y, throw_dir.z, 1.0f });
+                                }
+                                else
+                                {
+                                    reset_cookie_control();
+                                    return;
+                                }
 
 
-                            RE::NiPoint3 shift = MiscThings::rotate_around_axis(camera_dirX * 40.0f, camera_dirY, angle);
+                            }
+                            else
+                            */
+                            {
+                                //float, preparing
+                                float angle = cookie_handle.second;
+                                float dir = 1.0f;
 
-                            
+                                if (rotation_dir)
+                                    dir = -1.0f;
 
-                            RE::NiPoint3 desired_pos = pos_to_place + shift;
-                            auto current_pos = cookie_ref->GetPosition();
-                            auto delta_pos = desired_pos - current_pos;
-                            //delta_pos *= 10.0f;
+                                angle += RE::NI_PI / 2.0f * cookie_rotate_timer * rotation_koef * dir;
 
-                            body->SetLinearVelocity({ delta_pos.x, delta_pos.y, delta_pos.z, 1.0f });
+
+                                RE::NiPoint3 shift = MiscThings::rotate_around_axis(camera_dirX * 40.0f, camera_dirY, angle);
+
+
+
+                                RE::NiPoint3 desired_pos = pos_to_place + shift;
+                                auto current_pos = cookie_ref->GetPosition();
+                                auto delta_pos = desired_pos - current_pos;
+                                //delta_pos *= 10.0f;
+
+                                body->SetLinearVelocity({ delta_pos.x, delta_pos.y, delta_pos.z, 1.0f });
+                            }
+
+                        }
+                        else
+                        {
+                            reset_cookie_control();
                         }
                     }
                 }

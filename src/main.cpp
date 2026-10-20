@@ -65,6 +65,8 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////DO ALL THIS
 
+//test for missing safety checks in new spell stuff
+
 //finish unearthed quest
 //add support for all houses + archmage room should have accessible chest and bed
 
@@ -1693,6 +1695,9 @@ namespace Hooks {
                 MiscThings::reset_parthurnax_friendly_fire();
 
                 MiscThings::reset_shout_cooldown_monitor();
+
+                MiscThings::reset_cookie_control();
+                MiscThings::reset_cookie_control2();
 
 
                 Observer::reset_observer();

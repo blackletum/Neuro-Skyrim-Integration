@@ -2949,11 +2949,11 @@ namespace WalkerProcessor {
                                     {
                                         //RE::TESObjectREFRPtr new_item = player->PlaceObjectAtMe(item, false);
 
-                                        RE::NiPoint3 shift = MiscThings::rotate_around_axis(camera_dirX * 40.0f, camera_dirY, -RE::NI_PI / 9.0f * i);
+                                        RE::NiPoint3 shift = MiscThings::rotate_around_axis(camera_dirX * 40.0f, camera_dirY, -2.0f*RE::NI_PI / 9.0f * i);
 
                                         auto new_item = RE::TESDataHandler::GetSingleton()->CreateReferenceAtLocation(item, pos_to_place + shift, { (float)std::rand() / RAND_MAX * 10.0f, (float)std::rand() / RAND_MAX * 10.0f, (float)std::rand() / RAND_MAX * 10.0f }, player->GetParentCell(), player->GetWorldspace(), nullptr, nullptr, player->GetHandle(), false, true);
 
-                                        cookies_to_control.push_back({ new_item, -RE::NI_PI / 9.0f * i });
+                                        cookies_to_control.push_back({ new_item, -2.0f * RE::NI_PI / 9.0f * i });
                                     }
                                 }
 
@@ -2961,11 +2961,21 @@ namespace WalkerProcessor {
 
 
 
-                                MiscThings::add_cookies_to_controll(cookies_to_control);
+                                MiscThings::add_cookies_to_controll(cookies_to_control, true);
 
                             }
                             bool stop_here = false;
                         }
+                    }
+
+                    if (this_->currentSpell->formID == 0x71b4a7d)
+                    {
+                        if (this_->state == RE::MagicCaster::State::kCasting || this_->state == RE::MagicCaster::State::kUnk09)
+                        {
+                            MiscThings::explode_cookies_nearby();
+                        }
+                        else
+                            bool stop_here = false;
                     }
 
 

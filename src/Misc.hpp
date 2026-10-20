@@ -601,7 +601,11 @@ namespace MiscThings {
 
     void cookie_controller(float dtime);
 
-    void add_cookies_to_controll(std::vector<std::pair<RE::ObjectRefHandle, float>> cookies);
+    void add_cookies_to_controll(std::vector<std::pair<RE::ObjectRefHandle, float>> cookies, bool stick_mode);
+    void reset_cookie_control();
+    void reset_cookie_control2();
+
+    void explode_cookies_nearby();
 
     void SetPosition_moveto(RE::TESObjectREFR* a_target, RE::NiPoint3 new_pos);
 

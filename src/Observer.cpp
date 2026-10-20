@@ -7572,6 +7572,7 @@ namespace Observer {
 
 		static auto cookie_spell1 = (RE::SpellItem*)RE::TESForm::LookupByID(0x71aa86e);
 		static auto cookie_spell2 = (RE::SpellItem*)RE::TESForm::LookupByID(0x71af977);
+		static auto cookie_spell3 = (RE::SpellItem*)RE::TESForm::LookupByID(0x71b4a7d);
 
 		if (threshold_quest && !observers_green_light)
 		{
@@ -7848,14 +7849,17 @@ namespace Observer {
 					{
 						if (!MiscThings::is_werewolf() && !MiscThings::is_vampirelord())
 						{
-							if (cookie_spell1)
+							if (cookie_spell1 && cookie_spell2 && cookie_spell3)
 							{
-								if (!MiscThings::player_has_spell(cookie_spell1) || !MiscThings::player_has_spell(cookie_spell2))
+								if (!MiscThings::player_has_spell(cookie_spell1) || !MiscThings::player_has_spell(cookie_spell2) || !MiscThings::player_has_spell(cookie_spell3))
 								{
 									player->AddSpell(cookie_spell1);
 									player->AddSpell(cookie_spell2);
+									player->AddSpell(cookie_spell3);
 									new_spells_added = true;
 								}
+								else
+									new_spells_added = true;
 							}
 						}
 					}
