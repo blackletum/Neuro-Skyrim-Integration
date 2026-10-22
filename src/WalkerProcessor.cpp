@@ -2315,6 +2315,20 @@ namespace WalkerProcessor {
 
                                 
 
+                                if (target_ref && target_ref->formID == 0x45921) //odahviing. may have his head too high to pathfind in dragonsreach dungeon
+                                {
+                                    if (player->GetWorldspace() && player->GetWorldspace()->formID == 0x46033)
+                                    {
+                                        auto talk_dragon_quest = (RE::TESQuest*)RE::TESForm::LookupByID(0x44c56);
+                                        if (talk_dragon_quest && talk_dragon_quest->currentStage == 220)
+                                        {
+                                            auto result_pos = marker_ref->GetPosition() + shift + pickpocket_shift;
+                                            if (result_pos.z > -100.0f)
+                                                shift.z -= 200.0f;
+                                        }
+
+                                    }
+                                }
 
                                 if (!dragon_landing_mode_shifted)
                                     MiscThings::SetPosition_moveto(marker_ref, marker_ref->GetPosition() + shift + pickpocket_shift);
