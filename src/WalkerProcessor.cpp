@@ -3002,7 +3002,7 @@ namespace WalkerProcessor {
 
                                     RE::NiPoint3 pos_to_place = player->GetPosition();
 
-                                    pos_to_place.z += 120.0f;
+                                    pos_to_place.z += 140.0f;
 
                                     pos_to_place += camera_dirY * 50.0f;
                                     //pos_to_place -= camera_dirX * 30.0f;
@@ -3011,9 +3011,9 @@ namespace WalkerProcessor {
                                     {
                                         //RE::TESObjectREFRPtr new_item = player->PlaceObjectAtMe(item, false);
 
-                                        //RE::NiPoint3 shift = MiscThings::rotate_around_axis(camera_dirX * 40.0f, camera_dirY, -RE::NI_PI / 9.0f * i);
+                                        RE::NiPoint3 shift = MiscThings::rotate_around_axis(camera_dirX * (float)std::rand() / RAND_MAX * 30.0f, camera_dirY, (float)std::rand() / RAND_MAX * 2.0f * RE::NI_PI);
 
-                                        auto new_item = RE::TESDataHandler::GetSingleton()->CreateReferenceAtLocation(item, pos_to_place, { (float)std::rand() / RAND_MAX * 10.0f, (float)std::rand() / RAND_MAX * 10.0f, (float)std::rand() / RAND_MAX * 10.0f }, player->GetParentCell(), player->GetWorldspace(), nullptr, nullptr, player->GetHandle(), false, true);
+                                        auto new_item = RE::TESDataHandler::GetSingleton()->CreateReferenceAtLocation(item, pos_to_place + shift, { (float)std::rand() / RAND_MAX * 10.0f, (float)std::rand() / RAND_MAX * 10.0f, (float)std::rand() / RAND_MAX * 10.0f }, player->GetParentCell(), player->GetWorldspace(), nullptr, nullptr, player->GetHandle(), false, true);
 
                                         //cookies_to_control.push_back({ new_item, -RE::NI_PI / 9.0f * i });
                                     }

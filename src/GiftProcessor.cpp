@@ -27,7 +27,12 @@ int item_choice = -1;
 bool check_results = false;
 bool take_all = false;
 
-
+bool slider_request_sent = false;
+bool slider_choice_valid = false;
+int slider_choice = -1;
+bool slider_confirmed = false;
+bool slider_confirming = false;
+bool quantity_was_specified = false;
 
 
 
@@ -110,7 +115,140 @@ bool is_giving()
 
 
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////// SLIDER
+/*
 
+			"_root.Menu_mc.ItemCard_mc.QuantitySlider_mc._focused" - slider active
+			_focused - slider active
+			_minimum
+			_maximum
+			_value - current position
+			*/
+
+int get_slider_min()
+{
+	RE::GFxValue var1;
+	RE::UI* ui = RE::UI::GetSingleton();
+	if (ui)
+		if (const auto menu = ui->GetMenu<RE::GiftMenu>(); menu)
+			if (menu->uiMovie)
+				if (menu->uiMovie->GetVariable(&var1, "_root.Menu_mc.ItemCard_mc.QuantitySlider_mc._minimum"))
+					if (!var1.IsNull() && var1.IsNumber())
+						return var1.GetNumber();
+	return -1;
+}
+
+int get_slider_max()
+{
+	RE::GFxValue var1;
+	RE::UI* ui = RE::UI::GetSingleton();
+	if (ui)
+		if (const auto menu = ui->GetMenu<RE::GiftMenu>(); menu)
+			if (menu->uiMovie)
+				if (menu->uiMovie->GetVariable(&var1, "_root.Menu_mc.ItemCard_mc.QuantitySlider_mc._maximum"))
+					if (!var1.IsNull() && var1.IsNumber())
+						return var1.GetNumber();
+	return -1;
+}
+
+int get_slider_pos()
+{
+	RE::GFxValue var1;
+	RE::UI* ui = RE::UI::GetSingleton();
+	if (ui)
+		if (const auto menu = ui->GetMenu<RE::GiftMenu>(); menu)
+			if (menu->uiMovie)
+				if (menu->uiMovie->GetVariable(&var1, "_root.Menu_mc.ItemCard_mc.QuantitySlider_mc._value"))
+					if (!var1.IsNull() && var1.IsNumber())
+						return var1.GetNumber();
+	return -1;
+}
+
+
+bool quantity_slider_active()
+{
+	bool result = false;
+	RE::GFxValue var1;
+	RE::UI* ui = RE::UI::GetSingleton();
+	if (ui)
+		if (const auto menu = ui->GetMenu<RE::GiftMenu>(); menu)
+			if (menu->uiMovie)
+				if (menu->uiMovie->GetVariable(&var1, "_root.Menu_mc.ItemCard_mc.QuantitySlider_mc._focused"))
+					if (!var1.IsNull() && var1.IsNumber() && (int)var1.GetNumber() == 1)
+						result = true;
+
+	return result;
+}
+
+
+void move_slider_to_pos(int desired_pos)
+{
+	int slider_pos = get_slider_pos();
+
+	if (slider_pos > desired_pos)
+	{
+		left();
+	}
+	if (slider_pos < desired_pos)
+	{
+		right();
+	}
+}
+
+
+
+std::pair<bool, std::string> set_slider_choice(int pos)
+{
+	std::pair<bool, std::string> result{};
+
+	auto ui = RE::UI::GetSingleton();
+	if (!ui->IsMenuOpen(RE::GiftMenu::MENU_NAME))
+	{
+		result.first = true;
+		result.second = "[Error]";
+		return result;
+	}
+
+	if (pos == -1)
+	{
+		quit_menu();
+		result.first = true;
+		result.second = "[Container closed]";
+		return result;
+	}
+
+
+	if (pos != 0 && (pos < get_slider_min() || pos > get_slider_max() || !item_choice_valid))
+	{
+		result.first = false;
+		result.second = "Invalid slider position ID";
+		return result;
+	}
+
+	slider_choice = pos;
+	slider_choice_valid = true;
+
+	result.first = true;
+	result.second = "[Processing...]";
+	return result;
+}
+
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+std::string get_item_text_by_id(int id)
+{
+	auto item_pos = items_list.find(id);
+
+	if (item_pos == items_list.end())
+		return "";
+	else
+		return item_pos->second.name;
+}
 
 
 
@@ -174,9 +312,58 @@ std::vector<MenuOption> get_items_options()
 }
 
 
+bool is_planting_fertile_soil()
+{
+	RE::UI* ui = RE::UI::GetSingleton();
+	RE::GFxValue var1;
+
+	auto menu = ui->GetMenu<RE::GiftMenu>();
+
+	if (ui && menu && ui->IsMenuOpen(RE::GiftMenu::MENU_NAME))
+		if (menu->uiMovie)
+		{
+			auto target_handle = menu->GetGifterRefHandle();
+
+			RE::NiPointer<RE::TESObjectREFR> container_refr_p{};
+
+			if (RE::LookupReferenceByHandle(target_handle, container_refr_p))
+			{
+				auto container_refr = container_refr_p.get();
+
+				if (container_refr)
+				{
+					if (is_giving())
+					{
+						auto receiver_handle = menu->GetReceiverRefHandle();
+
+						RE::NiPointer<RE::TESObjectREFR> receiver_refr_p{};
+
+						if (RE::LookupReferenceByHandle(receiver_handle, receiver_refr_p))
+						{
+							auto receiver_refr = receiver_refr_p.get();
+
+							if (receiver_refr && receiver_refr->GetBaseObject() && receiver_refr->GetBaseObject()->formID == 0x3008248) //fertile soil for plants near houses in hearthfire
+							{
+								return true;
+							}
+
+						}
+					}
+				}
+			}
+		}
+
+		return false;
+}
+
+
 
 std::string get_force_message()
 {
+	if (is_planting_fertile_soil())
+		return "You can plant something in Fertile Soil. Select item to plant (it will grow and you can harvest it later)";
+
+
 	std::string result = "You opened a container. Select item to take. ";
 
 	RE::UI* ui = RE::UI::GetSingleton();
@@ -213,7 +400,10 @@ std::string get_force_message()
 							auto receiver_refr = receiver_refr_p.get();
 
 							if (receiver_refr)
+							{
 								name = receiver_refr->GetDisplayFullName();
+							}
+								
 						}
 
 
@@ -738,6 +928,14 @@ void reset_container()
 	items_list.clear();
 
 
+	slider_request_sent = false;
+	slider_choice_valid = false;
+	slider_choice = -1;
+	slider_confirmed = false;
+	slider_confirming = false;
+	quantity_was_specified = false;
+
+
 	take_all = false;
 
 }
@@ -770,7 +968,7 @@ std::pair<bool, std::string> set_item_choice(int id)
 	{
 		//take all
 		RE::UI* ui = RE::UI::GetSingleton();
-		auto menu = ui->GetMenu<RE::ContainerMenu>();
+		auto menu = ui->GetMenu<RE::GiftMenu>();
 		if (menu && menu->uiMovie)
 		{
 			set_universal_block(1.0f);
@@ -909,6 +1107,9 @@ void processor(float dtime)
 					{
 						std::string give_take = is_giving() ? "give" : "take";
 
+						if (is_planting_fertile_soil())
+							give_take = "plant";
+
 						if (force_choice(get_items_options(), "There is nothing to " + give_take + ". ", force_type::gift_item))
 						{
 							missing_item_detected = false;
@@ -968,7 +1169,92 @@ void processor(float dtime)
 								}
 								else
 								{
-									reset_container();
+
+									if (quantity_slider_active())
+									{
+										if (is_planting_fertile_soil())
+										{
+											if (get_slider_pos() != get_slider_min())
+											{
+												move_slider_to_pos(get_slider_min());
+												return;
+											}
+											else
+											{
+												if (!slider_confirmed)
+												{
+													confirm();
+													slider_confirming = true;
+													return;
+												}
+												else
+												{
+													return;
+													;//put some watchdog here
+												}
+											}
+										}
+										else
+										{
+											if (!slider_request_sent)
+											{
+												std::string give_take = is_giving() ? "give" : "take";
+
+												if (is_planting_fertile_soil())
+													give_take = "plant";
+
+												if (force_choice({}, "Choose amount of " + get_item_text_by_id(item_choice) + " to " + give_take + ". Valid range : from " +
+													std::to_string(get_slider_min()) + " to " + std::to_string(get_slider_max()), force_type::gift_quantity))
+													slider_request_sent = true;
+
+												return;
+											}
+											else
+											{
+												if (slider_choice_valid)
+												{
+													quantity_was_specified = true;
+													if (slider_choice > 0)
+													{
+														if (get_slider_pos() != slider_choice)
+														{
+															move_slider_to_pos(slider_choice);
+															return;
+														}
+														else
+														{
+															if (!slider_confirmed)
+															{
+																confirm();
+																slider_confirming = true;
+																return;
+															}
+															else
+															{
+																return;
+																;//put some watchdog here
+															}
+														}
+													}
+
+													cancel();
+													set_universal_block(0.3f);
+													return;
+												}
+												else
+													return;
+											}
+										}
+
+										return;
+									}
+
+
+
+									if (is_planting_fertile_soil())
+										quit_menu();
+									else
+										reset_container();
 								}
 							}
 						}

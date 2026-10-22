@@ -1902,8 +1902,8 @@ bool is_storage_container()
 			if (container_ref_ptr && container_ref_ptr.get())
 			{
 				auto container_ref = container_ref_ptr.get();
-																//whiterun							//raven rock dlc2					  //archmage quarters chest
-				if (container_ref && (container_ref->formID == 0xf3922 || container_ref->formID == 0x4036ef2 || (container_ref->formID == 0x77d7e && MiscThings::finished_mageguild()))) //house chests
+																//morthal hearthfire house			//whiterun							//raven rock dlc2					  //archmage quarters chest
+				if (container_ref && (container_ref->formID == 0x301205b || container_ref->formID == 0xf3922 || container_ref->formID == 0x4036ef2 || (container_ref->formID == 0x77d7e && MiscThings::finished_mageguild()))) //house chests
 					return true;
 			}
 		}

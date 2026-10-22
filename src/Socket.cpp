@@ -1526,6 +1526,9 @@ bool neuro::NeuroSocket::Tick(float dtime) //const neurosdk_message_action_t& aC
                         case force_type::fish_more:
                             command_result = MiscThings::set_fishing_choice(json.id); break;
 
+                        case force_type::gift_quantity:
+                            command_result = GiftProcessor::set_slider_choice(json.id); break;
+
 
                         default:
                         {

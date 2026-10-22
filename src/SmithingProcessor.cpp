@@ -13,7 +13,8 @@
 
 namespace SmithingProcessor {
 
-
+float no_category_timer = 0.0f;
+float no_category_timer2 = 0.0f;
 
 bool in_smithing = false;
 bool quitting_menu = false;
@@ -153,7 +154,7 @@ bool is_inside_of_category()
 }
 
 
-void move_to_category(int index)
+void move_to_category(int index, float dtime)
 {
 	int selected_category = get_selected_category_index();
 
@@ -164,6 +165,20 @@ void move_to_category(int index)
 	}
 	else
 	{
+		if (selected_category == -1)
+		{
+			if (selected_category == -1 && no_category_timer > 5.0)
+			{
+				send_random_context("Nothing else to craft, quitting menu...", false);
+				quit_menu();
+				return;
+			}
+			else
+				no_category_timer += dtime;
+		}
+		else
+			no_category_timer = 0.0f;
+
 		if (selected_category > index)
 			cursor_up();
 		
@@ -172,6 +187,16 @@ void move_to_category(int index)
 
 		if (selected_category == index)
 			right();
+
+
+		if (no_category_timer2 > 10.0f)
+		{
+			reset_smithing();
+			return;
+		}
+		else
+			no_category_timer2 += dtime;
+
 	}
 }
 
@@ -232,6 +257,22 @@ bool quit_menu()
 	bool result = false;
 
 	if (menu && !ui->IsMenuOpen(RE::MessageBoxMenu::MENU_NAME))
+	{
+		result = true;
+		quitting_menu = true;
+		set_universal_block(1.0f);
+	}
+
+	return result;
+}
+
+bool quit_menu_ignore_messagebox()
+{
+	RE::UI* ui = RE::UI::GetSingleton();
+	auto menu = ui->GetMenu<RE::CraftingMenu>();
+	bool result = false;
+
+	if (menu)
 	{
 		result = true;
 		quitting_menu = true;
@@ -397,6 +438,34 @@ void update_categories_list()
 }
 
 
+std::string extract_missing_required_items(std::string raw_text, std::string result)
+{
+
+	auto pos_gray_color = raw_text.find("COLOR=\"#777777\"");
+
+	if (pos_gray_color != std::string::npos)
+	{
+		auto pos_item_name_start = raw_text.find(">", pos_gray_color);
+		if (pos_item_name_start != std::string::npos && (pos_item_name_start + 1) > pos_gray_color)
+		{
+			pos_item_name_start++;
+			auto pos_item_name_end = raw_text.find("<", pos_item_name_start);
+			if (pos_item_name_end != std::string::npos && (pos_item_name_end - 1) >= pos_item_name_start)
+			{
+				result += raw_text.substr(pos_item_name_start, pos_item_name_end - pos_item_name_start);
+
+				raw_text.erase(pos_gray_color, pos_item_name_end - pos_gray_color);
+
+				return extract_missing_required_items(raw_text, result);
+			}
+		}
+	}
+
+	return result;
+}
+
+
+
 std::string get_requires_text_selected_item()
 {
 	//_root.Menu.AdditionalDescription.text = Requires: Bear Pelt(1)
@@ -406,9 +475,17 @@ std::string get_requires_text_selected_item()
 	if (ui)
 		if (const auto menu = ui->GetMenu<RE::CraftingMenu>(); menu)
 			if (menu->uiMovie)				
-				if (menu->uiMovie->GetVariable(&var1, "_root.Menu.AdditionalDescription.text"))
+				//if (menu->uiMovie->GetVariable(&var1, "_root.Menu.AdditionalDescription.text"))
+				if (menu->uiMovie->GetVariable(&var1, "_root.Menu.AdditionalDescriptionHolder.AdditionalDescription.htmlText"))
 					if (!var1.IsNull() && var1.IsString())
 					{
+						std::string raw_text = var1.GetString();
+						result = extract_missing_required_items(raw_text, "");
+
+						/*
+						//COLOR="#777777" KERNING="0">10 Quarried Stone</FONT> //example. need to extract "10 Quarried Stone"
+						//potentially multiple entries.
+
 						std::string raw_text = var1.GetString();
 						auto parenthesis_open = raw_text.find("(");
 
@@ -418,6 +495,7 @@ std::string get_requires_text_selected_item()
 						}
 						else
 							result = raw_text;
+							*/
 					}
 	return result;
 }
@@ -922,6 +1000,8 @@ int how_many_more_can_make()
 
 bool reset_smithing()
 {
+	no_category_timer = 0.0f;
+	no_category_timer2 = 0.0f;
 
 	if (is_inside_of_category() && !no_category && in_smithing)
 		left();
@@ -1047,7 +1127,7 @@ std::string get_force_message(bool category)
 			std::string can_craft_text = "";
 			if (!item.second.can_craft)
 			{
-				cannot_craft_list_text += item.second.name + ", " + item.second.ingredients_required + "; ";
+				cannot_craft_list_text += item.second.name + ": " + item.second.ingredients_required + "; ";
 			}
 		}
 	}
@@ -1084,7 +1164,34 @@ std::string get_force_message(bool category)
 						else
 							result = "You are at cooking pot in Skyrim. Select item to cook. ";
 
+					if (menu->subMenu && menu->subMenu->furniture)
+					{
+						if (menu->subMenu->furniture->formID == 0x300305b) //drafting table, for building a house (hearthfire)
+						{
+							if (category)
+								result = "You are at Drafting Table in Skyrim (used to create plan of the house you are building). Select category. ";
+							else
+								result = "You are at Drafting Table in Skyrim (used to create plan of the house you are building). Select part of the house which you want to build. ";
+						}
 
+						if (menu->subMenu->furniture->formID == 0x3003065 || menu->subMenu->furniture->formID == 0x30030da || menu->subMenu->furniture->formID == 0x30030f2) //carpenter's workbench, for building a house (hearthfire)
+						{
+							if (category)
+								result = "You are at Carpenter's Workbench in Skyrim (used to build parts of your house). Select category. ";
+							else
+								result = "You are at Carpenter's Workbench in Skyrim (used to build parts of your house). Select part of the house which you want to build. ";
+						}
+
+
+						if (menu->subMenu->furniture->formID == 0x1a2ad) //anvil
+						{
+							if (category)
+								result = "You are at Anvil in Skyrim. Select item category to craft. ";
+							else
+								result = "You are at Anvil in Skyrim. Select item to craft. ";
+						}
+
+					}
 					if (result == "") //blacksmith forge
 						if (category)
 							result = "You are at blacksmith forge in Skyrim. Select item category. ";
@@ -1276,6 +1383,16 @@ void processor(float dtime)
 								reset_smithing();
 							else
 								reset_items();
+
+
+							if (menu->subMenu && menu->subMenu->furniture)
+							{
+								if (menu->subMenu->furniture->formID == 0x300305b) //hearthfire drafting table (house planning), close menu after confirmation
+								{
+									quit_menu_ignore_messagebox();
+									return;
+								}
+							}
 						}
 					}
 					else
@@ -1329,7 +1446,7 @@ void processor(float dtime)
 								if (get_selected_category_index() != category_choice)
 								{
 									if (!missing_category_detected)
-										move_to_category(category_choice);
+										move_to_category(category_choice, dtime);
 									else
 										reset_smithing();
 								}
@@ -1451,6 +1568,16 @@ void processor(float dtime)
 																		}
 																		else
 																			check_results = true;
+
+
+																		if (menu->subMenu && menu->subMenu->furniture)
+																		{
+																			if (menu->subMenu->furniture->formID == 0x300305b) //hearthfire drafting table (house planning), close menu after confirmation
+																			{
+																				quit_menu_ignore_messagebox();
+																				return;
+																			}
+																		}
 																	}
 
 																}

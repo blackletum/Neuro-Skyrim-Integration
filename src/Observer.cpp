@@ -7387,16 +7387,291 @@ namespace Observer {
 					my_object_list_map.insert({ my_inventory_entry.second.object, 0 });
 				}
 
+				/*
+				//static auto house_parts = (RE::BGSListForm*)RE::TESForm::LookupByID(0x300f9bc); //list of house parts
+				static auto house_parts = (RE::BGSListForm*)RE::TESForm::LookupByID(0x300305f); //list of house parts
 
+				std::vector<uint32_t> house_parts_temp_remove{};
 
+				if (house_parts)
+				{
+					for (auto house_part : house_parts->forms)
+					{
+						house_parts_temp_remove.push_back(house_part->formID);
+					}
+				}
+				*/
 
 				bool had_something_better = false;
 				for (auto& [item, data] : inventory)
 				{
 					if (item)
 					{
+						if (item->formType == RE::FormType::Misc)
+						{
+							if (!item->GetPlayable())
+								continue; //skip non-playable misc. should include all house parts from hearthfire. no idea if there are potential false positives
+						}
+
+
 						switch (item->formID)
 						{
+
+							/* //discovered that there are like 20 lists so this is not a good approach, will try to utilize "non-playable" flag instead or something
+							//houseparts
+						case (0x3003060):
+						case (0x3003014):
+						case (0x300307c):
+						case (0x300307d):
+						case (0x300307e):
+						case (0x300307f):
+						case (0x300309f):
+						case (0x3003080):
+						case (0x30030b3):
+						case (0x30030b4):
+						case (0x30030b5):
+						case (0x30030c4):
+						case (0x30030c1):
+						case (0x30030c5):
+						case (0x30030c2):
+						case (0x30031c5):
+						case (0x30030c3):
+						case (0x30030c7):
+						case (0x30030c8):
+						case (0x30030c6):
+						case (0x30030df):
+						case (0x3003121):
+						case (0x30030e7):
+						case (0x3003122):
+						case (0x300312b):
+						case (0x300312c):
+						case (0x300310f):
+						case (0x3003110):
+						case (0x3003111):
+						case (0x3003112):
+						case (0x3003113):
+						case (0x3003114):
+						case (0x3003115):
+						case (0x3003116):
+						case (0x3003117):
+						case (0x3003199):
+						case (0x300319a):
+						case (0x300319b):
+						case (0x300319c):
+						case (0x300319d):
+						case (0x300319e):
+						case (0x300319f):
+						case (0x30031a0):
+						case (0x30031a1):
+						case (0x3003198):
+						case (0x30031ab):
+						case (0x30031ac):
+						case (0x30031ad):
+						case (0x30031ae):
+						case (0x30031af):
+						case (0x30031b0):
+						case (0x30031b1):
+						case (0x30031b2):
+						case (0x30031b3):
+						case (0x30031b4):
+						case (0x30031b5):
+						case (0x30031b6):
+						case (0x30031b7):
+						case (0x30031b8):
+						case (0x30031b9):
+						case (0x30031ba):
+						case (0x30031bb):
+						case (0x30031bc):
+						case (0x30031bd):
+						case (0x30031be):
+						case (0x30031bf):
+						case (0x30031c0):
+						case (0x30031c1):
+						case (0x30031c2):
+						case (0x30031c3):
+						case (0x30031c4):
+						case (0x3003197):
+						case (0x30031db):
+						case (0x30031dc):
+						case (0x30031dd):
+						case (0x30031de):
+						case (0x30031df):
+						case (0x30031cb):
+						case (0x3003255):
+						case (0x3003256):
+						case (0x3003257):
+						case (0x3003258):
+						case (0x300325a):
+						case (0x300325b):
+						case (0x30031cc):
+						case (0x300373d):
+						case (0x300373e):
+						case (0x300373f):
+						case (0x3003740):
+						case (0x3003741):
+						case (0x3003742):
+						case (0x3003743):
+						case (0x30031cd):
+						case (0x3003744):
+						case (0x3003745):
+						case (0x3003746):
+						case (0x3003747):
+						case (0x3003748):
+						case (0x30031ce):
+						case (0x3003749):
+						case (0x300374a):
+						case (0x300374b):
+						case (0x300374c):
+						case (0x300374d):
+						case (0x300374e):
+						case (0x30031cf):
+						case (0x3003752):
+						case (0x3003751):
+						case (0x3003750):
+						case (0x300373c):
+						case (0x3003755):
+						case (0x3003753):
+						case (0x3003754):
+						case (0x30031d0):
+						case (0x3003cd6):
+						case (0x3003cd7):
+						case (0x3003cd8):
+						case (0x3003cd9):
+						case (0x3003cda):
+						case (0x30031d1):
+						case (0x3003cdb):
+						case (0x3003cdc):
+						case (0x3003cdd):
+						case (0x3003cdf):
+						case (0x3003cde):
+						case (0x3003ce0):
+						case (0x30031d2):
+						case (0x3003ce2):
+						case (0x3003ce3):
+						case (0x3003ce4):
+						case (0x3003ce5):
+						case (0x3003ce6):
+						case (0x3003ce7):
+						case (0x3003ce8):
+						case (0x3003ad8):
+						case (0x3003ada):
+						case (0x3003adb):
+						case (0x3003adc):
+						case (0x3003add):
+						case (0x3003ade):
+						case (0x3003adf):
+						case (0x3003ae0):
+						case (0x3003ae1):
+						case (0x3003ae2):
+						case (0x3003ae3):
+						case (0x3003ae4):
+						case (0x3003ae5):
+						case (0x3003ae6):
+						case (0x3003ae7):
+						case (0x3003ae8):
+						case (0x3003ae9):
+						case (0x3003aea):
+						case (0x3003aeb):
+						case (0x3003aec):
+						case (0x3003aed):
+						case (0x30068f1):
+						case (0x30068f2):
+						case (0x30068f3):
+						case (0x3009506):
+						case (0x3009507):
+						case (0x3009508):
+						case (0x3009509):
+						case (0x300950a):
+						case (0x300950b):
+						case (0x300950c):
+						case (0x300950d):
+						case (0x300950e):
+						case (0x300950f):
+						case (0x3009510):
+						case (0x3009511):
+						case (0x3009512):
+						case (0x3009513):
+						case (0x3009514):
+						case (0x3009515):
+						case (0x3009516):
+						case (0x3009517):
+						case (0x3009518):
+						case (0x3009519):
+						case (0x300951a):
+						case (0x300951b):
+						case (0x300951c):
+						case (0x300951d):
+						case (0x300951e):
+						case (0x300951f):
+						case (0x3009520):
+						case (0x3009521):
+						case (0x3009522):
+						case (0x3009523):
+						case (0x3009524):
+						case (0x3009525):
+						case (0x3009526):
+						case (0x3009527):
+						case (0x3009528):
+						case (0x3009529):
+						case (0x300952a):
+						case (0x300952b):
+						case (0x300952c):
+						case (0x300952d):
+						case (0x300952e):
+						case (0x300952f):
+						case (0x3009530):
+						case (0x3009531):
+						case (0x3009532):
+						case (0x3009533):
+						case (0x3009534):
+						case (0x3009535):
+						case (0x3009544):
+						case (0x3009536):
+						case (0x3009537):
+						case (0x3009538):
+						case (0x3009539):
+						case (0x300953a):
+						case (0x300953b):
+						case (0x300953c):
+						case (0x300953d):
+						case (0x300953e):
+						case (0x300953f):
+						case (0x3009540):
+						case (0x3009541):
+						case (0x3009542):
+						case (0x3009543):
+						case (0x3009545):
+						case (0x3009546):
+						case (0x3009547):
+
+						case (0x300f9b3):
+						case (0x300f9b4):
+						case (0x300f9b5):
+						case (0x300f9b6):
+						case (0x300f9b7):
+						case (0x300f9b8):
+						case (0x300f9b9):
+						case (0x300f9ba):
+						case (0x300f9bb):
+						case (0x300f9bd):
+						case (0x300f9be):
+						case (0x300f9bf):
+						case (0x300f9c0):
+						case (0x300f9c1):
+						case (0x300f9c2):
+						case (0x300f9c3):
+						case (0x300f9c4):
+						case (0x300f9c5):
+						case (0x300f9c6):
+						case (0x300f9c7):
+						case (0x300f9c8):
+						case (0x300f9c9):
+						case (0x300f9ca):
+						case (0x300f9cb):
+						case (0x300f9cc):
+						case (0x300f9cd):
+						case (0x300f9ce):
+						*/
 						case (0x58f5f): //sword
 						case (0x58f5e): //axe
 						case (0x58f60): //bow

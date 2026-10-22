@@ -72,7 +72,8 @@
         bloodskal_puzzle_type_attack,
         point_of_no_return_confirm,
         timed_quest_puzzle_array,
-        fish_more
+        fish_more,
+        gift_quantity
     };
 
     int get_active_force();

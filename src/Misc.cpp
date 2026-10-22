@@ -6595,7 +6595,7 @@ namespace MiscThings {
     }
 
 
-    RE::TESForm* get_closest_settlement()
+    uint32_t get_closest_settlement()
     {
         auto player = RE::PlayerCharacter::GetSingleton();
         auto player_worldspace = player->GetWorldspace();
@@ -6609,7 +6609,7 @@ namespace MiscThings {
 
 
         if (college_of_winterhold_settlement_condition())
-            return RE::TESForm::LookupByID(0x0001380e);
+            return 0x0001380e;
 
 
         if (player_worldspace && (player_worldspace->formID == 0x3c || player_worldspace->formID == 0x4000800))
@@ -6617,7 +6617,7 @@ namespace MiscThings {
             //check cells
 
             float min_dist = FLT_MAX;
-            RE::TESForm* best_key = nullptr;
+            uint32_t best_key = 0;
 
             for (auto& settlement : settlements)
             {
@@ -6637,7 +6637,7 @@ namespace MiscThings {
                             if (dist < min_dist)
                             {
                                 min_dist = dist;
-                                best_key = key;
+                                best_key = key->formID;
                             }
                         }
                     }
@@ -6658,7 +6658,7 @@ namespace MiscThings {
                 auto settlement_worldspace = settlements.find(player_worldspace->formID);
 
                 if (settlement_worldspace != settlements.end())
-                    return RE::TESForm::LookupByID(settlement_worldspace->first);
+                    return settlement_worldspace->first;
             }
             else
             {
@@ -6666,6 +6666,17 @@ namespace MiscThings {
                 {
                     switch (player_cell->formID)
                     {
+                    case (0x138cc): //morthal jarl house
+                    {
+                        auto settlement_cell = settlements.find(0x939d);
+
+                        if (settlement_cell != settlements.end())
+                            return settlement_cell->first;
+
+                        break;
+                    }
+
+
                     case (0x4017ec0): //raven rock tavern
                     case (0x4017ec3): //raven rock temple
                     case (0x4017ec1): //raven rock jarls house
@@ -6674,7 +6685,7 @@ namespace MiscThings {
                         auto settlement_worldspace = settlements.find(0x400eeb5);
 
                         if (settlement_worldspace != settlements.end())
-                            return RE::TESForm::LookupByID(settlement_worldspace->first);
+                            return settlement_worldspace->first;
 
                         break;
                     }
@@ -6693,7 +6704,7 @@ namespace MiscThings {
                         auto settlement_worldspace = settlements.find(0x1a26f);
 
                         if (settlement_worldspace != settlements.end())
-                            return RE::TESForm::LookupByID(settlement_worldspace->first);
+                            return settlement_worldspace->first;
 
                         break;
                     }
@@ -6707,7 +6718,7 @@ namespace MiscThings {
                         auto settlement_worldspace = settlements.find(0x16d71);
 
                         if (settlement_worldspace != settlements.end())
-                            return RE::TESForm::LookupByID(settlement_worldspace->first);
+                            return settlement_worldspace->first;
 
                         break;
                     }
@@ -6723,7 +6734,7 @@ namespace MiscThings {
                         auto settlement_worldspace = settlements.find(0x1691d);
 
                         if (settlement_worldspace != settlements.end())
-                            return RE::TESForm::LookupByID(settlement_worldspace->first);
+                            return settlement_worldspace->first;
 
                         break;
                     }
@@ -6738,7 +6749,7 @@ namespace MiscThings {
                         auto settlement_worldspace = settlements.find(0x37edf);
 
                         if (settlement_worldspace != settlements.end())
-                            return RE::TESForm::LookupByID(settlement_worldspace->first);
+                            return settlement_worldspace->first;
 
                         break;
                     }
@@ -6757,7 +6768,7 @@ namespace MiscThings {
                         auto settlement_worldspace = settlements.find(0x16bb4);
 
                         if (settlement_worldspace != settlements.end())
-                            return RE::TESForm::LookupByID(settlement_worldspace->first);
+                            return settlement_worldspace->first;
 
                         break;
                     }
@@ -6773,7 +6784,7 @@ namespace MiscThings {
 
         }
 
-        return nullptr;
+        return 0;
     }
 
 
@@ -6850,6 +6861,9 @@ namespace MiscThings {
                 {
                     switch (player_cell->formID)
                     {
+                    case (0x138cc): //morthal jarl house
+
+
                     case (0x4017ec0): //raven rock tavern
                     case (0x4017ec3): //raven rock temple
                     case (0x4017ec1): //raven rock jarls house
@@ -6968,6 +6982,8 @@ namespace MiscThings {
                 {
                     switch (player_cell->formID)
                     {
+                    case (0x138cc): //morthal jarl house
+
                     case (0x4017ec0): //raven rock tavern
                     case (0x4017ec3): //raven rock temple
                     case (0x4017ec1): //raven rock jarls house
@@ -7033,7 +7049,7 @@ namespace MiscThings {
 
         if (key)
         {
-            auto settlement = settlements.find(key->formID);
+            auto settlement = settlements.find(key);
 
             if (settlement != settlements.end())
             {
@@ -7292,7 +7308,7 @@ namespace MiscThings {
 
         if (key)
         {
-            auto settlement = settlements.find(key->formID);
+            auto settlement = settlements.find(key);
 
             if (settlement != settlements.end())
             {
@@ -7450,10 +7466,13 @@ namespace MiscThings {
                                             
 
 
+                                            if (purchase_allowed)
+                                            {
+                                                auto player_gold = MiscThings::get_player_gold();
+                                                std::string enough_not_enough = player_gold < 5000 ? "(not enough gold)" : "(You have enough gold!)";
+                                                place_name += "[Can sell you a house, gold needed: " + std::to_string(player_gold) + "/5000" + enough_not_enough + "]";
 
-                                            auto player_gold = MiscThings::get_player_gold();
-                                            std::string enough_not_enough = player_gold < 5000 ? "(not enough gold)" : "(You have enough gold!)";
-                                            place_name += "[Can sell you a house, gold needed: " + std::to_string(player_gold) + "/5000" + enough_not_enough + "]";
+                                            }
 
                                         }
                                     }
@@ -7461,6 +7480,93 @@ namespace MiscThings {
 
 
                             }
+
+
+                            if (settlement_place.npc == 0x1AA68 || settlement_place.npc == 0x1AA58)
+                            {
+                                //morthal steward. its a land so just purchase. uses hearthfire quest
+
+                                auto house_quest = (RE::TESQuest*)RE::TESForm::LookupByID(0x300be09);
+
+                                if (house_quest)
+                                {
+                                    //this way does not account for relationship. for whiterun its probably pointless because its unlikely that player will get 5k gold before completing first dragon kill quest
+                                    auto object_p = MiscThings::General::Script::GetObject(house_quest, "BYOHHouseScript");
+                                    if (object_p)
+                                    {
+                                        RE::BSFixedString prop_name = "::bOwnProperty_var";
+                                        bool house_owned = MiscThings::General::Script::GetVariable<bool>(object_p, prop_name);
+
+                                        if (!house_owned)
+                                        {
+                                            //purchase house info. need to check relationship
+
+                                            bool purchase_allowed = false;
+
+                                            RE::TESObjectREFR* jarl1 = nullptr;
+                                            RE::TESObjectREFR* jarl2 = nullptr;
+
+                                            if (settlement_place.npc == 0x1AA68) //alsfur (default)
+                                            {
+                                                jarl1 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1AA66); //idgrod
+                                            }
+                                            else
+                                            {
+                                                jarl2 = (RE::TESObjectREFR*)RE::TESObjectREFR::LookupByID(0x1AA57); //sorli
+                                            }
+
+                                            if (jarl1)
+                                            {
+                                                RE::TESNPC* jarl_npc = (RE::TESNPC*)jarl1->GetBaseObject();
+                                                RE::TESNPC* player_npc = (RE::TESNPC*)RE::TESForm::LookupByID(0x7);
+                                                auto relationship = RE::BGSRelationship::GetRelationship(jarl_npc, player_npc);
+
+                                                if (relationship)
+                                                {
+                                                    //purchase_allowed = relationship->level.any(RE::BGSRelationship::RELATIONSHIP_LEVEL::kAlly, RE::BGSRelationship::RELATIONSHIP_LEVEL::kFriend, RE::BGSRelationship::RELATIONSHIP_LEVEL::kLover, RE::BGSRelationship::RELATIONSHIP_LEVEL::kConfidant);
+                                                    purchase_allowed = relationship->level == RE::BGSRelationship::RELATIONSHIP_LEVEL::kAlly || relationship->level == RE::BGSRelationship::RELATIONSHIP_LEVEL::kFriend || relationship->level == RE::BGSRelationship::RELATIONSHIP_LEVEL::kLover || relationship->level == RE::BGSRelationship::RELATIONSHIP_LEVEL::kConfidant;
+
+                                                }
+
+                                            }
+
+                                            if (!purchase_allowed)
+                                            {
+                                                if (jarl2)
+                                                {
+                                                    RE::TESNPC* jarl_npc = (RE::TESNPC*)jarl2->GetBaseObject();
+                                                    RE::TESNPC* player_npc = (RE::TESNPC*)RE::TESForm::LookupByID(0x7);
+                                                    auto relationship = RE::BGSRelationship::GetRelationship(jarl_npc, player_npc);
+
+                                                    if (relationship)
+                                                    {
+                                                        //purchase_allowed = relationship->level.any(RE::BGSRelationship::RELATIONSHIP_LEVEL::kAlly, RE::BGSRelationship::RELATIONSHIP_LEVEL::kFriend, RE::BGSRelationship::RELATIONSHIP_LEVEL::kLover, RE::BGSRelationship::RELATIONSHIP_LEVEL::kConfidant);
+                                                        purchase_allowed = relationship->level == RE::BGSRelationship::RELATIONSHIP_LEVEL::kAlly || relationship->level == RE::BGSRelationship::RELATIONSHIP_LEVEL::kFriend || relationship->level == RE::BGSRelationship::RELATIONSHIP_LEVEL::kLover || relationship->level == RE::BGSRelationship::RELATIONSHIP_LEVEL::kConfidant;
+
+                                                    }
+                                                }
+                                            }
+
+
+                                            if (purchase_allowed)
+                                            {
+                                                auto player_gold = MiscThings::get_player_gold();
+                                                std::string enough_not_enough = player_gold < 5000 ? "(not enough gold)" : "(You have enough gold!)";
+                                                place_name += "[Can sell you land, gold needed: " + std::to_string(player_gold) + "/5000" + enough_not_enough + "]";
+
+                                            }
+
+
+
+                                        }
+                                        
+                                    }
+                                }
+
+
+                            }
+
+
                         }
 
 
@@ -7567,7 +7673,7 @@ namespace MiscThings {
 
         if (key)
         {
-            auto settlement = settlements.find(key->formID);
+            auto settlement = settlements.find(key);
 
             if (settlement != settlements.end())
             {
@@ -7794,7 +7900,7 @@ namespace MiscThings {
 
                 if (key)
                 {
-                    auto settlement = settlements.find(key->formID);
+                    auto settlement = settlements.find(key);
 
                     if (settlement != settlements.end())
                     {
@@ -15713,6 +15819,18 @@ namespace MiscThings {
             if (parent_cell->formID == 0xcab92) //archmage quarters
                 if (finished_mageguild())
                     return true;
+
+            if (parent_cell->formID == 0x3011cb3) //morthal land house hearthfire
+            {
+                auto base_obj = object->GetBaseObject();
+                if (base_obj && base_obj->formID != 0x30030f2) //exclude carpenter's workbenches which are placed around even if we cant see them
+                    return true;
+
+                
+
+            }
+                
+
         }
 
 
@@ -19564,6 +19682,66 @@ namespace MiscThings {
             //    return "[Open]";
         }
 
+        if (base_obj->formID == 0x3008240) //hearthfire fertile soil. give info about what is currently planted
+        {
+            /*
+            auto extra_state_parent = (RE::ExtraEnableStateParent*)object->extraList.GetByType(RE::ExtraDataType::kEnableStateParent);
+            if (extra_state_parent)
+            {
+                auto parent_handle = extra_state_parent->parent;
+                if (parent_handle && parent_handle.get() && parent_handle.get().get())
+                {
+                    auto parent_ref = parent_handle.get().get();
+                    bool stop_here = false;
+                }
+            }
+            */
+
+            auto linked_ref = MiscThings::get_linked_ref(object, 0);
+            if (linked_ref)
+            {
+                if (linked_ref->IsActor())
+                {
+                    auto linked_actor = (RE::Actor*)linked_ref;
+
+                    //now need to find what is inside
+
+                    auto linked_inventory = linked_actor->GetInventory();
+
+                    std::string items_list = "";
+
+                    auto inv = linked_actor->GetInventory();
+
+
+                    for (auto& [item, data] : inv)
+                    {
+                        if (item && item->formType == RE::FormType::Ingredient && data.first > 0)
+                        {
+                            std::string ingredient_name = item->GetName();
+                            if (ingredient_name != "")
+                            {
+                                if (items_list != "")
+                                    items_list += ", " + ingredient_name;
+                                else
+                                    items_list = ingredient_name;
+                            }
+                        }
+                    }
+
+                    if (items_list != "")
+                        return "[Planted: " + items_list + "]";
+                    else
+                        return "[Empty]";
+                }
+
+                
+
+            }
+
+            bool stop_here = false;
+
+        }
+
 
         if (base_obj->formID == 0x1ba5a)
         {
@@ -21516,6 +21694,33 @@ namespace MiscThings {
                 auto base_obj = object->GetBaseObject();
                 if (base_obj)
                 {
+                    if (base_obj->formID == 0x300305b || base_obj->formID == 0x3003065) //drafting table and workbench, hearthfire
+                    {
+                        auto furniture = (RE::TESFurniture*)base_obj;
+                        RE::NiPoint3 object_angles = object->data.angle;
+                        RE::NiPoint3 base_shift_vector = { 0.0f, 30.0f, 60.0f };
+                        RE::NiPoint3 rotated_shift_vector = rotate_vector_by_angles(base_shift_vector, object_angles);
+                        return  rotated_shift_vector;
+                    }
+
+                    if (base_obj->formID == 0x1a2ad) //anvil
+                    {
+                        auto furniture = (RE::TESFurniture*)base_obj;
+                        RE::NiPoint3 object_angles = object->data.angle;
+                        RE::NiPoint3 base_shift_vector = { 15.0f, 60.0f, 50.0f };
+                        RE::NiPoint3 rotated_shift_vector = rotate_vector_by_angles(base_shift_vector, object_angles);
+                        return  rotated_shift_vector;
+                    }
+
+                    if (base_obj->formID == 0x30030da || base_obj->formID == 0x30030f2) //small house hearthfire workbench
+                    {
+                        auto furniture = (RE::TESFurniture*)base_obj;
+                        RE::NiPoint3 object_angles = object->data.angle;
+                        RE::NiPoint3 base_shift_vector = { 0.0f, 60.0f, 50.0f };
+                        RE::NiPoint3 rotated_shift_vector = rotate_vector_by_angles(base_shift_vector, object_angles);
+                        return  rotated_shift_vector;
+                    }
+
                     if (base_obj->GetFormType() == RE::FormType::Furniture)
                     {
 
@@ -25574,14 +25779,22 @@ namespace MiscThings {
 
         if (object)
         {
-            if (object->formID == 0xf3922) //whiterun house container
-                return false; //so it detects
+            switch (object->formID)
+            {
+            case (0x4036ef2)://raven rock house chest
+            case (0x301205b)://morthal land house hearthfire chest
+            case (0xf3922)://whiterun house container
+                return false;
 
-            if (object->formID == 0x77d7e) //archmage chest
+            case (0x77d7e)://archmage chest
             {
                 if (finished_mageguild())
                     return false;
+                break;
             }
+
+            }
+
 
 
             auto base_obj = object->GetBaseObject();
