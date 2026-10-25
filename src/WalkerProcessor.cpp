@@ -22828,8 +22828,8 @@ namespace WalkerProcessor {
 
                         bool player_on_pillar1 = player->GetPosition().GetDistance(pillar1_pos) < 120.0f && player->GetPositionZ() > -750.0f;
                         bool player_on_pillar2 = player->GetPosition().GetDistance(pillar2_pos) < 120.0f && player->GetPositionZ() > -750.0f;
-
-                        if ((player_on_pillar1 && !target_on_pillar1) || (player_on_pillar2 && !target_on_pillar2) || target_ref->IsDisabled() || target_ref->IsDead() || close_enough())
+                                                                                                                                                                         //do not cancel if its actual boss and bossfight is finished
+                        if ((player_on_pillar1 && !target_on_pillar1) || (player_on_pillar2 && !target_on_pillar2) || target_ref->IsDisabled() || (target_ref->IsDead() && target_ref->formID != 0xA5E68) || close_enough())
                         {
                             bool player_in_starting_zone = player->GetPositionX() > -1338.35f && player->GetPositionZ() > -574.0f;
 
