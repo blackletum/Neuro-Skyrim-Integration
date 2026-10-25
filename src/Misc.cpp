@@ -192,6 +192,191 @@ namespace MiscThings {
 
 
 
+    float mercer_control_timer = 0.0f;
+    bool carry_mercer_to_the_door = false;
+    bool teleported_mercer = false;
+    bool ragdolled_mercer = false;
+
+
+    void do_mercer_fix()
+    {
+        carry_mercer_to_the_door = true;
+    }
+
+
+    void reset_mercer_control()
+    {
+        mercer_control_timer = 0.0f;
+        carry_mercer_to_the_door = false;
+        teleported_mercer = false;
+        ragdolled_mercer = false;
+    }
+
+
+    void mercer_fix(float dtime)
+    {
+        if (carry_mercer_to_the_door)
+        {
+
+
+            static auto mercer = (RE::Actor*)RE::TESForm::LookupByID(0x22651);
+            static auto door = (RE::TESObjectREFR*)RE::TESForm::LookupByID(0x2ddd0);
+
+            if (mercer && mercer->IsActor() && !mercer->IsDead() && !mercer->IsDisabled())
+            {
+                if (!teleported_mercer)
+                {
+
+                    if (mercer->GetPositionZ() > -9231.85352)
+                    {
+                        MiscThings::SetPosition_moveto(mercer, { 145592.453, 71529.2812, -9331.85352 });
+                        teleported_mercer = true;
+
+                        if (is_something_registered())
+                        {
+                            unregister_all_actions();
+                        }
+
+                    }
+                    else
+                    {
+                        reset_mercer_control();
+                        return;
+                    }
+
+
+                }
+                else
+                {
+                    if (mercer_control_timer > 0.05f)
+                    {
+                        if (!ragdolled_mercer)
+                        {
+                            /*
+                            auto player = RE::PlayerCharacter::GetSingleton();
+                            auto caster_123 = player->GetMagicCaster(RE::MagicSystem::CastingSource::kInstant);
+                            auto paralysis_spell = RE::TESForm::LookupByID(0x5AD5F)->As<RE::SpellItem>();
+
+                            if (caster_123 && paralysis_spell && false)
+                            {
+
+                                auto old_delivery = paralysis_spell->GetDelivery();
+                                auto old_duration = paralysis_spell->effects[0]->effectItem.duration;
+                                auto old_cost = paralysis_spell->effects[0]->cost;
+
+                                paralysis_spell->SetDelivery(RE::MagicSystem::Delivery::kSelf);
+                                paralysis_spell->effects[0]->effectItem.duration = 1;
+                                paralysis_spell->effects[0]->cost = 0;
+
+                                caster_123->CastSpellImmediate(paralysis_spell, true, mercer, 4.0f, false, 1.0f, nullptr);
+
+                                paralysis_spell->SetDelivery(old_delivery);
+                                paralysis_spell->effects[0]->effectItem.duration = old_duration;
+                                paralysis_spell->data.costOverride = old_cost;
+                            }
+                            */
+                            ragdolled_mercer = true;
+                        }
+                        else
+                        {
+                            if (mercer_control_timer < 4.0f)
+                            {
+                                mercer_control_timer += dtime;
+                                return; //waiting
+                                auto mercer_3d = mercer->Get3D();
+
+                                if (mercer && mercer_3d)
+                                {
+                                    if (auto* process = mercer->GetMiddleHighProcess()) 
+                                    {
+                                        if (auto* controller = process->charController.get()) 
+                                        {
+                                            if (auto* rigidBodyController = skyrim_cast<RE::bhkCharRigidBodyController*>(controller)) 
+                                            {
+                                                auto* hkCharRB = *reinterpret_cast<RE::hkpCharacterRigidBody**>(reinterpret_cast<std::uintptr_t>(&rigidBodyController->charRigidBody) + 0x10);
+
+                                                if (hkCharRB && hkCharRB->character)
+                                                {
+                                                    RE::NiPoint3 throw_dir = door->GetPosition() - mercer->GetPosition();
+                                                    throw_dir.Unitize();
+                                                    throw_dir *= 5000.0f;
+                                                    hkCharRB->character->ApplyLinearImpulse({ throw_dir.x, throw_dir.y, throw_dir.z, 1.0f });
+                                                }
+
+
+                                                /*
+                                                * 
+                                                RE::NiPoint3 throw_dir = door->GetPosition() - mercer->GetPosition();
+                                                throw_dir.Unitize();
+                                                throw_dir *= 100000.0f;
+                                                auto rigid_body = rigidBodyController->charRigidBody.rigidBody;
+                                                rigid_body->SetLinearImpulse({ throw_dir.x, throw_dir.y, throw_dir.z, 1.0f });
+
+                                                
+                                                auto* hkCharRB = *reinterpret_cast<RE::hkpCharacterRigidBody**>(reinterpret_cast<std::uintptr_t>(&rigidBodyController->charRigidBody) + 0x10);
+
+                                                if (hkCharRB) 
+                                                {
+                                                     = hkCharRB->
+                                                    RE::NiPoint3 throw_dir = door->GetPosition() - mercer->GetPosition();
+
+                                                    hkCharRB->
+
+
+                                                    //hkCharRB->SetLinearImpulse({ throw_dir.x, throw_dir.y, throw_dir.z, 1.0f });
+                                                }
+                                                */
+                                            }
+                                        }
+                                    }
+
+
+                                    /*
+
+                                    if (mercer->currentProcess)
+                                        if (mercer->currentProcess->middleHigh)
+                                            if (mercer->currentProcess->middleHigh->headNode)
+                                            {
+
+                                                auto head = mercer->currentProcess->middleHigh->torsoNode;
+
+                                                if (head && head->collisionObject)
+                                                {
+                                                    auto body = head->collisionObject->AsBhkRigidBody();
+
+                                                    if (body && door)
+                                                    {
+                                                        RE::NiPoint3 throw_dir = door->GetPosition() - head->world.translate;
+                                                        body->SetLinearImpulse({ throw_dir.x, throw_dir.y, throw_dir.z, 1.0f });
+                                                    }
+                                                }
+                                            }
+                                            */
+                                }
+                            }
+                            else
+                            {
+                                //todo - open door, interact with it
+                                register_allowed_actions();
+                                reset_mercer_control();
+                            }
+                        }
+
+                    }
+
+                    mercer_control_timer += dtime;
+                }
+            }
+            else
+            {
+                register_allowed_actions();
+                reset_mercer_control();
+            }
+        }
+    }
+
+
+
 
     std::vector<std::pair<RE::ObjectRefHandle, float>> cookies_to_control{};
 
@@ -245,10 +430,6 @@ namespace MiscThings {
         cookies_to_explode.clear();
         cookie_timer2 = 0.0f;
     }
-
-
-
-
 
 
     void explode_cookies_nearby()

@@ -17627,9 +17627,19 @@ namespace WalkerProcessor {
                         }
                         else
                         {
-                            send_random_context("Cannot lockpick this door. It requires a key", false);
-                            reset_walker();
-                            return true;
+                            if (target_ref->formID == 0x2ddd0) //snow veil door
+                            {
+                                MiscThings::do_mercer_fix();
+                                send_random_context("The door is locked... Mercer really wants to open it...", false);
+                                reset_walker();
+                                return true;
+                            }
+                            else
+                            {
+                                send_random_context("Cannot lockpick this door. It requires a key", false);
+                                reset_walker();
+                                return true;
+                            }
                         }
 
                     }

@@ -1698,7 +1698,7 @@ namespace Hooks {
 
                 MiscThings::reset_cookie_control();
                 MiscThings::reset_cookie_control2();
-
+                MiscThings::reset_mercer_control();
 
                 Observer::reset_observer();
                 Observer::clear_objects_to_track();
@@ -3856,6 +3856,7 @@ class MyHook {
             MiscThings::item_dropper(dtime);
             MiscThings::delayed_equipper(dtime);
             MiscThings::cookie_controller(dtime);
+            MiscThings::mercer_fix(dtime);
 
             Hooks::update_debug_text();
         }

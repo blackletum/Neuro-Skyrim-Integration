@@ -6,6 +6,10 @@
 namespace MiscThings {
 
 
+    void mercer_fix(float dtime);
+    void reset_mercer_control();
+    void do_mercer_fix();
+
 
     bool IsInDangerousWater(RE::TESObjectREFR* object);
 
