@@ -15974,7 +15974,7 @@ namespace MiscThings {
 
 
 
-    bool raycastable(RE::TESObjectREFR* object, float range, bool only_forward)
+    bool raycastable(RE::TESObjectREFR* object, float range, bool only_forward, bool dont_fake_house_raycast)
     {
         if (!object)
             return false;
@@ -15994,22 +15994,23 @@ namespace MiscThings {
 
         if (parent_cell)
         {
-            if (parent_cell->formID == 0x165a8)
-                return true; //everything is raycastable in player's home
-
-            if (parent_cell->formID == 0xcab92) //archmage quarters
-                if (finished_mageguild())
-                    return true;
-
-            if (parent_cell->formID == 0x3011cb3) //morthal land house hearthfire
+            if (!dont_fake_house_raycast)
             {
-                auto base_obj = object->GetBaseObject();
-                if (base_obj && base_obj->formID != 0x30030f2) //exclude carpenter's workbenches which are placed around even if we cant see them
-                    return true;
+                if (parent_cell->formID == 0x165a8)
+                    return true; //everything is raycastable in player's home
 
-                
+                if (parent_cell->formID == 0xcab92) //archmage quarters
+                    if (finished_mageguild())
+                        return true;
 
+                if (parent_cell->formID == 0x3011cb3) //morthal land house hearthfire
+                {
+                    auto base_obj = object->GetBaseObject();
+                    if (base_obj && base_obj->formID != 0x30030f2) //exclude carpenter's workbenches which are placed around even if we cant see them
+                        return true;
+                }
             }
+
                 
 
         }

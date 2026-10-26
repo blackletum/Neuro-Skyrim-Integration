@@ -9016,7 +9016,7 @@ namespace WalkerProcessor {
                     else
                         if (abs(distance.z) < 400.0f && !is_door(target_ref))
                         {
-                            if (MiscThings::raycastable(target_ref, 500.0f, false) || try_close_enough_z_decrease_without_raycast) //this is super risky
+                            if (MiscThings::raycastable(target_ref, 500.0f, false, true) || try_close_enough_z_decrease_without_raycast) //this is super risky
                                 distance.z = 50.0f;
                         }
                             
@@ -9139,6 +9139,7 @@ namespace WalkerProcessor {
                         switch (target_ref->formID)
                         {
                         case (0xed7e7): //goldur treasure chest
+                        case (0xca11b): //whiterun house bed
                         {
                             dont_use_bounds = true;
                             break;

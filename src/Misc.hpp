@@ -336,7 +336,7 @@ namespace MiscThings {
 
     std::string get_object_full_info(RE::TESObjectREFR* refr, bool no_linked_chains = false);
 
-    bool raycastable(RE::TESObjectREFR* object, float range, bool only_forward = true);
+    bool raycastable(RE::TESObjectREFR* object, float range, bool only_forward = true, bool dont_fake_house_raycast = false);
     bool raycastable_with_current_spell(RE::TESObjectREFR* target, float range, int left_hand = -1, bool any_enemy = false);
 
     bool target_cant_attack(RE::TESObjectREFR* object);
