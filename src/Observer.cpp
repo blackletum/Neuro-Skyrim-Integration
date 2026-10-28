@@ -7848,6 +7848,7 @@ namespace Observer {
 		static auto cookie_spell1 = (RE::SpellItem*)RE::TESForm::LookupByID(0x71aa86e);
 		static auto cookie_spell2 = (RE::SpellItem*)RE::TESForm::LookupByID(0x71af977);
 		static auto cookie_spell3 = (RE::SpellItem*)RE::TESForm::LookupByID(0x71b4a7d);
+		//static auto cookie_spell4 = (RE::SpellItem*)RE::TESForm::LookupByID(0x71bec80); //given after mainquest
 
 		if (threshold_quest && !observers_green_light)
 		{
@@ -9247,7 +9248,17 @@ namespace Observer {
 								//actor_equip->EquipObject(player, special_2, nullptr, 1000, nullptr, false, true, true, true);
 							}
 
-							send_random_context("You are back to the mortal world. Several dragons gathered around you on top of the mountain, greeting you as the strongest", false);
+
+							static auto cookie_spell4 = (RE::SpellItem*)RE::TESForm::LookupByID(0x71bec80); //given after mainquest
+
+							if (cookie_spell4)
+								if (!MiscThings::player_has_spell(cookie_spell4))
+									player->AddSpell(cookie_spell4);
+
+
+
+
+							send_random_context("You are back to the mortal world. The dragons gathered around you on top of the mountain, greeting you as the strongest", false);
 							quicksave(true);
 						}
 							

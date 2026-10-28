@@ -602,18 +602,21 @@ namespace MiscThings {
 
     bool finished_mageguild();
 
-
+    void remember_big_cookie(RE::ObjectRefHandle cookie);
     void cookie_controller(float dtime);
 
     void add_cookies_to_controll(std::vector<std::pair<RE::ObjectRefHandle, float>> cookies, bool stick_mode);
     void reset_cookie_control();
     void reset_cookie_control2();
+    void reset_cookie_control3();
 
     void explode_cookies_nearby();
 
     void SetPosition_moveto(RE::TESObjectREFR* a_target, RE::NiPoint3 new_pos);
 
     RE::TESObjectREFR* get_dragon_for_dragonrend();
+
+    void do_reset_player_hp(float hp);
 
     bool is_inventory_item_in_the_list(RE::TESBoundObject* item);
     bool is_inventory_item_in_the_list_fast(RE::TESBoundObject* item, std::map<RE::TESBoundObject*, int>* my_inventory_map);

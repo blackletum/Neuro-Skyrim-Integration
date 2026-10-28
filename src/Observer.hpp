@@ -109,7 +109,7 @@ namespace Observer {
 			RE::ScriptEventSourceHolder::GetSingleton()->AddEventSink<RE::TESHitEvent>(this);
 		}
 
-		virtual RE::BSEventNotifyControl ProcessEvent(const RE::TESHitEvent* a_event, RE::BSTEventSource<RE::TESHitEvent>*) override
+		virtual RE::BSEventNotifyControl ProcessEvent(const RE::TESHitEvent* a_event, RE::BSTEventSource<RE::TESHitEvent>* test_var) override
 		{
 			if (a_event)
 			{
@@ -119,6 +119,39 @@ namespace Observer {
 				RE::TESObjectREFRPtr target = a_event->target;
 				RE::TESObjectREFRPtr agressor = a_event->cause;
 				RE::FormID weapon_formid = a_event->source;
+
+
+				if (target && target.get() && target.get() == player)
+				{
+					if (weapon_formid)
+					{
+						auto weapon_form = RE::TESObjectREFR::LookupByID(weapon_formid);
+						if (weapon_form && weapon_form->formID == 0x71bec84) //meteorite explosion
+						{
+							MiscThings::do_reset_player_hp(player->GetBaseActorValue(RE::ActorValue::kHealth));
+							player->SetBaseActorValue(RE::ActorValue::kHealth, 1000.0f);
+
+							
+							//player->setactorvalu
+
+							//bool stop_here = false;
+							//test_var->
+							//auto the_explosion = (RE::BGSExplosion*)weapon_form;
+							//the_explosion->data.damage = 0.0f;
+
+
+							//auto health = player->GetActorValue(RE::ActorValue::kHealth);
+							//bool stop_here = false;
+							//player->SetActorValue(RE::ActorValue::kResistFire, 100.0f)
+							//;
+							//return RE::BSEventNotifyControl::kStop; //doesnt work
+							//player->RestoreActorValue(RE::ActorValue::kHealth, 500.0f); //doesnt work
+						}
+					}
+				}
+
+
+
 
 				if (target && agressor && !player->IsDead())
 				{

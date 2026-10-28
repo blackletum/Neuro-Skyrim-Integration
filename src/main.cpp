@@ -1698,6 +1698,7 @@ namespace Hooks {
 
                 MiscThings::reset_cookie_control();
                 MiscThings::reset_cookie_control2();
+                MiscThings::reset_cookie_control3();
                 MiscThings::reset_mercer_control();
 
                 Observer::reset_observer();

@@ -3043,6 +3043,36 @@ namespace WalkerProcessor {
                             bool stop_here = false;
                         }
                     }
+
+                    if (this_->currentSpell->formID == 0x71bec80) //cookie3
+                    {
+                        if (this_->state == RE::MagicCaster::State::kCasting)
+                        {
+                            auto player = RE::PlayerCharacter::GetSingleton();
+                            auto item = (RE::TESBoundObject*)RE::TESForm::LookupByID(0x71af975);
+
+                            RE::NiPoint3 pos_to_place = player->GetPosition();
+
+                            if (target_ref && interaction_after_walk == 3)
+                                pos_to_place = target_ref->GetPosition();
+
+                            
+
+                            if (item)
+                            {
+                                if (target_ref && MiscThings::is_dragon(target_ref))
+                                    pos_to_place.z += 5000.0f;
+                                else
+                                    pos_to_place.z += 3000.0f;
+
+                                pos_to_place.x += 1500.0f;
+
+                                auto new_item = RE::TESDataHandler::GetSingleton()->CreateReferenceAtLocation(item, pos_to_place, { (float)std::rand() / RAND_MAX * 10.0f, (float)std::rand() / RAND_MAX * 10.0f, (float)std::rand() / RAND_MAX * 10.0f }, player->GetParentCell(), player->GetWorldspace(), nullptr, nullptr, player->GetHandle(), false, true);
+                                new_item.get().get()->SetScale(200.0f);
+                                MiscThings::remember_big_cookie(new_item);
+                            }
+                        }
+                    }
                     
                     
                 }
@@ -6490,7 +6520,7 @@ namespace WalkerProcessor {
             right_anim_name = player->magicCasters[1]->animationGraphManager->variableCache.animationGraph->projectName.c_str();
         }
 
-        if (right_anim_name.find("Ritual") != std::string::npos)
+        if (right_anim_name.find("Ritual") != std::string::npos || (MiscThings::get_hand_contents(true) && MiscThings::get_hand_contents(true)->formID == 0x71bec80))
         {
             return true;
         }
@@ -6501,7 +6531,7 @@ namespace WalkerProcessor {
             left_anim_name = player->magicCasters[0]->animationGraphManager->variableCache.animationGraph->projectName.c_str();
         }
 
-        if (left_anim_name.find("Ritual") != std::string::npos)
+        if (left_anim_name.find("Ritual") != std::string::npos || (MiscThings::get_hand_contents(true) && MiscThings::get_hand_contents(true)->formID == 0x71bec80))
         {
             return true;
         }
@@ -6543,7 +6573,7 @@ namespace WalkerProcessor {
                 right_anim_name = player->magicCasters[1]->animationGraphManager->variableCache.animationGraph->projectName.c_str();
             }
             
-            if (right_anim_name.find("Ritual") != std::string::npos)
+            if (right_anim_name.find("Ritual") != std::string::npos || (MiscThings::get_hand_contents(true) && MiscThings::get_hand_contents(true)->formID == 0x71bec80))
             {
                 return player->IsAnimationDriven();
             }
@@ -6569,7 +6599,7 @@ namespace WalkerProcessor {
                 left_anim_name = player->magicCasters[0]->animationGraphManager->variableCache.animationGraph->projectName.c_str();
             }
 
-            if (left_anim_name.find("Ritual") != std::string::npos)
+            if (left_anim_name.find("Ritual") != std::string::npos || (MiscThings::get_hand_contents(true) && MiscThings::get_hand_contents(true)->formID == 0x71bec80))
             {
                 return player->IsAnimationDriven();
             }
@@ -14400,9 +14430,13 @@ namespace WalkerProcessor {
                                     return 300.0f;
                             }
 
+                            if (spell->formID == 0x71bec80)
+                                return 30000.0f;
 
                             if (perk_name.find("Master Destruction") != std::string::npos)
                             {
+
+
                                 auto cast_type = spell->avEffectSetting->data.castingType;
 
                                 if (cast_type == RE::MagicSystem::CastingType::kConcentration)
@@ -15574,7 +15608,7 @@ namespace WalkerProcessor {
             bool dualcasting_no_mana = MiscThings::has_spell_equipped(true) && MiscThings::get_player_mana() < get_spell_cost(true) * 2.8f;
             bool dualcast_condition = !dualcasting_no_mana && MiscThings::get_hand_contents(true) == MiscThings::get_hand_contents(false) && MiscThings::has_spell_equipped(true);
 
-            dualcast_condition &= !(MiscThings::get_hand_contents(true) && MiscThings::get_hand_contents(true)->formID == 0x71aa86e);
+            dualcast_condition &= !(MiscThings::get_hand_contents(true) && (MiscThings::get_hand_contents(true)->formID == 0x71aa86e || MiscThings::get_hand_contents(true)->formID == 0x71bec80));
 
 
             if (dont_use_right)
@@ -15815,7 +15849,7 @@ namespace WalkerProcessor {
                                 if (attack_action_time0 > 0.7f);
                                 ;// was_charging_ranged = true;
 
-                                if (!is_casting_walker(true))
+                                if (!is_casting_walker2(true))
                                 {
                                     float timeout_val = get_spell_timeout(true);
 
@@ -16122,7 +16156,7 @@ namespace WalkerProcessor {
                         //i forgot why there is another similar check below
                         if (attack_action_uses_cast_time)
                         {
-                            bool is_actually_casting = WalkerProcessor::is_casting_walker(true);
+                            bool is_actually_casting = WalkerProcessor::is_casting_walker2(true);
                             is_actually_casting |= dualcasting && WalkerProcessor::is_casting_walker(!true);
 
                             if (is_actually_casting)
@@ -16191,7 +16225,7 @@ namespace WalkerProcessor {
                                 was_casting_spell_right = false;
 
                                 float pause_threshold = 1.0f;
-                                if (MiscThings::get_hand_contents(true) && MiscThings::get_hand_contents(true)->formID == 0x71aa86e)
+                                if (MiscThings::get_hand_contents(true) && (MiscThings::get_hand_contents(true)->formID == 0x71aa86e || MiscThings::get_hand_contents(true)->formID == 0x71bec80))
                                     pause_threshold = 2.0f;
 
                                 if (pause_post_attack < pause_threshold)
@@ -16567,7 +16601,7 @@ namespace WalkerProcessor {
 
                                     bool skip_cast = false;
 
-                                    if (!is_casting_walker(false))
+                                    if (!is_casting_walker2(false))
                                     {
                                         float timeout_val = get_spell_timeout(false);
 
@@ -16875,7 +16909,7 @@ namespace WalkerProcessor {
 
                             if (attack_action_uses_cast_time)
                             {
-                                bool is_actually_casting = WalkerProcessor::is_casting_walker(false);
+                                bool is_actually_casting = WalkerProcessor::is_casting_walker2(false);
                                 is_actually_casting |= dualcasting && WalkerProcessor::is_casting_walker(!false);
 
                                 if (is_actually_casting)
@@ -16944,7 +16978,7 @@ namespace WalkerProcessor {
                                 
 
                                 float pause_threshold = 1.0f;
-                                if (MiscThings::get_hand_contents(false) && MiscThings::get_hand_contents(false)->formID == 0x71aa86e)
+                                if (MiscThings::get_hand_contents(false) && (MiscThings::get_hand_contents(false)->formID == 0x71aa86e || MiscThings::get_hand_contents(false)->formID == 0x71bec80))
                                     pause_threshold = 2.0f;
 
                                 if (pause_post_attack < pause_threshold)

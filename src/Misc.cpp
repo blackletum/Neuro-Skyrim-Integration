@@ -380,6 +380,14 @@ namespace MiscThings {
 
     std::vector<std::pair<RE::ObjectRefHandle, float>> cookies_to_control{};
 
+    RE::ObjectRefHandle big_cookie{};
+    float cookie_timer3 = 0.0f;
+
+    void remember_big_cookie(RE::ObjectRefHandle cookie)
+    {
+        big_cookie = cookie;
+        cookie_timer3 = 0.0f;
+    }
 
     //bool cookie_stick_mode = false;
 
@@ -402,6 +410,8 @@ namespace MiscThings {
 
     float cookie_timer2 = 0.0f;
 
+    
+
     RE::ObjectRefHandle target_to_throw{};
 
     //bool cookie_stick_activated = false;
@@ -418,7 +428,7 @@ namespace MiscThings {
         target_to_throw.reset();
         //cookie_stick_activated = false;
         cookies_to_control.clear();
-
+        
     }
 
 
@@ -431,6 +441,11 @@ namespace MiscThings {
         cookie_timer2 = 0.0f;
     }
 
+    void reset_cookie_control3()
+    {
+        big_cookie.reset();
+        cookie_timer3 = 0.0f;
+    }
 
     void explode_cookies_nearby()
     {
@@ -465,6 +480,18 @@ namespace MiscThings {
     }
 
 
+    bool reset_player_hp = false;
+    float player_hp_old = 0.0f;
+
+
+    void do_reset_player_hp(float hp)
+    {
+        player_hp_old = hp;
+        reset_player_hp = true;
+    }
+
+
+
     void cookie_controller(float dtime)
     {
         auto camera = RE::PlayerCamera::GetSingleton();
@@ -472,6 +499,20 @@ namespace MiscThings {
         auto player_pos = player->GetPosition();
 
         static auto explosion = (RE::BGSExplosion*)RE::TESForm::LookupByID(0x71b4a7c);
+
+        if (reset_player_hp)
+        {
+            if (player_hp_old > 0.0f)
+            {
+                player->RestoreActorValue(RE::ActorValue::kHealth, 1000.0f);
+                player->SetBaseActorValue(RE::ActorValue::kHealth, player_hp_old);
+
+            }
+
+            reset_player_hp = false;
+            player_hp_old = 0.0f;
+        }
+
 
         if (explosion)
         {
@@ -595,7 +636,6 @@ namespace MiscThings {
         else
         {
             reset_cookie_control();
-            return;
         }
             
 
@@ -701,6 +741,134 @@ namespace MiscThings {
                 }
             }
         }
+
+
+        if (big_cookie && big_cookie.get() && big_cookie.get().get())
+        {
+            if (cookie_timer3 < 10.0f)
+            {
+                cookie_timer3 += dtime;
+                auto big_cookie_ref = big_cookie.get().get();
+                static auto small_cookie = (RE::TESBoundObject*)RE::TESForm::LookupByID(0x71af975);
+                static auto explosion = (RE::BGSExplosion*)RE::TESForm::LookupByID(0x71bec84);
+
+                auto cookie_3d = big_cookie_ref->Get3D();
+                if (small_cookie && explosion && cookie_3d && cookie_3d->collisionObject)
+                {
+                    auto body = cookie_3d->GetCollisionObject()->GetRigidBody();
+
+                    if (body)
+                    {
+                        auto camera_dirY = camera->cameraRoot->world.rotate.GetVectorY(); //lookat
+                        auto target_pos = player->GetPosition() + camera_dirY * 1500.0f;
+
+
+
+                        if (!target_to_throw || !target_to_throw.get() || !target_to_throw.get().get())
+                        {
+                            auto attack_target = WalkerProcessor::get_attack_target_ref();
+                            if (attack_target)
+                                target_to_throw = attack_target->GetHandle();
+                        }
+
+                        RE::NiPoint3 throw_dir = target_pos - big_cookie_ref->GetPosition();
+
+                        throw_dir.Unitize();
+
+                        throw_dir *= 300.0f;
+                        if (target_to_throw && target_to_throw.get() && target_to_throw.get().get())
+                        {
+                            throw_dir = WalkerProcessor::get_estimate_aim_pos(target_to_throw.get().get()) - big_cookie_ref->GetPosition();
+                            throw_dir.Unitize();
+                            throw_dir *= 300.0f;
+
+                            if (MiscThings::is_dragon(target_to_throw.get().get()))
+                            {
+                                throw_dir.Unitize();
+                                throw_dir *= 1000.0f;
+                            }
+                                
+                        }
+                            
+
+                        
+                        
+
+                        body->SetLinearImpulse({ throw_dir.x, throw_dir.y, throw_dir.z, 1.0f });
+
+
+                        
+
+                        RE::NiPoint3 vel = {};
+
+                        big_cookie_ref->GetLinearVelocity(vel);
+
+                        if (vel.z > -200.0f && cookie_timer3 > 0.5f)
+                        {
+                            big_cookie_ref->PlaceObjectAtMe(explosion, false);
+
+                            for (auto i = 0; i < 30; i++)
+                            {
+                                auto new_item = RE::TESDataHandler::GetSingleton()->CreateReferenceAtLocation(small_cookie, big_cookie_ref->GetPosition(), {(float)std::rand() / RAND_MAX * 60.0f, (float)std::rand() / RAND_MAX * 60.0f, (float)std::rand() / RAND_MAX * 60.0f}, player->GetParentCell(), player->GetWorldspace(), nullptr, nullptr, player->GetHandle(), false, true);
+                            }
+                            //auto the_explosion = (RE::BGSExplosion*)explosion;
+                            //the_explosion->data.damage = 500.0f;
+                            
+                            big_cookie_ref->Disable();
+                            big_cookie_ref->SetDelete(true);
+
+
+                            reset_cookie_control3();
+                        }
+
+
+                    }
+                }
+            }
+            else
+            {
+                auto big_cookie_ref = big_cookie.get().get();
+
+                if (big_cookie_ref)
+                {
+                    if (explosion)
+                    {
+                        auto the_explosion = (RE::BGSExplosion*)explosion;
+                        the_explosion->data.damage = 500.0f;
+                        //the_explosion->data.
+                        big_cookie_ref->PlaceObjectAtMe(explosion, false);
+                    }
+
+                    static auto small_cookie = (RE::TESBoundObject*)RE::TESForm::LookupByID(0x71af975);
+                    static auto explosion = (RE::BGSExplosion*)RE::TESForm::LookupByID(0x71bec84);
+
+                    if (small_cookie)
+                    {
+                        for (auto i = 0; i < 30; i++)
+                        {
+                            auto new_item = RE::TESDataHandler::GetSingleton()->CreateReferenceAtLocation(small_cookie, big_cookie_ref->GetPosition(), { (float)std::rand() / RAND_MAX * 60.0f, (float)std::rand() / RAND_MAX * 60.0f, (float)std::rand() / RAND_MAX * 60.0f }, player->GetParentCell(), player->GetWorldspace(), nullptr, nullptr, player->GetHandle(), false, true);
+                        }
+                    }
+
+
+                    big_cookie_ref->Disable();
+                    big_cookie_ref->SetDelete(true);
+
+
+
+
+                    reset_cookie_control3();
+                }
+
+            }
+                
+
+
+            
+        }
+
+
+
 
         cookie_rotate_timer += dtime;
         
@@ -33458,6 +33626,7 @@ namespace MiscThings {
             std::string* alteration = nullptr;
             std::string* illusion = nullptr;
             std::string* conjuration = nullptr;
+            std::string* cookiemancy = nullptr;
 
             //std::string* shouts; //this doesnt work for shouts
             std::string* ults;
@@ -33528,59 +33697,78 @@ namespace MiscThings {
                                 if (range > 0.0f)
                                     range_info = "[Short range]";
 
-                            if (a_spell->data.castingPerk)
+                            switch (a_spell->formID)
                             {
-                                switch (a_spell->data.castingPerk->formID)
+                                //special
+                            case (0x71bec80):
+                                range_info = "";
+                            case (0x71aa86e):
+                            case (0x71af977):
+                            {
+                                *cookiemancy += "[id " + std::to_string(i) + "]" + range_info + equip_info + cost_info + " " + name + " - " + description + "\n";
+                                break;
+                            }
+
+                            default:
+                            {
+                                //normal
+                                if (a_spell->data.castingPerk)
                                 {
-                                case(0xf2ca8):
-                                case(0xc44bf):
-                                case(0xc44c0):
-                                case(0xc44c1):
-                                case(0xc44c2):
-                                    *destruction += "[id " + std::to_string(i) + "]" + rank_info + range_info + equip_info + cost_info + " " + name + " - " + description + "\n";
-                                    break;
+                                    switch (a_spell->data.castingPerk->formID)
+                                    {
+                                    case(0xf2ca8):
+                                    case(0xc44bf):
+                                    case(0xc44c0):
+                                    case(0xc44c1):
+                                    case(0xc44c2):
+                                        *destruction += "[id " + std::to_string(i) + "]" + rank_info + range_info + equip_info + cost_info + " " + name + " - " + description + "\n";
+                                        break;
 
-                                case(0xf2caa):
-                                case(0xc44c7):
-                                case(0xc44c8):
-                                case(0xc44c9):
-                                case(0xc44ca):
-                                    *restoration += "[id " + std::to_string(i) + "]" + rank_info + range_info + equip_info + cost_info + " " + name + " - " + description + "\n";
-                                    break;
+                                    case(0xf2caa):
+                                    case(0xc44c7):
+                                    case(0xc44c8):
+                                    case(0xc44c9):
+                                    case(0xc44ca):
+                                        *restoration += "[id " + std::to_string(i) + "]" + rank_info + range_info + equip_info + cost_info + " " + name + " - " + description + "\n";
+                                        break;
 
-                                case(0xf2ca6):
-                                case(0xc44b7):
-                                case(0xc44b8):
-                                case(0xc44b9):
-                                case(0xc44ba):
-                                    *alteration += "[id " + std::to_string(i) + "]" + rank_info + range_info + equip_info + cost_info + " " + name + " - " + description + "\n";
-                                    break;
+                                    case(0xf2ca6):
+                                    case(0xc44b7):
+                                    case(0xc44b8):
+                                    case(0xc44b9):
+                                    case(0xc44ba):
+                                        *alteration += "[id " + std::to_string(i) + "]" + rank_info + range_info + equip_info + cost_info + " " + name + " - " + description + "\n";
+                                        break;
 
-                                case(0xf2ca9):
-                                case(0xc44c3):
-                                case(0xc44c4):
-                                case(0xc44c5):
-                                case(0xc44c6):
-                                    *illusion += "[id " + std::to_string(i) + "]" + rank_info + range_info + equip_info + cost_info + " " + name + " - " + description + "\n";
-                                    break;
+                                    case(0xf2ca9):
+                                    case(0xc44c3):
+                                    case(0xc44c4):
+                                    case(0xc44c5):
+                                    case(0xc44c6):
+                                        *illusion += "[id " + std::to_string(i) + "]" + rank_info + range_info + equip_info + cost_info + " " + name + " - " + description + "\n";
+                                        break;
 
-                                case(0xc44bc):
-                                case(0xc44bb):
-                                case(0xc44bd):
-                                case(0xc44be):
-                                case(0xf2ca7):
-                                    *conjuration += "[id " + std::to_string(i) + "]" + rank_info + range_info + equip_info + cost_info + " " + name + " - " + description + "\n";
-                                    break;
+                                    case(0xc44bc):
+                                    case(0xc44bb):
+                                    case(0xc44bd):
+                                    case(0xc44be):
+                                    case(0xf2ca7):
+                                        *conjuration += "[id " + std::to_string(i) + "]" + rank_info + range_info + equip_info + cost_info + " " + name + " - " + description + "\n";
+                                        break;
 
-                                default:
+                                    default:
+                                        *active_spells += "[id " + std::to_string(i) + "]" + rank_info + range_info + equip_info + cost_info + " " + name + " - " + description + "\n";
+                                        break;
+                                    }
+                                }
+                                else
+                                {
                                     *active_spells += "[id " + std::to_string(i) + "]" + rank_info + range_info + equip_info + cost_info + " " + name + " - " + description + "\n";
-                                    break;
                                 }
                             }
-                            else
-                            {
-                                *active_spells += "[id " + std::to_string(i) + "]" + rank_info + range_info + equip_info + cost_info + " " + name + " - " + description + "\n";
+
                             }
+                            
 
                             
                             spells.insert({ i, {a_spell, nullptr } });
@@ -33606,7 +33794,10 @@ namespace MiscThings {
                                     else
                                         ult_type = "";// "[Instant use]";
 
-                                    *ults += "[id " + std::to_string(i) + "] " + name + " - " + description + " " + ult_type + "\n";
+                                    if (a_spell->formID == 0x71b4a7d)
+                                        *cookiemancy += "[id " + std::to_string(i) + "] " + name + " - " + description + " " + "[Instant use]" + "\n";
+                                    else //normal
+                                        *ults += "[id " + std::to_string(i) + "] " + name + " - " + description + " " + ult_type + "\n";
                                     spells.insert({ i, {a_spell, nullptr } });
                                     i++;
                                     *max_id = i;
@@ -33670,6 +33861,7 @@ namespace MiscThings {
         std::string alteration = "";
         std::string illusion = "";
         std::string conjuration = "";
+        std::string cookiemancy = "";
 
         std::string passive_effects = "";
         std::string shouts = "";
@@ -33683,6 +33875,7 @@ namespace MiscThings {
         visitor.illusion = &illusion;
         visitor.conjuration = &conjuration;
         visitor.passive_effects = &passive_effects;
+        visitor.cookiemancy = &cookiemancy;
         //visitor.shouts = &shouts;
         visitor.ults = &ults;
         visitor.max_id = &max_id;
@@ -33792,7 +33985,7 @@ namespace MiscThings {
     */
 
 
-        if (destruction != "" || restoration != "" || alteration != "" || illusion != "" || active_spells != "" || conjuration != "")
+        if (destruction != "" || restoration != "" || alteration != "" || illusion != "" || active_spells != "" || conjuration != "" || cookiemancy != "")
         {
             result_text += "Active spells:\n\n";
 
@@ -33801,6 +33994,10 @@ namespace MiscThings {
 
             if (restoration != "")
                 result_text += "Restoration:\n" + restoration + "\n";
+
+            if (restoration != "")
+                result_text += "Cookiemancy:\n" + cookiemancy + "\n";
+
 
             if (conjuration != "")
                 result_text += "Conjuration:\n" + conjuration + "\n";
@@ -34380,6 +34577,7 @@ namespace MiscThings {
                 case (0x211F0): //greater ward
                 case (0x1A4CC): //telekinesis
                 case (0x71aa86e): //cookie1
+                case (0x71bec80): //cookie3
                     return false;
                 }
 
@@ -34437,7 +34635,7 @@ namespace MiscThings {
                 {
                     if (spell->GetSpellType() != RE::MagicSystem::SpellType::kEnchantment)
                     {
-                        if (spell->formID == 0x71aa86e)
+                        if (spell->formID == 0x71aa86e || spell->formID == 0x71bec80)
                             return false;
 
                         if (spell->GetDelivery() == RE::MagicSystem::Delivery::kSelf)
@@ -36696,6 +36894,7 @@ namespace MiscThings {
             case (0x211ED)://bound bow
             case (0x401ce06)://bound dagger
             case (0x71aa86e): //cookie1
+            case (0x71bec80): //cookie3
                 return true;
             }
 
