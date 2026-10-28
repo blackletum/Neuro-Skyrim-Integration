@@ -189,7 +189,7 @@ bool API_CONTROL_LOCKPICK = false;
 bool API_CONTROL_CRAFTING = false;
 
 bool debug_cam_move_coef = false;
-bool do_debug_scan = true;
+bool do_debug_scan = false;
 bool debug_info = false;
 bool debug_info2 = false; //just update text, for manual debug_text modifications (without add_line stuff)
 bool debug_info_only_specific = true;
