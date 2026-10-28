@@ -462,7 +462,7 @@ namespace MiscThings {
                         if (base_obj && base_obj->formID == 0x71af975)
                         {
                             //a_ref->PlaceObjectAtMe(explosion, false);
-                            if (!a_ref->IsDisabled())
+                            if (!a_ref->IsDisabled() && a_ref->GetScale() < 100.0f)
                                 cookies_to_explode.push_back(a_ref->GetHandle());
                         }
                     }
@@ -2512,6 +2512,7 @@ namespace MiscThings {
             case (0x424f8): //axe2
             case (0x424f7): //bow2
             case (0x401ce03): //dagger2
+            case (0x71c8e8a): //cookie
                 return true;
             }
         }
@@ -32670,6 +32671,7 @@ namespace MiscThings {
                 case (0x424f8): //axe2
                 case (0x424f7): //bow2
                 case (0x401ce03): //dagger2
+                case (0x71c8e8a): //cookie
                     continue; 
                 }
             }
@@ -33704,6 +33706,7 @@ namespace MiscThings {
                                 range_info = "";
                             case (0x71aa86e):
                             case (0x71af977):
+                            case (0x71c8e87):
                             {
                                 *cookiemancy += "[id " + std::to_string(i) + "]" + range_info + equip_info + cost_info + " " + name + " - " + description + "\n";
                                 break;

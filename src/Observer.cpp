@@ -7680,6 +7680,7 @@ namespace Observer {
 						case (0x424f8): //axe2
 						case (0x424f7): //bow2
 						case (0x401ce03): //dagger2
+						case (0x71c8e8a): //cookie
 							continue; //skip bound weapons
 						}
 					}
@@ -7849,7 +7850,7 @@ namespace Observer {
 		static auto cookie_spell2 = (RE::SpellItem*)RE::TESForm::LookupByID(0x71af977);
 		static auto cookie_spell3 = (RE::SpellItem*)RE::TESForm::LookupByID(0x71b4a7d);
 		//static auto cookie_spell4 = (RE::SpellItem*)RE::TESForm::LookupByID(0x71bec80); //given after mainquest
-
+		//static auto cookie_spell5 = (RE::SpellItem*)RE::TESForm::LookupByID(0x71c8e87); //given after mainquest
 		if (threshold_quest && !observers_green_light)
 		{
 			int unbound_quest_stage = threshold_quest->GetCurrentStageID();
@@ -9250,12 +9251,15 @@ namespace Observer {
 
 
 							static auto cookie_spell4 = (RE::SpellItem*)RE::TESForm::LookupByID(0x71bec80); //given after mainquest
+							static auto cookie_spell5 = (RE::SpellItem*)RE::TESForm::LookupByID(0x71c8e87); //given after mainquest
 
 							if (cookie_spell4)
 								if (!MiscThings::player_has_spell(cookie_spell4))
 									player->AddSpell(cookie_spell4);
 
-
+							if (cookie_spell5)
+								if (!MiscThings::player_has_spell(cookie_spell5))
+									player->AddSpell(cookie_spell5);
 
 
 							send_random_context("You are back to the mortal world. The dragons gathered around you on top of the mountain, greeting you as the strongest", false);
