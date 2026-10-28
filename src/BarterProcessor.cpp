@@ -4817,7 +4817,7 @@ void debug_scan(float dtime)
             
 if (const auto ui = RE::UI::GetSingleton(); ui) {
 //if (const auto menu = ui->GetMenu<RE::LevelUpMenu>(); menu) {
-if (const auto menu = ui->GetMenu<RE::CraftingMenu>(); menu) {
+if (const auto menu = ui->GetMenu<RE::ContainerMenu>(); menu) {
                 if (menu->uiMovie)
                     if (menu->uiMovie->GetVariable(&var1, "_root"))
 
@@ -4911,12 +4911,23 @@ if (const auto menu = ui->GetMenu<RE::CraftingMenu>(); menu) {
                                 auto test = var1.GetType();
                             }
 
-                            //search_var = "Body";
+                            search_var = "Quest";
 
                             //const auto menu2 = ui->GetMenu<RE::LevelUpMenu>();
 
 
-                            //search_success = visit_all_members2(results, var1, &search_var, 0, "_root", skip_problematic, skip_problematic_path, "", "");
+                            search_success = visit_all_members22(results, var1, &search_var, 0, "_root", skip_problematic, skip_problematic_path, "", "");
+                            if (search_success)
+                            {
+                                auto test = var1.GetType();
+                            }
+
+                            search_var = "quest";
+
+                            //const auto menu2 = ui->GetMenu<RE::LevelUpMenu>();
+
+
+                            search_success = visit_all_members22(results, var1, &search_var, 0, "_root", skip_problematic, skip_problematic_path, "", "");
                             if (search_success)
                             {
                                 auto test = var1.GetType();
@@ -4958,7 +4969,7 @@ if (const auto menu = ui->GetMenu<RE::CraftingMenu>(); menu) {
 
                             search_var = "Quarried";
                             //search_var = "Skin Tone";
-                            search_success = visit_all_members3(results, var1, &search_var, 0, "_root", search_var, skip_problematic);
+                            //search_success = visit_all_members3(results, var1, &search_var, 0, "_root", search_var, skip_problematic);
                             if (search_success)
                             {
                                 auto test = var1.GetType();

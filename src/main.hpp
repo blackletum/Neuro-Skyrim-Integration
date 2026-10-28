@@ -41,6 +41,7 @@ void send_random_context(std::string context, bool silent = true);
 //debug scan
 std::string visit_all_members(bool do_dump, std::ofstream& fs, const RE::GFxValue& in, std::string* search_var, int depth);
 bool visit_all_members2(std::vector<std::string>& results, const RE::GFxValue& in, std::string* search_var, int depth, std::string current_path, std::vector<std::string>& skip_problematic, std::vector<std::string>& skip_problematic_path, std::string parent_name, std::string grand_parent_name);
+bool visit_all_members22(std::vector<std::string>& results, const RE::GFxValue& in, std::string* search_var, int depth, std::string current_path, std::vector<std::string>& skip_problematic, std::vector<std::string>& skip_problematic_path, std::string parent_name, std::string grand_parent_name);
 bool visit_all_members3(std::vector<std::string>& results, const RE::GFxValue& in, std::string* search_var, int depth, std::string current_path, std::string val_to_search, std::vector<std::string>& skip_problematic);
 bool visit_all_members4(std::vector<std::string>& results, const RE::GFxValue& in, std::string* search_var, int depth, std::string current_path, int val_to_search);
 bool visit_all_members5(std::vector<std::string>& results, const RE::GFxValue& in, int depth, std::string current_path, uint64_t val_to_search, std::vector<std::string>& skip_problematic);

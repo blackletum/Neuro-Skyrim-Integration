@@ -189,7 +189,7 @@ bool API_CONTROL_LOCKPICK = false;
 bool API_CONTROL_CRAFTING = false;
 
 bool debug_cam_move_coef = false;
-bool do_debug_scan = false;
+bool do_debug_scan = true;
 bool debug_info = false;
 bool debug_info2 = false; //just update text, for manual debug_text modifications (without add_line stuff)
 bool debug_info_only_specific = true;
@@ -3234,6 +3234,91 @@ bool visit_all_members2(std::vector<std::string>& results, const RE::GFxValue& i
 
      return found_something;
 }
+
+
+bool visit_all_members22(std::vector<std::string>& results, const RE::GFxValue& in, std::string* search_var, int depth, std::string current_path, std::vector<std::string>& skip_problematic, std::vector<std::string>& skip_problematic_path, std::string parent_name, std::string grand_parent_name)
+{
+    if (depth > 10)
+        return false;
+
+    bool found_something = false;
+
+    if (!in.IsNull())// && in.IsDisplayObject())
+    {
+        in.VisitMembers([&](const char* name, const RE::GFxValue& a_value)
+            {
+
+                if (!a_value.IsNull())
+                {
+                    std::string name_str = name;
+                    std::string name_orig = name;
+
+                    name_orig = MiscThings::lowercase_string(name_orig);
+
+
+                    bool dont_go_deeper = false;
+
+
+                    if (name_str == grand_parent_name)
+                        dont_go_deeper = true;
+
+                    for (std::string problematic_name : skip_problematic)
+                    {
+                        if (name_str == problematic_name)
+                            dont_go_deeper = true;
+
+                    }
+
+                    for (std::string problematic_path : skip_problematic_path)
+                    {
+                        std::string path_to_test = current_path + "." + name_str;
+                        if (path_to_test == problematic_path)
+                            dont_go_deeper = true;
+                    }
+
+                    if (!dont_go_deeper)
+                    {
+
+                        if (a_value.IsArray())
+                            name_str += "[" + std::to_string(a_value.GetArraySize()) + "]";
+
+                        if (a_value.IsObject())
+                        {
+                            if (name_str != constraints && name_str != focusTarget)
+                            {
+                                if (name_str.find(*search_var) != std::string::npos || name_orig.find(*search_var) != std::string::npos)
+                                {
+                                    results.push_back(current_path + "." + name_str + (a_value.IsNumber() ? " = " + std::to_string(a_value.GetNumber()) : ""));
+                                    found_something = true;
+                                }
+                                else
+                                {
+                                    if (visit_all_members22(results, a_value, search_var, depth + 1, current_path + "." + name_str, skip_problematic, skip_problematic_path, name_str, parent_name))
+                                    {
+                                        //add_path_to_all_results(results, name);
+                                        found_something = true;
+                                    }
+                                }
+                            }
+                        }
+                        else
+                            if (name_str.find(*search_var) != std::string::npos || name_orig.find(*search_var) != std::string::npos || name_orig.find(*search_var) != std::string::npos)
+                            {
+                                results.push_back(current_path + "." + name_str + (a_value.IsNumber() ? " = " + std::to_string(a_value.GetNumber()) : ""));
+                                found_something = true;
+                            }
+                    }
+                }
+
+            });
+    }
+
+
+
+    return found_something;
+}
+
+
 
 
 bool visit_all_members3(std::vector<std::string>& results, const RE::GFxValue& in, std::string* search_var, int depth, std::string current_path, std::string val_to_search, std::vector<std::string>& skip_problematic)
