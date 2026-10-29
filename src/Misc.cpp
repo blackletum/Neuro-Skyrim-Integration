@@ -22250,7 +22250,10 @@ namespace MiscThings {
 
                         if (model.find("GenPullChainAnim01") != std::string::npos) //exclude markers. for some reason their model state is not 0 even though the model doesnt exist
                         {
-                            RE::NiPoint3 base_shift_vector = { 0.0f, 40.0f, 100.0f };
+                            
+                            RE::NiPoint3 base_shift_vector = { 0.0f, 50.0f, 120.0f };
+                            base_shift_vector *= object->GetScale();
+                            //RE::NiPoint3 base_shift_vector = { 0.0f, 10.0f, -10.0f };
                             RE::NiPoint3 rotated_shift_vector = rotate_vector_by_angles(base_shift_vector, object_angles);
                             return  rotated_shift_vector;
                         }
@@ -23640,6 +23643,11 @@ namespace MiscThings {
 
                                                 this_quest.displaytext = MiscThings::fix_book_description(this_quest.displaytext);
 
+                                                if (this_quest.quest->formID == 0x46ef0 && this_quest.quest->currentStage == 10)
+                                                {
+                                                    //free odahviing quest, give hint on how to do it
+                                                    this_quest.displaytext += " (following quest will lead you to the target)";
+                                                }
 
                                                 if (this_quest.quest->formID == 0x6e803 && this_quest.quest->currentStage == 30) //c01 quest retrieve fragment, farkas assigned to us as follower, waits outside
                                                 {
