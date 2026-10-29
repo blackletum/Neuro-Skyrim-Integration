@@ -796,7 +796,7 @@ namespace MiscThings {
 
                         body->SetLinearImpulse({ throw_dir.x, throw_dir.y, throw_dir.z, 1.0f });
 
-
+                        WalkerProcessor::lock_camera_onto_target(big_cookie_ref, 1.0f);
                         
 
                         RE::NiPoint3 vel = {};

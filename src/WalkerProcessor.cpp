@@ -1427,8 +1427,17 @@ namespace WalkerProcessor {
 
     RE::TESObjectREFR* get_attack_target_ref()
     {
-        if (is_fighting())
-            return target_ref;
+        if (is_fighting() && target_ref)
+        {
+            if (target_ref->formID == 0x7121d4f) //dragon landing redirect
+            {
+                if (dragon_for_landing)
+                    return dragon_for_landing;
+            }
+            else
+                return target_ref;
+        }
+            
 
         return nullptr;
     }
@@ -3053,21 +3062,32 @@ namespace WalkerProcessor {
 
                             RE::NiPoint3 pos_to_place = player->GetPosition();
 
-                            if (target_ref && interaction_after_walk == 3)
-                                pos_to_place = target_ref->GetPosition();
+                            RE::TESObjectREFR* target_to_place = player;
+
+                            auto attack_target = get_attack_target_ref();
+                            if (attack_target)
+                            {
+                                pos_to_place = attack_target->GetPosition();
+                                target_to_place = attack_target;
+                            }
+                                
 
                             
 
                             if (item)
                             {
-                                if (target_ref && MiscThings::is_dragon(target_ref))
-                                    pos_to_place.z += 5000.0f;
+                                if (target_to_place && MiscThings::is_dragon(target_to_place))
+                                {
+                                    pos_to_place.z += 1500.0f;
+                                    pos_to_place.x += 500.0f;
+                                }
                                 else
+                                {
                                     pos_to_place.z += 3000.0f;
-
-                                pos_to_place.x += 1500.0f;
-
-                                auto new_item = RE::TESDataHandler::GetSingleton()->CreateReferenceAtLocation(item, pos_to_place, { (float)std::rand() / RAND_MAX * 10.0f, (float)std::rand() / RAND_MAX * 10.0f, (float)std::rand() / RAND_MAX * 10.0f }, player->GetParentCell(), player->GetWorldspace(), nullptr, nullptr, player->GetHandle(), false, true);
+                                    pos_to_place.x += 1500.0f;
+                                }
+                                    
+                                auto new_item = RE::TESDataHandler::GetSingleton()->CreateReferenceAtLocation(item, pos_to_place, { (float)std::rand() / RAND_MAX * 10.0f, (float)std::rand() / RAND_MAX * 10.0f, (float)std::rand() / RAND_MAX * 10.0f }, target_to_place->GetParentCell(), target_to_place->GetWorldspace(), nullptr, nullptr, target_to_place->GetHandle(), false, true);
                                 new_item.get().get()->SetScale(200.0f);
                                 MiscThings::remember_big_cookie(new_item);
                             }
@@ -15196,7 +15216,7 @@ namespace WalkerProcessor {
             crouch();//uncrouch 
 
 
-        if (MiscThings::is_dragon(target_ref))// && !(dragon_landing_spot_mode || dragon_landing_spot_nowhere_to_land))
+        if (!spell_mode && MiscThings::is_dragon(target_ref))// && !(dragon_landing_spot_mode || dragon_landing_spot_nowhere_to_land))
         {
             auto dragonrend = (RE::TESShout*)RE::TESForm::LookupByID(0x44250);
 
