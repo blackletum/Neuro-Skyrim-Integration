@@ -1159,7 +1159,7 @@ namespace WalkerProcessor {
         std::pair<bool, std::string> result{};
 
 
-        if (WalkerProcessor::is_casting_ritual_spell())
+        if (!Observer::get_allow_interrupting_ritual_spell() && WalkerProcessor::is_casting_ritual_spell())
         {
             result.first = false;
             result.second = "You are concentrated on casting Master-level spell... Wait a little before doing this";
@@ -1201,7 +1201,7 @@ namespace WalkerProcessor {
         sneak_mode_on = false;
 
 
-        if (WalkerProcessor::is_casting_ritual_spell())
+        if (!Observer::get_allow_interrupting_ritual_spell() && WalkerProcessor::is_casting_ritual_spell())
         {
             result.first = false;
             result.second = "You are concentrated on casting Master-level spell... Wait a little before doing this";
@@ -3078,7 +3078,11 @@ namespace WalkerProcessor {
                             {
                                 if (target_to_place && MiscThings::is_dragon(target_to_place))
                                 {
-                                    pos_to_place.z += 1500.0f;
+                                    if (MiscThings::is_flying(target_to_place))
+                                        pos_to_place.z += 1500.0f;
+                                    else
+                                        pos_to_place.z += 2000.0f;
+
                                     pos_to_place.x += 500.0f;
                                 }
                                 else
@@ -3087,6 +3091,9 @@ namespace WalkerProcessor {
                                     pos_to_place.x += 1500.0f;
                                 }
                                     
+                                send_random_context("You summoned a Cookie Meteorite...", true);
+
+
                                 auto new_item = RE::TESDataHandler::GetSingleton()->CreateReferenceAtLocation(item, pos_to_place, { (float)std::rand() / RAND_MAX * 10.0f, (float)std::rand() / RAND_MAX * 10.0f, (float)std::rand() / RAND_MAX * 10.0f }, target_to_place->GetParentCell(), target_to_place->GetWorldspace(), nullptr, nullptr, target_to_place->GetHandle(), false, true);
                                 new_item.get().get()->SetScale(200.0f);
                                 MiscThings::remember_big_cookie(new_item);
@@ -6562,11 +6569,13 @@ namespace WalkerProcessor {
 
 
 
+
     bool is_casting_ritual_spell()
     {
         auto player = RE::PlayerCharacter::GetSingleton();
         return (attack_action_time0 > 0.0f || attack_action_time1 > 0.0f) && has_ritual_spell_equipped() && player->IsAnimationDriven() && !player->IsStaggering() && !player->IsStaggered() && !player->actorState2.recoil && player->actorState1.knockState == RE::KNOCK_STATE_ENUM::kNormal;
     }
+
 
 
 
@@ -9838,7 +9847,7 @@ namespace WalkerProcessor {
 
 
 
-        if (WalkerProcessor::is_casting_ritual_spell())
+        if (!Observer::get_allow_interrupting_ritual_spell() && WalkerProcessor::is_casting_ritual_spell())
         {
             result.first = false;
             result.second = "You are concentrated on casting Master-level spell... Wait a little before walking somewhere else";
@@ -11101,7 +11110,7 @@ namespace WalkerProcessor {
         }
         */
 
-        if (WalkerProcessor::is_casting_ritual_spell())
+        if (!Observer::get_allow_interrupting_ritual_spell() && WalkerProcessor::is_casting_ritual_spell())
         {
             result.first = false;
             result.second = "You are concentrated on casting Master-level spell... Wait a little before walking";
@@ -11347,7 +11356,7 @@ namespace WalkerProcessor {
 
 
 
-        if (WalkerProcessor::is_casting_ritual_spell())
+        if (!Observer::get_allow_interrupting_ritual_spell() && WalkerProcessor::is_casting_ritual_spell())
         {
             result.first = false;
             result.second = "You are concentrated on casting Master-level spell... Wait a little before walking";

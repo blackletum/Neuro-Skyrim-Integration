@@ -805,6 +805,7 @@ namespace MiscThings {
 
                         if (vel.z > -200.0f && cookie_timer3 > 0.5f)
                         {
+                            send_random_context("Cookie Meteorite landed and exploded", true);
                             big_cookie_ref->PlaceObjectAtMe(explosion, false);
 
                             for (auto i = 0; i < 30; i++)
@@ -31177,7 +31178,7 @@ namespace MiscThings {
                             }
 
 
-                            if (object->IsWeapon() && WalkerProcessor::is_casting_ritual_spell())
+                            if (!Observer::get_allow_interrupting_ritual_spell() && object->IsWeapon() && WalkerProcessor::is_casting_ritual_spell())
                             {
                                 result.first = false;
                                 result.second = "You are concentrated on casting Master-level spell... Wait a little before equipping new weapons";
@@ -31310,7 +31311,7 @@ namespace MiscThings {
                                     }
 
 
-                                    if (object->IsWeapon() && WalkerProcessor::is_casting_ritual_spell())
+                                    if (!Observer::get_allow_interrupting_ritual_spell() && object->IsWeapon() && WalkerProcessor::is_casting_ritual_spell())
                                     {
                                         result.first = false;
                                         result.second = "You are concentrated on casting Master-level spell... Wait a little before equipping items";
@@ -31391,7 +31392,7 @@ namespace MiscThings {
                             else
                             {
 
-                                if (WalkerProcessor::is_casting_ritual_spell())
+                                if (!Observer::get_allow_interrupting_ritual_spell() && WalkerProcessor::is_casting_ritual_spell())
                                 {
                                     result.first = false;
                                     result.second = "You are concentrated on casting Master-level spell... Wait a little before equipping items";
@@ -34961,7 +34962,7 @@ namespace MiscThings {
         auto player_actor = (RE::Actor*)(player->AsReference());
 
 
-        if (WalkerProcessor::is_casting_ritual_spell())
+        if (!Observer::get_allow_interrupting_ritual_spell() && WalkerProcessor::is_casting_ritual_spell())
         {
             result.first = false;
             result.second = "You are concentrated on casting Master-level spell... Wait a little before casting new spell";
@@ -36039,7 +36040,7 @@ namespace MiscThings {
 
 
 
-        if (WalkerProcessor::is_casting_ritual_spell())
+        if (!Observer::get_allow_interrupting_ritual_spell() && WalkerProcessor::is_casting_ritual_spell())
         {
             result.first = false;
             result.second = "You are concentrated on casting Master-level spell... Wait a little before equipping new spell";

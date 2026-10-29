@@ -10,6 +10,11 @@
 
 namespace Observer {
 
+
+	bool allow_interrupting_ritual_spell = false;
+	bool was_casting_ritual_spell = false;
+
+
 	bool dlc2_ahzidal_ring2_disagreed_to_solve_puzzle = false;
 
 	long long dlc2_book_darkness_damage_advice_timestamp = 0; //dont need to reset
@@ -1864,6 +1869,9 @@ namespace Observer {
 
 	void reset_observer()
 	{
+		allow_interrupting_ritual_spell = false;
+		was_casting_ritual_spell = false;
+
 		was_swimming = false;
 		swimming_time = 0.0f;
 		not_swimming_time = 0.0f;
@@ -7798,6 +7806,45 @@ namespace Observer {
 
 
 
+
+
+
+	bool get_allow_interrupting_ritual_spell()
+	{
+		return allow_interrupting_ritual_spell;
+	}
+
+
+	void ritual_spell_interrupt_control()
+	{
+		//the idea is to try casting it at least once without interruptions
+		//but after attempt is done, allow interrupting so its not endless loop which is really hard to interrupt (may be fatal if enemy keeps staggering player)
+
+		if (!WalkerProcessor::has_ritual_spell_equipped())
+		{
+			allow_interrupting_ritual_spell = false; //reset
+			was_casting_ritual_spell = false;
+		}
+		else
+		{
+			if (!was_casting_ritual_spell)
+			{
+				if (WalkerProcessor::is_casting_ritual_spell())
+					was_casting_ritual_spell = true;
+			}
+			else
+			{
+				if (!WalkerProcessor::is_casting_ritual_spell())
+					allow_interrupting_ritual_spell = true;
+			}
+
+		}
+	}
+
+
+
+
+
 	void player_state_monitor(float dtime)
 	{
 		auto player = RE::PlayerCharacter::GetSingleton();
@@ -7914,6 +7961,8 @@ namespace Observer {
 		{
 			if (state_monitor_timer > 0.5f)
 			{
+				ritual_spell_interrupt_control();
+
 				if (first_cycle)
 				{
 					first_cycle = false;

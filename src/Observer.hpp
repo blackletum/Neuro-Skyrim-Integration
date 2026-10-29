@@ -40,6 +40,8 @@ namespace Observer {
 
 	bool can_surrender_to_guards();
 
+	bool get_allow_interrupting_ritual_spell();
+
 	void timed_quest_puzzles_processor(float dtime);
 	void reset_quest_puzzles();
 	void set_quest_puzzle_type(int type);
