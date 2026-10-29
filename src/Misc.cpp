@@ -9135,7 +9135,17 @@ namespace MiscThings {
                     {
 
                         RE::ObjectRefHandle quest_ref_handle{};
-                        target->GetTargetRef(quest_ref_handle, false, quest);
+                        target->GetTrackingRef(quest_ref_handle, quest); //try tracked
+                        //target->GetTargetRef(quest_ref_handle, false, quest_entry.quest); //no tracked - try actual target
+                        if (!quest_ref_handle)
+                        {
+                            //target->GetTrackingRef(quest_ref_handle, quest_entry.quest); //try tracked
+                            target->GetTargetRef(quest_ref_handle, false, quest); //no tracked - try actual target
+                        }
+
+
+                        //RE::ObjectRefHandle quest_ref_handle{};
+                        //target->GetTargetRef(quest_ref_handle, false, quest);
 
                         RE::TESObjectREFR* quest_target_ref = nullptr;
 
@@ -9155,12 +9165,38 @@ namespace MiscThings {
 
                         if (distance_player_location > 70000.0f && distance_quest_location < min_distance)
                         {
-                            if (quest_target_ref && quest_target_ref->formID == 0x2002f71) //dawnguard first cave entrance
+                            if (quest_target_ref)
                             {
-                                if (real_marker->GetPositionX() >= quest_target_ref->GetPositionX())
+                                switch (quest_target_ref->formID)//dawnguard first cave entrance
                                 {
-                                    min_distance = distance_quest_location;
-                                    sublocation_name = marker_name;
+                                case (0x2002f6e):
+                                {
+                                    if (real_marker->GetPositionX() >= quest_target_ref->GetPositionX())
+                                    {
+                                        min_distance = distance_quest_location;
+                                        sublocation_name = marker_name;
+                                    }
+                                    break;
+                                }
+
+
+                                case (0x15dcd): //forsaken cave, white phial
+                                {
+                                    if (real_marker->GetPositionY() < quest_target_ref->GetPositionY())
+                                    {
+                                        min_distance = distance_quest_location;
+                                        sublocation_name = marker_name;
+                                    }
+
+                                    break;
+                                }
+
+                                default:
+                                {
+
+                                    break;
+                                }
+
                                 }
                             }
                             else
@@ -9168,6 +9204,7 @@ namespace MiscThings {
                                 min_distance = distance_quest_location;
                                 sublocation_name = marker_name;
                             }
+
                         }
                     }
                 }
@@ -9262,11 +9299,21 @@ namespace MiscThings {
                         if (marker_name != "" && marker_name.find("Military Camp") == std::string::npos)
                         {
 
+
                             RE::ObjectRefHandle quest_ref_handle{};
-                            target->GetTargetRef(quest_ref_handle, false, quest);
+                            target->GetTrackingRef(quest_ref_handle, quest); //try tracked
+                            //target->GetTargetRef(quest_ref_handle, false, quest_entry.quest); //no tracked - try actual target
+                            if (!quest_ref_handle)
+                            {
+                                //target->GetTrackingRef(quest_ref_handle, quest_entry.quest); //try tracked
+                                target->GetTargetRef(quest_ref_handle, false, quest); //no tracked - try actual target
+                            }
+
+
+                            //RE::ObjectRefHandle quest_ref_handle{};
+                            //target->GetTargetRef(quest_ref_handle, false, quest);
 
                             RE::TESObjectREFR* quest_target_ref = nullptr;
-
                             if (quest_ref_handle)
                                 if (quest_ref_handle.get())
                                     quest_target_ref = quest_ref_handle.get().get();
@@ -9286,12 +9333,39 @@ namespace MiscThings {
                             //if player is farther from location than 350m and this is the closest location to quest, put it as candidate
                             if (distance_player_location > 35000.0f && distance_quest_location < min_distance)
                             {
-                                if (quest_target_ref && quest_target_ref->formID == 0x2002f71) //dawnguard first cave entrance
+                                if (quest_target_ref)
                                 {
-                                    if (real_marker->GetPositionX() > quest_target_ref->GetPositionX())
+                                    switch (quest_target_ref->formID)
+                                    {
+                                    case (0x2002f6e): //dawnguard first cave entrance
+                                    {
+                                        if (real_marker->GetPositionX() > quest_target_ref->GetPositionX())
+                                        {
+                                            min_distance = distance_quest_location;
+                                            sublocation_name = marker_name;
+                                        }
+
+                                        break;
+                                    }
+
+                                    case (0x15dcd): //forsaken cave, white phial
+                                    {
+                                        if (real_marker->GetPositionY() < quest_target_ref->GetPositionY())
+                                        {
+                                            min_distance = distance_quest_location;
+                                            sublocation_name = marker_name;
+                                        }
+
+                                        break;
+                                    }
+
+                                    default:
                                     {
                                         min_distance = distance_quest_location;
                                         sublocation_name = marker_name;
+
+                                        break;
+                                    }
                                     }
                                 }
                                 else
@@ -9308,7 +9382,7 @@ namespace MiscThings {
         }
 
         //if distance from location to quest is less than 450m
-        if (min_distance <= 45000.0f && sublocation_name != "")
+        if (min_distance <= 50000.0f && sublocation_name != "")
         {
             return sublocation_name;
         }

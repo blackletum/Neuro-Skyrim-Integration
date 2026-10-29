@@ -456,15 +456,48 @@ namespace MapProcessor {
 										//float distance = marker_ref->GetDistance(quest_ref, true, true);
 										auto distance = MiscThings::get_quest_target_distance(a_quest.target, a_quest.quest, marker_ref, a_quest.phantom_target);
 
-										if (quest_ref && quest_ref->formID == 0x2002f71) //dawnguard first cave entrance
+
+										if (quest_ref)
 										{
-											if (marker_ref->GetPositionX() > quest_ref->GetPositionX())
+											switch (quest_ref->formID)
+											{
+											case (0x2002f6e)://dawnguard first cave entrance
+											{
+												if (marker_ref->GetPositionX() > quest_ref->GetPositionX())
+												{
+													if (distance < min_location_dist)
+													{
+														id_closest_to_quest = marker.first;
+														min_location_dist = distance;
+													}
+												}
+												break;
+											}
+
+
+											case (0x15dcd): //forsaken cave, white phial
+											{
+												if (marker_ref->GetPositionY() < quest_ref->GetPositionY())
+												{
+													if (distance < min_location_dist)
+													{
+														id_closest_to_quest = marker.first;
+														min_location_dist = distance;
+													}
+												}
+
+												break;
+											}
+
+											default:
 											{
 												if (distance < min_location_dist)
 												{
 													id_closest_to_quest = marker.first;
 													min_location_dist = distance;
 												}
+												break;
+											}
 											}
 										}
 										else
