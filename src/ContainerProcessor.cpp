@@ -113,7 +113,21 @@ way_to_fill way{};
 
 
 
+RE::InventoryEntryData* get_inv_data_by_id(int id)
+{
+	RE::UI* ui = RE::UI::GetSingleton();
+	auto menu = ui->GetMenu<RE::ContainerMenu>();
+	if (menu && menu->itemList)
+	{
+		if (id >= 0 && id < std::size(menu->itemList->items))
+		{
+			if (menu->itemList->items[id])
+				return menu->itemList->items[id]->data.objDesc;
+		}
+	}
 
+	return nullptr;
+}
 
 
 
@@ -776,6 +790,20 @@ void update_items_list()
 									{
 										if (result.id == get_item_selected_index())
 										{
+
+											if (container_store_items_mode)
+											{
+												//additional filtering for deposit mode
+												auto inv_data = get_inv_data_by_id(result.id);
+												if (inv_data && inv_data->object)
+												{
+													if (inv_data->IsQuestObject() || inv_data->object->IsKey() || inv_data->object->IsLockpick() || inv_data->object->IsGold())
+														continue;
+												}
+											}
+
+
+
 											if (madesi_mode && !madesi_ring_found)
 											{
 												if (name.find("Madesi's") != std::string::npos && name.find("Ring") != std::string::npos)
@@ -918,6 +946,17 @@ bool update_container_item_by_id(int id)
 											if (result.id == get_item_selected_index())
 											{
 
+												if (container_store_items_mode)
+												{
+													//additional filtering for deposit mode
+													auto inv_data = get_inv_data_by_id(result.id);
+													if (inv_data && inv_data->object)
+													{
+														if (inv_data->IsQuestObject() || inv_data->object->IsKey() || inv_data->object->IsLockpick() || inv_data->object->IsGold())
+															continue;
+													}
+												}
+
 
 												item_data data{};
 												data.name = name;
@@ -1021,6 +1060,9 @@ void update_items_list2()
 												//_root.Menu.InventoryLists._ItemsList.Entry8.textField.textColor = 16777215.000000
 																							//_root.Menu.InventoryLists._ItemsList.Entry9.textField.textColor =  5000268.000000
 
+
+
+
 												RE::GFxValue var_text;
 												RE::GFxValue vat_text_color;
 
@@ -1042,6 +1084,19 @@ void update_items_list2()
 														{
 															if (result.id == get_item_selected_index())
 															{
+
+																if (container_store_items_mode)
+																{
+																	//additional filtering for deposit mode
+																	auto inv_data = get_inv_data_by_id(result.id);
+																	if (inv_data && inv_data->object)
+																	{
+																		if (inv_data->IsQuestObject() || inv_data->object->IsKey() || inv_data->object->IsLockpick() || inv_data->object->IsGold())
+																			continue;
+																	}
+																}
+
+
 																item_data data{};
 																data.name = name;
 																data.is_stealing = false; //TODO
