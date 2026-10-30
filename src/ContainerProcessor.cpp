@@ -8,6 +8,9 @@
 
 namespace ContainerProcessor {
 
+
+int items_deposited = 0;
+
 bool item_confirming = false; //currently its only for deposit items
 
 std::string container_history{};
@@ -86,12 +89,14 @@ std::vector<std::string> item_names_to_skip{};
 
 struct item_data {
 	std::string name;
+	std::string category;
 	std::string price;
 	std::string weight;
 	std::string damage;
 	std::string armor;
 	bool is_stealing;
 	int chance_to_steal;
+	RE::InventoryEntryData* inv_data;
 	//int price; //TODO: replace with something useful (maybe type of item)
 };
 
@@ -128,6 +133,20 @@ RE::InventoryEntryData* get_inv_data_by_id(int id)
 
 	return nullptr;
 }
+
+
+RE::InventoryEntryData* get_selected_entry_data()
+{
+	RE::UI* ui = RE::UI::GetSingleton();
+	auto menu = ui->GetMenu<RE::ContainerMenu>();
+	if (menu && menu->itemList && menu->itemList->GetSelectedItem())
+	{
+		return menu->itemList->GetSelectedItem()->data.objDesc;
+	}
+
+	return nullptr;
+}
+
 
 
 
@@ -453,6 +472,9 @@ std::vector<MenuOption> get_items_options()
 		std::string armor_text = "";
 		if (item.second.armor != "")
 			armor_text = ". Armor: " + item.second.armor;
+		std::string category_text = "";
+		if (item.second.category != "")
+			category_text = item.second.category + " ";
 
 		std::string steal_chance_text = "";
 
@@ -464,7 +486,7 @@ std::vector<MenuOption> get_items_options()
 		
 
 
-		MenuOption option = { item.first, item.second.name + price_text + weight_text + damage_text + armor_text + steal_text + steal_chance_text };
+		MenuOption option = { item.first, category_text + item.second.name + price_text + weight_text + damage_text + armor_text + steal_text + steal_chance_text };
 		result.push_back(option);
 	}
 
@@ -612,6 +634,81 @@ int get_item_scroll_position()
 }
 
 
+int get_top_item_index()
+{
+	//std::vector<uint32_t> filters{};
+
+	int min_index = 0;
+
+		RE::UI* ui = RE::UI::GetSingleton();
+		auto menu = ui->GetMenu<RE::ContainerMenu>();
+		if (menu && menu->itemList)
+		{
+			for (int id = 0; id < std::size(menu->itemList->items); id++)
+			{
+				if (menu->itemList->items[id])
+				{
+					auto filter = menu->itemList->items[id]->data.GetFilterFlag();
+
+					//filters.push_back(filter);
+
+					if (container_store_items_mode)
+					{
+						if (filter <= 128)
+							return id;
+					}
+					else
+					{
+						if (filter > 128)
+							return id;
+					}
+
+				}
+				
+			}
+		}
+
+	return min_index;
+}
+
+int get_bottom_item_index()
+{
+	std::vector<uint32_t> filters{};
+
+	int max_index = 0;
+
+		RE::UI* ui = RE::UI::GetSingleton();
+		auto menu = ui->GetMenu<RE::ContainerMenu>();
+		if (menu && menu->itemList)
+		{
+			for (int id = 0; id < std::size(menu->itemList->items); id++)
+			{
+				if (menu->itemList->items[id])
+				{
+					auto filter = menu->itemList->items[id]->data.GetFilterFlag();
+
+					filters.push_back(filter);
+
+					if (container_store_items_mode)
+					{
+						if (filter <= 128)
+							max_index = id;
+					}
+					else
+					{
+						if (filter > 128)
+							max_index = id;
+					}
+
+				}
+
+			}
+		}
+
+	return max_index;
+}
+
+
 
 int get_item_max_scroll_position()
 {
@@ -749,6 +846,8 @@ void update_items_list()
 									std::string weight = "";
 									std::string damage = "";
 									std::string armor = "";
+									std::string category = "";
+
 
 									if (menu->uiMovie->GetVariable(&subvar, "_root.Menu_mc.ItemCard_mc.ItemValueText.text"))
 										if (!subvar.IsNull() && subvar.IsString())
@@ -791,15 +890,18 @@ void update_items_list()
 										if (result.id == get_item_selected_index())
 										{
 
-											if (container_store_items_mode)
+											RE::InventoryEntryData* inv_data = nullptr;
+
+											//additional filtering for deposit mode
+											inv_data = get_inv_data_by_id(result.id);
+											if (inv_data && inv_data->object)
 											{
-												//additional filtering for deposit mode
-												auto inv_data = get_inv_data_by_id(result.id);
-												if (inv_data && inv_data->object)
+												if (container_store_items_mode)
 												{
 													if (inv_data->IsQuestObject() || inv_data->object->IsKey() || inv_data->object->IsLockpick() || inv_data->object->IsGold())
 														continue;
 												}
+												category = MiscThings::get_object_category(inv_data->object).second;
 											}
 
 
@@ -831,7 +933,7 @@ void update_items_list()
 													quit_menu();
 													return;
 												}
-													
+
 											}
 
 
@@ -843,6 +945,8 @@ void update_items_list()
 											data.armor = armor;
 											data.is_stealing = is_stealing;
 											data.chance_to_steal = chance_to_steal;
+											data.inv_data = inv_data;
+											data.category = category;
 
 											items_list.insert({ result.id, data });
 										}
@@ -904,6 +1008,7 @@ bool update_container_item_by_id(int id)
 										std::string weight = "";
 										std::string damage = "";
 										std::string armor = "";
+										std::string category = "";
 
 										if (menu->uiMovie->GetVariable(&subvar, "_root.Menu_mc.ItemCard_mc.ItemValueText.text"))
 											if (!subvar.IsNull() && subvar.IsString())
@@ -946,16 +1051,22 @@ bool update_container_item_by_id(int id)
 											if (result.id == get_item_selected_index())
 											{
 
-												if (container_store_items_mode)
+												RE::InventoryEntryData* inv_data = nullptr;
+
+
+												//additional filtering for deposit mode
+												inv_data = get_inv_data_by_id(result.id);
+												if (inv_data && inv_data->object)
 												{
-													//additional filtering for deposit mode
-													auto inv_data = get_inv_data_by_id(result.id);
-													if (inv_data && inv_data->object)
+													if (container_store_items_mode)
 													{
 														if (inv_data->IsQuestObject() || inv_data->object->IsKey() || inv_data->object->IsLockpick() || inv_data->object->IsGold())
 															continue;
 													}
+
+													category = MiscThings::get_object_category(inv_data->object).second;
 												}
+
 
 
 												item_data data{};
@@ -966,6 +1077,7 @@ bool update_container_item_by_id(int id)
 												data.armor = armor;
 												data.is_stealing = is_stealing;
 												data.chance_to_steal = chance_to_steal;
+												data.inv_data = inv_data;
 												items_list.insert_or_assign(result.id, data);
 
 												update_result = true;
@@ -990,7 +1102,7 @@ bool update_container_item_by_id(int id)
 
 
 
-
+/*
 void update_items_list2()
 {
 	RE::GFxValue var1;
@@ -1084,11 +1196,12 @@ void update_items_list2()
 														{
 															if (result.id == get_item_selected_index())
 															{
+																RE::InventoryEntryData* inv_data = nullptr;
 
 																if (container_store_items_mode)
 																{
 																	//additional filtering for deposit mode
-																	auto inv_data = get_inv_data_by_id(result.id);
+																	inv_data = get_inv_data_by_id(result.id);
 																	if (inv_data && inv_data->object)
 																	{
 																		if (inv_data->IsQuestObject() || inv_data->object->IsKey() || inv_data->object->IsLockpick() || inv_data->object->IsGold())
@@ -1100,6 +1213,7 @@ void update_items_list2()
 																item_data data{};
 																data.name = name;
 																data.is_stealing = false; //TODO
+																data.inv_data = inv_data;
 
 																items_list.insert({ result.id, data });
 															}
@@ -1117,6 +1231,7 @@ void update_items_list2()
 				}
 }
 
+*/
 
 
 
@@ -1125,10 +1240,17 @@ void update_items_list2()
 
 
 
+
+float scroll_stuck_threshold = 1.0f;
 
 
 void fill_items_list_one_direction(bool direction_down, float dtime)
 {
+
+
+
+	//auto test = get_selected_entry_data();
+
 	int max_scroll = get_item_max_scroll_position();
 	int scroll = get_item_scroll_position();
 
@@ -1137,7 +1259,7 @@ void fill_items_list_one_direction(bool direction_down, float dtime)
 	else
 		scroll_stuck_time = 0.0f;
 
-	if (scroll_stuck_time > 1.0f)
+	if (scroll_stuck_time > scroll_stuck_threshold)
 	{
 		scroll_stuck = true;
 		scroll_stuck_time = 0.0f;
@@ -1145,41 +1267,61 @@ void fill_items_list_one_direction(bool direction_down, float dtime)
 	}
 	last_scroll = scroll;
 
+	//int min_scroll = get_item_min_scroll_position();
+
+	int min_scroll = 0;
+
+
+	int item_pos_top = get_top_item_index();
+	int item_pos_bottom = get_bottom_item_index();
+
+
+	//if (container_store_items_mode)
+	//{
+	//	min_scroll = items_deposited;
+	//}
+
+
 	if (direction_down)
 	{
-		if (scroll < max_scroll)
+		if (scroll < max_scroll && !(container_store_items_mode && get_item_selected_position() == item_pos_bottom))
 		{
 			update_items_list(); //do this on every scroll
 			if (scroll_stuck)
-				perk_down();
+				//perk_down();
+				filling_items = false; //restart fill
 			else
 				cursor_down();
 		}
 		else
 		{
 			update_items_list(); //do this on every scroll
-			if (scroll_stuck)
-				filling_items = false; //restart fill
-			else
-				fill_items_one_direction_done = true;
+			//if (scroll_stuck)
+			//	filling_items = false; //restart fill
+			//else
+			fill_items_one_direction_done = true;
+
+			scroll_stuck = false;
 		}
 	}
 	else
-		if (scroll > 0)
+		if (scroll > min_scroll && !(container_store_items_mode && get_item_selected_position() == item_pos_top)) //its usually getting stuck on position 1, while actually item 0 is being selected. scroll != selected so this might work
 		{
 			update_items_list(); //do this on every scroll
 			if (scroll_stuck)
-				perk_up();
+				//perk_up();
+				filling_items = false; //restart fill
 			else
 				cursor_up();
 		}
 		else
 		{
 			update_items_list(); //do this on every scroll
-			if (scroll_stuck)
-				filling_items = false; //restart fill
-			else
-				fill_items_one_direction_done = true;
+			//if (scroll_stuck)
+			//	filling_items = false; //restart fill
+			//else
+			fill_items_one_direction_done = true;
+			scroll_stuck = false;
 		}
 }
 
@@ -1375,6 +1517,8 @@ void reset_pickpocketing()
 
 void reset_container()
 {
+	items_deposited = 0;
+
 	item_confirming = false;
 
 	old_item_choice_text = "";
@@ -1993,6 +2137,7 @@ int detect_container_result()
 
 	if (item_choice_text == "")
 	{
+		items_deposited++;
 		old_item_choice_text = "";
 		old_item_choice_text_valid = false;
 		return 5; //item disappeared
@@ -2000,6 +2145,7 @@ int detect_container_result()
 	else
 		if (item_choice_text != old_item_choice_text)
 		{
+			items_deposited++;
 			old_item_choice_text_valid = false;
 			old_item_choice_text = "";
 			return 6; //text changed. probably quantity.
@@ -2169,7 +2315,7 @@ void processor(float dtime)
 						}
 						else
 						{
-							fill_items_list(0.02f);
+							fill_items_list(0.01f + dtime);
 
 							if (move_cursor_timeout1 > 10.0f)
 							{
@@ -2201,6 +2347,10 @@ void processor(float dtime)
 								{
 									if (a_choice > 0 && a_choice > item_choice)
 										a_choice -= 1;
+
+									if (container_store_items_mode)
+										a_choice += 1; //item was moved to different category, all items in fill mode moved +1
+
 								}
 
 								quantity_was_specified = false;
@@ -2289,7 +2439,7 @@ void processor(float dtime)
 							{
 								auto force_type = force_type::container_item;
 
-								if (!is_pickpocketing() && !container_store_items_mode)
+								if (!is_pickpocketing())// && !container_store_items_mode)
 									force_type = force_type::container_item_array;
 
 								if (force_choice(options, get_force_message(), force_type))
@@ -2567,7 +2717,7 @@ void processor(float dtime)
 
 											check_results = false;
 
-											if (is_pickpocketing() || container_store_items_mode)
+											if (is_pickpocketing())// || container_store_items_mode)
 											{
 												if (!container_store_items_mode)
 													catch_pickpocket_result = true;
