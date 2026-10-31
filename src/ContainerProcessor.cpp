@@ -8,6 +8,8 @@
 
 namespace ContainerProcessor {
 
+float preconfirm_timer = 0.0f;
+float preconfirm_timer2 = 0.0f;
 
 bool item_confirming = false; //currently its only for deposit items
 
@@ -1732,6 +1734,9 @@ void reset_pickpocketing()
 
 void reset_container()
 {
+	preconfirm_timer = 0.0f;
+	preconfirm_timer2 = 0.0f;
+
 	item_confirming = false;
 
 	old_item_choice_text = "";
@@ -1815,6 +1820,9 @@ void reset_container()
 
 void process_next_item()
 {
+	preconfirm_timer = 0.0f;
+	preconfirm_timer2 = 0.0f;
+
 
 	current_item_info_for_history = "";
 
@@ -2813,24 +2821,33 @@ void processor(float dtime)
 										}
 										else
 										{
-											if (madesi_mode || plant_mode)
+											if (preconfirm_timer > 0.3f)
 											{
-												close_empty_container = true;
-												ready_weapon();
-											}
-											else
-											{
-												if (container_store_items_mode)
+												if (madesi_mode || plant_mode)
 												{
-													old_item_choice_text = get_item_text_by_id(item_choice);
-													old_item_choice_text_valid = true;
-													item_confirming = true;
-													set_universal_block(0.2f);
+													close_empty_container = true;
 													ready_weapon();
 												}
 												else
-													confirm(); //default
+												{
+													if (container_store_items_mode)
+													{
+														old_item_choice_text = get_item_text_by_id(item_choice);
+														old_item_choice_text_valid = true;
+														item_confirming = true;
+														set_universal_block(0.2f);
+														ready_weapon();
+													}
+													else
+														confirm(); //default
+												}
 											}
+											else
+											{
+												preconfirm_timer += dtime;
+												return;
+											}
+												
 												
 										}
 
@@ -2866,78 +2883,89 @@ void processor(float dtime)
 									}
 									else
 									{
+										preconfirm_timer = 0.0f;
+
 										if (quantity_slider_active())
 										{
-
-											if (!is_storage_container())
+											if (preconfirm_timer2 > 0.3f)
 											{
-												if (!is_malborn())
+												if (!is_storage_container())
 												{
-													confirm();
-													set_universal_block(0.3f);
-												}
-												else
-												{
-													confirm_fast();
-												}
-
-												return;
-											}
-											else
-											{
-												if (!slider_request_sent)
-												{
-
-													std::string action = "take";
-
-													if (container_store_items_mode)
-														action = "store";
-
-													if (force_choice({}, "Choose amount of " + get_item_text_by_id(item_choice) + " to " + action + ".Valid range : from " +
-														std::to_string(get_slider_min()) + " to " + std::to_string(get_slider_max()), force_type::container_quantity))
-														slider_request_sent = true;
+													if (!is_malborn())
+													{
+														confirm();
+														set_universal_block(0.3f);
+													}
+													else
+													{
+														confirm_fast();
+													}
 
 													return;
 												}
 												else
 												{
-													if (slider_choice_valid)
+													if (!slider_request_sent)
 													{
-														quantity_was_specified = true;
-														if (slider_choice > 0)
+
+														std::string action = "take";
+
+														if (container_store_items_mode)
+															action = "store";
+
+														if (force_choice({}, "Choose amount of " + get_item_text_by_id(item_choice) + " to " + action + ".Valid range : from " +
+															std::to_string(get_slider_min()) + " to " + std::to_string(get_slider_max()), force_type::container_quantity))
+															slider_request_sent = true;
+
+														return;
+													}
+													else
+													{
+														if (slider_choice_valid)
 														{
-															if (get_slider_pos() != slider_choice)
+															quantity_was_specified = true;
+															if (slider_choice > 0)
 															{
-																move_slider_to_pos(slider_choice);
-																return;
-															}
-															else
-															{
-																if (!slider_confirmed)
+																if (get_slider_pos() != slider_choice)
 																{
-																	confirm();
-																	slider_confirming = true;
+																	move_slider_to_pos(slider_choice);
 																	return;
 																}
 																else
 																{
-																	return;
-																	;//put some watchdog here
+																	if (!slider_confirmed)
+																	{
+																		confirm();
+																		slider_confirming = true;
+																		return;
+																	}
+																	else
+																	{
+																		return;
+																		;//put some watchdog here
+																	}
 																}
 															}
-														}
 
-														cancel();
-														set_universal_block(0.3f);
-														return;
+															cancel();
+															set_universal_block(0.3f);
+															return;
+														}
+														else
+															return;
 													}
-													else
-														return;
 												}
 											}
+											else
+											{
+												preconfirm_timer2 += dtime;
+												return;
+											}
+												
 										}
 										else
 										{
+											preconfirm_timer2 = 0.0f;
 											if (container_store_items_mode)
 											{
 												int test_result = detect_container_result();
